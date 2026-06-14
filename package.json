@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm registry:build && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "fumadocs-mdx source.config.ts .source && tsc --noEmit",
