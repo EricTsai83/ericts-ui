@@ -1,5 +1,11 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
+
+@utility -inset-s-4 {
+  inset-inline-start: calc(var(--spacing) * -4);
+}
 
 @custom-variant dark (&:is(.dark *));
 
