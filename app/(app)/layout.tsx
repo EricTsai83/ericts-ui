@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <LogoIcon className="size-5" aria-hidden="true" />
-            <span>EricTS UI</span>
+            <span>ericts/ui</span>
           </Link>
           <nav className="flex items-center gap-1 text-sm text-muted-foreground">
             <Link

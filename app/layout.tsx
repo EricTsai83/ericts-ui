@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EricTS UI Registry",
-  description: "A custom shadcn registry documentation and preview site.",
+  title: "ericts/ui Registry",
+  description:
+    "A ericts/ui components and blocks registry documentation and preview site.",
 };
 
 export default function RootLayout({
