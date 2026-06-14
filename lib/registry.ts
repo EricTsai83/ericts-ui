@@ -25,7 +25,7 @@ function getCategory(item: (typeof registry.items)[number]) {
 export const registryItems = registry.items.map((item) => ({
   ...item,
   category: getCategory(item),
-  href: `/view/new-york/${item.name}`,
+  href: `/view/base/${item.name}`,
   registryUrl: `/r/${item.name}.json`,
 })) satisfies RegistryItem[];
 

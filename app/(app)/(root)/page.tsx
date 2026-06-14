@@ -40,7 +40,7 @@ export default function Home() {
           </div>
           <div className="rounded-md border p-3">
             <dt className="text-muted-foreground">Style</dt>
-            <dd className="text-2xl font-semibold">new-york</dd>
+            <dd className="text-2xl font-semibold">base</dd>
           </div>
           <div className="rounded-md border p-3">
             <dt className="text-muted-foreground">Output</dt>

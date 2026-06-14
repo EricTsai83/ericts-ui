@@ -13,7 +13,7 @@ type PageProps = {
 
 export function generateStaticParams() {
   return registryItems.map((item) => ({
-    style: "new-york",
+    style: "base",
     name: item.name,
   }));
 }
@@ -22,7 +22,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { name, style } = await params;
-  const item = style === "new-york" ? getRegistryItem(name) : undefined;
+  const item = style === "base" ? getRegistryItem(name) : undefined;
 
   if (!item) {
     return {};
@@ -36,7 +36,7 @@ export async function generateMetadata({
 
 export default async function ViewPage({ params }: PageProps) {
   const { name, style } = await params;
-  const item = style === "new-york" ? getRegistryItem(name) : undefined;
+  const item = style === "base" ? getRegistryItem(name) : undefined;
 
   if (!item) {
     notFound();
