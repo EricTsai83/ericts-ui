@@ -1,5 +1,9 @@
 allowBuilds:
-  '@tailwindcss/oxide': set this to true or false
-  msw: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  '@tailwindcss/oxide': true
+  msw: true
+  sharp: true
+  unrs-resolver: true
+
+overrides:
+  '@types/react': 19.1.2
+  '@types/react-dom': 19.1.2
