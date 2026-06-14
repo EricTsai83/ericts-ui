@@ -132,3 +132,10 @@
     --fd-sidebar-width: 220px !important;
   }
 }
+
+@layer components {
+  #nd-toc [class~="absolute"][class~="top-0"][class~="inset-s-0"],
+  #nd-toc a[href^="#"] > svg {
+    display: none;
+  }
+}
