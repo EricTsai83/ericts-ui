@@ -10,6 +10,13 @@ type GradientStop = {
   color: string
 }
 
+const viewBox = {
+  width: 300,
+  height: 100,
+  centerX: 150,
+  centerY: 50,
+}
+
 export type TextHoverEffectProps = {
   text: string
   duration?: number
@@ -38,7 +45,7 @@ export function TextHoverEffect({
   text,
   duration = 0,
   width = "100%",
-  height = "100%",
+  height = 100,
   fontSize = "text-7xl",
   className,
   svgClassName,
@@ -46,29 +53,58 @@ export function TextHoverEffect({
   gradientStops = defaultGradientStops,
 }: TextHoverEffectProps) {
   const svgRef = React.useRef<SVGSVGElement>(null)
-  const id = React.useId()
+  const id = React.useId().replace(/:/g, "")
   const [hovered, setHovered] = React.useState(false)
   const [maskPosition, setMaskPosition] = React.useState({
-    cx: "50%",
-    cy: "50%",
+    cx: viewBox.centerX,
+    cy: viewBox.centerY,
   })
 
   const gradientId = `${id}-text-gradient`
   const maskGradientId = `${id}-reveal-mask`
   const maskId = `${id}-text-mask`
 
-  function handleMouseMove(event: React.MouseEvent<SVGSVGElement>) {
+  function getPointerPosition(event: React.PointerEvent<SVGSVGElement>) {
     const svg = svgRef.current
 
     if (!svg) {
-      return
+      return null
+    }
+
+    const point = svg.createSVGPoint()
+
+    point.x = event.clientX
+    point.y = event.clientY
+
+    const screenCtm = svg.getScreenCTM()
+
+    if (screenCtm) {
+      const svgPoint = point.matrixTransform(screenCtm.inverse())
+
+      return {
+        x: svgPoint.x,
+        y: svgPoint.y,
+      }
     }
 
     const rect = svg.getBoundingClientRect()
 
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * viewBox.width,
+      y: ((event.clientY - rect.top) / rect.height) * viewBox.height,
+    }
+  }
+
+  function handlePointerMove(event: React.PointerEvent<SVGSVGElement>) {
+    const pointerPosition = getPointerPosition(event)
+
+    if (!pointerPosition) {
+      return
+    }
+
     setMaskPosition({
-      cx: `${((event.clientX - rect.left) / rect.width) * 100}%`,
-      cy: `${((event.clientY - rect.top) / rect.height) * 100}%`,
+      cx: Math.min(Math.max(pointerPosition.x, 0), viewBox.width),
+      cy: Math.min(Math.max(pointerPosition.y, 0), viewBox.height),
     })
   }
 
@@ -90,30 +126,49 @@ export function TextHoverEffect({
         ref={svgRef}
         width="100%"
         height="100%"
+        viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
         xmlns="http://www.w3.org/2000/svg"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onMouseMove={handleMouseMove}
+        onPointerEnter={(event) => {
+          setHovered(true)
+          handlePointerMove(event)
+        }}
+        onPointerLeave={() => {
+          setHovered(false)
+          setMaskPosition({
+            cx: viewBox.centerX,
+            cy: viewBox.centerY,
+          })
+        }}
+        onPointerMove={handlePointerMove}
         className={cn("select-none", svgClassName)}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <linearGradient id={gradientId} gradientUnits="userSpaceOnUse">
-            {hovered &&
-              gradientStops.map((stop) => (
-                <stop
-                  key={`${stop.offset}-${stop.color}`}
-                  offset={stop.offset}
-                  stopColor={stop.color}
-                />
-              ))}
+          <linearGradient
+            id={gradientId}
+            x1="0"
+            y1="0"
+            x2={viewBox.width}
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            {gradientStops.map((stop) => (
+              <stop
+                key={`${stop.offset}-${stop.color}`}
+                offset={stop.offset}
+                stopColor={stop.color}
+              />
+            ))}
           </linearGradient>
 
           <motion.radialGradient
             id={maskGradientId}
             gradientUnits="userSpaceOnUse"
-            r="20%"
-            initial={{ cx: "50%", cy: "50%" }}
+            r={hovered ? 28 : 0}
+            initial={{
+              cx: viewBox.centerX,
+              cy: viewBox.centerY,
+            }}
             animate={maskPosition}
             transition={{ duration, ease: "easeOut" }}
           >
@@ -131,8 +186,8 @@ export function TextHoverEffect({
           </mask>
         </defs>
         <text
-          x="50%"
-          y="50%"
+          x={viewBox.centerX}
+          y={viewBox.centerY}
           textAnchor="middle"
           dominantBaseline="middle"
           strokeWidth="0.3"
@@ -145,8 +200,8 @@ export function TextHoverEffect({
           {text}
         </text>
         <motion.text
-          x="50%"
-          y="50%"
+          x={viewBox.centerX}
+          y={viewBox.centerY}
           textAnchor="middle"
           dominantBaseline="middle"
           strokeWidth="1.3"
@@ -167,8 +222,8 @@ export function TextHoverEffect({
           {text}
         </motion.text>
         <text
-          x="50%"
-          y="50%"
+          x={viewBox.centerX}
+          y={viewBox.centerY}
           textAnchor="middle"
           dominantBaseline="middle"
           stroke={`url(#${gradientId})`}

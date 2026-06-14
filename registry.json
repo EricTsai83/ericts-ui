@@ -75,6 +75,19 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "text-hover-effect",
+      "type": "registry:component",
+      "title": "Text Hover Effect",
+      "description": "An animated SVG text effect that reveals a gradient on hover.",
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "components/ui/text-hover-effect.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }
