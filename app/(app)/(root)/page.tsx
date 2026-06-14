@@ -67,33 +67,39 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid gap-4">
-          {featuredItems.map((item) => (
-            <article
-              key={item.name}
-              className="grid gap-4 rounded-md border p-4 lg:grid-cols-[280px_1fr]"
-            >
-              <div className="flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="font-medium">{item.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {item.description}
-                  </p>
+          {featuredItems.length > 0 ? (
+            featuredItems.map((item) => (
+              <article
+                key={item.name}
+                className="grid gap-4 rounded-md border p-4 lg:grid-cols-[280px_1fr]"
+              >
+                <div className="flex flex-col justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">{item.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={item.href}
+                      className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      Preview
+                    </Link>
+                    <OpenInV0Button name={item.name} className="w-fit" />
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={item.href}
-                    className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                  >
-                    Preview
-                  </Link>
-                  <OpenInV0Button name={item.name} className="w-fit" />
+                <div className="flex min-h-[260px] items-center justify-center rounded-md bg-muted/40 p-6">
+                  <RegistryPreview name={item.name} />
                 </div>
-              </div>
-              <div className="flex min-h-[260px] items-center justify-center rounded-md bg-muted/40 p-6">
-                <RegistryPreview name={item.name} />
-              </div>
-            </article>
-          ))}
+              </article>
+            ))
+          ) : (
+            <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+              No registry components yet.
+            </div>
+          )}
         </div>
       </section>
     </div>

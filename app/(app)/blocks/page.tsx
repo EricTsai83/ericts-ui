@@ -21,55 +21,63 @@ export default function BlocksPage() {
           Preview registry entries, open generated JSON, or send an item to v0.
         </p>
         <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <Link
-              key={category}
-              href={`/blocks/${category}`}
-              className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              {category}
-            </Link>
-          ))}
+          {categories.length > 0
+            ? categories.map((category) => (
+                <Link
+                  key={category}
+                  href={`/blocks/${category}`}
+                  className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  {category}
+                </Link>
+              ))
+            : null}
         </div>
       </div>
 
       <div className="grid gap-4">
-        {registryItems.map((item) => (
-          <article
-            key={item.name}
-            className="grid gap-4 rounded-md border p-4 lg:grid-cols-[280px_1fr]"
-          >
-            <div className="flex flex-col justify-between gap-4">
-              <div>
-                <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {item.category}
+        {registryItems.length > 0 ? (
+          registryItems.map((item) => (
+            <article
+              key={item.name}
+              className="grid gap-4 rounded-md border p-4 lg:grid-cols-[280px_1fr]"
+            >
+              <div className="flex flex-col justify-between gap-4">
+                <div>
+                  <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {item.category}
+                  </div>
+                  <h2 className="font-medium">{item.title}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                 </div>
-                <h2 className="font-medium">{item.title}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {item.description}
-                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={item.href}
+                    className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Preview
+                  </Link>
+                  <Link
+                    href={item.registryUrl}
+                    className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    JSON
+                  </Link>
+                  <OpenInV0Button name={item.name} className="w-fit" />
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={item.href}
-                  className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  Preview
-                </Link>
-                <Link
-                  href={item.registryUrl}
-                  className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  JSON
-                </Link>
-                <OpenInV0Button name={item.name} className="w-fit" />
+              <div className="flex min-h-[300px] items-center justify-center rounded-md bg-muted/40 p-6">
+                <RegistryPreview name={item.name} />
               </div>
-            </div>
-            <div className="flex min-h-[300px] items-center justify-center rounded-md bg-muted/40 p-6">
-              <RegistryPreview name={item.name} />
-            </div>
-          </article>
-        ))}
+            </article>
+          ))
+        ) : (
+          <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+            No registry components yet.
+          </div>
+        )}
       </div>
     </div>
   );

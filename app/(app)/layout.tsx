@@ -8,8 +8,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <LogoIcon className="size-5" aria-hidden="true" />
+          <Link href="/" className="flex items-center gap-2 font-semibold leading-none">
+            <LogoIcon className="block size-5 shrink-0" aria-hidden="true" />
             <span>ericts/ui</span>
           </Link>
           <nav className="flex items-center gap-1 text-sm text-muted-foreground">

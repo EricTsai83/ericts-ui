@@ -1,18 +1,34 @@
 import registry from "@/registry.json";
 
-export type RegistryItem = (typeof registry.items)[number] & {
+type RegistryFile = {
+  path: string;
+  type: string;
+  target?: string;
+};
+
+type RegistrySourceItem = {
+  name: string;
+  type: string;
+  title?: string;
+  description?: string;
+  files?: RegistryFile[];
+};
+
+export type RegistryItem = RegistrySourceItem & {
   category: string;
   href: string;
   registryUrl: string;
 };
 
-function getCategory(item: (typeof registry.items)[number]) {
-  if (item.files.some((file) => file.path.includes("/blocks/"))) {
+function getCategory(item: RegistrySourceItem) {
+  const files = item.files ?? [];
+
+  if (files.some((file) => file.path.includes("/blocks/"))) {
     return "blocks";
   }
 
   if (
-    item.files.some(
+    files.some(
       (file) => file.path.includes("/ui/") || file.type === "registry:ui"
     )
   ) {
@@ -22,12 +38,14 @@ function getCategory(item: (typeof registry.items)[number]) {
   return item.type.replace("registry:", "");
 }
 
-export const registryItems = registry.items.map((item) => ({
+const registrySourceItems = registry.items as RegistrySourceItem[];
+
+export const registryItems: RegistryItem[] = registrySourceItems.map((item) => ({
   ...item,
   category: getCategory(item),
   href: `/view/base/${item.name}`,
   registryUrl: `/r/${item.name}.json`,
-})) satisfies RegistryItem[];
+}));
 
 export function getRegistryItem(name: string) {
   return registryItems.find((item) => item.name === name);
