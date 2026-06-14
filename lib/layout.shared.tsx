@@ -4,7 +4,7 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       enabled: false,
-      title: "EricTS UI",
+      title: "ericts/ui",
       url: "/",
     },
     searchToggle: {
