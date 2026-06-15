@@ -1,9 +1,9 @@
 "use client";
 
-import { ThemeSwitch } from "fumadocs-ui/layouts/shared/slots/theme-switch";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { Search } from "lucide-react";
 
+import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { cn } from "@/lib/utils";
 
 export function HeaderActions() {
@@ -40,10 +40,7 @@ export function HeaderActions() {
           ) : null}
         </button>
       ) : null}
-      <ThemeSwitch
-        mode="light-dark"
-        className="border bg-background text-muted-foreground [&_svg]:transition-colors data-[theme-toggle]:hover:bg-accent data-[theme-toggle]:hover:text-accent-foreground"
-      />
+      <ThemeModeToggle />
     </div>
   );
 }
