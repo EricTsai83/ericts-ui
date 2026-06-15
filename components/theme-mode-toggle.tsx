@@ -20,7 +20,6 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
   const visualIsDark = visualOverride ?? isDark;
   const visualOverrideTimer =
     React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const skyClipId = React.useId();
 
   React.useEffect(() => {
     return () => {
@@ -40,13 +39,26 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
     setVisualOverride(nextIsDark);
     visualOverrideTimer.current = setTimeout(() => {
       setVisualOverride(null);
-    }, shouldReduceMotion ? 0 : 360);
+    }, shouldReduceMotion ? 0 : 560);
     setTheme(nextIsDark ? "dark" : "light");
   }, [setTheme, shouldReduceMotion, visualIsDark]);
 
-  const transition = {
-    duration: shouldReduceMotion ? 0 : 0.32,
+  const exitDuration = shouldReduceMotion ? 0 : 0.24;
+  const enterDelay = shouldReduceMotion ? 0 : 0.24;
+  const enterDuration = shouldReduceMotion ? 0 : 0.26;
+  const sunTransition = {
+    duration: visualIsDark ? exitDuration : enterDuration,
+    delay: visualIsDark ? 0 : enterDelay,
     ease: [0.645, 0.045, 0.355, 1],
+  } as const;
+  const moonTransition = {
+    duration: visualIsDark ? enterDuration : exitDuration,
+    delay: visualIsDark ? enterDelay : 0,
+    ease: [0.645, 0.045, 0.355, 1],
+  } as const;
+  const waveTransition = {
+    duration: shouldReduceMotion ? 0 : 0.18,
+    ease: "easeOut",
   } as const;
 
   return (
@@ -71,48 +83,58 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
-        className="size-4.5 transition-colors"
+        className="size-5 transition-colors"
       >
-        <defs>
-          <clipPath id={skyClipId}>
-            <path d="M3 3h18v13.5H3z" />
-          </clipPath>
-        </defs>
-        <g clipPath={`url(#${skyClipId})`}>
-          <motion.g
-            animate={{
-              opacity: visualIsDark ? 0 : 1,
-              rotate: visualIsDark ? 90 : 0,
-              y: visualIsDark ? 10 : 0,
-            }}
-            initial={false}
-            style={{
-              transformBox: "fill-box",
-              transformOrigin: "center",
-            }}
-            transition={transition}
-          >
-            <circle cx="12" cy="9" r="3.25" />
-            <path d="M12 3.75v1" />
-            <path d="M12 13.25v1" />
-            <path d="M6.75 9h1" />
-            <path d="M16.25 9h1" />
-            <path d="M8.25 5.25l.7.7" />
-            <path d="M15.05 12.05l.7.7" />
-            <path d="M15.75 5.25l-.7.7" />
-            <path d="M8.95 12.05l-.7.7" />
-          </motion.g>
-        </g>
+        <motion.g
+          animate={{
+            opacity: visualIsDark ? 0 : 1,
+            rotate: visualIsDark ? 28 : 0,
+            y: visualIsDark ? 6 : 0,
+          }}
+          initial={false}
+          style={{
+            transformBox: "fill-box",
+            transformOrigin: "center",
+          }}
+          transition={sunTransition}
+        >
+          <circle cx="12" cy="10.4" r="3.75" />
+          <path d="M12 4.25v1.35" />
+          <path d="M12 15.2v1.35" />
+          <path d="M5.85 10.4h1.35" />
+          <path d="M16.8 10.4h1.35" />
+          <path d="M7.65 6.05l.95.95" />
+          <path d="M15.4 13.8l.95.95" />
+          <path d="M16.35 6.05l-.95.95" />
+          <path d="M8.6 13.8l-.95.95" />
+        </motion.g>
+        <motion.g
+          animate={{
+            opacity: visualIsDark ? 1 : 0,
+            rotate: visualIsDark ? 0 : -18,
+            x: -0.7,
+            y: visualIsDark ? 0 : 6,
+          }}
+          initial={false}
+          style={{
+            transformBox: "fill-box",
+            transformOrigin: "center",
+          }}
+          transition={moonTransition}
+        >
+          <path d="M14 6.2a4.9 4.9 0 1 0 4.25 7.9a3.75 3.75 0 1 1 -4.25 -7.9Z" />
+        </motion.g>
         <motion.g
           animate={{
             opacity: visualIsDark ? 0.72 : 1,
+            stroke: visualIsDark
+              ? "var(--foreground)"
+              : "var(--muted-foreground)",
           }}
           initial={false}
-          stroke={visualIsDark ? "var(--foreground)" : "var(--muted-foreground)"}
-          transition={transition}
+          transition={waveTransition}
         >
-          <path d="M4.5 13.5c1.3-1 2.4-1 3.7 0s2.4 1 3.7 0s2.4-1 3.7 0s2.4 1 3.7 0" />
-          <path d="M5.5 17c1.1-.8 2.1-.8 3.2 0s2.1.8 3.2 0s2.1-.8 3.2 0s2.1.8 3.2 0" />
+          <path d="M2 20c1.45-1.05 2.75-1.05 4.2 0s2.75 1.05 4.2 0s2.75-1.05 4.2 0s2.75 1.05 4.2 0s2.75-1.05 4.2 0" />
         </motion.g>
       </svg>
     </button>
