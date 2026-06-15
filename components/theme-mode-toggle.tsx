@@ -98,15 +98,15 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           }}
           transition={sunTransition}
         >
-          <circle cx="12" cy="10.4" r="3.75" />
-          <path d="M12 4.25v1.35" />
-          <path d="M12 15.2v1.35" />
-          <path d="M5.85 10.4h1.35" />
-          <path d="M16.8 10.4h1.35" />
-          <path d="M7.65 6.05l.95.95" />
-          <path d="M15.4 13.8l.95.95" />
-          <path d="M16.35 6.05l-.95.95" />
-          <path d="M8.6 13.8l-.95.95" />
+          <circle cx="12" cy="10.4" r="3.45" />
+          <path d="M12 3.55v1.25" />
+          <path d="M12 16v1.25" />
+          <path d="M5.15 10.4h1.25" />
+          <path d="M17.6 10.4h1.25" />
+          <path d="M7.15 5.55l.88.88" />
+          <path d="M15.97 14.37l.88.88" />
+          <path d="M16.85 5.55l-.88.88" />
+          <path d="M8.03 14.37l-.88.88" />
         </motion.g>
         <motion.g
           animate={{
@@ -122,7 +122,7 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           }}
           transition={moonTransition}
         >
-          <path d="M14 6.2a4.9 4.9 0 1 0 4.25 7.9a3.75 3.75 0 1 1 -4.25 -7.9Z" />
+          <path d="M14.75 5.9a4.85 4.85 0 1 0 3.85 8.25a3.05 3.05 0 1 1 -3.85 -8.25Z" />
         </motion.g>
         <motion.g
           animate={{
