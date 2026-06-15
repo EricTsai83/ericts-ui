@@ -1,0 +1,23 @@
+---
+title: Installation
+description: Install registry entries from the generated shadcn registry JSON.
+---
+
+## Install an item
+
+Use the generated registry JSON endpoint for the item you want to install.
+
+```bash
+npx shadcn@latest add https://your-domain.com/r/component-name.json
+```
+
+Replace `component-name` with any item name from the blocks page.
+
+## Local development
+
+Build the registry output after changing `registry.json` or files under
+`registry/base`.
+
+```bash
+pnpm registry:build
+```
