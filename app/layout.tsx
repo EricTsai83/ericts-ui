@@ -4,6 +4,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import "./globals.css";
 
 import { DocsSearchDialog } from "@/components/docs-search";
+import { ThemeShortcut } from "@/components/theme-shortcut";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
             },
           }}
         >
+          <ThemeShortcut />
           {children}
         </RootProvider>
       </body>
