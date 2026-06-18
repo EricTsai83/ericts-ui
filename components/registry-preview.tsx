@@ -5,9 +5,21 @@ import { CopyButton } from "@/registry/base/ui/copy-button";
 // Live previews for registry items, keyed by registry name. Items without an
 // entry render nothing (the surrounding card still shows their metadata).
 const previews: Record<string, ReactNode> = {
-  "copy-button": <CopyButton value="copy-button" />,
+  "copy-button": <CopyButtonPreview />,
 };
 
 export function RegistryPreview({ name }: { name: string }) {
   return previews[name] ?? null;
+}
+
+function CopyButtonPreview() {
+  return (
+    <div className="flex items-center justify-center">
+      <CopyButton
+        value="outline"
+        variant="outline"
+        aria-label="Copy outline variant"
+      />
+    </div>
+  );
 }

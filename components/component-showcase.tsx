@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Copy, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { CopyButton } from "@/registry/base/ui/copy-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +54,8 @@ function ComponentPreviewCard({
   source: string;
 }) {
   const [isCodeVisible, setIsCodeVisible] = useState(false);
-  const lines = useMemo(() => source.trimEnd().split("\n"), [source]);
+  const code = useMemo(() => source.trimEnd(), [source]);
+  const lines = useMemo(() => code.split("\n"), [code]);
   const visibleLines = isCodeVisible ? lines : lines.slice(0, 4);
 
   return (
@@ -69,10 +71,18 @@ function ComponentPreviewCard({
         data-code-visible={isCodeVisible}
         className="relative min-w-0 overflow-hidden border-t bg-muted/30"
       >
+        {isCodeVisible ? (
+          <CopyButton
+            value={code}
+            aria-label="Copy component source code"
+            title="Copy code"
+            className="absolute right-3 top-3 z-10"
+          />
+        ) : null}
         <pre
           className={cn(
             "no-scrollbar overflow-x-auto px-6 py-4 text-sm leading-6",
-            isCodeVisible && "max-h-72 overflow-y-auto"
+            isCodeVisible && "max-h-72 overflow-y-auto pr-16"
           )}
         >
           <code className="block min-w-full font-mono">
@@ -172,27 +182,6 @@ function CommandBlock({
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
 }) {
-  const [copied, setCopied] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, []);
-
-  async function copyCommand() {
-    try {
-      await navigator.clipboard.writeText(command);
-    } catch {
-      return;
-    }
-
-    setCopied(true);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), 1600);
-  }
-
   return (
     <div className="min-w-0 overflow-hidden rounded-xl bg-muted/50">
       <div className="flex min-h-11 items-center gap-3 border-b px-3">
@@ -210,19 +199,13 @@ function CommandBlock({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={copyCommand}
-          className="ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <CopyButton
+          value={command}
+          variant="ghost"
+          className="ml-auto"
           aria-label="Copy installation command"
           title="Copy command"
-        >
-          {copied ? (
-            <Check className="size-4" aria-hidden="true" />
-          ) : (
-            <Copy className="size-4" aria-hidden="true" />
-          )}
-        </button>
+        />
       </div>
       <pre className="no-scrollbar overflow-x-auto px-4 py-4 text-sm">
         <code className="font-mono">{command}</code>

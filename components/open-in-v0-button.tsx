@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { getRegistryItemUrl } from "@/lib/site-url"
 
 export function OpenInV0Button({
   name,
@@ -11,7 +12,7 @@ export function OpenInV0Button({
         "inline-flex h-8 items-center justify-center gap-1 rounded-md bg-black px-3 text-sm font-medium text-white shadow-none transition-colors hover:bg-black hover:text-white dark:bg-white dark:text-black",
         className
       )}
-      href={`https://v0.dev/chat/api/open?url=${process.env.NEXT_PUBLIC_BASE_URL}/r/${name}.json`}
+      href={`https://v0.dev/chat/api/open?url=${getRegistryItemUrl(name)}`}
       target="_blank"
       rel="noreferrer"
     >

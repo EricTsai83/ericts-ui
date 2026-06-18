@@ -10,6 +10,7 @@ import {
   registryItems,
   type RegistryItem,
 } from "@/lib/registry";
+import { getRegistryItemUrl } from "@/lib/site-url";
 
 type PageProps = {
   params: Promise<{
@@ -102,13 +103,7 @@ async function getComponentSource(item: RegistryItem) {
 }
 
 function getInstallTarget(item: RegistryItem) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "");
-
-  if (!baseUrl) {
-    return item.registryUrl;
-  }
-
-  return `${baseUrl}${item.registryUrl}`;
+  return getRegistryItemUrl(item.name);
 }
 
 function getComponentTargetPath(item: RegistryItem) {
