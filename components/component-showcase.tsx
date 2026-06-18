@@ -1,6 +1,6 @@
 "use client";
 
-import { Atom, CircleAlert, Terminal } from "lucide-react";
+import { Atom, Terminal } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,9 @@ export function ComponentShowcase({
         installTarget={installTarget}
         targetPath={targetPath}
         dependencies={dependencies}
+        hasCssOnlyVariant={codeVariants.some(
+          (variant) => variant.value === "css-only",
+        )}
       />
     </div>
   );
@@ -107,20 +110,8 @@ function ComponentPreviewCard({
                 key={variant.value}
                 value={variant.value}
                 className="h-10 flex-none px-0 py-0"
-                title={
-                  variant.value === "css-only"
-                    ? "CSS-only is manual: the install command adds the Motion version. Copy both files from this tab to avoid the animation dependency."
-                    : undefined
-                }
               >
-                <span>{variant.label}</span>
-                {variant.value === "css-only" ? (
-                  <CircleAlert
-                    data-icon="inline-end"
-                    aria-label="CSS-only installs manually"
-                    className="text-muted-foreground"
-                  />
-                ) : null}
+                {variant.label}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -180,7 +171,7 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
               <TabsTrigger
                 key={file.name}
                 value={file.name}
-                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none transition-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none after:hidden"
+                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-3 py-0 text-xs font-medium shadow-none transition-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none has-data-[icon=inline-start]:pl-3 after:hidden"
               >
                 {isActive && hasPreviousFile ? (
                   <FileTabSeparator side="left" />
@@ -223,6 +214,7 @@ function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
   if (language === "css") {
     return (
       <span
+        data-icon="inline-start"
         aria-hidden="true"
         className="w-4 shrink-0 text-center font-mono text-sm font-semibold leading-none text-sky-500"
       >
@@ -304,17 +296,28 @@ function InstallationPanel({
   installTarget,
   targetPath,
   dependencies,
+  hasCssOnlyVariant,
 }: {
   installTarget: string;
   targetPath: string;
   dependencies: string[];
+  hasCssOnlyVariant: boolean;
 }) {
   const [packageManager, setPackageManager] = useState<PackageManager>("pnpm");
   const command = `${commandPrefix[packageManager]} shadcn@latest add ${installTarget}`;
 
   return (
     <section className="min-w-0 flex flex-col gap-5">
-      <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+      <div className="flex max-w-3xl flex-col gap-2">
+        <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+        {hasCssOnlyVariant ? (
+          <p className="text-sm leading-6 text-muted-foreground">
+            The command installs the Motion version. The CSS-only source is
+            available above as a manual copy-paste variant when you want to
+            avoid the animation dependency.
+          </p>
+        ) : null}
+      </div>
       <Tabs defaultValue="command" className="min-w-0 gap-5">
         <TabsList
           variant="line"
