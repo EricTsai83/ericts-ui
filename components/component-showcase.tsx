@@ -54,20 +54,27 @@ function ComponentPreviewCard({
 }) {
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const lines = useMemo(() => source.trimEnd().split("\n"), [source]);
-  const visibleLines = isCodeVisible ? lines : lines.slice(0, 6);
+  const visibleLines = isCodeVisible ? lines : lines.slice(0, 4);
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-xl border bg-background">
+    <section
+      data-slot="component-preview"
+      className="group relative min-w-0 overflow-hidden rounded-xl border bg-background"
+    >
       <div className="flex min-h-[288px] items-center justify-center p-10">
         <RegistryPreview name={name} />
       </div>
       <div
-        className={cn(
-          "relative min-w-0 border-t bg-muted/30",
-          isCodeVisible ? "max-h-[420px] overflow-auto" : "h-28 overflow-hidden"
-        )}
+        data-slot="code"
+        data-code-visible={isCodeVisible}
+        className="relative min-w-0 overflow-hidden border-t bg-muted/30"
       >
-        <pre className="overflow-x-auto px-6 py-4 text-sm leading-6">
+        <pre
+          className={cn(
+            "no-scrollbar overflow-x-auto px-6 py-4 text-sm leading-6",
+            isCodeVisible && "max-h-72 overflow-y-auto"
+          )}
+        >
           <code className="block min-w-full font-mono">
             {visibleLines.map((line, index) => (
               <span key={`${index}-${line}`} className="flex min-w-max">
@@ -82,27 +89,17 @@ function ComponentPreviewCard({
           </code>
         </pre>
         {!isCodeVisible ? (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pb-4">
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
             <button
               type="button"
               onClick={() => setIsCodeVisible(true)}
-              className="relative inline-flex h-8 items-center rounded-lg border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="relative inline-flex h-8 items-center rounded-lg border bg-background px-4 text-sm font-medium text-foreground shadow-none transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               View Code
             </button>
           </div>
-        ) : (
-          <div className="sticky bottom-0 flex justify-center border-t bg-background/95 px-4 py-3 backdrop-blur">
-            <button
-              type="button"
-              onClick={() => setIsCodeVisible(false)}
-              className="inline-flex h-8 items-center rounded-lg border bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Hide Code
-            </button>
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
@@ -227,7 +224,7 @@ function CommandBlock({
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto px-4 py-4 text-sm">
+      <pre className="no-scrollbar overflow-x-auto px-4 py-4 text-sm">
         <code className="font-mono">{command}</code>
       </pre>
     </div>
