@@ -4,6 +4,20 @@
   "homepage": "https://acme.com",
   "items": [
     {
+      "name": "auto-height",
+      "type": "registry:ui",
+      "title": "Auto Height",
+      "description": "A Motion-powered container that observes its content and smoothly animates to the latest measured height.",
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/auto-height.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/auto-height.tsx"
+        }
+      ]
+    },
+    {
       "name": "copy-button",
       "type": "registry:ui",
       "title": "Copy Button",

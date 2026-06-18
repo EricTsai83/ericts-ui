@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "auto-height",
+  "type": "registry:ui",
+  "title": "Auto Height",
+  "description": "A Motion-powered container that observes its content and smoothly animates to the latest measured height.",
+  "dependencies": [
+    "motion"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/auto-height.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport {\n  motion,\n  useReducedMotion,\n  type HTMLMotionProps,\n} from \"motion/react\";\n\nimport { cn } from \"@/lib/utils\";\n\ntype MotionTransition = NonNullable<HTMLMotionProps<\"div\">[\"transition\"]>;\n\nexport type AutoHeightProps = Omit<\n  HTMLMotionProps<\"div\">,\n  \"animate\" | \"children\" | \"initial\" | \"transition\"\n> & {\n  children: React.ReactNode;\n  innerClassName?: string;\n  transition?: MotionTransition;\n};\n\nexport function AutoHeight({\n  children,\n  className,\n  innerClassName,\n  transition,\n  ...props\n}: AutoHeightProps) {\n  const [height, setHeight] = React.useState<number | null>(null);\n  const contentRef = React.useRef<HTMLDivElement>(null);\n  const shouldReduceMotion = useReducedMotion();\n\n  React.useEffect(() => {\n    const content = contentRef.current;\n\n    if (!content) return;\n\n    const updateHeight = (nextHeight: number) => {\n      setHeight((currentHeight) => {\n        if (currentHeight === null) return nextHeight;\n\n        return Math.abs(currentHeight - nextHeight) > 0.5\n          ? nextHeight\n          : currentHeight;\n      });\n    };\n\n    updateHeight(content.getBoundingClientRect().height);\n\n    if (typeof ResizeObserver === \"undefined\") return;\n\n    const observer = new ResizeObserver((entries) => {\n      const entry = entries[0];\n\n      if (!entry) return;\n\n      const borderBoxSize = Array.isArray(entry.borderBoxSize)\n        ? entry.borderBoxSize[0]\n        : entry.borderBoxSize;\n\n      updateHeight(\n        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height\n      );\n    });\n\n    observer.observe(content);\n\n    return () => observer.disconnect();\n  }, []);\n\n  const resolvedTransition: MotionTransition = shouldReduceMotion\n    ? { duration: 0 }\n    : transition ?? { type: \"spring\", duration: 0.32, bounce: 0 };\n\n  return (\n    <motion.div\n      {...props}\n      data-slot=\"auto-height\"\n      initial={false}\n      animate={{ height: height ?? \"auto\" }}\n      transition={resolvedTransition}\n      className={cn(\"overflow-hidden\", className)}\n    >\n      <div\n        ref={contentRef}\n        data-slot=\"auto-height-content\"\n        className={innerClassName}\n      >\n        {children}\n      </div>\n    </motion.div>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/auto-height.tsx"
+    }
+  ]
+}

@@ -28,7 +28,7 @@ export type CopyButtonProps = Omit<
 
 export function CopyButton({
   value,
-  timeout = 2000,
+  timeout = 1500,
   onCopy,
   onClick,
   className,
