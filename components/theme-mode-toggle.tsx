@@ -105,22 +105,14 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           transition={markTransition}
         >
           <g>
-            <circle cx="12" cy="12" r="4.9" />
-            <line x1="12" y1="2.7" x2="12" y2="4.2" />
-            <line x1="12" y1="19.8" x2="12" y2="21.3" />
-            <line x1="2.7" y1="12" x2="4.2" y2="12" />
-            <line x1="19.8" y1="12" x2="21.3" y2="12" />
-            <line x1="5.4" y1="5.4" x2="6.5" y2="6.5" />
-            <line x1="17.5" y1="17.5" x2="18.6" y2="18.6" />
-            <line x1="18.6" y1="5.4" x2="17.5" y2="6.5" />
-            <line x1="6.5" y1="17.5" x2="5.4" y2="18.6" />
+            <circle cx="12" cy="12" r="8.1" />
           </g>
           <g
-            strokeWidth="1.45"
+            strokeWidth="1.85"
           >
-            <line x1="9.25" y1="11.75" x2="11.85" y2="9.15" />
-            <line x1="10.45" y1="13.55" x2="13.55" y2="10.45" />
-            <line x1="12.15" y1="15.05" x2="14.95" y2="12.25" />
+            <line x1="7.25" y1="13.15" x2="11.15" y2="9.25" />
+            <line x1="9.2" y1="15.35" x2="15.35" y2="9.2" />
+            <line x1="12.5" y1="17" x2="17" y2="12.5" />
           </g>
         </motion.g>
 
@@ -140,9 +132,9 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           <g
             strokeWidth="2.05"
           >
-            <line x1="7.75" y1="13.85" x2="10.45" y2="11.15" />
-            <line x1="9.8" y1="16" x2="13.1" y2="12.7" />
-            <line x1="12.75" y1="16.75" x2="15.25" y2="14.25" />
+            <line x1="7.1" y1="14.5" x2="10.95" y2="10.65" />
+            <line x1="9.65" y1="16.35" x2="13.2" y2="12.8" />
+            <line x1="13.45" y1="17.15" x2="15.95" y2="14.65" />
           </g>
         </motion.g>
       </svg>
