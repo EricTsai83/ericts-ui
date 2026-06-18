@@ -1,6 +1,6 @@
 "use client";
 
-import { Atom, Terminal } from "lucide-react";
+import { Atom, CircleAlert, Terminal } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -107,8 +107,20 @@ function ComponentPreviewCard({
                 key={variant.value}
                 value={variant.value}
                 className="h-10 flex-none px-0 py-0"
+                title={
+                  variant.value === "css-only"
+                    ? "CSS-only is manual: the install command adds the Motion version. Copy both files from this tab to avoid the animation dependency."
+                    : undefined
+                }
               >
-                {variant.label}
+                <span>{variant.label}</span>
+                {variant.value === "css-only" ? (
+                  <CircleAlert
+                    data-icon="inline-end"
+                    aria-label="CSS-only installs manually"
+                    className="text-muted-foreground"
+                  />
+                ) : null}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -157,18 +169,32 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
           }
           className="no-scrollbar h-10 w-full max-w-full justify-start gap-0 overflow-x-auto rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-10"
         >
-          {resolvedFiles.map((file) => (
-            <TabsTrigger
-              key={file.name}
-              value={file.name}
-              className="h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-r border-transparent bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none first:border-l hover:bg-background/70 data-active:border-x data-active:border-t data-active:border-b-background data-active:bg-background data-active:shadow-none"
-            >
-              <FileTypeIcon language={file.language} />
-              <span className="min-w-0 flex-1 truncate text-left">
-                {file.name}
-              </span>
-            </TabsTrigger>
-          ))}
+          {resolvedFiles.map((file, index) => {
+            const isActive = file.name === activeFileValue;
+            const isBeforeActive =
+              resolvedFiles[index + 1]?.name === activeFileValue;
+            const hasPreviousFile = index > 0;
+            const hasNextFile = index < resolvedFiles.length - 1;
+
+            return (
+              <TabsTrigger
+                key={file.name}
+                value={file.name}
+                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none data-active:after:absolute data-active:after:inset-x-0 data-active:after:-bottom-px data-active:after:h-px data-active:after:bg-background data-active:after:opacity-100"
+              >
+                {isActive && hasPreviousFile ? (
+                  <FileTabSeparator side="left" />
+                ) : null}
+                <FileTypeIcon language={file.language} />
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {file.name}
+                </span>
+                {hasNextFile && !isBeforeActive ? (
+                  <FileTabSeparator side="right" />
+                ) : null}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
       </div>
       {resolvedFiles.map((file) => (
@@ -177,6 +203,19 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
         </TabsContent>
       ))}
     </Tabs>
+  );
+}
+
+function FileTabSeparator({ side }: { side: "left" | "right" }) {
+  return (
+    <span
+      data-slot="file-tab-separator"
+      aria-hidden="true"
+      className={cn(
+        "pointer-events-none absolute inset-y-2 w-px bg-border/70",
+        side === "left" ? "left-0" : "right-0",
+      )}
+    />
   );
 }
 
