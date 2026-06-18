@@ -3,9 +3,11 @@ import path from "node:path";
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
 
 import {
   ComponentShowcase,
+  type ComponentCodeFile,
   type ComponentCodeVariant,
 } from "@/components/component-showcase";
 import {
@@ -57,13 +59,13 @@ export default async function ComponentPage({ params }: PageProps) {
     {
       value: "motion",
       label: "Motion",
-      files: [
+      files: await highlightCodeFiles([
         {
           name: path.basename(getComponentTargetPath(item)),
           language: "tsx",
           source,
         },
-      ],
+      ]),
     },
   ];
 
@@ -71,7 +73,7 @@ export default async function ComponentPage({ params }: PageProps) {
     codeVariants.push({
       value: "css-only",
       label: "CSS only",
-      files: cssOnlyFiles,
+      files: await highlightCodeFiles(cssOnlyFiles),
     });
   }
 
@@ -143,6 +145,28 @@ async function getCssOnlyFiles(
       source: reactSource,
     },
   ];
+}
+
+async function highlightCodeFiles(
+  files: ComponentCodeFile[],
+): Promise<ComponentCodeFile[]> {
+  return Promise.all(
+    files.map(async (file) => ({
+      ...file,
+      highlighted: await ServerCodeBlock({
+        code: file.source.trimEnd(),
+        lang: file.language,
+        codeblock: {
+          allowCopy: false,
+          className: "rounded-none border-0 bg-transparent shadow-none",
+          "data-line-numbers": true,
+          viewportProps: {
+            className: "max-h-72 py-4",
+          },
+        },
+      }),
+    })),
+  );
 }
 
 async function readOptionalFile(filePath: string) {

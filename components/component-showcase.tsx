@@ -1,7 +1,7 @@
 "use client";
 
 import { Atom, Terminal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ export type ComponentCodeFile = {
   name: string;
   language: ComponentCodeLanguage;
   source: string;
+  highlighted?: ReactNode;
 };
 
 export type ComponentCodeVariant = {
@@ -239,8 +240,6 @@ function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
 function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const code = useMemo(() => file.source.trimEnd(), [file.source]);
-  const lines = useMemo(() => code.split("\n"), [code]);
-  const visibleLines = isCodeVisible ? lines : lines.slice(0, 4);
 
   return (
     <div
@@ -255,25 +254,14 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
           className="absolute right-3 top-3 z-10 bg-background"
         />
       ) : null}
-      <pre
+      <div
         className={cn(
-          "no-scrollbar max-w-full overflow-x-auto px-4 py-4 text-sm leading-6",
-          isCodeVisible && "max-h-72 overflow-y-auto pr-16"
+          "min-w-0 max-w-full",
+          !isCodeVisible && "max-h-32 overflow-hidden"
         )}
       >
-        <code className="block min-w-full font-mono">
-          {visibleLines.map((line, index) => (
-            <span key={`${index}-${line}`} className="flex min-w-max">
-              <span className="w-10 shrink-0 select-none pr-5 text-right text-muted-foreground/70">
-                {index + 1}
-              </span>
-              <span className="whitespace-pre text-foreground/80">
-                <HighlightedLine line={line} language={file.language} />
-              </span>
-            </span>
-          ))}
-        </code>
-      </pre>
+        {file.highlighted}
+      </div>
       {!isCodeVisible ? (
         <div className="absolute inset-0 flex items-center justify-center pb-4">
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
@@ -414,51 +402,5 @@ function ManualInstall({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function HighlightedLine({
-  line,
-  language,
-}: {
-  line: string;
-  language: ComponentCodeLanguage;
-}) {
-  const trimmedLine = line.trimStart();
-
-  if (
-    trimmedLine.startsWith("//") ||
-    trimmedLine.startsWith("/*") ||
-    trimmedLine.startsWith("*")
-  ) {
-    return <span className="text-muted-foreground">{line}</span>;
-  }
-
-  const parts =
-    language === "css"
-      ? line.split(
-          /(@keyframes|\b(?:animation|from|to|opacity|transform|transition|display|grid|overflow|inline-size|block-size)\b)/g
-        )
-      : line.split(
-          /(\b(?:import|export|from|function|return|const|let|type|async|await|try|catch)\b)/g
-        );
-
-  const keywordPattern =
-    language === "css"
-      ? /^(@keyframes|animation|from|to|opacity|transform|transition|display|grid|overflow|inline-size|block-size)$/
-      : /^(import|export|from|function|return|const|let|type|async|await|try|catch)$/;
-
-  return (
-    <>
-      {parts.map((part, index) =>
-        keywordPattern.test(part) ? (
-          <span key={`${index}-${part}`} className="text-rose-500">
-            {part}
-          </span>
-        ) : (
-          <span key={`${index}-${part}`}>{part}</span>
-        )
-      )}
-    </>
   );
 }
