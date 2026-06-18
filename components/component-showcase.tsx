@@ -180,7 +180,7 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
               <TabsTrigger
                 key={file.name}
                 value={file.name}
-                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none data-active:after:absolute data-active:after:inset-x-0 data-active:after:-bottom-px data-active:after:h-px data-active:after:bg-background data-active:after:opacity-100"
+                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none transition-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none after:hidden"
               >
                 {isActive && hasPreviousFile ? (
                   <FileTabSeparator side="left" />
