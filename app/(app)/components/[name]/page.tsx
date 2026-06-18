@@ -55,9 +55,6 @@ export default async function ComponentPage({ params }: PageProps) {
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-6 py-10 sm:px-8 lg:px-10">
       <header className="flex max-w-3xl flex-col gap-3">
-        <div className="text-sm font-medium text-muted-foreground">
-          {item.category}
-        </div>
         <h1 className="text-4xl font-semibold tracking-tight">
           {item.title ?? item.name}
         </h1>
@@ -95,7 +92,7 @@ async function getComponentSource(item: RegistryItem) {
   try {
     return await readFile(
       path.join(process.cwd(), "registry", registryPath),
-      "utf8"
+      "utf8",
     );
   } catch {
     return "";
