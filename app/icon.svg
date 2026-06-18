@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <style>
+    .s { stroke: #0a0a0a; }
+    @media (prefers-color-scheme: dark) {
+      .s { stroke: #fafafa; }
+    }
+  </style>
+  <path
+    class="s"
+    d="M128 224.6l-8.8-7.8C54 158.8 16 124 16 78.4 16 46 39.2 24 72 24c22.8 0 41.8 13.2 56 36 14.2-22.8 33.2-36 56-36 32.8 0 56 22 56 54.4 0 45.6-38 80.4-103.2 138.4L128 224.6z"
+    fill="none"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <line class="s" x1="192" y1="112" x2="144" y2="160" fill="none" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  <line class="s" x1="192" y1="64" x2="96" y2="160" fill="none" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

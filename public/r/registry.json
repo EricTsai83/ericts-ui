@@ -2,5 +2,20 @@
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "acme",
   "homepage": "https://acme.com",
-  "items": []
+  "items": [
+    {
+      "name": "copy-button",
+      "type": "registry:ui",
+      "title": "Copy Button",
+      "description": "An icon button that copies text to the clipboard and animates a copy → check icon swap.",
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/copy-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/copy-button.tsx"
+        }
+      ]
+    }
+  ]
 }
