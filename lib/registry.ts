@@ -11,6 +11,7 @@ type RegistrySourceItem = {
   type: string;
   title?: string;
   description?: string;
+  dependencies?: string[];
   files?: RegistryFile[];
 };
 
@@ -43,7 +44,7 @@ const registrySourceItems = registry.items as RegistrySourceItem[];
 export const registryItems: RegistryItem[] = registrySourceItems.map((item) => ({
   ...item,
   category: getCategory(item),
-  href: `/view/base/${item.name}`,
+  href: `/components/${item.name}`,
   registryUrl: `/r/${item.name}.json`,
 }));
 
