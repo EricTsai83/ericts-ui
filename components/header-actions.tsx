@@ -18,7 +18,7 @@ export function HeaderActions() {
           className="relative hidden h-8 w-full items-center justify-start gap-2 rounded-lg border-none bg-muted px-3 text-left text-sm font-normal text-foreground shadow-none transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex md:w-48 lg:w-40 xl:w-64 dark:bg-card"
           onClick={() => setOpenSearch(true)}
         >
-          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Search className="size-4 shrink-0 text-foreground" aria-hidden="true" />
           <span className="hidden truncate xl:inline-flex">
             Search documentation...
           </span>

@@ -12,12 +12,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <div className="relative flex h-full w-full items-center px-4 sm:px-6">
           <Link
             href="/"
-            className="absolute left-1/2 top-0 flex h-full -translate-x-1/2 items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-muted-foreground md:static md:mr-5 md:min-w-28 md:translate-x-0"
+            className="absolute left-1/2 top-0 flex h-full -translate-x-1/2 items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-accent-foreground md:static md:mr-5 md:min-w-28 md:translate-x-0"
           >
             <LogoIcon className="block size-5 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline">ericts/ui</span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm font-medium text-muted-foreground md:flex">
+          <nav className="hidden items-center gap-1 text-sm font-medium text-foreground md:flex">
             {primaryNavItems.map((item) => (
               <Link
                 key={`${item.href}-${item.label}`}

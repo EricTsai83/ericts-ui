@@ -30,7 +30,7 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
   const visualOverrideTimer =
     React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const buttonClassName = cn(
-    "group inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+    "group inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
     className,
   );
 
@@ -104,7 +104,7 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           style={{ transformBox: "fill-box", transformOrigin: "center" }}
           transition={markTransition}
         >
-          <g className="opacity-80 transition-opacity group-hover:opacity-100">
+          <g>
             <circle cx="12" cy="12" r="4.9" />
             <line x1="12" y1="2.7" x2="12" y2="4.2" />
             <line x1="12" y1="19.8" x2="12" y2="21.3" />
@@ -116,13 +116,11 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
             <line x1="6.5" y1="17.5" x2="5.4" y2="18.6" />
           </g>
           <g
-            className="opacity-45 transition-opacity group-hover:opacity-100"
-            strokeWidth="0.75"
+            strokeWidth="1.45"
           >
-            <line x1="9.2" y1="11.5" x2="11.5" y2="9.2" />
-            <line x1="9.9" y1="12.8" x2="12.8" y2="9.9" />
-            <line x1="10.9" y1="13.9" x2="13.9" y2="10.9" />
-            <line x1="12.1" y1="14.8" x2="14.8" y2="12.1" />
+            <line x1="9.25" y1="11.75" x2="11.85" y2="9.15" />
+            <line x1="10.45" y1="13.55" x2="13.55" y2="10.45" />
+            <line x1="12.15" y1="15.05" x2="14.95" y2="12.25" />
           </g>
         </motion.g>
 
@@ -138,17 +136,13 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
         >
           <path
             d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
-            className="opacity-80 transition-opacity group-hover:opacity-100"
           />
           <g
-            className="opacity-45 transition-opacity group-hover:opacity-100"
-            strokeWidth="0.75"
+            strokeWidth="2.05"
           >
-            <line x1="8.3" y1="13.2" x2="9.8" y2="11.7" />
-            <line x1="9.2" y1="14.6" x2="11" y2="12.8" />
-            <line x1="10.4" y1="15.7" x2="12.5" y2="13.6" />
-            <line x1="11.9" y1="16.4" x2="14" y2="14.3" />
-            <line x1="13.6" y1="16.4" x2="15.2" y2="14.8" />
+            <line x1="7.75" y1="13.85" x2="10.45" y2="11.15" />
+            <line x1="9.8" y1="16" x2="13.1" y2="12.7" />
+            <line x1="12.75" y1="16.75" x2="15.25" y2="14.25" />
           </g>
         </motion.g>
       </svg>
