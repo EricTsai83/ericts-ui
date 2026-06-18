@@ -1,6 +1,6 @@
 "use client";
 
-import { Terminal } from "lucide-react";
+import { Atom, Terminal } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export function ComponentShowcase({
   dependencies = [],
 }: ComponentShowcaseProps) {
   return (
-    <div className="flex min-w-0 flex-col gap-12">
+    <div className="flex min-w-0 max-w-full flex-col gap-12">
       <ComponentPreviewCard name={name} codeVariants={codeVariants} />
       <InstallationPanel
         installTarget={installTarget}
@@ -87,14 +87,14 @@ function ComponentPreviewCard({
   return (
     <section
       data-slot="component-preview"
-      className="group relative min-w-0 overflow-hidden rounded-xl border bg-background"
+      className="group relative min-w-0 max-w-full overflow-hidden rounded-xl border bg-background"
     >
       <div className="flex min-h-[288px] items-center justify-center p-10">
         <RegistryPreview name={name} />
       </div>
       <div
         data-slot="code"
-        className="relative min-w-0 overflow-hidden border-t bg-muted/30"
+        className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
       >
         <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
           <TabsList
@@ -128,29 +128,45 @@ function ComponentPreviewCard({
 }
 
 function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
-  const resolvedFiles: ComponentCodeFile[] =
-    files.length > 0
-      ? files
-      : [{ name: "component.tsx", language: "tsx", source: "" }];
-
-  if (resolvedFiles.length === 1) {
-    return <CodeFileBlock file={resolvedFiles[0]} />;
-  }
+  const resolvedFiles = useMemo<ComponentCodeFile[]>(
+    () =>
+      files.length > 0
+        ? files
+        : [{ name: "component.tsx", language: "tsx", source: "" }],
+    [files],
+  );
+  const [activeFile, setActiveFile] = useState(resolvedFiles[0].name);
+  const activeFileValue = resolvedFiles.some((file) => file.name === activeFile)
+    ? activeFile
+    : resolvedFiles[0].name;
 
   return (
-    <Tabs defaultValue={resolvedFiles[0].name} className="min-w-0 gap-0">
-      <div className="no-scrollbar flex min-h-10 items-center overflow-x-auto border-b px-5">
+    <Tabs
+      value={activeFileValue}
+      onValueChange={(value) => {
+        if (value != null) {
+          setActiveFile(String(value));
+        }
+      }}
+      className="min-w-0 gap-0"
+    >
+      <div className="flex min-h-10 min-w-0 max-w-full items-end border-b bg-muted/60">
         <TabsList
-          aria-label="CSS only files"
-          className="bg-background/80"
+          aria-label={
+            resolvedFiles.length > 1 ? "Code files" : "Current code file"
+          }
+          className="no-scrollbar h-10 w-full max-w-full justify-start gap-0 overflow-x-auto rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-10"
         >
           {resolvedFiles.map((file) => (
             <TabsTrigger
               key={file.name}
               value={file.name}
-              className="flex-none px-2.5"
+              className="h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-r border-transparent bg-muted/40 px-2.5 py-0 text-xs font-medium shadow-none first:border-l hover:bg-background/70 data-active:border-x data-active:border-t data-active:border-b-background data-active:bg-background data-active:shadow-none"
             >
-              {file.name}
+              <FileTypeIcon language={file.language} />
+              <span className="min-w-0 flex-1 truncate text-left">
+                {file.name}
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -164,6 +180,31 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
   );
 }
 
+function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
+  if (language === "css") {
+    return (
+      <span
+        aria-hidden="true"
+        className="w-4 shrink-0 text-center font-mono text-sm font-semibold leading-none text-sky-500"
+      >
+        #
+      </span>
+    );
+  }
+
+  if (language === "tsx") {
+    return (
+      <Atom
+        data-icon="inline-start"
+        aria-hidden="true"
+        className="text-sky-500"
+      />
+    );
+  }
+
+  return null;
+}
+
 function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const code = useMemo(() => file.source.trimEnd(), [file.source]);
@@ -173,19 +214,19 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
   return (
     <div
       data-code-visible={isCodeVisible}
-      className="relative min-w-0 overflow-hidden"
+      className="relative min-w-0 max-w-full overflow-hidden bg-background"
     >
       {isCodeVisible ? (
         <CopyButton
           value={code}
           aria-label={`Copy ${file.name} source code`}
           title="Copy code"
-          className="absolute right-3 top-3 z-10"
+          className="absolute right-3 top-3 z-10 bg-background"
         />
       ) : null}
       <pre
         className={cn(
-          "no-scrollbar overflow-x-auto px-6 py-4 text-sm leading-6",
+          "no-scrollbar max-w-full overflow-x-auto px-4 py-4 text-sm leading-6",
           isCodeVisible && "max-h-72 overflow-y-auto pr-16"
         )}
       >
@@ -273,7 +314,7 @@ function CommandBlock({
   onPackageManagerChange: (packageManager: PackageManager) => void;
 }) {
   return (
-    <div className="min-w-0 overflow-hidden rounded-xl bg-muted/50">
+    <div className="min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50">
       <div className="flex min-h-11 items-center gap-3 border-b px-3">
         <Terminal className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <div className="flex flex-wrap items-center gap-1">
@@ -297,7 +338,7 @@ function CommandBlock({
           title="Copy command"
         />
       </div>
-      <pre className="no-scrollbar overflow-x-auto px-4 py-4 text-sm">
+      <pre className="no-scrollbar max-w-full overflow-x-auto px-4 py-4 text-sm">
         <code className="font-mono">{command}</code>
       </pre>
     </div>
