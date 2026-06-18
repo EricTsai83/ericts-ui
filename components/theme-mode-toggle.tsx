@@ -10,8 +10,17 @@ type ThemeModeToggleProps = {
   className?: string;
 };
 
+const subscribeToHydration = () => () => {};
+const getHydratedSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
+  const mounted = React.useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerSnapshot,
+  );
   const isDark = resolvedTheme === "dark";
   const shouldReduceMotion = useReducedMotion();
   const [visualOverride, setVisualOverride] = React.useState<boolean | null>(
@@ -20,6 +29,10 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
   const visualIsDark = visualOverride ?? isDark;
   const visualOverrideTimer =
     React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const buttonClassName = cn(
+    "group inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+    className,
+  );
 
   React.useEffect(() => {
     return () => {
@@ -39,37 +52,33 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
     setVisualOverride(nextIsDark);
     visualOverrideTimer.current = setTimeout(() => {
       setVisualOverride(null);
-    }, shouldReduceMotion ? 0 : 560);
+    }, shouldReduceMotion ? 0 : 260);
     setTheme(nextIsDark ? "dark" : "light");
   }, [setTheme, shouldReduceMotion, visualIsDark]);
 
-  const exitDuration = shouldReduceMotion ? 0 : 0.24;
-  const enterDelay = shouldReduceMotion ? 0 : 0.24;
-  const enterDuration = shouldReduceMotion ? 0 : 0.26;
-  const sunTransition = {
-    duration: visualIsDark ? exitDuration : enterDuration,
-    delay: visualIsDark ? 0 : enterDelay,
-    ease: [0.645, 0.045, 0.355, 1],
-  } as const;
-  const moonTransition = {
-    duration: visualIsDark ? enterDuration : exitDuration,
-    delay: visualIsDark ? enterDelay : 0,
-    ease: [0.645, 0.045, 0.355, 1],
-  } as const;
-  const waveTransition = {
-    duration: shouldReduceMotion ? 0 : 0.18,
-    ease: "easeOut",
-  } as const;
+  const markTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : ({ duration: 0.22, ease: [0.16, 1, 0.3, 1] } as const);
+
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
+        className={buttonClassName}
+      >
+        <span className="size-5" />
+      </button>
+    );
+  }
 
   return (
     <button
       type="button"
       aria-label="Toggle theme"
       aria-pressed={visualIsDark}
-      className={cn(
-        "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:bg-card",
-        className,
-      )}
+      className={buttonClassName}
       onClick={toggleTheme}
     >
       <svg
@@ -86,55 +95,47 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
         className="size-5 transition-colors"
       >
         <motion.g
+          initial={false}
           animate={{
             opacity: visualIsDark ? 0 : 1,
-            rotate: visualIsDark ? 28 : 0,
-            y: visualIsDark ? 6 : 0,
+            scale: visualIsDark ? 0.84 : 1,
+            rotate: visualIsDark ? -12 : 0,
           }}
-          initial={false}
-          style={{
-            transformBox: "fill-box",
-            transformOrigin: "center",
-          }}
-          transition={sunTransition}
+          style={{ transformBox: "fill-box", transformOrigin: "center" }}
+          transition={markTransition}
         >
-          <circle cx="12" cy="10.4" r="3.45" />
-          <path d="M12 3.55v1.25" />
-          <path d="M12 16v1.25" />
-          <path d="M5.15 10.4h1.25" />
-          <path d="M17.6 10.4h1.25" />
-          <path d="M7.15 5.55l.88.88" />
-          <path d="M15.97 14.37l.88.88" />
-          <path d="M16.85 5.55l-.88.88" />
-          <path d="M8.03 14.37l-.88.88" />
+          <g>
+            <circle cx="12" cy="12" r="8.1" />
+          </g>
+          <g
+            strokeWidth="1.85"
+          >
+            <line x1="7.25" y1="13.15" x2="11.15" y2="9.25" />
+            <line x1="9.2" y1="15.35" x2="15.35" y2="9.2" />
+            <line x1="12.5" y1="17" x2="17" y2="12.5" />
+          </g>
         </motion.g>
+
         <motion.g
+          initial={false}
           animate={{
             opacity: visualIsDark ? 1 : 0,
-            rotate: visualIsDark ? 0 : -18,
-            x: -0.7,
-            y: visualIsDark ? 0 : 6,
+            scale: visualIsDark ? 1 : 0.84,
+            rotate: visualIsDark ? 0 : 12,
           }}
-          initial={false}
-          style={{
-            transformBox: "fill-box",
-            transformOrigin: "center",
-          }}
-          transition={moonTransition}
+          style={{ transformBox: "fill-box", transformOrigin: "center" }}
+          transition={markTransition}
         >
-          <path d="M14.75 5.9a4.85 4.85 0 1 0 3.85 8.25a3.05 3.05 0 1 1 -3.85 -8.25Z" />
-        </motion.g>
-        <motion.g
-          animate={{
-            opacity: visualIsDark ? 0.72 : 1,
-            stroke: visualIsDark
-              ? "var(--foreground)"
-              : "var(--muted-foreground)",
-          }}
-          initial={false}
-          transition={waveTransition}
-        >
-          <path d="M2 20c1.45-1.05 2.75-1.05 4.2 0s2.75 1.05 4.2 0s2.75-1.05 4.2 0s2.75 1.05 4.2 0s2.75-1.05 4.2 0" />
+          <path
+            d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
+          />
+          <g
+            strokeWidth="2.05"
+          >
+            <line x1="7.1" y1="14.5" x2="10.95" y2="10.65" />
+            <line x1="9.65" y1="16.35" x2="13.2" y2="12.8" />
+            <line x1="13.45" y1="17.15" x2="15.95" y2="14.65" />
+          </g>
         </motion.g>
       </svg>
     </button>
