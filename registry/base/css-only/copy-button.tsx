@@ -1,15 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const variants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  visible: { opacity: 1, scale: 1 },
-};
+import "./copy-button.css";
 
 type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
@@ -18,11 +15,8 @@ export type CopyButtonProps = Omit<
   ButtonProps,
   "children" | "value" | "onCopy"
 > & {
-  /** Text written to the clipboard when the button is pressed. */
   value: string;
-  /** How long, in ms, the copied state is shown before reverting. */
   timeout?: number;
-  /** Called with the copied value after a successful write. */
   onCopy?: (value: string) => void;
 };
 
@@ -39,7 +33,6 @@ export function CopyButton({
   ...props
 }: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
-  const shouldReduceMotion = useReducedMotion();
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
@@ -57,8 +50,6 @@ export function CopyButton({
       try {
         await navigator.clipboard.writeText(value);
       } catch {
-        // Clipboard access can be denied (insecure context, no permission) —
-        // bail out without flipping into the copied state.
         return;
       }
 
@@ -71,40 +62,31 @@ export function CopyButton({
     [onClick, onCopy, timeout, value],
   );
 
-  // An icon swap is a tiny state change, so keep it snappy: ease-out, well
-  // under 150ms. Motion is removed entirely under prefers-reduced-motion.
-  const transition = shouldReduceMotion
-    ? { duration: 0 }
-    : ({ duration: 0.13, ease: [0.215, 0.61, 0.355, 1] } as const);
-
   return (
     <Button
       type={type}
       variant={variant}
       size={size}
       aria-label={ariaLabel}
-      data-copied={copied}
+      data-state={copied ? "open" : "closed"}
       onClick={handleCopy}
-      className={className}
+      className={cn("copy-button", className)}
       {...props}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={copied ? "check" : "copy"}
-          variants={variants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          transition={transition}
-          className="inline-flex"
+      <span className="copy-button__icon-stack" aria-hidden="true">
+        <span
+          className="copy-button__icon"
+          data-state={copied ? "closed" : "open"}
         >
-          {copied ? (
-            <Check data-icon="icon" aria-hidden="true" />
-          ) : (
-            <Copy data-icon="icon" aria-hidden="true" />
-          )}
-        </motion.span>
-      </AnimatePresence>
+          <Copy data-icon="icon" />
+        </span>
+        <span
+          className="copy-button__icon"
+          data-state={copied ? "open" : "closed"}
+        >
+          <Check data-icon="icon" />
+        </span>
+      </span>
       <span role="status" aria-live="polite" className="sr-only">
         {copied ? "Copied to clipboard" : ""}
       </span>

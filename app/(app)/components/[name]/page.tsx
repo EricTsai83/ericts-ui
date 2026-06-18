@@ -4,7 +4,10 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ComponentShowcase } from "@/components/component-showcase";
+import {
+  ComponentShowcase,
+  type ComponentCodeVariant,
+} from "@/components/component-showcase";
 import {
   getRegistryItem,
   registryItems,
@@ -49,6 +52,29 @@ export default async function ComponentPage({ params }: PageProps) {
   }
 
   const source = await getComponentSource(item);
+  const cssOnlyFiles = await getCssOnlyFiles(item);
+  const codeVariants: ComponentCodeVariant[] = [
+    {
+      value: "motion",
+      label: "Motion",
+      files: [
+        {
+          name: path.basename(getComponentTargetPath(item)),
+          language: "tsx",
+          source,
+        },
+      ],
+    },
+  ];
+
+  if (cssOnlyFiles.length > 0) {
+    codeVariants.push({
+      value: "css-only",
+      label: "CSS only",
+      files: cssOnlyFiles,
+    });
+  }
+
   const installTarget = getInstallTarget(item);
   const targetPath = getComponentTargetPath(item);
 
@@ -67,7 +93,7 @@ export default async function ComponentPage({ params }: PageProps) {
 
       <ComponentShowcase
         name={item.name}
-        source={source}
+        codeVariants={codeVariants}
         installTarget={installTarget}
         targetPath={targetPath}
         dependencies={item.dependencies}
@@ -89,11 +115,39 @@ async function getComponentSource(item: RegistryItem) {
     return "";
   }
 
+  return readOptionalFile(path.join(process.cwd(), "registry", registryPath));
+}
+
+async function getCssOnlyFiles(
+  item: RegistryItem,
+): Promise<ComponentCodeVariant["files"]> {
+  const cssOnlyPath = path.join(process.cwd(), "registry/base/css-only");
+  const [cssSource, reactSource] = await Promise.all([
+    readOptionalFile(path.join(cssOnlyPath, `${item.name}.css`)),
+    readOptionalFile(path.join(cssOnlyPath, `${item.name}.tsx`)),
+  ]);
+
+  if (!cssSource || !reactSource) {
+    return [];
+  }
+
+  return [
+    {
+      name: `${item.name}.css`,
+      language: "css",
+      source: cssSource,
+    },
+    {
+      name: `${item.name}.tsx`,
+      language: "tsx",
+      source: reactSource,
+    },
+  ];
+}
+
+async function readOptionalFile(filePath: string) {
   try {
-    return await readFile(
-      path.join(process.cwd(), "registry", registryPath),
-      "utf8",
-    );
+    return await readFile(filePath, "utf8");
   } catch {
     return "";
   }

@@ -1,9 +1,15 @@
 "use client";
 
 import { Terminal } from "lucide-react";
-import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { cn } from "@/lib/utils";
@@ -19,9 +25,23 @@ const commandPrefix: Record<PackageManager, string> = {
   bun: "bunx --bun",
 };
 
+export type ComponentCodeLanguage = "css" | "tsx";
+
+export type ComponentCodeFile = {
+  name: string;
+  language: ComponentCodeLanguage;
+  source: string;
+};
+
+export type ComponentCodeVariant = {
+  value: string;
+  label: string;
+  files: ComponentCodeFile[];
+};
+
 type ComponentShowcaseProps = {
   name: string;
-  source: string;
+  codeVariants: ComponentCodeVariant[];
   installTarget: string;
   targetPath: string;
   dependencies?: string[];
@@ -29,14 +49,14 @@ type ComponentShowcaseProps = {
 
 export function ComponentShowcase({
   name,
-  source,
+  codeVariants,
   installTarget,
   targetPath,
   dependencies = [],
 }: ComponentShowcaseProps) {
   return (
     <div className="flex min-w-0 flex-col gap-12">
-      <ComponentPreviewCard name={name} source={source} />
+      <ComponentPreviewCard name={name} codeVariants={codeVariants} />
       <InstallationPanel
         installTarget={installTarget}
         targetPath={targetPath}
@@ -48,15 +68,21 @@ export function ComponentShowcase({
 
 function ComponentPreviewCard({
   name,
-  source,
+  codeVariants,
 }: {
   name: string;
-  source: string;
+  codeVariants: ComponentCodeVariant[];
 }) {
-  const [isCodeVisible, setIsCodeVisible] = useState(false);
-  const code = useMemo(() => source.trimEnd(), [source]);
-  const lines = useMemo(() => code.split("\n"), [code]);
-  const visibleLines = isCodeVisible ? lines : lines.slice(0, 4);
+  const variants: ComponentCodeVariant[] =
+    codeVariants.length > 0
+      ? codeVariants
+      : [
+          {
+            value: "motion",
+            label: "Motion",
+            files: [{ name: `${name}.tsx`, language: "tsx", source: "" }],
+          },
+        ];
 
   return (
     <section
@@ -68,50 +94,129 @@ function ComponentPreviewCard({
       </div>
       <div
         data-slot="code"
-        data-code-visible={isCodeVisible}
         className="relative min-w-0 overflow-hidden border-t bg-muted/30"
       >
-        {isCodeVisible ? (
-          <CopyButton
-            value={code}
-            aria-label="Copy component source code"
-            title="Copy code"
-            className="absolute right-3 top-3 z-10"
-          />
-        ) : null}
-        <pre
-          className={cn(
-            "no-scrollbar overflow-x-auto px-6 py-4 text-sm leading-6",
-            isCodeVisible && "max-h-72 overflow-y-auto pr-16"
-          )}
-        >
-          <code className="block min-w-full font-mono">
-            {visibleLines.map((line, index) => (
-              <span key={`${index}-${line}`} className="flex min-w-max">
-                <span className="w-10 shrink-0 select-none pr-5 text-right text-muted-foreground/70">
-                  {index + 1}
-                </span>
-                <span className="whitespace-pre text-foreground/80">
-                  <HighlightedLine line={line} />
-                </span>
-              </span>
+        <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
+          <TabsList
+            variant="line"
+            aria-label="Code examples"
+            className="h-10 w-full justify-start gap-6 rounded-none border-b bg-transparent px-5 py-0 group-data-horizontal/tabs:h-10"
+          >
+            {variants.map((variant) => (
+              <TabsTrigger
+                key={variant.value}
+                value={variant.value}
+                className="h-10 flex-none px-0 py-0"
+              >
+                {variant.label}
+              </TabsTrigger>
             ))}
-          </code>
-        </pre>
-        {!isCodeVisible ? (
-          <div className="absolute inset-0 flex items-center justify-center pb-4">
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            <button
-              type="button"
-              onClick={() => setIsCodeVisible(true)}
-              className="relative inline-flex h-8 items-center rounded-lg border bg-background px-4 text-sm font-medium text-foreground shadow-none transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          </TabsList>
+          {variants.map((variant) => (
+            <TabsContent
+              key={variant.value}
+              value={variant.value}
+              className="min-w-0"
             >
-              View Code
-            </button>
-          </div>
-        ) : null}
+              <CodeFileTabs files={variant.files} />
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </section>
+  );
+}
+
+function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
+  const resolvedFiles: ComponentCodeFile[] =
+    files.length > 0
+      ? files
+      : [{ name: "component.tsx", language: "tsx", source: "" }];
+
+  if (resolvedFiles.length === 1) {
+    return <CodeFileBlock file={resolvedFiles[0]} />;
+  }
+
+  return (
+    <Tabs defaultValue={resolvedFiles[0].name} className="min-w-0 gap-0">
+      <div className="no-scrollbar flex min-h-10 items-center overflow-x-auto border-b px-5">
+        <TabsList
+          aria-label="CSS only files"
+          className="bg-background/80"
+        >
+          {resolvedFiles.map((file) => (
+            <TabsTrigger
+              key={file.name}
+              value={file.name}
+              className="flex-none px-2.5"
+            >
+              {file.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+      {resolvedFiles.map((file) => (
+        <TabsContent key={file.name} value={file.name} className="min-w-0">
+          <CodeFileBlock file={file} />
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}
+
+function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
+  const [isCodeVisible, setIsCodeVisible] = useState(false);
+  const code = useMemo(() => file.source.trimEnd(), [file.source]);
+  const lines = useMemo(() => code.split("\n"), [code]);
+  const visibleLines = isCodeVisible ? lines : lines.slice(0, 4);
+
+  return (
+    <div
+      data-code-visible={isCodeVisible}
+      className="relative min-w-0 overflow-hidden"
+    >
+      {isCodeVisible ? (
+        <CopyButton
+          value={code}
+          aria-label={`Copy ${file.name} source code`}
+          title="Copy code"
+          className="absolute right-3 top-3 z-10"
+        />
+      ) : null}
+      <pre
+        className={cn(
+          "no-scrollbar overflow-x-auto px-6 py-4 text-sm leading-6",
+          isCodeVisible && "max-h-72 overflow-y-auto pr-16"
+        )}
+      >
+        <code className="block min-w-full font-mono">
+          {visibleLines.map((line, index) => (
+            <span key={`${index}-${line}`} className="flex min-w-max">
+              <span className="w-10 shrink-0 select-none pr-5 text-right text-muted-foreground/70">
+                {index + 1}
+              </span>
+              <span className="whitespace-pre text-foreground/80">
+                <HighlightedLine line={line} language={file.language} />
+              </span>
+            </span>
+          ))}
+        </code>
+      </pre>
+      {!isCodeVisible ? (
+        <div className="absolute inset-0 flex items-center justify-center pb-4">
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCodeVisible(true)}
+            className="relative z-10 bg-background"
+          >
+            View Code
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -124,52 +229,37 @@ function InstallationPanel({
   targetPath: string;
   dependencies: string[];
 }) {
-  const [mode, setMode] = useState<"command" | "manual">("command");
   const [packageManager, setPackageManager] = useState<PackageManager>("pnpm");
   const command = `${commandPrefix[packageManager]} shadcn@latest add ${installTarget}`;
 
   return (
     <section className="min-w-0 flex flex-col gap-5">
       <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
-      <div className="flex gap-6 border-b">
-        <TabButton isActive={mode === "command"} onClick={() => setMode("command")}>
-          Command
-        </TabButton>
-        <TabButton isActive={mode === "manual"} onClick={() => setMode("manual")}>
-          Manual
-        </TabButton>
-      </div>
-      {mode === "command" ? (
-        <CommandBlock
-          command={command}
-          packageManager={packageManager}
-          onPackageManagerChange={setPackageManager}
-        />
-      ) : (
-        <ManualInstall targetPath={targetPath} dependencies={dependencies} />
-      )}
+      <Tabs defaultValue="command" className="min-w-0 gap-5">
+        <TabsList
+          variant="line"
+          aria-label="Installation options"
+          className="h-10 w-full justify-start gap-6 rounded-none border-b bg-transparent p-0 group-data-horizontal/tabs:h-10"
+        >
+          <TabsTrigger value="command" className="h-10 flex-none px-0 py-0">
+            Command
+          </TabsTrigger>
+          <TabsTrigger value="manual" className="h-10 flex-none px-0 py-0">
+            Manual
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="command" className="min-w-0">
+          <CommandBlock
+            command={command}
+            packageManager={packageManager}
+            onPackageManagerChange={setPackageManager}
+          />
+        </TabsContent>
+        <TabsContent value="manual" className="min-w-0">
+          <ManualInstall targetPath={targetPath} dependencies={dependencies} />
+        </TabsContent>
+      </Tabs>
     </section>
-  );
-}
-
-function TabButton({
-  isActive,
-  onClick,
-  children,
-}: {
-  isActive: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      data-active={isActive}
-      className="relative -mb-px h-10 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[active=true]:border-b-2 data-[active=true]:border-foreground data-[active=true]:text-foreground"
-    >
-      {children}
-    </button>
   );
 }
 
@@ -244,21 +334,41 @@ function ManualInstall({
   );
 }
 
-function HighlightedLine({ line }: { line: string }) {
-  if (line.trimStart().startsWith("//")) {
+function HighlightedLine({
+  line,
+  language,
+}: {
+  line: string;
+  language: ComponentCodeLanguage;
+}) {
+  const trimmedLine = line.trimStart();
+
+  if (
+    trimmedLine.startsWith("//") ||
+    trimmedLine.startsWith("/*") ||
+    trimmedLine.startsWith("*")
+  ) {
     return <span className="text-muted-foreground">{line}</span>;
   }
 
-  const parts = line.split(
-    /(\b(?:import|export|from|function|return|const|let|type|async|await|try|catch)\b)/g
-  );
+  const parts =
+    language === "css"
+      ? line.split(
+          /(@keyframes|\b(?:animation|from|to|opacity|transform|transition|display|grid|overflow|inline-size|block-size)\b)/g
+        )
+      : line.split(
+          /(\b(?:import|export|from|function|return|const|let|type|async|await|try|catch)\b)/g
+        );
+
+  const keywordPattern =
+    language === "css"
+      ? /^(@keyframes|animation|from|to|opacity|transform|transition|display|grid|overflow|inline-size|block-size)$/
+      : /^(import|export|from|function|return|const|let|type|async|await|try|catch)$/;
 
   return (
     <>
       {parts.map((part, index) =>
-        /^(import|export|from|function|return|const|let|type|async|await|try|catch)$/.test(
-          part
-        ) ? (
+        keywordPattern.test(part) ? (
           <span key={`${index}-${part}`} className="text-rose-500">
             {part}
           </span>
