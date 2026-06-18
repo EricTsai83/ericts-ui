@@ -7,7 +7,7 @@ import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const variants = {
-  hidden: { opacity: 0, scale: 0.6 },
+  hidden: { opacity: 0, scale: 0.5 },
   visible: { opacity: 1, scale: 1 },
 };
 
@@ -68,7 +68,7 @@ export function CopyButton({
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), timeout);
     },
-    [onClick, onCopy, timeout, value]
+    [onClick, onCopy, timeout, value],
   );
 
   // An icon swap is a tiny state change, so keep it snappy: ease-out, well
