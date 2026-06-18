@@ -7,7 +7,8 @@
       "name": "copy-button",
       "type": "registry:ui",
       "title": "Copy Button",
-      "description": "An icon button that copies text to the clipboard and animates a copy → check icon swap.",
+      "description": "A shadcn Button-based copy control that writes text to the clipboard and animates a copy → check icon swap.",
+      "registryDependencies": ["button"],
       "dependencies": ["motion", "lucide-react"],
       "files": [
         {

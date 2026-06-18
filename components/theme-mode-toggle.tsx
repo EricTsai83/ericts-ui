@@ -110,8 +110,8 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           <g
             strokeWidth="1.85"
           >
-            <line x1="7.25" y1="13.15" x2="11.15" y2="9.25" />
-            <line x1="9.2" y1="15.35" x2="15.35" y2="9.2" />
+            <line x1="7" y1="11.5" x2="11.5" y2="7" />
+            <line x1="9.1" y1="15.4" x2="15.4" y2="9.1" />
             <line x1="12.5" y1="17" x2="17" y2="12.5" />
           </g>
         </motion.g>

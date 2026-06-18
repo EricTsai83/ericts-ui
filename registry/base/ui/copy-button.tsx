@@ -4,16 +4,19 @@ import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const variants = {
   hidden: { opacity: 0, scale: 0.6 },
   visible: { opacity: 1, scale: 1 },
 };
 
+type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
+type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
+
 export type CopyButtonProps = Omit<
-  React.ComponentPropsWithoutRef<"button">,
-  "value" | "onCopy"
+  ButtonProps,
+  "children" | "value" | "onCopy"
 > & {
   /** Text written to the clipboard when the button is pressed. */
   value: string;
@@ -27,7 +30,11 @@ export function CopyButton({
   value,
   timeout = 2000,
   onCopy,
+  onClick,
   className,
+  variant = "outline",
+  size = "icon",
+  type = "button",
   "aria-label": ariaLabel = "Copy to clipboard",
   ...props
 }: CopyButtonProps) {
@@ -41,21 +48,28 @@ export function CopyButton({
     };
   }, []);
 
-  const handleCopy = React.useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch {
-      // Clipboard access can be denied (insecure context, no permission) —
-      // bail out without flipping into the copied state.
-      return;
-    }
+  const handleCopy = React.useCallback(
+    async (event: ButtonClickEvent) => {
+      onClick?.(event);
 
-    onCopy?.(value);
-    setCopied(true);
+      if (event.defaultPrevented) return;
 
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), timeout);
-  }, [onCopy, timeout, value]);
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        // Clipboard access can be denied (insecure context, no permission) —
+        // bail out without flipping into the copied state.
+        return;
+      }
+
+      onCopy?.(value);
+      setCopied(true);
+
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), timeout);
+    },
+    [onClick, onCopy, timeout, value]
+  );
 
   // An icon swap is a tiny state change, so keep it snappy: ease-out, well
   // under 150ms. Motion is removed entirely under prefers-reduced-motion.
@@ -64,15 +78,14 @@ export function CopyButton({
     : ({ duration: 0.13, ease: [0.215, 0.61, 0.355, 1] } as const);
 
   return (
-    <button
-      type="button"
+    <Button
+      type={type}
+      variant={variant}
+      size={size}
       aria-label={ariaLabel}
       data-copied={copied}
       onClick={handleCopy}
-      className={cn(
-        "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background text-muted-foreground [transition-property:color,background-color,box-shadow,transform] duration-150 ease-out hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:active:scale-95 disabled:pointer-events-none disabled:opacity-50 dark:bg-card",
-        className,
-      )}
+      className={className}
       {...props}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -86,15 +99,15 @@ export function CopyButton({
           className="inline-flex"
         >
           {copied ? (
-            <Check className="size-4" aria-hidden="true" />
+            <Check data-icon="icon" aria-hidden="true" />
           ) : (
-            <Copy className="size-4" aria-hidden="true" />
+            <Copy data-icon="icon" aria-hidden="true" />
           )}
         </motion.span>
       </AnimatePresence>
       <span role="status" aria-live="polite" className="sr-only">
         {copied ? "Copied to clipboard" : ""}
       </span>
-    </button>
+    </Button>
   );
 }
