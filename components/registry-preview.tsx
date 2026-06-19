@@ -1,24 +1,32 @@
 "use client";
 
 import { Check, Mail, Plus, Sparkles, X } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, type ComponentType, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { SmoothButton } from "@/registry/base/ui/smooth-button";
-import { SmoothHeight } from "@/registry/base/ui/smooth-height";
+import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
+import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
-// Live previews for registry items, keyed by registry name. Items without an
-// entry render nothing (the surrounding card still shows their metadata).
-const previews: Record<string, ReactNode> = {
-  "smooth-height": <SmoothHeightPreview />,
-  "copy-button": <CopyButtonPreview />,
-  "smooth-button": <SmoothButtonPreview />,
+// Live previews for registry items, keyed by registry name. Each entry receives
+// the active showcase variant so the preview can render the matching source.
+// Items without an entry render nothing (the card still shows their metadata).
+const previews: Record<string, (variant: string) => ReactNode> = {
+  "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
+  "copy-button": () => <CopyButtonPreview />,
+  "smooth-button": () => <SmoothButtonPreview />,
 };
 
-export function RegistryPreview({ name }: { name: string }) {
-  return previews[name] ?? null;
+export function RegistryPreview({
+  name,
+  variant = "motion",
+}: {
+  name: string;
+  variant?: string;
+}) {
+  return previews[name]?.(variant) ?? null;
 }
 
 function CopyButtonPreview() {
@@ -82,7 +90,16 @@ const steps = [
   },
 ];
 
-function SmoothHeightPreview() {
+type SmoothHeightComponent = ComponentType<{
+  children: ReactNode;
+  id?: string;
+  innerClassName?: string;
+  className?: string;
+}>;
+
+function SmoothHeightPreview({ variant }: { variant: string }) {
+  const SmoothHeight: SmoothHeightComponent =
+    variant === "css-only" ? CssOnlySmoothHeight : MotionSmoothHeight;
   const panelId = useId();
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);

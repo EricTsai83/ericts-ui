@@ -87,35 +87,45 @@ function ComponentPreviewCard({
             files: [{ name: `${name}.tsx`, language: "tsx", source: "" }],
           },
         ];
+  const hasMultipleVariants = variants.length > 1;
 
   return (
     <section
       data-slot="component-preview"
       className="group relative min-w-0 max-w-full overflow-hidden rounded-xl border bg-background"
     >
-      <div className="flex min-h-[288px] items-center justify-center p-10">
-        <RegistryPreview name={name} />
-      </div>
-      <div
-        data-slot="code"
-        className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
-      >
-        <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
-          <TabsList
-            variant="line"
-            aria-label="Code examples"
-            className="h-10 w-full justify-start gap-6 rounded-none border-b bg-transparent px-5 py-0 group-data-horizontal/tabs:h-10"
-          >
-            {variants.map((variant) => (
-              <TabsTrigger
-                key={variant.value}
-                value={variant.value}
-                className="h-10 flex-none px-0 py-0"
-              >
-                {variant.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
+        <div className="relative flex min-h-[288px] items-center justify-center p-10">
+          {hasMultipleVariants ? (
+            <TabsList
+              aria-label="Implementation"
+              className="absolute left-3 top-3 z-10 shadow-sm"
+            >
+              {variants.map((variant) => (
+                <TabsTrigger
+                  key={variant.value}
+                  value={variant.value}
+                  className="px-3"
+                >
+                  {variant.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          ) : null}
+          {variants.map((variant) => (
+            <TabsContent
+              key={variant.value}
+              value={variant.value}
+              className="flex w-full items-center justify-center"
+            >
+              <RegistryPreview name={name} variant={variant.value} />
+            </TabsContent>
+          ))}
+        </div>
+        <div
+          data-slot="code"
+          className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
+        >
           {variants.map((variant) => (
             <TabsContent
               key={variant.value}
@@ -125,8 +135,8 @@ function ComponentPreviewCard({
               <CodeFileTabs files={variant.files} />
             </TabsContent>
           ))}
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </section>
   );
 }
