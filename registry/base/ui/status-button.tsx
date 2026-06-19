@@ -10,7 +10,7 @@ type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
 type ButtonState = "idle" | "loading" | "success";
 
-export type SmoothButtonProps = Omit<ButtonProps, "children" | "onClick"> & {
+export type StatusButtonProps = Omit<ButtonProps, "children" | "onClick"> & {
   idleLabel?: React.ReactNode;
   loadingLabel?: React.ReactNode;
   successLabel?: React.ReactNode;
@@ -31,7 +31,7 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
-export function SmoothButton({
+export function StatusButton({
   idleLabel = "Send me a login link",
   loadingLabel = <Spinner />,
   successLabel = "Login link sent!",
@@ -42,7 +42,7 @@ export function SmoothButton({
   onClick,
   type = "button",
   ...props
-}: SmoothButtonProps) {
+}: StatusButtonProps) {
   const [buttonState, setButtonState] = React.useState<ButtonState>("idle");
   const shouldReduceMotion = useReducedMotion();
   const timers = React.useRef<ReturnType<typeof setTimeout>[]>([]);

@@ -6,7 +6,7 @@ import { useId, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
-import { SmoothButton } from "@/registry/base/ui/smooth-button";
+import { StatusButton } from "@/registry/base/ui/status-button";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
@@ -16,7 +16,7 @@ import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-he
 const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
-  "smooth-button": () => <SmoothButtonPreview />,
+  "status-button": () => <StatusButtonPreview />,
 };
 
 export function RegistryPreview({
@@ -317,10 +317,10 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
   );
 }
 
-function SmoothButtonPreview() {
+function StatusButtonPreview() {
   return (
     <div className="flex items-center justify-center">
-      <SmoothButton />
+      <StatusButton />
     </div>
   );
 }

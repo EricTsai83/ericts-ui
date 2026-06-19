@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "status-button",
+  "type": "registry:ui",
+  "title": "Status Button",
+  "description": "A shadcn Button-based action that transitions through idle, loading, and success states with Motion.",
+  "dependencies": [
+    "motion"
+  ],
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/status-button.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { AnimatePresence, motion, useReducedMotion } from \"motion/react\";\n\nimport { Button } from \"@/components/ui/button\";\nimport { cn } from \"@/lib/utils\";\n\ntype ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;\ntype ButtonClickEvent = Parameters<NonNullable<ButtonProps[\"onClick\"]>>[0];\ntype ButtonState = \"idle\" | \"loading\" | \"success\";\n\nexport type StatusButtonProps = Omit<ButtonProps, \"children\" | \"onClick\"> & {\n  idleLabel?: React.ReactNode;\n  loadingLabel?: React.ReactNode;\n  successLabel?: React.ReactNode;\n  loadingDuration?: number;\n  successDuration?: number;\n  onClick?: (event: ButtonClickEvent) => void | Promise<void>;\n};\n\nfunction Spinner({ className }: { className?: string }) {\n  return (\n    <span\n      aria-hidden=\"true\"\n      className={cn(\n        \"size-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70\",\n        className\n      )}\n    />\n  );\n}\n\nexport function StatusButton({\n  idleLabel = \"Send me a login link\",\n  loadingLabel = <Spinner />,\n  successLabel = \"Login link sent!\",\n  loadingDuration = 1750,\n  successDuration = 1750,\n  disabled,\n  className,\n  onClick,\n  type = \"button\",\n  ...props\n}: StatusButtonProps) {\n  const [buttonState, setButtonState] = React.useState<ButtonState>(\"idle\");\n  const shouldReduceMotion = useReducedMotion();\n  const timers = React.useRef<ReturnType<typeof setTimeout>[]>([]);\n\n  React.useEffect(() => {\n    return () => {\n      timers.current.forEach(clearTimeout);\n    };\n  }, []);\n\n  const clearTimers = React.useCallback(() => {\n    timers.current.forEach(clearTimeout);\n    timers.current = [];\n  }, []);\n\n  const handleClick = React.useCallback(\n    async (event: ButtonClickEvent) => {\n      if (buttonState !== \"idle\") return;\n\n      setButtonState(\"loading\");\n      clearTimers();\n\n      try {\n        await onClick?.(event);\n      } catch {\n        setButtonState(\"idle\");\n        return;\n      }\n\n      timers.current = [\n        setTimeout(() => {\n          setButtonState(\"success\");\n        }, loadingDuration),\n        setTimeout(() => {\n          setButtonState(\"idle\");\n        }, loadingDuration + successDuration),\n      ];\n    },\n    [buttonState, clearTimers, loadingDuration, onClick, successDuration]\n  );\n\n  const copy: Record<ButtonState, React.ReactNode> = {\n    idle: idleLabel,\n    loading: loadingLabel,\n    success: successLabel,\n  };\n\n  const transition = shouldReduceMotion\n    ? { duration: 0 }\n    : ({ type: \"spring\", duration: 0.3, bounce: 0 } as const);\n\n  return (\n    <Button\n      type={type}\n      disabled={disabled || buttonState === \"loading\"}\n      onClick={handleClick}\n      className={cn(\"min-w-44 overflow-hidden\", className)}\n      {...props}\n    >\n      <AnimatePresence mode=\"popLayout\" initial={false}>\n        <motion.span\n          key={buttonState}\n          initial={shouldReduceMotion ? false : { opacity: 0, y: -24 }}\n          animate={{ opacity: 1, y: 0 }}\n          exit={shouldReduceMotion ? undefined : { opacity: 0, y: 24 }}\n          transition={transition}\n          className=\"inline-flex items-center justify-center gap-1.5\"\n        >\n          {copy[buttonState]}\n        </motion.span>\n      </AnimatePresence>\n      <span role=\"status\" aria-live=\"polite\" className=\"sr-only\">\n        {buttonState === \"loading\"\n          ? \"Sending login link\"\n          : buttonState === \"success\"\n            ? \"Login link sent\"\n            : \"\"}\n      </span>\n    </Button>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/status-button.tsx"
+    }
+  ]
+}

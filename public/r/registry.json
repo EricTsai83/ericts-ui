@@ -33,17 +33,17 @@
       ]
     },
     {
-      "name": "smooth-button",
+      "name": "status-button",
       "type": "registry:ui",
-      "title": "Smooth Button",
-      "description": "A shadcn Button-based action that animates idle, loading, and success states with Motion.",
+      "title": "Status Button",
+      "description": "A shadcn Button-based action that transitions through idle, loading, and success states with Motion.",
       "registryDependencies": ["button"],
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/smooth-button.tsx",
+          "path": "registry/base/ui/status-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/smooth-button.tsx"
+          "target": "components/ui/status-button.tsx"
         }
       ]
     }
