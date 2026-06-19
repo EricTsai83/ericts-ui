@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { StatusButton } from "@/registry/base/ui/status-button";
+import { AnimatedModal } from "@/registry/base/ui/animated-modal";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
@@ -19,6 +20,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "copy-button": () => <CopyButtonPreview />,
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
+  "animated-modal": () => <AnimatedModalPreview />,
 };
 
 export function RegistryPreview({
@@ -69,6 +71,14 @@ function HighlightTabsPreview() {
           3 recent changes
         </p>
       </div>
+    </div>
+  );
+}
+
+function AnimatedModalPreview() {
+  return (
+    <div className="flex min-h-[28rem] w-full items-center justify-center">
+      <AnimatedModal className="min-h-[28rem]" />
     </div>
   );
 }

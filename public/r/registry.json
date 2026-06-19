@@ -60,6 +60,21 @@
           "target": "components/ui/highlight-tabs.tsx"
         }
       ]
+    },
+    {
+      "name": "animated-modal",
+      "type": "registry:ui",
+      "title": "Animated Modal",
+      "description": "A Motion-powered shared layout modal that expands list items into an accessible dialog with overlay, Escape handling, and reduced-motion support.",
+      "registryDependencies": ["button"],
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/animated-modal.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/animated-modal.tsx"
+        }
+      ]
     }
   ]
 }
