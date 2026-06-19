@@ -1,16 +1,18 @@
 "use client";
 
+import { Check, Mail, Plus, Sparkles, X } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { AutoHeight } from "@/registry/base/ui/auto-height";
+import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { SmoothButton } from "@/registry/base/ui/smooth-button";
+import { SmoothHeight } from "@/registry/base/ui/smooth-height";
 
 // Live previews for registry items, keyed by registry name. Items without an
 // entry render nothing (the surrounding card still shows their metadata).
 const previews: Record<string, ReactNode> = {
-  "auto-height": <AutoHeightPreview />,
+  "smooth-height": <SmoothHeightPreview />,
   "copy-button": <CopyButtonPreview />,
   "smooth-button": <SmoothButtonPreview />,
 };
@@ -31,52 +33,269 @@ function CopyButtonPreview() {
   );
 }
 
-function AutoHeightPreview() {
-  const [isExpanded, setIsExpanded] = useState(false);
+const plans = [
+  {
+    id: "starter",
+    name: "Starter",
+    tagline: "For solo builders",
+    perks: ["1 workspace", "Community support"],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    tagline: "For growing teams",
+    perks: ["Unlimited workspaces", "Priority support", "Private registry"],
+  },
+  {
+    id: "team",
+    name: "Team",
+    tagline: "For whole organizations",
+    perks: [
+      "Everything in Pro",
+      "SSO & SCIM provisioning",
+      "Audit logs",
+      "Dedicated success manager",
+    ],
+  },
+];
+
+const seedTeammate = "ava@example.com";
+const teammatePool = [
+  "noah@example.com",
+  "mia@example.com",
+  "liam@example.com",
+  "zoe@example.com",
+];
+
+const steps = [
+  {
+    title: "Choose your plan",
+    description: "Pick a tier — the summary expands inline as you decide.",
+  },
+  {
+    title: "Invite your team",
+    description: "Add a few teammates. The dialog grows to fit every invite.",
+  },
+  {
+    title: "You're all set",
+    description: "A short final step, so the panel collapses back down.",
+  },
+];
+
+function SmoothHeightPreview() {
   const panelId = useId();
+  const [stepIndex, setStepIndex] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [teammates, setTeammates] = useState<string[]>([seedTeammate]);
+
+  const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
+  const remainingPool = teammatePool.filter(
+    (email) => !teammates.includes(email)
+  );
+  const isFirstStep = stepIndex === 0;
+  const isLastStep = stepIndex === steps.length - 1;
+  const canContinue = isFirstStep ? selectedPlan !== null : true;
+  const currentStep = steps[stepIndex];
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="truncate text-sm font-medium">Fake Family Drawer</p>
-          <p className="text-sm text-muted-foreground">
-            {isExpanded ? "Full record" : "Summary"}
-          </p>
+    <div
+      role="dialog"
+      aria-labelledby={`${panelId}-title`}
+      aria-describedby={`${panelId}-description`}
+      className="w-full max-w-md overflow-hidden rounded-lg border bg-background"
+    >
+      <div className="border-b px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3
+              id={`${panelId}-title`}
+              className="truncate text-sm font-semibold"
+            >
+              Set up your workspace
+            </h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Step {stepIndex + 1} of {steps.length}
+            </p>
+          </div>
+          <div className="flex gap-1" aria-hidden>
+            {steps.map((step, index) => (
+              <span
+                key={step.title}
+                className={cn(
+                  "h-1.5 w-5 rounded-full transition-colors",
+                  index <= stepIndex ? "bg-foreground" : "bg-muted"
+                )}
+              />
+            ))}
+          </div>
         </div>
+      </div>
+
+      <SmoothHeight id={panelId} innerClassName="p-4">
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="text-base font-semibold">{currentStep.title}</p>
+            <p
+              id={`${panelId}-description`}
+              className="mt-1 text-sm leading-5 text-muted-foreground"
+            >
+              {currentStep.description}
+            </p>
+          </div>
+
+          {stepIndex === 0 ? (
+            <div className="flex flex-col gap-2">
+              {plans.map((plan) => {
+                const selected = plan.id === selectedPlan;
+
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setSelectedPlan(plan.id)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "flex flex-col gap-0.5 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      selected
+                        ? "border-foreground bg-muted/50"
+                        : "bg-background hover:bg-muted/40"
+                    )}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{plan.name}</span>
+                      <span
+                        className={cn(
+                          "flex size-4 items-center justify-center rounded-full border transition-colors",
+                          selected &&
+                            "border-foreground bg-foreground text-background"
+                        )}
+                        aria-hidden
+                      >
+                        {selected ? <Check className="size-3" /> : null}
+                      </span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {plan.tagline}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {selectedPlanData ? (
+                <div className="rounded-md border bg-muted/40 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-medium">
+                    <Sparkles className="size-3.5" aria-hidden />
+                    Included in {selectedPlanData.name}
+                  </p>
+                  <ul className="mt-2 grid gap-1.5">
+                    {selectedPlanData.perks.map((perk) => (
+                      <li
+                        key={perk}
+                        className="flex items-center gap-2 text-xs text-muted-foreground"
+                      >
+                        <Check
+                          className="size-3.5 shrink-0 text-foreground"
+                          aria-hidden
+                        />
+                        {perk}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {stepIndex === 1 ? (
+            <div className="flex flex-col gap-2">
+              {teammates.map((email) => (
+                <div
+                  key={email}
+                  className="flex items-center gap-2 rounded-md border bg-background px-3 py-2"
+                >
+                  <Mail
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm">
+                    {email}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTeammates((current) =>
+                        current.length > 1
+                          ? current.filter((value) => value !== email)
+                          : current
+                      )
+                    }
+                    disabled={teammates.length === 1}
+                    aria-label={`Remove ${email}`}
+                    className="text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+                  >
+                    <X className="size-4" aria-hidden />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setTeammates((current) =>
+                    remainingPool[0] ? [...current, remainingPool[0]] : current
+                  )
+                }
+                disabled={remainingPool.length === 0}
+                className="flex items-center justify-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Plus className="size-4" aria-hidden />
+                {remainingPool.length === 0
+                  ? "Everyone's invited"
+                  : "Add another teammate"}
+              </button>
+            </div>
+          ) : null}
+
+          {stepIndex === 2 ? (
+            <div className="flex flex-col items-center gap-2 py-2 text-center">
+              <span
+                className="flex size-10 items-center justify-center rounded-full bg-foreground text-background"
+                aria-hidden
+              >
+                <Check className="size-5" />
+              </span>
+              <p className="text-sm font-medium">Workspace ready</p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                {teammates.length} teammate{teammates.length === 1 ? "" : "s"}{" "}
+                invited to your{" "}
+                {selectedPlanData?.name ?? "new"} workspace.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </SmoothHeight>
+
+      <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          aria-controls={panelId}
-          aria-expanded={isExpanded}
-          onClick={() => setIsExpanded((value) => !value)}
+          disabled={isFirstStep}
+          onClick={() => setStepIndex((value) => Math.max(value - 1, 0))}
         >
-          {isExpanded ? "Collapse" : "Expand"}
+          Back
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          disabled={!canContinue}
+          onClick={() => {
+            if (isLastStep) return;
+            setStepIndex((value) => Math.min(value + 1, steps.length - 1));
+          }}
+        >
+          {isLastStep ? "Confirm" : "Continue"}
         </Button>
       </div>
-      <AutoHeight
-        id={panelId}
-        className="rounded-lg border bg-background"
-        innerClassName="p-4"
-      >
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold">Household profile</h3>
-            <p className="text-sm leading-6 text-muted-foreground">
-              Animating height stays stable because the measured content is
-              separated from the animated container.
-            </p>
-          </div>
-          {isExpanded ? (
-            <div className="flex flex-col gap-2 border-t pt-3 text-sm text-muted-foreground">
-              <p>Primary contact: Nora Lin</p>
-              <p>Members: 4 active records</p>
-              <p>Last updated: Today</p>
-            </div>
-          ) : null}
-        </div>
-      </AutoHeight>
     </div>
   );
 }

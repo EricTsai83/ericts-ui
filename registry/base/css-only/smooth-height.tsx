@@ -1,35 +1,25 @@
 "use client";
 
 import * as React from "react";
-import {
-  motion,
-  useReducedMotion,
-  type HTMLMotionProps,
-} from "motion/react";
 
 import { cn } from "@/lib/utils";
 
-type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
+import "./smooth-height.css";
 
-export type AutoHeightProps = Omit<
-  HTMLMotionProps<"div">,
-  "animate" | "children" | "initial" | "transition"
-> & {
+export type SmoothHeightProps = React.ComponentPropsWithoutRef<"div"> & {
   children: React.ReactNode;
   innerClassName?: string;
-  transition?: MotionTransition;
 };
 
-export function AutoHeight({
+export function SmoothHeight({
   children,
   className,
   innerClassName,
-  transition,
+  style,
   ...props
-}: AutoHeightProps) {
+}: SmoothHeightProps) {
   const [height, setHeight] = React.useState<number | null>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
 
   React.useEffect(() => {
     const content = contentRef.current;
@@ -69,26 +59,20 @@ export function AutoHeight({
     return () => observer.disconnect();
   }, []);
 
-  const resolvedTransition: MotionTransition = shouldReduceMotion
-    ? { duration: 0 }
-    : transition ?? { type: "spring", duration: 0.32, bounce: 0 };
-
   return (
-    <motion.div
+    <div
       {...props}
-      data-slot="auto-height"
-      initial={false}
-      animate={{ height: height ?? "auto" }}
-      transition={resolvedTransition}
-      className={cn("overflow-hidden", className)}
+      data-slot="smooth-height"
+      className={cn("smooth-height", className)}
+      style={height === null ? style : { ...style, height: `${height}px` }}
     >
       <div
         ref={contentRef}
-        data-slot="auto-height-content"
+        data-slot="smooth-height-content"
         className={innerClassName}
       >
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 }
