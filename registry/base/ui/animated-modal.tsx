@@ -7,9 +7,7 @@ import {
   motion,
   useReducedMotion,
 } from "motion/react";
-import { X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type AnimatedModalItem = {
@@ -46,23 +44,28 @@ const coverImages = {
   odyssey: svgDataUri(`
     <svg xmlns="${svgNamespace}" viewBox="0 0 120 120">
       <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stop-color="#111827"/>
-          <stop offset="1" stop-color="#4c1d95"/>
+        <linearGradient id="odyssey-bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#0f172a"/>
+          <stop offset="1" stop-color="#1e3a8a"/>
         </linearGradient>
-        <linearGradient id="planet" x1="0" x2="1">
-          <stop offset="0" stop-color="#f97316"/>
-          <stop offset="0.55" stop-color="#ec4899"/>
-          <stop offset="1" stop-color="#60a5fa"/>
+        <linearGradient id="odyssey-planet" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#38bdf8"/>
+          <stop offset="1" stop-color="#22c55e"/>
         </linearGradient>
       </defs>
-      <rect width="120" height="120" rx="24" fill="url(#bg)"/>
-      <circle cx="30" cy="27" r="2" fill="#e0f2fe"/>
-      <circle cx="90" cy="30" r="1.8" fill="#fef3c7"/>
-      <circle cx="78" cy="82" r="2.4" fill="#dbeafe"/>
-      <ellipse cx="61" cy="62" rx="45" ry="13" fill="none" stroke="#a78bfa" stroke-width="7" transform="rotate(-18 61 62)"/>
-      <circle cx="61" cy="62" r="26" fill="url(#planet)"/>
-      <path d="M39 66c12 8 31 9 48 2" fill="none" stroke="#fde68a" stroke-width="5" stroke-linecap="round"/>
+      <rect width="120" height="120" rx="24" fill="url(#odyssey-bg)"/>
+      <circle cx="28" cy="29" r="2" fill="#e0f2fe"/>
+      <circle cx="88" cy="25" r="1.8" fill="#fef3c7"/>
+      <circle cx="96" cy="84" r="2.2" fill="#bfdbfe"/>
+      <circle cx="60" cy="62" r="40" fill="#dbeafe" opacity=".18"/>
+      <circle cx="60" cy="62" r="31" fill="#0f172a" stroke="#e0f2fe" stroke-width="6"/>
+      <circle cx="60" cy="62" r="21" fill="url(#odyssey-planet)"/>
+      <path d="M47 57c8 4 17 4 26 0v20H47z" fill="#0369a1" opacity=".35"/>
+      <path d="M52 45l-9 14h34L68 45z" fill="#f8fafc"/>
+      <path d="M52 45h16l6 37H46z" fill="#e2e8f0"/>
+      <path d="M60 34l11 17H49z" fill="#f97316"/>
+      <rect x="54" y="58" width="12" height="12" rx="3" fill="#0f172a"/>
+      <path d="M49 82l-7 12h36l-7-12z" fill="#94a3b8"/>
     </svg>
   `),
   arcade: svgDataUri(`
@@ -156,6 +159,9 @@ const defaultItems: AnimatedModalItem[] = [
   },
 ];
 
+const actionButtonClassName =
+  "inline-flex h-7 shrink-0 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-transparent bg-primary bg-clip-padding px-2.5 pt-px text-[0.8rem] leading-[1.4285714286] font-medium whitespace-nowrap text-primary-foreground";
+
 export function AnimatedModal({
   items = defaultItems,
   value,
@@ -172,7 +178,7 @@ export function AnimatedModal({
   const reactId = React.useId();
   const titleId = `${reactId}-title`;
   const descriptionId = `${reactId}-description`;
-  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = React.useRef<HTMLElement | null>(null);
   const imageDecodePromises = React.useRef(new Map<string, Promise<void>>());
   const decodedImages = React.useRef(new Set<string>());
@@ -269,7 +275,7 @@ export function AnimatedModal({
     if (!activeItem) return;
 
     previouslyFocusedElement.current = document.activeElement as HTMLElement;
-    closeButtonRef.current?.focus();
+    dialogRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -327,11 +333,13 @@ export function AnimatedModal({
               }}
             >
               <motion.div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label={modalLabel}
                 aria-labelledby={titleId}
                 aria-describedby={descriptionId}
+                tabIndex={-1}
                 layoutId={`card-${activeItem.id}`}
                 transition={layoutTransition}
                 className="w-full max-w-md overflow-hidden rounded-xl border bg-background shadow-lg"
@@ -366,25 +374,14 @@ export function AnimatedModal({
                         {activeItem.description}
                       </motion.p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <motion.div
+                    <div className="flex shrink-0 items-center">
+                      <motion.span
                         layoutId={`button-${activeItem.id}`}
                         transition={layoutTransition}
+                        className={actionButtonClassName}
                       >
-                        <Button size="sm">
-                          {activeItem.actionLabel ?? actionLabel}
-                        </Button>
-                      </motion.div>
-                      <Button
-                        ref={closeButtonRef}
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label="Close modal"
-                        onClick={closeActiveItem}
-                      >
-                        <X data-icon="icon" aria-hidden="true" />
-                      </Button>
+                        {activeItem.actionLabel ?? actionLabel}
+                      </motion.span>
                     </div>
                   </div>
                 </div>
@@ -449,7 +446,7 @@ export function AnimatedModal({
                   <motion.span
                     layoutId={`button-${item.id}`}
                     transition={layoutTransition}
-                    className="inline-flex h-7 shrink-0 items-center rounded-md bg-primary px-2.5 text-sm font-medium text-primary-foreground"
+                    className={actionButtonClassName}
                   >
                     {item.actionLabel ?? actionLabel}
                   </motion.span>

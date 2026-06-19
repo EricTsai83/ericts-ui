@@ -66,8 +66,7 @@
       "type": "registry:ui",
       "title": "Animated Modal",
       "description": "A Motion-powered shared layout modal that expands list items into an accessible dialog with overlay, Escape handling, and reduced-motion support.",
-      "registryDependencies": ["button"],
-      "dependencies": ["motion", "lucide-react"],
+      "dependencies": ["motion"],
       "files": [
         {
           "path": "registry/base/ui/animated-modal.tsx",
