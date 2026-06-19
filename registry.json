@@ -46,6 +46,20 @@
           "target": "components/ui/status-button.tsx"
         }
       ]
+    },
+    {
+      "name": "highlight-tabs",
+      "type": "registry:ui",
+      "title": "Highlight Tabs",
+      "description": "A Motion-powered tab list with a shared highlight indicator, hover activation, focus activation, and arrow-key navigation.",
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/highlight-tabs.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/highlight-tabs.tsx"
+        }
+      ]
     }
   ]
 }

@@ -6,6 +6,7 @@ import { useId, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
+import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
@@ -17,6 +18,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
   "status-button": () => <StatusButtonPreview />,
+  "highlight-tabs": () => <HighlightTabsPreview />,
 };
 
 export function RegistryPreview({
@@ -37,6 +39,36 @@ function CopyButtonPreview() {
         variant="outline"
         aria-label="Copy outline variant"
       />
+    </div>
+  );
+}
+
+const highlightTabItems = [
+  { value: "overview", label: "Overview" },
+  { value: "activity", label: "Activity" },
+  { value: "settings", label: "Settings" },
+];
+
+function HighlightTabsPreview() {
+  const [activeTab, setActiveTab] = useState(highlightTabItems[0].value);
+  const activeLabel =
+    highlightTabItems.find((tab) => tab.value === activeTab)?.label ??
+    "Overview";
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <HighlightTabs
+        tabs={highlightTabItems}
+        value={activeTab}
+        onValueChange={setActiveTab}
+        aria-label="Workspace sections"
+      />
+      <div className="min-w-64 rounded-lg border bg-background px-4 py-3 text-center">
+        <p className="text-sm font-medium">{activeLabel}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          3 recent changes
+        </p>
+      </div>
     </div>
   );
 }
