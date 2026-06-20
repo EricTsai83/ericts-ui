@@ -6,6 +6,7 @@ import {
   useMotionValue,
   useReducedMotion,
   useSpring,
+  type MotionValue,
   type SpringOptions,
 } from "motion/react";
 
@@ -123,7 +124,7 @@ export function ContextCursor({
   children,
   className,
   cursorClassName,
-  follow = "spring",
+  follow = "instant",
   spring = defaultSpring,
   animation,
   edgeFadeDistance = defaultEdgeFadeDistance,
@@ -149,8 +150,6 @@ export function ContextCursor({
   );
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
-  const springX = useSpring(rawX, spring);
-  const springY = useSpring(rawY, spring);
   const opacity = useSpring(
     initialHiddenOpacity,
     animation?.opacitySpring ?? opacitySpring,
@@ -159,8 +158,6 @@ export function ContextCursor({
     initialHiddenScale,
     animation?.scaleSpring ?? scaleSpring,
   );
-  const x = follow === "spring" ? springX : rawX;
-  const y = follow === "spring" ? springY : rawY;
 
   const hideNativeCursor = React.useCallback(() => {
     if (hasNativeCursorLock.current) return;
@@ -467,35 +464,101 @@ export function ContextCursor({
         onPointerCancel={handlePointerCancel}
       >
         {children}
-        <motion.div
-          aria-hidden="true"
-          data-slot="context-cursor-indicator"
-          style={{
-            x,
-            y,
-            opacity,
-            scale,
-          }}
-          className={cn(
-            "pointer-events-none absolute left-0 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium leading-5 will-change-transform",
-            variantClassNames[variant],
-            !cursor && "invisible",
-            cursorClassName,
-          )}
-        >
-          {cursor?.icon ? (
-            <span
-              data-slot="context-cursor-icon"
-              className="flex size-3.5 items-center justify-center"
-            >
-              {cursor.icon}
-            </span>
-          ) : null}
-          {cursor?.label}
-        </motion.div>
+        {follow === "spring" ? (
+          <SpringCursorIndicator
+            cursor={cursor}
+            cursorClassName={cursorClassName}
+            opacity={opacity}
+            rawX={rawX}
+            rawY={rawY}
+            scale={scale}
+            spring={spring}
+            variant={variant}
+          />
+        ) : (
+          <ContextCursorIndicator
+            cursor={cursor}
+            cursorClassName={cursorClassName}
+            opacity={opacity}
+            scale={scale}
+            variant={variant}
+            x={rawX}
+            y={rawY}
+          />
+        )}
       </div>
     </ContextCursorContext.Provider>
   );
+}
+
+type ContextCursorIndicatorProps = {
+  cursor: ContextCursorState | null;
+  cursorClassName?: string;
+  opacity: MotionValue<number>;
+  scale: MotionValue<number>;
+  variant: ContextCursorVariant;
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+};
+
+function ContextCursorIndicator({
+  cursor,
+  cursorClassName,
+  opacity,
+  scale,
+  variant,
+  x,
+  y,
+}: ContextCursorIndicatorProps) {
+  return (
+    <motion.div
+      aria-hidden="true"
+      data-slot="context-cursor-indicator"
+      style={{
+        x,
+        y,
+        opacity,
+        scale,
+      }}
+      className={cn(
+        "pointer-events-none absolute left-0 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium leading-5 will-change-transform",
+        variantClassNames[variant],
+        !cursor && "invisible",
+        cursorClassName,
+      )}
+    >
+      {cursor?.icon ? (
+        <span
+          data-slot="context-cursor-icon"
+          className="flex size-3.5 items-center justify-center"
+        >
+          {cursor.icon}
+        </span>
+      ) : null}
+      {cursor?.label}
+    </motion.div>
+  );
+}
+
+type SpringCursorIndicatorProps = Omit<
+  ContextCursorIndicatorProps,
+  "x" | "y"
+> & {
+  rawX: MotionValue<number>;
+  rawY: MotionValue<number>;
+  spring: SpringOptions;
+};
+
+function SpringCursorIndicator({
+  rawX,
+  rawY,
+  spring,
+  ...props
+}: SpringCursorIndicatorProps) {
+  const x = useSpring(rawX, spring);
+  const y = useSpring(rawY, spring);
+
+  return <ContextCursorIndicator {...props} x={x} y={y} />;
 }
 
 function useFinePointer() {
