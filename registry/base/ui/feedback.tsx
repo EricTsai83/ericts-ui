@@ -63,7 +63,7 @@ export function Feedback({
   successTitle = "Feedback received!",
   successDescription = "Thanks for helping us improve.",
   loadingAnnouncement = "Sending feedback",
-  loadingDuration = 0,
+  loadingDuration = 1500,
   successDuration = 1800,
   className,
   ...props

@@ -14,8 +14,6 @@ export type StatusButtonProps = Omit<ButtonProps, "children" | "onClick"> & {
   idleLabel?: React.ReactNode;
   loadingLabel?: React.ReactNode;
   successLabel?: React.ReactNode;
-  loadingAnnouncement?: string;
-  successAnnouncement?: string;
   loadingDuration?: number;
   successDuration?: number;
   onClick?: (event: ButtonClickEvent) => void | Promise<void>;
@@ -33,20 +31,12 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
-function wait(duration: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, duration);
-  });
-}
-
 export function StatusButton({
-  idleLabel = "Submit",
+  idleLabel = "Send me a login link",
   loadingLabel = <Spinner />,
-  successLabel = "Done",
-  loadingAnnouncement = "Loading",
-  successAnnouncement = "Complete",
-  loadingDuration = 0,
-  successDuration = 1500,
+  successLabel = "Login link sent!",
+  loadingDuration = 1750,
+  successDuration = 1750,
   disabled,
   className,
   onClick,
@@ -76,24 +66,19 @@ export function StatusButton({
       clearTimers();
 
       try {
-        const result = onClick?.(event);
-
-        if (event.defaultPrevented) {
-          setButtonState("idle");
-          return;
-        }
-
-        await Promise.all([result, wait(loadingDuration)]);
+        await onClick?.(event);
       } catch {
         setButtonState("idle");
         return;
       }
 
-      setButtonState("success");
       timers.current = [
         setTimeout(() => {
+          setButtonState("success");
+        }, loadingDuration),
+        setTimeout(() => {
           setButtonState("idle");
-        }, successDuration),
+        }, loadingDuration + successDuration),
       ];
     },
     [buttonState, clearTimers, loadingDuration, onClick, successDuration]
@@ -112,8 +97,7 @@ export function StatusButton({
   return (
     <Button
       type={type}
-      disabled={disabled || buttonState !== "idle"}
-      aria-busy={buttonState === "loading"}
+      disabled={disabled || buttonState === "loading"}
       onClick={handleClick}
       className={cn("min-w-44 overflow-hidden", className)}
       {...props}
@@ -132,9 +116,9 @@ export function StatusButton({
       </AnimatePresence>
       <span role="status" aria-live="polite" className="sr-only">
         {buttonState === "loading"
-          ? loadingAnnouncement
+          ? "Sending login link"
           : buttonState === "success"
-            ? successAnnouncement
+            ? "Login link sent"
             : ""}
       </span>
     </Button>
