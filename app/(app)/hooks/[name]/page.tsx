@@ -12,7 +12,7 @@ type PageProps = {
   }>;
 };
 
-const CATEGORY = "ui";
+const CATEGORY = "hooks";
 
 export function generateStaticParams() {
   return generateRegistryItemStaticParams(CATEGORY);
@@ -26,7 +26,7 @@ export async function generateMetadata({
   return generateRegistryItemMetadata({ name, category: CATEGORY });
 }
 
-export default async function ComponentPage({ params }: PageProps) {
+export default async function HookPage({ params }: PageProps) {
   const { name } = await params;
 
   return <RegistryItemPage name={name} category={CATEGORY} />;

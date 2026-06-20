@@ -38,7 +38,7 @@ export function searchComponents(query: string): SortedResult[] {
             id: `component-${item.name}`,
             type: "page",
             content: highlightText(title, query),
-            breadcrumbs: ["Components", item.category],
+            breadcrumbs: [getRegistryItemSection(item.category)],
             url: item.href,
           },
         },
@@ -59,10 +59,18 @@ export function getDefaultComponentSearchItems(): SortedResult[] {
         id: `component-${item.name}`,
         type: "page",
         content: escapeHtml(title),
-        breadcrumbs: ["Components", item.category],
+        breadcrumbs: [getRegistryItemSection(item.category)],
         url: item.href,
       };
     });
+}
+
+function getRegistryItemSection(category: string) {
+  if (category === "hooks") {
+    return "Hooks";
+  }
+
+  return "Components";
 }
 
 function getComponentScore({

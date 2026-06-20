@@ -20,7 +20,7 @@ export function HeaderActions() {
         >
           <Search className="size-4 shrink-0 text-foreground" aria-hidden="true" />
           <span className="hidden truncate xl:inline-flex">
-            Search docs and components...
+            Search docs, components, and hooks...
           </span>
           <span className="truncate xl:hidden">Search...</span>
           {hotKey.length > 0 ? (

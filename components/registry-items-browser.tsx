@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 
-export type ComponentListItem = {
+export type RegistryListItem = {
   name: string;
   title?: string;
   description?: string;
@@ -14,30 +14,56 @@ export type ComponentListItem = {
   href: string;
 };
 
-function getDisplayName(component: ComponentListItem) {
-  return component.title ?? component.name;
+type RegistryItemsBrowserProps = {
+  items: RegistryListItem[];
+  title: string;
+  description: string;
+  searchInputId: string;
+  searchLabel: string;
+  searchPlaceholder: string;
+  itemLabel: string;
+  itemLabelPlural: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  noItemsLabel: string;
+};
+
+function getDisplayName(item: RegistryListItem) {
+  return item.title ?? item.name;
 }
 
-export function ComponentsBrowser({
-  components,
-}: {
-  components: ComponentListItem[];
-}) {
+function getCountLabel(
+  count: number,
+  itemLabel: string,
+  itemLabelPlural: string,
+) {
+  return `${count} ${count === 1 ? itemLabel : itemLabelPlural}`;
+}
+
+export function RegistryItemsBrowser({
+  items,
+  title,
+  description,
+  searchInputId,
+  searchLabel,
+  searchPlaceholder,
+  itemLabel,
+  itemLabelPlural,
+  emptyTitle,
+  emptyDescription,
+  noItemsLabel,
+}: RegistryItemsBrowserProps) {
   const [query, setQuery] = useState("");
   const trimmedQuery = query.trim();
   const normalizedQuery = trimmedQuery.toLowerCase();
 
-  const filteredComponents = useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (!normalizedQuery) {
-      return components;
+      return items;
     }
 
-    return components.filter((component) => {
-      const primarySearchableText = [
-        component.title,
-        component.name,
-        component.category,
-      ]
+    return items.filter((item) => {
+      const primarySearchableText = [item.title, item.name, item.category]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -50,34 +76,35 @@ export function ComponentsBrowser({
         return false;
       }
 
-      return (component.description ?? "")
-        .toLowerCase()
-        .includes(normalizedQuery);
+      return (item.description ?? "").toLowerCase().includes(normalizedQuery);
     });
-  }, [components, normalizedQuery]);
+  }, [items, normalizedQuery]);
 
   const resultLabel =
-    filteredComponents.length === components.length
-      ? `${components.length} components`
-      : `${filteredComponents.length} of ${components.length} components`;
+    filteredItems.length === items.length
+      ? getCountLabel(items.length, itemLabel, itemLabelPlural)
+      : `${filteredItems.length} of ${getCountLabel(
+          items.length,
+          itemLabel,
+          itemLabelPlural,
+        )}`;
 
   return (
     <div className="flex flex-col gap-8">
       <section className="grid gap-6 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,480px)] lg:items-end">
         <div className="flex max-w-2xl flex-col gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight">Components</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
           <p className="text-base leading-7 text-muted-foreground sm:text-lg">
-            Here you can find all the components available in the library. We
-            are working on adding more components.
+            {description}
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
           <label
-            htmlFor="components-search"
+            htmlFor={searchInputId}
             className="text-sm font-medium text-foreground"
           >
-            Search components
+            {searchLabel}
           </label>
           <div className="relative">
             <Search
@@ -85,11 +112,11 @@ export function ComponentsBrowser({
               aria-hidden="true"
             />
             <Input
-              id="components-search"
+              id={searchInputId}
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name, category, or description..."
+              placeholder={searchPlaceholder}
               className="h-11 bg-background pl-10 pr-10 shadow-none hover:border-foreground/30"
             />
             {query ? (
@@ -97,7 +124,7 @@ export function ComponentsBrowser({
                 type="button"
                 onClick={() => setQuery("")}
                 className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Clear component search"
+                aria-label={`Clear ${itemLabel} search`}
                 title="Clear search"
               >
                 <X className="size-4" aria-hidden="true" />
@@ -124,25 +151,25 @@ export function ComponentsBrowser({
           ) : null}
         </div>
 
-        {components.length > 0 ? (
-          filteredComponents.length > 0 ? (
+        {items.length > 0 ? (
+          filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredComponents.map((component) => (
+              {filteredItems.map((item) => (
                 <Link
-                  key={component.name}
-                  href={component.href}
+                  key={item.name}
+                  href={item.href}
                   className="text-lg font-medium text-foreground underline-offset-4 transition-colors hover:text-muted-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  {getDisplayName(component)}
+                  {getDisplayName(item)}
                 </Link>
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed px-6 py-12 text-center">
               <div className="flex max-w-sm flex-col gap-1">
-                <h3 className="font-medium">No components found</h3>
+                <h3 className="font-medium">{emptyTitle}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Try a different name, category, or description.
+                  {emptyDescription}
                 </p>
               </div>
               <button
@@ -157,7 +184,7 @@ export function ComponentsBrowser({
           )
         ) : (
           <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-            No components yet.
+            {noItemsLabel}
           </div>
         )}
       </section>

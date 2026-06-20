@@ -89,7 +89,7 @@ export function DocsSearchDialog({
           />
           <SearchDialogInput
             autoFocus
-            placeholder="Search docs and components..."
+            placeholder="Search docs, components, and hooks..."
             className="h-9 w-0 flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none"
           />
           {query.isLoading ? (
@@ -246,7 +246,7 @@ function getResultGroups(
   );
 
   if (firstComponent) {
-    headings.set(firstComponent.id, "Components");
+    headings.set(firstComponent.id, "Registry");
   }
 
   if (firstSearchResult) {

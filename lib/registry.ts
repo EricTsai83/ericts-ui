@@ -49,15 +49,31 @@ function getCategory(item: RegistrySourceItem) {
 
 const registrySourceItems = registry.items as RegistrySourceItem[];
 
-export const registryItems: RegistryItem[] = registrySourceItems.map((item) => ({
-  ...item,
-  category: getCategory(item),
-  href: `/components/${item.name}`,
-  registryUrl: `/r/${item.name}.json`,
-}));
+function getHref(item: RegistrySourceItem, category: string) {
+  if (category === "hooks") {
+    return `/hooks/${item.name}`;
+  }
+
+  return `/components/${item.name}`;
+}
+
+export const registryItems: RegistryItem[] = registrySourceItems.map((item) => {
+  const category = getCategory(item);
+
+  return {
+    ...item,
+    category,
+    href: getHref(item, category),
+    registryUrl: `/r/${item.name}.json`,
+  };
+});
 
 export function getRegistryItem(name: string) {
   return registryItems.find((item) => item.name === name);
+}
+
+export function getRegistryItemsByCategory(category: string) {
+  return registryItems.filter((item) => item.category === category);
 }
 
 export function getRegistryCategories() {
