@@ -1,7 +1,36 @@
 import { createFromSource } from "fumadocs-core/search/server";
 
+import { searchComponents } from "@/lib/component-search";
 import { source } from "@/lib/source";
 
 const search = createFromSource(source);
 
-export const GET = search.GET;
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const query = url.searchParams.get("query");
+
+  if (!query) {
+    return Response.json([]);
+  }
+
+  const [docsResults, componentResults] = await Promise.all([
+    search.search(query, readSearchOptions(url)),
+    searchComponents(query),
+  ]);
+
+  return Response.json([...componentResults, ...docsResults]);
+}
+
+function readSearchOptions(url: URL) {
+  const limit = url.searchParams.has("limit")
+    ? Number(url.searchParams.get("limit"))
+    : undefined;
+  const tag = url.searchParams.get("tag");
+
+  return {
+    locale: url.searchParams.get("locale"),
+    tag: tag ? tag.split(",") : undefined,
+    limit: Number.isInteger(limit) ? limit : undefined,
+    mode: url.searchParams.get("mode") === "vector" ? "vector" : "full",
+  } as const;
+}

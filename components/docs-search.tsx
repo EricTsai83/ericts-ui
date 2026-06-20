@@ -16,8 +16,17 @@ import {
   type SearchItemType,
   useSearchList,
 } from "fumadocs-ui/components/dialog/search";
-import { AlignLeft, CornerDownLeft, FileText, Hash, Loader2, Search } from "lucide-react";
+import {
+  AlignLeft,
+  Component,
+  CornerDownLeft,
+  FileText,
+  Hash,
+  Loader2,
+  Search,
+} from "lucide-react";
 
+import { getDefaultComponentSearchItems } from "@/lib/component-search";
 import { cn } from "@/lib/utils";
 
 type DocsSearchDialogProps = SharedProps & {
@@ -42,19 +51,27 @@ export function DocsSearchDialog({
   });
 
   const defaultItems = useMemo<SearchItemType[] | null>(() => {
-    if (links.length === 0) {
-      return null;
-    }
-
-    return links.map(([name, href]) => ({
+    const componentItems = getDefaultComponentSearchItems();
+    const linkItems: SearchItemType[] = links.map(([name, href], index) => ({
       type: "page",
-      id: name,
+      id: `link-${index}-${href}`,
       content: name,
       url: href,
     }));
+    const items = [...componentItems, ...linkItems];
+
+    if (items.length === 0) {
+      return null;
+    }
+
+    return items;
   }, [links]);
 
   const items = query.data !== "empty" ? query.data : defaultItems;
+  const resultGroups = useMemo(() => getResultGroups(items, search), [
+    items,
+    search,
+  ]);
 
   return (
     <SearchDialog
@@ -72,7 +89,7 @@ export function DocsSearchDialog({
           />
           <SearchDialogInput
             autoFocus
-            placeholder="Search documentation..."
+            placeholder="Search docs and components..."
             className="h-9 w-0 flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none"
           />
           {query.isLoading ? (
@@ -84,13 +101,23 @@ export function DocsSearchDialog({
         </SearchDialogHeader>
         <SearchDialogList
           items={items}
-          className="min-h-80"
+          className="min-h-80 [&>div]:max-h-[min(460px,calc(100dvh-8rem))] [&>div]:overflow-y-auto"
           Empty={() => (
             <div className="py-12 text-center text-sm text-muted-foreground">
               {query.isLoading ? "Searching..." : "No results found."}
             </div>
           )}
-          Item={(itemProps) => <DocsSearchResultItem {...itemProps} />}
+          Item={(itemProps) => (
+            <DocsSearchResultItem
+              {...itemProps}
+              heading={resultGroups.headings.get(itemProps.item.id)}
+              variant={
+                resultGroups.componentIds.has(itemProps.item.id)
+                  ? "component"
+                  : "result"
+              }
+            />
+          )}
         />
         <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t border-neutral-100 bg-neutral-50 px-4 text-xs font-medium text-muted-foreground dark:border-neutral-700 dark:bg-neutral-800">
           <kbd className="inline-flex size-5 items-center justify-center rounded border bg-background font-mono text-[0.7rem] shadow-sm">
@@ -106,9 +133,13 @@ export function DocsSearchDialog({
 function DocsSearchResultItem({
   item,
   onClick,
+  heading,
+  variant = "result",
 }: {
   item: SearchItemType;
   onClick: () => void;
+  heading?: string;
+  variant?: "component" | "result";
 }) {
   const { active, setActive } = useSearchList();
   const selected = active === item.id;
@@ -127,44 +158,115 @@ function DocsSearchResultItem({
     );
   }
 
+  const isComponent = variant === "component";
+
   return (
-    <button
-      type="button"
-      data-selected={selected}
-      className={resultItemClassName(selected)}
-      onClick={onClick}
-      onPointerMove={() => setActive(item.id)}
-    >
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
-        {item.type === "page" ? (
-          <FileText className="size-4" aria-hidden="true" />
-        ) : item.type === "heading" ? (
-          <Hash className="size-4" aria-hidden="true" />
+    <>
+      {heading ? <SearchResultHeading>{heading}</SearchResultHeading> : null}
+      <button
+        type="button"
+        data-selected={selected}
+        data-variant={variant}
+        className={resultItemClassName(selected, variant)}
+        onClick={onClick}
+        onPointerMove={() => setActive(item.id)}
+      >
+        {isComponent ? (
+          <Component
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
         ) : (
-          <AlignLeft className="size-4" aria-hidden="true" />
-        )}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        {item.breadcrumbs?.length ? (
-          <span className="flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground">
-            {item.breadcrumbs.map((breadcrumb, index) => (
-              <span key={index} className="min-w-0 truncate">
-                {breadcrumb}
-              </span>
-            ))}
+          <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+            {item.type === "page" ? (
+              <FileText className="size-4" aria-hidden="true" />
+            ) : item.type === "heading" ? (
+              <Hash className="size-4" aria-hidden="true" />
+            ) : (
+              <AlignLeft className="size-4" aria-hidden="true" />
+            )}
           </span>
-        ) : null}
-        <span className="line-clamp-2 text-sm leading-5 text-foreground [&_mark]:rounded-sm [&_mark]:bg-transparent [&_mark]:font-medium [&_mark]:text-foreground">
-          {renderContent(item.content)}
+        )}
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          {!isComponent && item.breadcrumbs?.length ? (
+            <span className="flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground">
+              {item.breadcrumbs.map((breadcrumb, index) => (
+                <span key={index} className="min-w-0 truncate">
+                  {breadcrumb}
+                </span>
+              ))}
+            </span>
+          ) : null}
+          <span
+            className={cn(
+              "text-foreground [&_mark]:rounded-sm [&_mark]:bg-transparent [&_mark]:font-medium [&_mark]:text-foreground",
+              isComponent
+                ? "truncate text-sm font-medium leading-5"
+                : "line-clamp-2 text-sm leading-5",
+            )}
+          >
+            {renderContent(item.content)}
+          </span>
         </span>
-      </span>
-    </button>
+      </button>
+    </>
   );
 }
 
-function resultItemClassName(selected: boolean) {
+function SearchResultHeading({ children }: { children: ReactNode }) {
+  return (
+    <div className="px-3 pb-1 pt-3 text-xs font-medium text-muted-foreground first:pt-2">
+      {children}
+    </div>
+  );
+}
+
+function getResultGroups(
+  items: SearchItemType[] | null | undefined,
+  search: string,
+) {
+  const headings = new Map<string, string>();
+  const componentIds = new Set<string>();
+
+  if (!items) {
+    return { headings, componentIds };
+  }
+
+  const hasSearch = search.trim().length > 0;
+
+  for (const item of items) {
+    if (isComponentSearchItem(item)) {
+      componentIds.add(item.id);
+    }
+  }
+
+  const firstComponent = items.find(isComponentSearchItem);
+  const firstSearchResult = items.find(
+    (item) => item.type !== "action" && !isComponentSearchItem(item),
+  );
+
+  if (firstComponent) {
+    headings.set(firstComponent.id, "Components");
+  }
+
+  if (firstSearchResult) {
+    headings.set(firstSearchResult.id, hasSearch ? "Search Results" : "Pages");
+  }
+
+  return { headings, componentIds };
+}
+
+function isComponentSearchItem(item: SearchItemType) {
+  return item.type !== "action" && item.id.startsWith("component-");
+}
+
+function resultItemClassName(
+  selected: boolean,
+  variant: "component" | "result" = "result",
+) {
   return cn(
-    "flex w-full select-none items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors",
+    "flex w-full select-none items-start rounded-lg px-2.5 py-2 text-left transition-colors",
+    variant === "component" ? "h-9 items-center gap-2.5" : "gap-3",
     selected && "bg-accent text-accent-foreground",
     !selected && "text-foreground hover:bg-accent/60",
   );

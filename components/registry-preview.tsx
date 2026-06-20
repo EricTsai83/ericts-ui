@@ -1,6 +1,15 @@
 "use client";
 
-import { Check, Mail, Plus, Sparkles, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Eye,
+  GripHorizontal,
+  Mail,
+  Plus,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useId, useState, type ComponentType, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +20,10 @@ import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { MultiStep } from "@/registry/base/ui/multi-step";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { AnimatedModal } from "@/registry/base/ui/animated-modal";
+import {
+  ContextCursor,
+  ContextCursorTarget,
+} from "@/registry/base/ui/context-cursor";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
@@ -23,6 +36,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "animated-modal": () => <AnimatedModalPreview />,
+  "context-cursor": () => <ContextCursorPreview />,
   feedback: () => <FeedbackPreview />,
   "multi-step": () => <MultiStepPreview />,
 };
@@ -84,6 +98,87 @@ function AnimatedModalPreview() {
     <div className="flex min-h-[28rem] w-full items-center justify-center">
       <AnimatedModal className="min-h-[28rem]" />
     </div>
+  );
+}
+
+function ContextCursorPreview() {
+  return (
+    <ContextCursor className="w-full max-w-xl rounded-lg border bg-background p-3">
+      <div className="grid gap-3 sm:grid-cols-[1.1fr_0.9fr]">
+        <ContextCursorTarget
+          label="Open"
+          variant="open"
+          icon={<ArrowUpRight className="size-3.5" aria-hidden />}
+          className="rounded-md border bg-muted/40 p-4 transition-colors hover:bg-muted/70"
+        >
+          <div className="flex min-h-40 flex-col justify-between gap-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Quarterly report</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Revenue, retention, and activation summary.
+                </p>
+              </div>
+              <span className="rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground">
+                PDF
+              </span>
+            </div>
+            <div className="grid grid-cols-5 items-end gap-1.5" aria-hidden>
+              {[42, 58, 51, 72, 64].map((height, index) => (
+                <span
+                  key={index}
+                  className="rounded-sm bg-foreground/80"
+                  style={{ height }}
+                />
+              ))}
+            </div>
+          </div>
+        </ContextCursorTarget>
+
+        <div className="flex flex-col gap-3">
+          <ContextCursorTarget
+            label="Drag"
+            variant="drag"
+            icon={<GripHorizontal className="size-3.5" aria-hidden />}
+            className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground"
+                aria-hidden
+              >
+                <GripHorizontal className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">Backlog column</p>
+                <p className="text-xs text-muted-foreground">
+                  Reorder workspace lanes
+                </p>
+              </div>
+            </div>
+          </ContextCursorTarget>
+
+          <ContextCursorTarget
+            label="Preview"
+            variant="preview"
+            icon={<Eye className="size-3.5" aria-hidden />}
+            className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40">
+                <Eye className="size-4 text-muted-foreground" aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">Design brief</p>
+                <p className="text-xs text-muted-foreground">
+                  Show a quick file preview
+                </p>
+              </div>
+            </div>
+          </ContextCursorTarget>
+        </div>
+      </div>
+    </ContextCursor>
   );
 }
 
