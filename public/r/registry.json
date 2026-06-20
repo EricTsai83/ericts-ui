@@ -62,6 +62,20 @@
       ]
     },
     {
+      "name": "morph",
+      "type": "registry:ui",
+      "title": "Morph",
+      "description": "A Motion-powered text primitive that morphs matching characters between string updates with shared layout transitions.",
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/morph.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/morph.tsx"
+        }
+      ]
+    },
+    {
       "name": "animated-modal",
       "type": "registry:ui",
       "title": "Animated Modal",
