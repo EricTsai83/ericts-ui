@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "acme",
-  "homepage": "https://acme.com",
+  "name": "ericts-ui",
+  "homepage": "https://ericts-ui.vercel.app",
   "items": [
     {
       "name": "smooth-height",

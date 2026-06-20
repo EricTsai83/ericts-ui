@@ -28,6 +28,7 @@ export type FeedbackProps = Omit<
   submitLabel?: React.ReactNode;
   successTitle?: React.ReactNode;
   successDescription?: React.ReactNode;
+  loadingAnnouncement?: string;
   loadingDuration?: number;
   successDuration?: number;
 };
@@ -61,7 +62,8 @@ export function Feedback({
   submitLabel = "Send feedback",
   successTitle = "Feedback received!",
   successDescription = "Thanks for helping us improve.",
-  loadingDuration = 1500,
+  loadingAnnouncement = "Sending feedback",
+  loadingDuration = 0,
   successDuration = 1800,
   className,
   ...props
@@ -345,7 +347,12 @@ export function Feedback({
                             className="inline-flex items-center justify-center gap-1.5"
                           >
                             {formState === "loading" ? (
-                              <Spinner />
+                              <>
+                                <Spinner />
+                                <span className="sr-only">
+                                  {loadingAnnouncement}
+                                </span>
+                              </>
                             ) : (
                               <span>{submitLabel}</span>
                             )}
