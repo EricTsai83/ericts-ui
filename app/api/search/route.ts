@@ -1,6 +1,6 @@
 import { createFromSource } from "fumadocs-core/search/server";
 
-import { searchComponents } from "@/lib/component-search";
+import { searchRegistryItems } from "@/lib/component-search";
 import { source } from "@/lib/source";
 
 const search = createFromSource(source);
@@ -13,12 +13,12 @@ export async function GET(request: Request) {
     return Response.json([]);
   }
 
-  const [docsResults, componentResults] = await Promise.all([
+  const [docsResults, registryResults] = await Promise.all([
     search.search(query, readSearchOptions(url)),
-    searchComponents(query),
+    searchRegistryItems(query),
   ]);
 
-  return Response.json([...componentResults, ...docsResults]);
+  return Response.json([...registryResults, ...docsResults]);
 }
 
 function readSearchOptions(url: URL) {

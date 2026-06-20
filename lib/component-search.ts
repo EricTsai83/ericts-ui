@@ -2,14 +2,29 @@ import type { SortedResult } from "fumadocs-core/search";
 
 import { registryItems } from "@/lib/registry";
 
-const COMPONENT_RESULT_LIMIT = 8;
+const REGISTRY_RESULT_LIMIT = 8;
 
-type ComponentSearchEntry = {
+export type RegistrySearchKind = "component" | "hook";
+
+const registrySearchKindRank: Record<RegistrySearchKind, number> = {
+  component: 0,
+  hook: 1,
+};
+
+type RegistrySearchEntry = {
   score: number;
+  kind: RegistrySearchKind;
+  title: string;
   result: SortedResult;
 };
 
-export function searchComponents(query: string): SortedResult[] {
+type DefaultRegistrySearchEntry = {
+  item: (typeof registryItems)[number];
+  kind: RegistrySearchKind;
+  title: string;
+};
+
+export function searchRegistryItems(query: string): SortedResult[] {
   const normalizedQuery = normalizeSearchText(query);
 
   if (!normalizedQuery) {
@@ -17,9 +32,15 @@ export function searchComponents(query: string): SortedResult[] {
   }
 
   return registryItems
-    .flatMap((item): ComponentSearchEntry[] => {
+    .flatMap((item): RegistrySearchEntry[] => {
+      const kind = getRegistrySearchKind(item.category);
+
+      if (!kind) {
+        return [];
+      }
+
       const title = item.title ?? item.name;
-      const score = getComponentScore({
+      const score = getRegistryItemScore({
         query: normalizedQuery,
         title,
         name: item.name,
@@ -34,8 +55,10 @@ export function searchComponents(query: string): SortedResult[] {
       return [
         {
           score,
+          kind,
+          title,
           result: {
-            id: `component-${item.name}`,
+            id: getRegistrySearchId(kind, item.name),
             type: "page",
             content: highlightText(title, query),
             breadcrumbs: [getRegistryItemSection(item.category)],
@@ -44,25 +67,72 @@ export function searchComponents(query: string): SortedResult[] {
         },
       ];
     })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, COMPONENT_RESULT_LIMIT)
+    .sort((a, b) => sortRegistrySearchEntries(a, b))
+    .slice(0, REGISTRY_RESULT_LIMIT)
     .map((entry) => entry.result);
 }
 
-export function getDefaultComponentSearchItems(): SortedResult[] {
+export function getDefaultRegistrySearchItems(): SortedResult[] {
   return [...registryItems]
-    .sort((a, b) => (a.title ?? a.name).localeCompare(b.title ?? b.name))
-    .map((item) => {
-      const title = item.title ?? item.name;
+    .flatMap((item): DefaultRegistrySearchEntry[] => {
+      const kind = getRegistrySearchKind(item.category);
 
+      if (!kind) {
+        return [];
+      }
+
+      return [
+        {
+          item,
+          kind,
+          title: item.title ?? item.name,
+        },
+      ];
+    })
+    .sort(
+      (a, b) =>
+        registrySearchKindRank[a.kind] - registrySearchKindRank[b.kind] ||
+        a.title.localeCompare(b.title),
+    )
+    .map((item): SortedResult => {
       return {
-        id: `component-${item.name}`,
+        id: getRegistrySearchId(item.kind, item.item.name),
         type: "page",
-        content: escapeHtml(title),
-        breadcrumbs: [getRegistryItemSection(item.category)],
-        url: item.href,
+        content: escapeHtml(item.title),
+        breadcrumbs: [getRegistryItemSection(item.item.category)],
+        url: item.item.href,
       };
     });
+}
+
+export function getRegistrySearchKindFromId(
+  id: string,
+): RegistrySearchKind | null {
+  if (id.startsWith("component-")) {
+    return "component";
+  }
+
+  if (id.startsWith("hook-")) {
+    return "hook";
+  }
+
+  return null;
+}
+
+function getRegistrySearchKind(category: string): RegistrySearchKind | null {
+  if (category === "hooks") {
+    return "hook";
+  }
+
+  if (category === "ui") {
+    return "component";
+  }
+
+  return null;
+}
+
+function getRegistrySearchId(kind: RegistrySearchKind, name: string) {
+  return `${kind}-${name}`;
 }
 
 function getRegistryItemSection(category: string) {
@@ -73,7 +143,18 @@ function getRegistryItemSection(category: string) {
   return "Components";
 }
 
-function getComponentScore({
+function sortRegistrySearchEntries(
+  a: RegistrySearchEntry,
+  b: RegistrySearchEntry,
+) {
+  return (
+    b.score - a.score ||
+    registrySearchKindRank[a.kind] - registrySearchKindRank[b.kind] ||
+    a.title.localeCompare(b.title)
+  );
+}
+
+function getRegistryItemScore({
   query,
   title,
   name,
@@ -126,6 +207,7 @@ function getComponentScore({
 
 function normalizeSearchText(value: string) {
   return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .toLowerCase()
     .replace(/[-_]/g, " ")
     .replace(/\s+/g, " ")
@@ -136,12 +218,7 @@ function highlightText(value: string, query: string) {
   const escapedValue = escapeHtml(value);
   const terms = Array.from(
     new Set(
-      query
-        .replace(/[-_]/g, " ")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .map(escapeRegExp),
+      normalizeSearchText(query).split(" ").filter(Boolean).map(escapeRegExp),
     ),
   );
 

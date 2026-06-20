@@ -18,6 +18,7 @@ import {
 } from "fumadocs-ui/components/dialog/search";
 import {
   AlignLeft,
+  Braces,
   Component,
   CornerDownLeft,
   FileText,
@@ -26,7 +27,11 @@ import {
   Search,
 } from "lucide-react";
 
-import { getDefaultComponentSearchItems } from "@/lib/component-search";
+import {
+  getDefaultRegistrySearchItems,
+  getRegistrySearchKindFromId,
+  type RegistrySearchKind,
+} from "@/lib/component-search";
 import { cn } from "@/lib/utils";
 
 type DocsSearchDialogProps = SharedProps & {
@@ -51,14 +56,14 @@ export function DocsSearchDialog({
   });
 
   const defaultItems = useMemo<SearchItemType[] | null>(() => {
-    const componentItems = getDefaultComponentSearchItems();
+    const registryItems = getDefaultRegistrySearchItems();
     const linkItems: SearchItemType[] = links.map(([name, href], index) => ({
       type: "page",
       id: `link-${index}-${href}`,
       content: name,
       url: href,
     }));
-    const items = [...componentItems, ...linkItems];
+    const items = [...registryItems, ...linkItems];
 
     if (items.length === 0) {
       return null;
@@ -112,10 +117,13 @@ export function DocsSearchDialog({
               {...itemProps}
               heading={resultGroups.headings.get(itemProps.item.id)}
               variant={
-                resultGroups.componentIds.has(itemProps.item.id)
-                  ? "component"
+                resultGroups.registryItemKinds.has(itemProps.item.id)
+                  ? "registry"
                   : "result"
               }
+              registryKind={resultGroups.registryItemKinds.get(
+                itemProps.item.id,
+              )}
             />
           )}
         />
@@ -135,11 +143,13 @@ function DocsSearchResultItem({
   onClick,
   heading,
   variant = "result",
+  registryKind,
 }: {
   item: SearchItemType;
   onClick: () => void;
   heading?: string;
-  variant?: "component" | "result";
+  variant?: "registry" | "result";
+  registryKind?: RegistrySearchKind;
 }) {
   const { active, setActive } = useSearchList();
   const selected = active === item.id;
@@ -158,7 +168,7 @@ function DocsSearchResultItem({
     );
   }
 
-  const isComponent = variant === "component";
+  const isRegistryItem = variant === "registry";
 
   return (
     <>
@@ -171,11 +181,8 @@ function DocsSearchResultItem({
         onClick={onClick}
         onPointerMove={() => setActive(item.id)}
       >
-        {isComponent ? (
-          <Component
-            className="size-4 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
+        {isRegistryItem ? (
+          <RegistryResultIcon kind={registryKind} />
         ) : (
           <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
             {item.type === "page" ? (
@@ -188,7 +195,7 @@ function DocsSearchResultItem({
           </span>
         )}
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          {!isComponent && item.breadcrumbs?.length ? (
+          {!isRegistryItem && item.breadcrumbs?.length ? (
             <span className="flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground">
               {item.breadcrumbs.map((breadcrumb, index) => (
                 <span key={index} className="min-w-0 truncate">
@@ -200,7 +207,7 @@ function DocsSearchResultItem({
           <span
             className={cn(
               "text-foreground [&_mark]:rounded-sm [&_mark]:bg-transparent [&_mark]:font-medium [&_mark]:text-foreground",
-              isComponent
+              isRegistryItem
                 ? "truncate text-sm font-medium leading-5"
                 : "line-clamp-2 text-sm leading-5",
             )}
@@ -210,6 +217,24 @@ function DocsSearchResultItem({
         </span>
       </button>
     </>
+  );
+}
+
+function RegistryResultIcon({ kind }: { kind?: RegistrySearchKind }) {
+  if (kind === "hook") {
+    return (
+      <Braces
+        className="size-4 shrink-0 text-muted-foreground"
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <Component
+      className="size-4 shrink-0 text-muted-foreground"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -226,47 +251,61 @@ function getResultGroups(
   search: string,
 ) {
   const headings = new Map<string, string>();
-  const componentIds = new Set<string>();
+  const registryItemKinds = new Map<string, RegistrySearchKind>();
 
   if (!items) {
-    return { headings, componentIds };
+    return { headings, registryItemKinds };
   }
 
   const hasSearch = search.trim().length > 0;
 
   for (const item of items) {
-    if (isComponentSearchItem(item)) {
-      componentIds.add(item.id);
+    if (item.type === "action") {
+      continue;
+    }
+
+    const registryKind = getRegistrySearchKindFromId(item.id);
+
+    if (registryKind) {
+      registryItemKinds.set(item.id, registryKind);
     }
   }
 
-  const firstComponent = items.find(isComponentSearchItem);
+  const firstComponent = items.find(
+    (item) =>
+      item.type !== "action" &&
+      registryItemKinds.get(item.id) === "component",
+  );
+  const firstHook = items.find(
+    (item) =>
+      item.type !== "action" && registryItemKinds.get(item.id) === "hook",
+  );
   const firstSearchResult = items.find(
-    (item) => item.type !== "action" && !isComponentSearchItem(item),
+    (item) => item.type !== "action" && !registryItemKinds.has(item.id),
   );
 
   if (firstComponent) {
-    headings.set(firstComponent.id, "Registry");
+    headings.set(firstComponent.id, "Components");
+  }
+
+  if (firstHook) {
+    headings.set(firstHook.id, "Hooks");
   }
 
   if (firstSearchResult) {
     headings.set(firstSearchResult.id, hasSearch ? "Search Results" : "Pages");
   }
 
-  return { headings, componentIds };
-}
-
-function isComponentSearchItem(item: SearchItemType) {
-  return item.type !== "action" && item.id.startsWith("component-");
+  return { headings, registryItemKinds };
 }
 
 function resultItemClassName(
   selected: boolean,
-  variant: "component" | "result" = "result",
+  variant: "registry" | "result" = "result",
 ) {
   return cn(
     "flex w-full select-none items-start rounded-lg px-2.5 py-2 text-left transition-colors",
-    variant === "component" ? "h-9 items-center gap-2.5" : "gap-3",
+    variant === "registry" ? "h-9 items-center gap-2.5" : "gap-3",
     selected && "bg-accent text-accent-foreground",
     !selected && "text-foreground hover:bg-accent/60",
   );
