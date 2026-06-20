@@ -23,6 +23,7 @@ import { AnimatedModal } from "@/registry/base/ui/animated-modal";
 import {
   ContextCursor,
   ContextCursorTarget,
+  type ContextCursorTargetAnimation,
 } from "@/registry/base/ui/context-cursor";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
@@ -102,6 +103,19 @@ function AnimatedModalPreview() {
 }
 
 function ContextCursorPreview() {
+  const largeTargetAnimation = {
+    edgeFadeDistance: 56,
+    opacity: { hidden: 0, visible: 1 },
+    scale: { hidden: 0.96, visible: 1 },
+    hideDelay: 120,
+  } satisfies ContextCursorTargetAnimation;
+  const compactTargetAnimation = {
+    edgeFadeDistance: 22,
+    opacity: { hidden: 0.08, visible: 1 },
+    scale: { hidden: 0.98, visible: 1 },
+    hideDelay: 80,
+  } satisfies ContextCursorTargetAnimation;
+
   return (
     <ContextCursor className="w-full max-w-xl rounded-lg border bg-background p-3">
       <div className="grid gap-3 sm:grid-cols-[1.1fr_0.9fr]">
@@ -109,6 +123,7 @@ function ContextCursorPreview() {
           label="Open"
           variant="open"
           icon={<ArrowUpRight className="size-3.5" aria-hidden />}
+          animation={largeTargetAnimation}
           className="rounded-md border bg-muted/40 p-4 transition-colors hover:bg-muted/70"
         >
           <div className="flex min-h-40 flex-col justify-between gap-8">
@@ -140,6 +155,7 @@ function ContextCursorPreview() {
             label="Drag"
             variant="drag"
             icon={<GripHorizontal className="size-3.5" aria-hidden />}
+            animation={compactTargetAnimation}
             className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
           >
             <div className="flex items-center gap-3">
@@ -162,6 +178,7 @@ function ContextCursorPreview() {
             label="Preview"
             variant="preview"
             icon={<Eye className="size-3.5" aria-hidden />}
+            animation={compactTargetAnimation}
             className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
           >
             <div className="flex items-center gap-3">
