@@ -129,18 +129,23 @@ export function MultiStep({
   const resolvedTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
     : transition ?? { type: "spring", duration: 0.5, bounce: 0 };
+  const contentVariants = shouldReduceMotion
+    ? reducedMotionStepVariants
+    : stepVariants;
 
   if (!activeStep) {
     return null;
   }
 
   return (
-    <MotionConfig transition={resolvedTransition}>
+    <MotionConfig reducedMotion="user" transition={resolvedTransition}>
       <motion.div
         {...props}
         data-slot="multi-step"
         initial={false}
-        animate={{ height: height ?? "auto" }}
+        animate={
+          shouldReduceMotion ? { height: "auto" } : { height: height ?? "auto" }
+        }
         className={cn("overflow-hidden rounded-lg border bg-background", className)}
       >
         <div
@@ -153,7 +158,7 @@ export function MultiStep({
             className="relative overflow-hidden"
           >
             <AnimatePresence
-              mode="popLayout"
+              mode={shouldReduceMotion ? "sync" : "popLayout"}
               initial={false}
               custom={direction}
             >
@@ -161,7 +166,7 @@ export function MultiStep({
                 key={activeStep.id}
                 data-slot="multi-step-content"
                 custom={direction}
-                variants={stepVariants}
+                variants={contentVariants}
                 initial="initial"
                 animate="active"
                 exit="exit"
@@ -173,7 +178,7 @@ export function MultiStep({
           </div>
           {footer ?? (
             <motion.div
-              layout
+              layout={!shouldReduceMotion}
               data-slot="multi-step-actions"
               className={cn(
                 "flex items-center justify-between gap-3 border-t p-4",
@@ -213,6 +218,12 @@ const stepVariants = {
     x: `${-110 * direction}%`,
     opacity: 0,
   }),
+};
+
+const reducedMotionStepVariants = {
+  initial: { opacity: 0 },
+  active: { opacity: 1 },
+  exit: { opacity: 0 },
 };
 
 function clampStep(step: number, stepCount: number) {
