@@ -58,7 +58,7 @@ export default async function ComponentPage({ params }: PageProps) {
   const codeVariants: ComponentCodeVariant[] = [
     {
       value: "motion",
-      label: "Motion",
+      label: getPrimaryVariantLabel(item, source),
       files: await highlightCodeFiles([
         {
           name: path.basename(getComponentTargetPath(item)),
@@ -185,4 +185,16 @@ function getComponentTargetPath(item: RegistryItem) {
   const file = item.files?.find((entry) => entry.type === "registry:ui");
 
   return file?.target ?? `components/ui/${item.name}.tsx`;
+}
+
+function getPrimaryVariantLabel(item: RegistryItem, source: string) {
+  if (source.includes("motion/react")) {
+    return "Motion";
+  }
+
+  if (item.files?.some((file) => file.target?.endsWith(".css"))) {
+    return "CSS";
+  }
+
+  return "React";
 }

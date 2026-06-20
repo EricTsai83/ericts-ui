@@ -7,6 +7,7 @@ import {
   GripHorizontal,
   Mail,
   Plus,
+  RotateCcw,
   Sparkles,
   X,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { CopyButton } from "@/registry/base/ui/copy-button";
 import { Feedback } from "@/registry/base/ui/feedback";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { MultiStep } from "@/registry/base/ui/multi-step";
+import { Orchestration } from "@/registry/base/ui/orchestration";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { AnimatedModal } from "@/registry/base/ui/animated-modal";
 import {
@@ -40,6 +42,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "context-cursor": () => <ContextCursorPreview />,
   feedback: () => <FeedbackPreview />,
   "multi-step": () => <MultiStepPreview />,
+  orchestration: () => <OrchestrationPreview />,
 };
 
 export function RegistryPreview({
@@ -50,6 +53,31 @@ export function RegistryPreview({
   variant?: string;
 }) {
   return previews[name]?.(variant) ?? null;
+}
+
+function ReplayablePreview({
+  children,
+}: {
+  children: (replayKey: number) => ReactNode;
+}) {
+  const [replayKey, setReplayKey] = useState(0);
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Replay preview"
+        title="Replay preview"
+        onClick={() => setReplayKey((key) => key + 1)}
+        className="absolute right-3 top-3 z-10"
+      >
+        <RotateCcw aria-hidden />
+      </Button>
+      {children(replayKey)}
+    </>
+  );
 }
 
 function CopyButtonPreview() {
@@ -523,6 +551,57 @@ function MultiStepPreview() {
         ]}
       />
     </div>
+  );
+}
+
+const orchestrationItems = [
+  {
+    label: "Deploy queued",
+    value: "Production",
+    meta: "2 min ago",
+  },
+  {
+    label: "Review requested",
+    value: "Checkout flow",
+    meta: "12 min ago",
+  },
+  {
+    label: "Incident resolved",
+    value: "API latency",
+    meta: "31 min ago",
+  },
+];
+
+function OrchestrationPreview() {
+  return (
+    <ReplayablePreview>
+      {(replayKey) => (
+        <Orchestration
+          key={replayKey}
+          items={orchestrationItems}
+          getItemKey={(item) => item.label}
+          delay={90}
+          duration={560}
+          distance={12}
+          className="flex w-full max-w-md flex-col gap-2"
+          renderItem={(item) => (
+            <div className="rounded-lg border bg-background px-4 py-3 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{item.label}</p>
+                  <p className="mt-1 truncate text-sm text-muted-foreground">
+                    {item.value}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {item.meta}
+                </span>
+              </div>
+            </div>
+          )}
+        />
+      )}
+    </ReplayablePreview>
   );
 }
 

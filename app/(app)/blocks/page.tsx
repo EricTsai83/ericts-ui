@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-import { OpenInV0Button } from "@/components/open-in-v0-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { getRegistryCategories, registryItems } from "@/lib/registry";
 
@@ -18,7 +17,7 @@ export default function BlocksPage() {
       <div className="flex flex-col gap-3 border-b pb-6">
         <h1 className="text-3xl font-semibold tracking-tight">Blocks</h1>
         <p className="max-w-2xl text-muted-foreground">
-          Preview registry entries, open generated JSON, or send an item to v0.
+          Preview registry entries or open generated JSON.
         </p>
         <div className="flex flex-wrap gap-2">
           {categories.length > 0
@@ -65,7 +64,6 @@ export default function BlocksPage() {
                   >
                     JSON
                   </Link>
-                  <OpenInV0Button name={item.name} className="w-fit" />
                 </div>
               </div>
               <div className="flex min-h-[300px] items-center justify-center rounded-md bg-muted/40 p-6">

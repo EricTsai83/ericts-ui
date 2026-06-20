@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { OpenInV0Button } from "@/components/open-in-v0-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { getRegistryCategories, registryItems } from "@/lib/registry";
 
@@ -79,7 +78,6 @@ export default async function CategoryPage({ params }: PageProps) {
                 >
                   JSON
                 </Link>
-                <OpenInV0Button name={item.name} className="w-fit" />
               </div>
             </div>
             <div className="flex min-h-[300px] items-center justify-center rounded-md bg-muted/40 p-6">

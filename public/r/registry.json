@@ -118,6 +118,24 @@
           "target": "components/ui/multi-step.tsx"
         }
       ]
+    },
+    {
+      "name": "orchestration",
+      "type": "registry:ui",
+      "title": "Orchestration",
+      "description": "A CSS-powered staggered entrance primitive for orchestrating any list of children, cards, steps, rows, or search results.",
+      "files": [
+        {
+          "path": "registry/base/ui/orchestration.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/orchestration.tsx"
+        },
+        {
+          "path": "registry/base/ui/orchestration.css",
+          "type": "registry:file",
+          "target": "components/ui/orchestration.css"
+        }
+      ]
     }
   ]
 }

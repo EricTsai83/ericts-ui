@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { OpenInV0Button } from "@/components/open-in-v0-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { registryItems } from "@/lib/registry";
 
@@ -87,7 +86,6 @@ export default function Home() {
                     >
                       Preview
                     </Link>
-                    <OpenInV0Button name={item.name} className="w-fit" />
                   </div>
                 </div>
                 <div className="flex min-h-[260px] items-center justify-center rounded-md bg-muted/40 p-6">
