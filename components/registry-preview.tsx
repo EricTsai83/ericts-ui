@@ -6,6 +6,7 @@ import { useId, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
+import { Feedback } from "@/registry/base/ui/feedback";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { AnimatedModal } from "@/registry/base/ui/animated-modal";
@@ -21,6 +22,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "animated-modal": () => <AnimatedModalPreview />,
+  feedback: () => <FeedbackPreview />,
 };
 
 export function RegistryPreview({
@@ -363,6 +365,14 @@ function StatusButtonPreview() {
   return (
     <div className="flex items-center justify-center">
       <StatusButton />
+    </div>
+  );
+}
+
+function FeedbackPreview() {
+  return (
+    <div className="flex min-h-72 w-full items-center justify-center">
+      <Feedback />
     </div>
   );
 }

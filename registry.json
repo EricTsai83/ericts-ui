@@ -74,6 +74,21 @@
           "target": "components/ui/animated-modal.tsx"
         }
       ]
+    },
+    {
+      "name": "feedback",
+      "type": "registry:ui",
+      "title": "Feedback",
+      "description": "A Motion-powered feedback popover that expands from a trigger, supports keyboard submission, and confirms receipt inline.",
+      "registryDependencies": ["button"],
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/feedback.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/feedback.tsx"
+        }
+      ]
     }
   ]
 }
