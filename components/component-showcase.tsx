@@ -94,18 +94,157 @@ function HookPreview({
   codeVariants: ComponentCodeVariant[];
 }) {
   const file = codeVariants[0]?.files[0];
+  const config = hookPreviewConfigs[name];
+  const demoVariants = config?.demoVariants ?? hookDemoVariants;
+  const notes = config?.notes ?? [];
 
   return (
     <section className="flex min-w-0 flex-col gap-6">
-      <div className="rounded-xl border bg-background p-6">
-        <RegistryPreview name={name} />
-      </div>
+      {config ? (
+        <div className="flex max-w-3xl flex-col gap-2">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {config.title}
+          </h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            {config.description}
+          </p>
+        </div>
+      ) : null}
+      <Tabs defaultValue={demoVariants[0].value} className="min-w-0 gap-3">
+        {demoVariants.length > 1 ? (
+          <TabsList aria-label="Demo implementation" className="w-fit">
+            {demoVariants.map((variant) => (
+              <TabsTrigger key={variant.value} value={variant.value}>
+                {variant.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        ) : null}
+        {demoVariants.map((variant) => (
+          <TabsContent key={variant.value} value={variant.value}>
+            <div className="rounded-xl border bg-background p-6">
+              <RegistryPreview name={name} variant={variant.value} />
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
+      {notes.length > 0 ? (
+        <div className="flex max-w-4xl flex-col gap-3">
+          <h3 className="text-base font-semibold">Implementation notes</h3>
+          <div className="grid gap-3 md:grid-cols-2">
+            {notes.map((note) => (
+              <article
+                key={note.title}
+                className="rounded-lg border bg-muted/20 p-4"
+              >
+                <h4 className="text-sm font-semibold">{note.title}</h4>
+                <div className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {note.body}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {file?.highlighted ? (
         <div className="min-w-0 [&_figure]:my-0">{file.highlighted}</div>
       ) : null}
     </section>
   );
 }
+
+const hookDemoVariants = [
+  { value: "css", label: "CSS" },
+  { value: "motion", label: "Motion" },
+] as const;
+
+type HookPreviewConfig = {
+  title: string;
+  description: ReactNode;
+  demoVariants: typeof hookDemoVariants;
+  notes?: {
+    title: string;
+    body: ReactNode;
+  }[];
+};
+
+const hookPreviewConfigs: Partial<Record<
+  string,
+  HookPreviewConfig
+>> = {
+  "use-reduced-motion": {
+    title: "Why this hook matters",
+    description: (
+      <>
+        <code className="font-mono text-foreground">useReducedMotion</code>{" "}
+        lets a component respect the user&apos;s{" "}
+        <a
+          href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
+        >
+          reduced-motion preference
+        </a>{" "}
+        without changing what the interface means. In this demo, opening the
+        sidebar should still reserve space and push the main content. The hook
+        only changes how that state change is presented: standard motion
+        animates the layout, while reduced motion skips the sliding travel and
+        uses a short fade for the sidebar.
+      </>
+    ),
+    demoVariants: hookDemoVariants,
+    notes: [
+      {
+        title: "Keep browser APIs out of render",
+        body: (
+          <>
+            The hook reads <code className="font-mono">matchMedia</code> inside{" "}
+            <code className="font-mono">useEffect</code>, so server rendering
+            never touches <code className="font-mono">window</code>. It also
+            runs the media-query update immediately after subscribing, which
+            prevents the initial client value from staying stale.
+          </>
+        ),
+      },
+      {
+        title: "Reduced motion keeps feedback",
+        body: (
+          <>
+            Reduced motion should remove visual travel, not the state change. In
+            this preview the sidebar still reserves space and updates the
+            layout; reduced mode removes the sliding movement and leaves opacity
+            feedback.
+          </>
+        ),
+      },
+      {
+        title: "Preview controls stay local",
+        body: (
+          <>
+            Real components can call{" "}
+            <code className="font-mono">useReducedMotion()</code> to follow the
+            user&apos;s system setting. This preview passes an explicit value
+            only so the Standard and Reduced modes can be compared on this page
+            without changing the rest of the app.
+          </>
+        ),
+      },
+      {
+        title: "Choose CSS or Motion deliberately",
+        body: (
+          <>
+            The same hook works with CSS transitions and Motion. If your app
+            uses Motion heavily, wrap it in{" "}
+            <code className="font-mono">MotionConfig reducedMotion=&quot;user&quot;</code>{" "}
+            as a baseline, then still design custom fallbacks for large
+            movement like drawers, sidebars, and page transitions.
+          </>
+        ),
+      },
+    ],
+  },
+};
 
 function ComponentPreviewCard({
   name,

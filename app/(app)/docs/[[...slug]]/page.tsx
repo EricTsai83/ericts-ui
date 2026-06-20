@@ -13,6 +13,7 @@ import {
 
 import { DocsTableOfContents } from "@/components/docs-toc";
 import { getMDXComponents } from "@/components/mdx";
+import { cn } from "@/lib/utils";
 import { source } from "@/lib/source";
 
 type PageProps = {
@@ -50,11 +51,17 @@ export default async function Page({ params }: PageProps) {
   }
 
   const MDXContent = page.data.body;
+  const hasTableOfContents = page.data.toc.length > 0;
 
   return (
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
+      className={cn(
+        "min-w-0 max-w-[calc(var(--spacing)*160)] px-4 py-6 md:px-0 md:pt-6 lg:py-8 xl:px-0 xl:pt-8",
+        !hasTableOfContents && "xl:layout:[--fd-toc-width:0px]",
+      )}
+      tableOfContent={{ enabled: hasTableOfContents }}
       slots={{
         toc: {
           provider: TOCProvider,

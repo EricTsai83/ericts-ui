@@ -15,7 +15,8 @@ export default function Layout({ children }: { children: ReactNode }) {
     <DocsLayout
       tree={source.pageTree}
       containerProps={{
-        className: "custom-docs-layout",
+        className:
+          "md:[--fd-layout-width:1280px] md:[--fd-sidebar-width:268px]",
       }}
       slots={{
         sidebar: {

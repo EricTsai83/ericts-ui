@@ -142,18 +142,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-@media (min-width: 768px) {
-  .custom-docs-layout {
-    --fd-layout-width: 1280px !important;
-    --fd-sidebar-width: 268px !important;
-    --fd-toc-width: var(--fd-sidebar-width) !important;
-  }
-}
-
-@layer components {
-  #nd-toc [class~="absolute"][class~="top-0"][class~="inset-s-0"],
-  #nd-toc a[href^="#"] > svg {
-    display: none;
-  }
-}
