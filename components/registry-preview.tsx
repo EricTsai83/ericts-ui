@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { Feedback } from "@/registry/base/ui/feedback";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
+import { MultiStep } from "@/registry/base/ui/multi-step";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { AnimatedModal } from "@/registry/base/ui/animated-modal";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
@@ -23,6 +24,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "highlight-tabs": () => <HighlightTabsPreview />,
   "animated-modal": () => <AnimatedModalPreview />,
   feedback: () => <FeedbackPreview />,
+  "multi-step": () => <MultiStepPreview />,
 };
 
 export function RegistryPreview({
@@ -373,6 +375,64 @@ function FeedbackPreview() {
   return (
     <div className="flex min-h-72 w-full items-center justify-center">
       <Feedback />
+    </div>
+  );
+}
+
+function MultiStepPreview() {
+  return (
+    <div className="w-full max-w-md">
+      <MultiStep
+        steps={[
+          {
+            id: "intro",
+            content: (
+              <StepContent
+                title="This is step one"
+                lines={[256, 192, 320, 384]}
+              />
+            ),
+          },
+          {
+            id: "details",
+            content: (
+              <StepContent title="This is step two" lines={[256, 192, 384]} />
+            ),
+          },
+          {
+            id: "finish",
+            content: (
+              <StepContent
+                title="This is step three"
+                lines={[256, 192, 128, 224, 384]}
+              />
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
+}
+
+function StepContent({ title, lines }: { title: string; lines: number[] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Usually in this step we would explain why this thing exists and what
+          it does. Also, we would show a button to go to the next step.
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        {lines.map((width, index) => (
+          <div
+            key={`${width}-${index}`}
+            className="h-3 max-w-full rounded-full bg-muted"
+            style={{ width }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

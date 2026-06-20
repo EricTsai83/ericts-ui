@@ -89,6 +89,21 @@
           "target": "components/ui/feedback.tsx"
         }
       ]
+    },
+    {
+      "name": "multi-step",
+      "type": "registry:ui",
+      "title": "Multi Step",
+      "description": "A Motion-powered multi-step container that slides between steps and animates height as content changes.",
+      "registryDependencies": ["button"],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/multi-step.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/multi-step.tsx"
+        }
+      ]
     }
   ]
 }
