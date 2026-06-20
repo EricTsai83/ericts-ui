@@ -59,13 +59,16 @@ export default async function ComponentPage({ params }: PageProps) {
     {
       value: "motion",
       label: getPrimaryVariantLabel(item, source),
-      files: await highlightCodeFiles([
-        {
-          name: path.basename(getComponentTargetPath(item)),
-          language: "tsx",
-          source,
-        },
-      ]),
+      files: await highlightCodeFiles(
+        [
+          {
+            name: path.basename(getComponentTargetPath(item)),
+            language: getCodeLanguage(getComponentTargetPath(item)),
+            source,
+          },
+        ],
+        item.type === "registry:hook",
+      ),
     },
   ];
 
@@ -95,6 +98,7 @@ export default async function ComponentPage({ params }: PageProps) {
 
       <ComponentShowcase
         name={item.name}
+        type={item.type}
         codeVariants={codeVariants}
         installTarget={installTarget}
         targetPath={targetPath}
@@ -104,8 +108,20 @@ export default async function ComponentPage({ params }: PageProps) {
   );
 }
 
+function getCodeLanguage(filePath: string): ComponentCodeFile["language"] {
+  if (filePath.endsWith(".css")) {
+    return "css";
+  }
+
+  if (filePath.endsWith(".ts")) {
+    return "ts";
+  }
+
+  return "tsx";
+}
+
 async function getComponentSource(item: RegistryItem) {
-  const file = item.files?.find((entry) => entry.type === "registry:ui");
+  const file = getPrimaryRegistryFile(item);
 
   if (!file) {
     return "";
@@ -149,6 +165,7 @@ async function getCssOnlyFiles(
 
 async function highlightCodeFiles(
   files: ComponentCodeFile[],
+  keepCodeBlockStyle = false,
 ): Promise<ComponentCodeFile[]> {
   return Promise.all(
     files.map(async (file) => ({
@@ -156,14 +173,19 @@ async function highlightCodeFiles(
       highlighted: await ServerCodeBlock({
         code: file.source.trimEnd(),
         lang: file.language,
-        codeblock: {
-          allowCopy: false,
-          className: "rounded-none border-0 bg-transparent shadow-none",
-          "data-line-numbers": true,
-          viewportProps: {
-            className: "max-h-72 py-4",
-          },
-        },
+        codeblock: keepCodeBlockStyle
+          ? {
+              title: file.name,
+              "data-line-numbers": true,
+            }
+          : {
+              allowCopy: false,
+              className: "rounded-none border-0 bg-transparent shadow-none",
+              "data-line-numbers": true,
+              viewportProps: {
+                className: "max-h-72 py-4",
+              },
+            },
       }),
     })),
   );
@@ -182,12 +204,16 @@ function getInstallTarget(item: RegistryItem) {
 }
 
 function getComponentTargetPath(item: RegistryItem) {
-  const file = item.files?.find((entry) => entry.type === "registry:ui");
+  const file = getPrimaryRegistryFile(item);
 
   return file?.target ?? `components/ui/${item.name}.tsx`;
 }
 
 function getPrimaryVariantLabel(item: RegistryItem, source: string) {
+  if (item.type === "registry:hook") {
+    return "Hook";
+  }
+
   if (source.includes("motion/react")) {
     return "Motion";
   }
@@ -197,4 +223,10 @@ function getPrimaryVariantLabel(item: RegistryItem, source: string) {
   }
 
   return "React";
+}
+
+function getPrimaryRegistryFile(item: RegistryItem) {
+  return item.files?.find((entry) =>
+    ["registry:ui", "registry:hook"].includes(entry.type),
+  );
 }

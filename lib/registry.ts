@@ -36,6 +36,14 @@ function getCategory(item: RegistrySourceItem) {
     return "ui";
   }
 
+  if (
+    files.some(
+      (file) => file.path.includes("/hooks/") || file.type === "registry:hook"
+    )
+  ) {
+    return "hooks";
+  }
+
   return item.type.replace("registry:", "");
 }
 

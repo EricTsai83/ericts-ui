@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-reduced-motion",
+  "type": "registry:hook",
+  "title": "Use Reduced Motion",
+  "description": "A client-safe React hook for reading prefers-reduced-motion, reacting to preference changes, and supporting scoped local overrides.",
+  "files": [
+    {
+      "path": "registry/base/hooks/use-reduced-motion.ts",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\n\nconst REDUCED_MOTION_QUERY = \"(prefers-reduced-motion: reduce)\";\n\nexport type ReducedMotionPreference = \"system\" | \"reduce\" | \"no-preference\";\n\nexport function useReducedMotion(\n  preference: ReducedMotionPreference = \"system\",\n): boolean {\n  const [systemPrefersReducedMotion, setSystemPrefersReducedMotion] =\n    React.useState(false);\n\n  React.useEffect(() => {\n    if (preference !== \"system\") {\n      return;\n    }\n\n    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);\n\n    const updatePreference = () => {\n      setSystemPrefersReducedMotion(mediaQuery.matches);\n    };\n\n    updatePreference();\n\n    mediaQuery.addEventListener(\"change\", updatePreference);\n\n    return () => {\n      mediaQuery.removeEventListener(\"change\", updatePreference);\n    };\n  }, [preference]);\n\n  if (preference === \"reduce\") {\n    return true;\n  }\n\n  if (preference === \"no-preference\") {\n    return false;\n  }\n\n  return systemPrefersReducedMotion;\n}\n",
+      "type": "registry:hook",
+      "target": "hooks/use-reduced-motion.ts"
+    }
+  ]
+}

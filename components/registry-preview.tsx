@@ -29,6 +29,10 @@ import {
 } from "@/registry/base/ui/context-cursor";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
+import {
+  useReducedMotion,
+  type ReducedMotionPreference,
+} from "@/registry/base/hooks/use-reduced-motion";
 
 // Live previews for registry items, keyed by registry name. Each entry receives
 // the active showcase variant so the preview can render the matching source.
@@ -43,6 +47,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   feedback: () => <FeedbackPreview />,
   "multi-step": () => <MultiStepPreview />,
   orchestration: () => <OrchestrationPreview />,
+  "use-reduced-motion": () => <UseReducedMotionPreview />,
 };
 
 export function RegistryPreview({
@@ -91,6 +96,89 @@ function CopyButtonPreview() {
     </div>
   );
 }
+
+function UseReducedMotionPreview() {
+  const [preference, setPreference] =
+    useState<ReducedMotionPreference>("system");
+  const shouldReduceMotion = useReducedMotion(preference);
+  const [isOpen, setIsOpen] = useState(true);
+  const closedX = shouldReduceMotion ? 0 : -96;
+
+  return (
+    <div className="flex w-full max-w-lg flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-background px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Reduced motion preference</p>
+          <p className="text-xs text-muted-foreground">
+            {shouldReduceMotion
+              ? "Large movement is replaced with opacity feedback."
+              : "The panel can use movement to show direction."}
+          </p>
+        </div>
+        <span className="rounded-md border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+          {shouldReduceMotion ? "reduce" : "no preference"}
+        </span>
+      </div>
+
+      <div
+        role="group"
+        aria-label="Preview preference"
+        className="flex flex-wrap gap-1 rounded-lg border bg-muted/50 p-1"
+      >
+        {preferenceOptions.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={preference === option.value}
+            onClick={() => setPreference(option.value)}
+            className="inline-flex h-8 flex-1 items-center justify-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm sm:flex-none"
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="overflow-hidden rounded-lg border bg-muted/40 p-3">
+        <div className="relative h-32 overflow-hidden rounded-md bg-background">
+          <div
+            className="absolute inset-y-3 left-3 flex w-36 flex-col justify-between rounded-md border bg-background p-3 shadow-sm"
+            style={{
+              opacity: isOpen ? 1 : 0.28,
+              transform: `translateX(${isOpen ? 0 : closedX}px)`,
+              transitionDuration: shouldReduceMotion ? "120ms" : "240ms",
+              transitionProperty: "opacity, transform",
+              transitionTimingFunction: "cubic-bezier(0.215, 0.61, 0.355, 1)",
+            }}
+          >
+            <span className="h-2 w-16 rounded-full bg-foreground/80" />
+            <span className="h-2 w-24 rounded-full bg-muted-foreground/40" />
+            <span className="h-2 w-20 rounded-full bg-muted-foreground/30" />
+          </div>
+          <div className="absolute inset-y-3 left-48 right-3 rounded-md border border-dashed bg-muted/30" />
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen((value) => !value)}
+        className="self-start"
+      >
+        {isOpen ? "Close panel" : "Open panel"}
+      </Button>
+    </div>
+  );
+}
+
+const preferenceOptions: {
+  value: ReducedMotionPreference;
+  label: string;
+}[] = [
+  { value: "system", label: "System" },
+  { value: "reduce", label: "Reduce" },
+  { value: "no-preference", label: "No preference" },
+];
 
 const highlightTabItems = [
   { value: "overview", label: "Overview" },

@@ -12,6 +12,7 @@ import {
 } from "fumadocs-ui/layouts/docs/page/slots/toc";
 
 import { DocsTableOfContents } from "@/components/docs-toc";
+import { getMDXComponents } from "@/components/mdx";
 import { source } from "@/lib/source";
 
 type PageProps = {
@@ -66,7 +67,7 @@ export default async function Page({ params }: PageProps) {
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MDXContent />
+        <MDXContent components={getMDXComponents()} />
       </DocsBody>
     </DocsPage>
   );

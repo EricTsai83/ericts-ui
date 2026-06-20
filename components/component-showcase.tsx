@@ -25,7 +25,7 @@ const commandPrefix: Record<PackageManager, string> = {
   bun: "bunx --bun",
 };
 
-export type ComponentCodeLanguage = "css" | "tsx";
+export type ComponentCodeLanguage = "css" | "ts" | "tsx";
 
 export type ComponentCodeFile = {
   name: string;
@@ -42,6 +42,7 @@ export type ComponentCodeVariant = {
 
 type ComponentShowcaseProps = {
   name: string;
+  type?: string;
   codeVariants: ComponentCodeVariant[];
   installTarget: string;
   targetPath: string;
@@ -50,11 +51,26 @@ type ComponentShowcaseProps = {
 
 export function ComponentShowcase({
   name,
+  type,
   codeVariants,
   installTarget,
   targetPath,
   dependencies = [],
 }: ComponentShowcaseProps) {
+  if (type === "registry:hook") {
+    return (
+      <div className="flex min-w-0 max-w-full flex-col gap-12">
+        <HookPreview name={name} codeVariants={codeVariants} />
+        <InstallationPanel
+          installTarget={installTarget}
+          targetPath={targetPath}
+          dependencies={dependencies}
+          hasCssOnlyVariant={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-12">
       <ComponentPreviewCard name={name} codeVariants={codeVariants} />
@@ -67,6 +83,27 @@ export function ComponentShowcase({
         )}
       />
     </div>
+  );
+}
+
+function HookPreview({
+  name,
+  codeVariants,
+}: {
+  name: string;
+  codeVariants: ComponentCodeVariant[];
+}) {
+  const file = codeVariants[0]?.files[0];
+
+  return (
+    <section className="flex min-w-0 flex-col gap-6">
+      <div className="rounded-xl border bg-background p-6">
+        <RegistryPreview name={name} />
+      </div>
+      {file?.highlighted ? (
+        <div className="min-w-0 [&_figure]:my-0">{file.highlighted}</div>
+      ) : null}
+    </section>
   );
 }
 
@@ -241,6 +278,18 @@ function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
         aria-hidden="true"
         className="text-sky-500"
       />
+    );
+  }
+
+  if (language === "ts") {
+    return (
+      <span
+        data-icon="inline-start"
+        aria-hidden="true"
+        className="w-4 shrink-0 text-center font-mono text-sm font-semibold leading-none text-sky-500"
+      >
+        ts
+      </span>
     );
   }
 
