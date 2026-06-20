@@ -311,7 +311,7 @@ function HighlightTabsPreview() {
   );
 }
 
-const morphWords = ["Design", "Develop", "Deploy"];
+const morphWords = ["Typescript", "Next.js", "React", "Convex", "Vercel"];
 
 function MorphPreview() {
   const [index, setIndex] = useState(0);
@@ -320,7 +320,7 @@ function MorphPreview() {
   useEffect(() => {
     const timer = window.setInterval(() => {
       setIndex((value) => (value + 1) % morphWords.length);
-    }, 1400);
+    }, 2500);
 
     return () => window.clearInterval(timer);
   }, []);
