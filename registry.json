@@ -141,12 +141,12 @@
       "name": "use-reduced-motion",
       "type": "registry:hook",
       "title": "Use Reduced Motion",
-      "description": "A client-safe React hook for reading prefers-reduced-motion, reacting to preference changes, and supporting scoped local overrides.",
+      "description": "A client-safe React hook for reading prefers-reduced-motion and reacting to preference changes.",
       "files": [
         {
           "path": "registry/base/hooks/use-reduced-motion.ts",
           "type": "registry:hook",
-          "target": "hooks/use-reduced-motion.ts"
+          "target": "@hooks/use-reduced-motion.ts"
         }
       ]
     }

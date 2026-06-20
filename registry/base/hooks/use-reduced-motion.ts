@@ -1,44 +1,29 @@
 "use client";
 
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-export type ReducedMotionPreference = "system" | "reduce" | "no-preference";
+export function useReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const mediaQueryRef = useRef<MediaQueryList | null>(null);
 
-export function useReducedMotion(
-  preference: ReducedMotionPreference = "system",
-): boolean {
-  const [systemPrefersReducedMotion, setSystemPrefersReducedMotion] =
-    React.useState(false);
-
-  React.useEffect(() => {
-    if (preference !== "system") {
-      return;
-    }
-
+  useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+    mediaQueryRef.current = mediaQuery;
 
-    const updatePreference = () => {
-      setSystemPrefersReducedMotion(mediaQuery.matches);
+    const listener = () => {
+      setPrefersReducedMotion(mediaQueryRef.current?.matches ?? false);
     };
 
-    updatePreference();
+    listener();
 
-    mediaQuery.addEventListener("change", updatePreference);
+    mediaQuery.addEventListener("change", listener);
 
     return () => {
-      mediaQuery.removeEventListener("change", updatePreference);
+      mediaQuery.removeEventListener("change", listener);
     };
-  }, [preference]);
+  }, []);
 
-  if (preference === "reduce") {
-    return true;
-  }
-
-  if (preference === "no-preference") {
-    return false;
-  }
-
-  return systemPrefersReducedMotion;
+  return prefersReducedMotion;
 }

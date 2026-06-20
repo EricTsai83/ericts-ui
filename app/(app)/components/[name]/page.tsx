@@ -82,6 +82,10 @@ export default async function ComponentPage({ params }: PageProps) {
 
   const installTarget = getInstallTarget(item);
   const targetPath = getComponentTargetPath(item);
+  const motionApiSnippets =
+    item.name === "use-reduced-motion"
+      ? await highlightCodeFiles(motionApiReducedMotionSnippets, true)
+      : [];
 
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-6 py-10 sm:px-8 lg:px-10">
@@ -103,6 +107,7 @@ export default async function ComponentPage({ params }: PageProps) {
         installTarget={installTarget}
         targetPath={targetPath}
         dependencies={item.dependencies}
+        motionApiSnippets={motionApiSnippets}
       />
     </main>
   );
@@ -211,7 +216,7 @@ function getComponentTargetPath(item: RegistryItem) {
 
 function getPrimaryVariantLabel(item: RegistryItem, source: string) {
   if (item.type === "registry:hook") {
-    return "Hook";
+    return "Custom hook";
   }
 
   if (source.includes("motion/react")) {
@@ -230,3 +235,32 @@ function getPrimaryRegistryFile(item: RegistryItem) {
     ["registry:ui", "registry:hook"].includes(entry.type),
   );
 }
+
+const motionApiReducedMotionSnippets: ComponentCodeFile[] = [
+  {
+    name: "sidebar.tsx",
+    language: "tsx",
+    source: `import { useReducedMotion, motion } from "motion/react"
+
+export function Sidebar({ isOpen }) {
+  const shouldReduceMotion = useReducedMotion();
+  const closedX = shouldReduceMotion ? 0 : "-100%";
+
+  return (
+    <motion.div animate={{
+      opacity: isOpen ? 1 : 0,
+      x: isOpen ? 0 : closedX
+    }} />
+  )
+}`,
+  },
+  {
+    name: "motion-config.tsx",
+    language: "tsx",
+    source: `import { MotionConfig } from "motion/react";
+
+// ...
+
+<MotionConfig reducedMotion="user">{children}</MotionConfig>`,
+  },
+];

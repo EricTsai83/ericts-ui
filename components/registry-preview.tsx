@@ -30,10 +30,6 @@ import {
 } from "@/registry/base/ui/context-cursor";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
-import {
-  useReducedMotion,
-  type ReducedMotionPreference,
-} from "@/registry/base/hooks/use-reduced-motion";
 
 // Live previews for registry items, keyed by registry name. Each entry receives
 // the active showcase variant so the preview can render the matching source.
@@ -48,9 +44,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   feedback: () => <FeedbackPreview />,
   "multi-step": () => <MultiStepPreview />,
   orchestration: () => <OrchestrationPreview />,
-  "use-reduced-motion": (variant) => (
-    <UseReducedMotionPreview variant={variant} />
-  ),
+  "use-reduced-motion": () => <UseReducedMotionPreview />,
 };
 
 export function RegistryPreview({
@@ -100,119 +94,80 @@ function CopyButtonPreview() {
   );
 }
 
-function UseReducedMotionPreview({ variant }: { variant: string }) {
+function UseReducedMotionPreview() {
   const [preference, setPreference] =
-    useState<ReducedMotionPreference>("no-preference");
-  const shouldReduceMotion = useReducedMotion(preference);
+    useState<ReducedMotionDemoPreference>("no-preference");
+  const shouldReduceMotion = preference === "reduce";
   const [isOpen, setIsOpen] = useState(false);
-  const implementation = variant === "motion" ? "motion" : "css";
   const preferenceGroupName = useId();
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
-      <fieldset
-        className="flex flex-wrap gap-1 rounded-lg border bg-muted/50 p-1"
-      >
-        <legend className="sr-only">Reduced motion preference</legend>
-        {preferenceOptions.map((option) => (
-          <label
-            key={option.value}
-            className="inline-flex h-8 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground has-[input:checked]:bg-background has-[input:checked]:text-foreground has-[input:checked]:shadow-sm has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-ring sm:flex-none"
-          >
-            <input
-              type="radio"
-              name={preferenceGroupName}
-              value={option.value}
-              checked={preference === option.value}
-              onChange={() => {
-                setPreference(option.value);
-                setIsOpen(false);
-              }}
-              className="sr-only"
-            />
-            {option.label}
-          </label>
-        ))}
-      </fieldset>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <fieldset className="flex flex-wrap gap-1 rounded-lg border bg-muted/50 p-1">
+          <legend className="sr-only">Reduced motion preference</legend>
+          {preferenceOptions.map((option) => (
+            <label
+              key={option.value}
+              className="inline-flex h-8 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground has-[input:checked]:bg-background has-[input:checked]:text-foreground has-[input:checked]:shadow-sm has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-ring sm:flex-none"
+            >
+              <input
+                type="radio"
+                name={preferenceGroupName}
+                value={option.value}
+                checked={preference === option.value}
+                onChange={() => {
+                  setPreference(option.value);
+                  setIsOpen(false);
+                }}
+                className="sr-only"
+              />
+              {option.label}
+            </label>
+          ))}
+        </fieldset>
 
-      {implementation === "motion" ? (
-        <MotionSidebarDemo
-          isOpen={isOpen}
-          shouldReduceMotion={shouldReduceMotion}
-        />
-      ) : (
-        <CssSidebarDemo
-          isOpen={isOpen}
-          shouldReduceMotion={shouldReduceMotion}
-        />
-      )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsOpen((value) => !value)}
+          className="self-start sm:self-auto"
+        >
+          {isOpen ? "Close sidebar" : "Open sidebar"}
+        </Button>
+      </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setIsOpen((value) => !value)}
-        className="self-start"
-      >
-        {isOpen ? "Close sidebar" : "Open sidebar"}
-      </Button>
+      <ReducedMotionSidebarDemo
+        isOpen={isOpen}
+        shouldReduceMotion={shouldReduceMotion}
+      />
     </div>
   );
 }
 
-function CssSidebarDemo({
+function ReducedMotionSidebarDemo({
   isOpen,
   shouldReduceMotion,
 }: {
   isOpen: boolean;
   shouldReduceMotion: boolean;
 }) {
-  return (
-    <SidebarDemoShell>
-      <div
-        className="grid h-48 overflow-hidden bg-background"
-        style={{
-          gridTemplateColumns: `${
-            isOpen ? sidebarWidth : 0
-          }px minmax(0, 1fr)`,
-          transitionDuration: shouldReduceMotion ? "0ms" : "220ms",
-          transitionProperty: "grid-template-columns",
-          transitionTimingFunction: easeOutCubic,
-        }}
-      >
-        <SidebarPane
-          isOpen={isOpen}
-          shouldReduceMotion={shouldReduceMotion}
-        />
-        <MainPane />
-      </div>
-    </SidebarDemoShell>
-  );
-}
+  const gridTemplateColumns = `${isOpen ? sidebarWidth : 0}px minmax(0, 1fr)`;
 
-function MotionSidebarDemo({
-  isOpen,
-  shouldReduceMotion,
-}: {
-  isOpen: boolean;
-  shouldReduceMotion: boolean;
-}) {
   return (
     <SidebarDemoShell>
       <motion.div
         className="grid h-48 overflow-hidden bg-background"
-        animate={{
-          gridTemplateColumns: `${
-            isOpen ? sidebarWidth : 0
-          }px minmax(0, 1fr)`,
-        }}
+        style={{ gridTemplateColumns }}
+        animate={{ gridTemplateColumns }}
         transition={
           shouldReduceMotion
             ? { duration: 0 }
             : { duration: 0.22, ease: easeOutCubicTuple }
         }
       >
-        <MotionSidebarPane
+        <ReducedMotionSidebarPane
           isOpen={isOpen}
           shouldReduceMotion={shouldReduceMotion}
         />
@@ -240,43 +195,21 @@ function SidebarDemoShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SidebarPane({
+function ReducedMotionSidebarPane({
   isOpen,
   shouldReduceMotion,
 }: {
   isOpen: boolean;
   shouldReduceMotion: boolean;
 }) {
-  return (
-    <div
-      aria-hidden={!isOpen}
-      className="min-w-0 overflow-hidden border-r bg-background"
-      style={{
-        opacity: isOpen ? 1 : 0,
-        pointerEvents: isOpen ? "auto" : "none",
-        transitionDuration: shouldReduceMotion ? "120ms" : "180ms",
-        transitionProperty: "opacity",
-        transitionTimingFunction: easeOutCubic,
-      }}
-    >
-      <SidebarContent />
-    </div>
-  );
-}
+  const opacity = isOpen ? 1 : 0;
 
-function MotionSidebarPane({
-  isOpen,
-  shouldReduceMotion,
-}: {
-  isOpen: boolean;
-  shouldReduceMotion: boolean;
-}) {
   return (
     <motion.div
       aria-hidden={!isOpen}
       className="min-w-0 overflow-hidden border-r bg-background"
-      animate={{ opacity: isOpen ? 1 : 0 }}
-      style={{ pointerEvents: isOpen ? "auto" : "none" }}
+      animate={{ opacity }}
+      style={{ opacity, pointerEvents: isOpen ? "auto" : "none" }}
       transition={{
         duration: shouldReduceMotion ? 0.12 : 0.18,
         ease: easeOutCubicTuple,
@@ -327,17 +260,17 @@ function MainPane() {
 }
 
 const preferenceOptions: {
-  value: ReducedMotionPreference;
+  value: ReducedMotionDemoPreference;
   label: string;
 }[] = [
   { value: "no-preference", label: "Standard" },
   { value: "reduce", label: "Reduced" },
 ];
+type ReducedMotionDemoPreference = "no-preference" | "reduce";
 
 const previewRows = ["a", "b", "c", "d"];
 const sidebarItems = ["overview", "activity", "settings", "members"];
 const sidebarWidth = 144;
-const easeOutCubic = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 const easeOutCubicTuple = [0.215, 0.61, 0.355, 1] as const;
 
 const highlightTabItems = [

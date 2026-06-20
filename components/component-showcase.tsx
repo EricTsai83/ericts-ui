@@ -47,6 +47,7 @@ type ComponentShowcaseProps = {
   installTarget: string;
   targetPath: string;
   dependencies?: string[];
+  motionApiSnippets?: ComponentCodeFile[];
 };
 
 export function ComponentShowcase({
@@ -56,16 +57,19 @@ export function ComponentShowcase({
   installTarget,
   targetPath,
   dependencies = [],
+  motionApiSnippets = [],
 }: ComponentShowcaseProps) {
   if (type === "registry:hook") {
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-12">
         <HookPreview name={name} codeVariants={codeVariants} />
         <InstallationPanel
+          name={name}
           installTarget={installTarget}
           targetPath={targetPath}
           dependencies={dependencies}
           hasCssOnlyVariant={false}
+          motionApiSnippets={motionApiSnippets}
         />
       </div>
     );
@@ -75,12 +79,14 @@ export function ComponentShowcase({
     <div className="flex min-w-0 max-w-full flex-col gap-12">
       <ComponentPreviewCard name={name} codeVariants={codeVariants} />
       <InstallationPanel
+        name={name}
         installTarget={installTarget}
         targetPath={targetPath}
         dependencies={dependencies}
         hasCssOnlyVariant={codeVariants.some(
           (variant) => variant.value === "css-only",
         )}
+        motionApiSnippets={motionApiSnippets}
       />
     </div>
   );
@@ -93,10 +99,9 @@ function HookPreview({
   name: string;
   codeVariants: ComponentCodeVariant[];
 }) {
-  const file = codeVariants[0]?.files[0];
   const config = hookPreviewConfigs[name];
   const demoVariants = config?.demoVariants ?? hookDemoVariants;
-  const notes = config?.notes ?? [];
+  const defaultDemoVariant = demoVariants[0];
 
   return (
     <section className="flex min-w-0 flex-col gap-6">
@@ -110,8 +115,8 @@ function HookPreview({
           </p>
         </div>
       ) : null}
-      <Tabs defaultValue={demoVariants[0].value} className="min-w-0 gap-3">
-        {demoVariants.length > 1 ? (
+      {demoVariants.length > 1 && defaultDemoVariant ? (
+        <Tabs defaultValue={defaultDemoVariant.value} className="min-w-0 gap-3">
           <TabsList aria-label="Demo implementation" className="w-fit">
             {demoVariants.map((variant) => (
               <TabsTrigger key={variant.value} value={variant.value}>
@@ -119,53 +124,98 @@ function HookPreview({
               </TabsTrigger>
             ))}
           </TabsList>
-        ) : null}
-        {demoVariants.map((variant) => (
-          <TabsContent key={variant.value} value={variant.value}>
-            <div className="rounded-xl border bg-background p-6">
-              <RegistryPreview name={name} variant={variant.value} />
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-      {notes.length > 0 ? (
-        <div className="flex max-w-4xl flex-col gap-3">
-          <h3 className="text-base font-semibold">Implementation notes</h3>
-          <div className="grid gap-3 md:grid-cols-2">
-            {notes.map((note) => (
-              <article
-                key={note.title}
-                className="rounded-lg border bg-muted/20 p-4"
-              >
-                <h4 className="text-sm font-semibold">{note.title}</h4>
-                <div className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {note.body}
-                </div>
-              </article>
-            ))}
-          </div>
+          {demoVariants.map((variant) => (
+            <TabsContent key={variant.value} value={variant.value}>
+              <div className="rounded-xl border bg-background p-6">
+                <RegistryPreview name={name} variant={variant.value} />
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <div className="rounded-xl border bg-background p-6">
+          <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
         </div>
-      ) : null}
-      {file?.highlighted ? (
-        <div className="min-w-0 [&_figure]:my-0">{file.highlighted}</div>
+      )}
+      {codeVariants.length > 0 ? (
+        <HookCodeVariants codeVariants={codeVariants} />
       ) : null}
     </section>
   );
 }
 
+function HookCodeVariants({
+  codeVariants,
+}: {
+  codeVariants: ComponentCodeVariant[];
+}) {
+  const defaultCodeVariant = codeVariants[0];
+
+  if (!defaultCodeVariant) {
+    return null;
+  }
+
+  if (codeVariants.length === 1) {
+    return <HookCodeVariantContent variant={defaultCodeVariant} />;
+  }
+
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      <h3 className="text-base font-semibold">Code</h3>
+      <Tabs defaultValue={defaultCodeVariant.value} className="min-w-0 gap-3">
+        <TabsList
+          variant="line"
+          aria-label="Code examples"
+          className="h-10 w-full justify-start gap-6 rounded-none border-b bg-transparent p-0 group-data-horizontal/tabs:h-10"
+        >
+          {codeVariants.map((variant) => (
+            <TabsTrigger
+              key={variant.value}
+              value={variant.value}
+              className="h-10 flex-none px-0 py-0"
+            >
+              {variant.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {codeVariants.map((variant) => (
+          <TabsContent
+            key={variant.value}
+            value={variant.value}
+            className="min-w-0"
+          >
+            <HookCodeVariantContent variant={variant} />
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
+  );
+}
+
+function HookCodeVariantContent({
+  variant,
+}: {
+  variant: ComponentCodeVariant;
+}) {
+  if (variant.files.length === 1) {
+    return (
+      <div className="min-w-0 [&_figure]:my-0">
+        {variant.files[0]?.highlighted}
+      </div>
+    );
+  }
+
+  return <CodeFileTabs files={variant.files} />;
+}
+
 const hookDemoVariants = [
-  { value: "css", label: "CSS" },
-  { value: "motion", label: "Motion" },
+  { value: "usage", label: "Usage" },
 ] as const;
 
 type HookPreviewConfig = {
   title: string;
   description: ReactNode;
-  demoVariants: typeof hookDemoVariants;
-  notes?: {
-    title: string;
-    body: ReactNode;
-  }[];
+  demoVariants?: typeof hookDemoVariants;
 };
 
 const hookPreviewConfigs: Partial<Record<
@@ -186,63 +236,11 @@ const hookPreviewConfigs: Partial<Record<
         >
           reduced-motion preference
         </a>{" "}
-        without changing what the interface means. In this demo, opening the
-        sidebar should still reserve space and push the main content. The hook
-        only changes how that state change is presented: standard motion
-        animates the layout, while reduced motion skips the sliding travel and
-        uses a short fade for the sidebar.
+        without changing what the interface means. The custom hook is the
+        default copyable code below; the preview controls only simulate Standard
+        and Reduced states so both paths can be compared on the page.
       </>
     ),
-    demoVariants: hookDemoVariants,
-    notes: [
-      {
-        title: "Keep browser APIs out of render",
-        body: (
-          <>
-            The hook reads <code className="font-mono">matchMedia</code> inside{" "}
-            <code className="font-mono">useEffect</code>, so server rendering
-            never touches <code className="font-mono">window</code>. It also
-            runs the media-query update immediately after subscribing, which
-            prevents the initial client value from staying stale.
-          </>
-        ),
-      },
-      {
-        title: "Reduced motion keeps feedback",
-        body: (
-          <>
-            Reduced motion should remove visual travel, not the state change. In
-            this preview the sidebar still reserves space and updates the
-            layout; reduced mode removes the sliding movement and leaves opacity
-            feedback.
-          </>
-        ),
-      },
-      {
-        title: "Preview controls stay local",
-        body: (
-          <>
-            Real components can call{" "}
-            <code className="font-mono">useReducedMotion()</code> to follow the
-            user&apos;s system setting. This preview passes an explicit value
-            only so the Standard and Reduced modes can be compared on this page
-            without changing the rest of the app.
-          </>
-        ),
-      },
-      {
-        title: "Choose CSS or Motion deliberately",
-        body: (
-          <>
-            The same hook works with CSS transitions and Motion. If your app
-            uses Motion heavily, wrap it in{" "}
-            <code className="font-mono">MotionConfig reducedMotion=&quot;user&quot;</code>{" "}
-            as a baseline, then still design custom fallbacks for large
-            movement like drawers, sidebars, and page transitions.
-          </>
-        ),
-      },
-    ],
   },
 };
 
@@ -479,15 +477,19 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
 }
 
 function InstallationPanel({
+  name,
   installTarget,
   targetPath,
   dependencies,
   hasCssOnlyVariant,
+  motionApiSnippets,
 }: {
+  name: string;
   installTarget: string;
   targetPath: string;
   dependencies: string[];
   hasCssOnlyVariant: boolean;
+  motionApiSnippets: ComponentCodeFile[];
 }) {
   const [packageManager, setPackageManager] = useState<PackageManager>("pnpm");
   const command = `${commandPrefix[packageManager]} shadcn@latest add ${installTarget}`;
@@ -528,8 +530,64 @@ function InstallationPanel({
           <ManualInstall targetPath={targetPath} dependencies={dependencies} />
         </TabsContent>
       </Tabs>
+      {name === "use-reduced-motion" ? (
+        <UseReducedMotionInstallationNotes snippets={motionApiSnippets} />
+      ) : null}
     </section>
   );
+}
+
+function UseReducedMotionInstallationNotes({
+  snippets,
+}: {
+  snippets: ComponentCodeFile[];
+}) {
+  const [reducedMotionSnippet, motionConfigSnippet] = snippets;
+
+  return (
+    <section className="flex max-w-3xl flex-col gap-6 border-t pt-6">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">After installation</h3>
+        <p className="text-sm leading-6 text-muted-foreground">
+          The installed hook stays intentionally small: it reads{" "}
+          <code className="font-mono text-foreground">matchMedia</code> after
+          mount, updates immediately, and cleans up the change listener. The
+          preview controls above are only local demo states; production
+          components can call{" "}
+          <code className="font-mono text-foreground">useReducedMotion()</code>{" "}
+          with no arguments and branch their animation feedback from that value.
+        </p>
+      </div>
+      <article className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground">
+        <h4 className="text-base font-semibold text-foreground">
+          Motion API as an alternative
+        </h4>
+        <p>
+          If a project already uses Motion for most transitions, Motion&apos;s
+          own{" "}
+          <code className="font-mono text-foreground">useReducedMotion</code>{" "}
+          hook can replace the custom hook. Keep the UI state the same, then
+          change the animated values that create large visual travel.
+        </p>
+        {reducedMotionSnippet ? (
+          <CodeSnippet snippet={reducedMotionSnippet} />
+        ) : null}
+        <p>
+          You can also set the behavior once for a subtree with{" "}
+          <code className="font-mono text-foreground">MotionConfig</code>. This
+          is useful when Motion already owns the animation tree and should
+          follow the user&apos;s device preference by default.
+        </p>
+        {motionConfigSnippet ? (
+          <CodeSnippet snippet={motionConfigSnippet} />
+        ) : null}
+      </article>
+    </section>
+  );
+}
+
+function CodeSnippet({ snippet }: { snippet: ComponentCodeFile }) {
+  return <div className="min-w-0 [&_figure]:my-0">{snippet.highlighted}</div>;
 }
 
 function CommandBlock({
