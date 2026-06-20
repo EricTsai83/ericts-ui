@@ -3,7 +3,7 @@
   "name": "highlight-tabs",
   "type": "registry:ui",
   "title": "Highlight Tabs",
-  "description": "A Motion-powered tab list with a shared highlight indicator, hover activation, focus activation, and arrow-key navigation.",
+  "description": "A Motion-powered tab list with a shared highlight indicator and keyboard navigation.",
   "dependencies": [
     "motion"
   ],
@@ -14,5 +14,21 @@
       "type": "registry:ui",
       "target": "components/ui/highlight-tabs.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "tab-list",
+      "roving-focus",
+      "arrow-keys",
+      "indicator"
+    ],
+    "effects": [
+      "shared-layout",
+      "highlight"
+    ]
+  },
+  "categories": [
+    "navigation",
+    "tabs"
   ]
 }

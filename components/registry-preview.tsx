@@ -23,13 +23,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
-import { Feedback } from "@/registry/base/ui/feedback";
+import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
-import { Morph } from "@/registry/base/ui/morph";
+import { TextMorph } from "@/registry/base/ui/text-morph";
 import { MultiStep } from "@/registry/base/ui/multi-step";
-import { Orchestration } from "@/registry/base/ui/orchestration";
+import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
 import { StatusButton } from "@/registry/base/ui/status-button";
-import { AnimatedModal } from "@/registry/base/ui/animated-modal";
+import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
   ContextCursor,
   ContextCursorTarget,
@@ -46,12 +46,12 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "copy-button": () => <CopyButtonPreview />,
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
-  morph: () => <MorphPreview />,
-  "animated-modal": () => <AnimatedModalPreview />,
+  "text-morph": () => <TextMorphPreview />,
+  "expandable-modal": () => <ExpandableModalPreview />,
   "context-cursor": () => <ContextCursorPreview />,
-  feedback: () => <FeedbackPreview />,
+  "feedback-popover": () => <FeedbackPopoverPreview />,
   "multi-step": () => <MultiStepPreview />,
-  orchestration: () => <OrchestrationPreview />,
+  "staggered-entrance": () => <StaggeredEntrancePreview />,
   "use-reduced-motion": () => <UseReducedMotionPreview />,
 };
 
@@ -311,15 +311,15 @@ function HighlightTabsPreview() {
   );
 }
 
-const morphWords = ["Typescript", "Next.js", "React", "Convex", "Vercel"];
+const textMorphWords = ["Typescript", "Next.js", "React", "Convex", "Vercel"];
 
-function MorphPreview() {
+function TextMorphPreview() {
   const [index, setIndex] = useState(0);
-  const activeWord = morphWords[index];
+  const activeWord = textMorphWords[index];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setIndex((value) => (value + 1) % morphWords.length);
+      setIndex((value) => (value + 1) % textMorphWords.length);
     }, 2500);
 
     return () => window.clearInterval(timer);
@@ -330,11 +330,11 @@ function MorphPreview() {
       <div className="rounded-lg border bg-background px-5 py-4 shadow-sm">
         <p className="text-sm text-muted-foreground">Ship with motion</p>
         <p className="mt-1 font-mono text-4xl font-semibold tracking-normal">
-          <Morph>{activeWord}</Morph>
+          <TextMorph>{activeWord}</TextMorph>
         </p>
       </div>
       <div className="flex gap-1" aria-hidden="true">
-        {morphWords.map((word, wordIndex) => (
+        {textMorphWords.map((word, wordIndex) => (
           <span
             key={word}
             className={cn(
@@ -348,10 +348,10 @@ function MorphPreview() {
   );
 }
 
-function AnimatedModalPreview() {
+function ExpandableModalPreview() {
   return (
     <div className="flex min-h-[28rem] w-full items-center justify-center">
-      <AnimatedModal className="min-h-[28rem]" />
+      <ExpandableModal className="min-h-[28rem]" />
     </div>
   );
 }
@@ -737,10 +737,10 @@ function StatusButtonPreview() {
   );
 }
 
-function FeedbackPreview() {
+function FeedbackPopoverPreview() {
   return (
     <div className="flex min-h-72 w-full items-center justify-center">
-      <Feedback />
+      <FeedbackPopover />
     </div>
   );
 }
@@ -780,7 +780,7 @@ function MultiStepPreview() {
   );
 }
 
-const orchestrationItems = [
+const staggeredEntranceItems = [
   {
     label: "Deploy queued",
     value: "Production",
@@ -798,13 +798,13 @@ const orchestrationItems = [
   },
 ];
 
-function OrchestrationPreview() {
+function StaggeredEntrancePreview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (
-        <Orchestration
+        <StaggeredEntrance
           key={replayKey}
-          items={orchestrationItems}
+          items={staggeredEntranceItems}
           getItemKey={(item) => item.label}
           delay={90}
           duration={560}

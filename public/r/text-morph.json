@@ -1,0 +1,33 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "text-morph",
+  "type": "registry:ui",
+  "title": "Text Morph",
+  "description": "A Motion-powered text primitive that morphs matching characters between string updates.",
+  "dependencies": [
+    "motion"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/text-morph.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { AnimatePresence, motion, useReducedMotion } from \"motion/react\";\n\nimport { cn } from \"@/lib/utils\";\n\nexport type TextMorphProps = Omit<\n  React.ComponentPropsWithoutRef<\"span\">,\n  \"children\"\n> & {\n  children: string | string[];\n};\n\nfunction getText(children: TextMorphProps[\"children\"]) {\n  return Array.isArray(children) ? children.join(\"\") : children;\n}\n\nfunction generateKeys(text: string) {\n  const charCount: Record<string, number> = {};\n\n  return text.split(\"\").map((char) => {\n    charCount[char] ??= 0;\n\n    const key = `${char}-${charCount[char]}`;\n    charCount[char] += 1;\n\n    return { char, key };\n  });\n}\n\nexport function TextMorph({ children, className, ...props }: TextMorphProps) {\n  const shouldReduceMotion = useReducedMotion();\n  const text = getText(children);\n  const textToDisplay = React.useMemo(() => generateKeys(text), [text]);\n  const transition = shouldReduceMotion\n    ? { duration: 0 }\n    : ({\n        duration: 0.25,\n        type: \"spring\",\n        bounce: 0,\n        opacity: {\n          duration: 0.35,\n          type: \"spring\",\n          bounce: 0,\n        },\n      } as const);\n\n  return (\n    <span aria-label={text} className={cn(\"inline-block\", className)} {...props}>\n      <AnimatePresence mode=\"popLayout\" initial={false}>\n        {textToDisplay.map(({ char, key }) => (\n          <motion.span\n            key={key}\n            layoutId={shouldReduceMotion ? undefined : key}\n            aria-hidden=\"true\"\n            className=\"inline-block text-inherit\"\n            initial={shouldReduceMotion ? false : { opacity: 0 }}\n            animate={{ opacity: 1 }}\n            exit={shouldReduceMotion ? undefined : { opacity: 0 }}\n            transition={transition}\n          >\n            {char === \" \" ? \"\\u00A0\" : char}\n          </motion.span>\n        ))}\n      </AnimatePresence>\n    </span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/text-morph.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "typography",
+      "character-transition",
+      "word-rotation"
+    ],
+    "effects": [
+      "text-morph",
+      "shared-layout"
+    ]
+  },
+  "categories": [
+    "text",
+    "animation"
+  ]
+}

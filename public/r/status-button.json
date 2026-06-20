@@ -3,7 +3,7 @@
   "name": "status-button",
   "type": "registry:ui",
   "title": "Status Button",
-  "description": "A shadcn Button-based action that transitions through idle, loading, and success states with Motion.",
+  "description": "A shadcn Button-based action that transitions through idle, loading, and success states.",
   "dependencies": [
     "motion"
   ],
@@ -17,5 +17,21 @@
       "type": "registry:ui",
       "target": "components/ui/status-button.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "async-action",
+      "loading",
+      "success",
+      "submit"
+    ],
+    "effects": [
+      "state-transition",
+      "spinner"
+    ]
+  },
+  "categories": [
+    "button",
+    "feedback"
   ]
 }

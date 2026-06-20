@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 type FeedbackState = "idle" | "loading" | "success";
 
-export type FeedbackProps = Omit<
+export type FeedbackPopoverProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "children" | "onSubmit"
 > & {
@@ -51,7 +51,7 @@ function wait(duration: number) {
   });
 }
 
-export function Feedback({
+export function FeedbackPopover({
   open,
   defaultOpen = false,
   onOpenChange,
@@ -67,7 +67,7 @@ export function Feedback({
   successDuration = 1800,
   className,
   ...props
-}: FeedbackProps) {
+}: FeedbackPopoverProps) {
   const reactId = React.useId();
   const titleId = `${reactId}-title`;
   const descriptionId = `${reactId}-description`;
@@ -182,7 +182,7 @@ export function Feedback({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePopover, formState, isOpen, submitFeedback]);
 
-  // Match the reference: the morph uses Motion's default layout transition
+  // Match the reference: the popover morph uses Motion's default layout transition
   // (tween, 0.45s, ease [0.4, 0, 0.1, 1]) by leaving `transition` undefined.
   const layoutTransition = shouldReduceMotion ? { duration: 0 } : undefined;
   const contentTransition = shouldReduceMotion
@@ -194,14 +194,14 @@ export function Feedback({
 
   return (
     <div
-      data-slot="feedback"
+      data-slot="feedback-popover"
       className={cn("relative inline-flex", className)}
       {...props}
     >
       <LayoutGroup id={reactId}>
         <motion.button
           type="button"
-          layoutId="feedback-wrapper"
+          layoutId="feedback-popover-wrapper"
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={isOpen ? reactId : undefined}
@@ -214,7 +214,7 @@ export function Feedback({
           )}
         >
           <motion.span
-            layoutId="feedback-title"
+            layoutId="feedback-popover-title"
             transition={layoutTransition}
             className="leading-6"
           >
@@ -228,7 +228,7 @@ export function Feedback({
               key="popover"
               id={reactId}
               ref={popoverRef}
-              layoutId="feedback-wrapper"
+              layoutId="feedback-popover-wrapper"
               role="dialog"
               aria-labelledby={titleId}
               aria-describedby={
@@ -240,7 +240,7 @@ export function Feedback({
             >
               <motion.span
                 id={titleId}
-                layoutId="feedback-title"
+                layoutId="feedback-popover-title"
                 transition={layoutTransition}
                 data-state={formState}
                 data-has-feedback={feedback ? "true" : "false"}

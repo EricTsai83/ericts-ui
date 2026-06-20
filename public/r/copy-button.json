@@ -3,7 +3,7 @@
   "name": "copy-button",
   "type": "registry:ui",
   "title": "Copy Button",
-  "description": "A shadcn Button-based copy control that writes text to the clipboard and animates a copy → check icon swap.",
+  "description": "A shadcn Button-based clipboard control with animated copy and success states.",
   "dependencies": [
     "motion",
     "lucide-react"
@@ -18,5 +18,21 @@
       "type": "registry:ui",
       "target": "components/ui/copy-button.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "clipboard",
+      "copy",
+      "success",
+      "icon-swap"
+    ],
+    "effects": [
+      "state-transition",
+      "icon-swap"
+    ]
+  },
+  "categories": [
+    "button",
+    "feedback"
   ]
 }

@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { RegistryPreview } from "@/components/registry-preview";
-import { registryItems } from "@/lib/registry";
+import { getRegistryItemsByCategory, registryItems } from "@/lib/registry";
 
 export default function Home() {
-  const featuredItems = registryItems.slice(0, 4);
+  const featuredItems = getRegistryItemsByCategory("ui").slice(0, 4);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">
@@ -15,7 +15,7 @@ export default function Home() {
           </h1>
           <p className="text-lg text-muted-foreground">
             Documentation, previews, and installable registry JSON for EricTS UI
-            components and blocks.
+            components, hooks, and blocks.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link
@@ -25,10 +25,10 @@ export default function Home() {
               Read docs
             </Link>
             <Link
-              href="/blocks"
+              href="/components"
               className="inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              Browse blocks
+              Browse components
             </Link>
           </div>
         </div>
@@ -52,14 +52,14 @@ export default function Home() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Featured blocks
+              Featured components
             </h2>
             <p className="text-sm text-muted-foreground">
               Registry entries available through `/r/:name.json`.
             </p>
           </div>
           <Link
-            href="/blocks"
+            href="/components"
             className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             View all

@@ -14,5 +14,22 @@
       "type": "registry:ui",
       "target": "components/ui/context-cursor.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "pointer",
+      "mouse",
+      "context-label",
+      "drag",
+      "preview"
+    ],
+    "effects": [
+      "spring-follow",
+      "cursor-fade"
+    ]
+  },
+  "categories": [
+    "cursor",
+    "interaction"
   ]
 }

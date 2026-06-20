@@ -11,6 +11,12 @@ export type RegistryListItem = {
   title?: string;
   description?: string;
   category: string;
+  categories?: string[];
+  meta?: {
+    tags?: string[];
+    effects?: string[];
+  };
+  searchTerms?: string[];
   href: string;
 };
 
@@ -40,6 +46,43 @@ function getCountLabel(
   return `${count} ${count === 1 ? itemLabel : itemLabelPlural}`;
 }
 
+function getItemMetadata(item: RegistryListItem) {
+  return uniqueStrings([
+    ...(item.categories ?? []),
+    ...(item.meta?.effects ?? []),
+  ]).slice(0, 3);
+}
+
+function getSearchableText(item: RegistryListItem) {
+  return normalizeSearchText(
+    [
+      item.title,
+      item.name,
+      item.category,
+      item.description,
+      ...(item.categories ?? []),
+      ...(item.meta?.tags ?? []),
+      ...(item.meta?.effects ?? []),
+      ...(item.searchTerms ?? []),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function normalizeSearchText(value: string) {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function RegistryItemsBrowser({
   items,
   title,
@@ -55,28 +98,15 @@ export function RegistryItemsBrowser({
 }: RegistryItemsBrowserProps) {
   const [query, setQuery] = useState("");
   const trimmedQuery = query.trim();
-  const normalizedQuery = trimmedQuery.toLowerCase();
+  const normalizedQuery = normalizeSearchText(trimmedQuery);
 
   const filteredItems = useMemo(() => {
-    if (!normalizedQuery) {
-      return items;
-    }
-
     return items.filter((item) => {
-      const primarySearchableText = [item.title, item.name, item.category]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      if (primarySearchableText.includes(normalizedQuery)) {
+      if (!normalizedQuery) {
         return true;
       }
 
-      if (normalizedQuery.length < 2) {
-        return false;
-      }
-
-      return (item.description ?? "").toLowerCase().includes(normalizedQuery);
+      return getSearchableText(item).includes(normalizedQuery);
     });
   }, [items, normalizedQuery]);
 
@@ -88,6 +118,8 @@ export function RegistryItemsBrowser({
           itemLabel,
           itemLabelPlural,
         )}`;
+
+  const clearSearch = () => setQuery("");
 
   return (
     <div className="flex flex-col gap-8">
@@ -122,7 +154,7 @@ export function RegistryItemsBrowser({
             {query ? (
               <button
                 type="button"
-                onClick={() => setQuery("")}
+                onClick={clearSearch}
                 className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`Clear ${itemLabel} search`}
                 title="Clear search"
@@ -142,7 +174,7 @@ export function RegistryItemsBrowser({
           {trimmedQuery ? (
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={clearSearch}
               className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="size-3.5" aria-hidden="true" />
@@ -155,13 +187,7 @@ export function RegistryItemsBrowser({
           filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-lg font-medium text-foreground underline-offset-4 transition-colors hover:text-muted-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {getDisplayName(item)}
-                </Link>
+                <RegistryItemLink key={item.name} item={item} />
               ))}
             </div>
           ) : (
@@ -174,7 +200,7 @@ export function RegistryItemsBrowser({
               </div>
               <button
                 type="button"
-                onClick={() => setQuery("")}
+                onClick={clearSearch}
                 className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <X className="size-3.5" aria-hidden="true" />
@@ -189,5 +215,25 @@ export function RegistryItemsBrowser({
         )}
       </section>
     </div>
+  );
+}
+
+function RegistryItemLink({ item }: { item: RegistryListItem }) {
+  const metadata = getItemMetadata(item);
+
+  return (
+    <Link
+      href={item.href}
+      className="group flex min-w-0 flex-col gap-1 rounded-sm underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span className="text-lg font-medium text-foreground transition-colors group-hover:text-muted-foreground group-hover:underline">
+        {getDisplayName(item)}
+      </span>
+      {metadata.length > 0 ? (
+        <span className="line-clamp-1 text-xs text-muted-foreground">
+          {metadata.join(" / ")}
+        </span>
+      ) : null}
+    </Link>
   );
 }

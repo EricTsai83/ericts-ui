@@ -7,7 +7,12 @@
       "name": "smooth-height",
       "type": "registry:ui",
       "title": "Smooth Height",
-      "description": "A Motion-powered container that observes its content and smoothly animates between heights as it changes.",
+      "description": "A Motion-powered layout primitive that observes content size and animates height changes.",
+      "categories": ["layout", "animation"],
+      "meta": {
+        "tags": ["resize-observer", "content-transition", "height-animation"],
+        "effects": ["height", "resize"]
+      },
       "dependencies": ["motion"],
       "files": [
         {
@@ -21,7 +26,12 @@
       "name": "copy-button",
       "type": "registry:ui",
       "title": "Copy Button",
-      "description": "A shadcn Button-based copy control that writes text to the clipboard and animates a copy → check icon swap.",
+      "description": "A shadcn Button-based clipboard control with animated copy and success states.",
+      "categories": ["button", "feedback"],
+      "meta": {
+        "tags": ["clipboard", "copy", "success", "icon-swap"],
+        "effects": ["state-transition", "icon-swap"]
+      },
       "registryDependencies": ["button"],
       "dependencies": ["motion", "lucide-react"],
       "files": [
@@ -36,7 +46,12 @@
       "name": "status-button",
       "type": "registry:ui",
       "title": "Status Button",
-      "description": "A shadcn Button-based action that transitions through idle, loading, and success states with Motion.",
+      "description": "A shadcn Button-based action that transitions through idle, loading, and success states.",
+      "categories": ["button", "feedback"],
+      "meta": {
+        "tags": ["async-action", "loading", "success", "submit"],
+        "effects": ["state-transition", "spinner"]
+      },
       "registryDependencies": ["button"],
       "dependencies": ["motion"],
       "files": [
@@ -51,7 +66,12 @@
       "name": "highlight-tabs",
       "type": "registry:ui",
       "title": "Highlight Tabs",
-      "description": "A Motion-powered tab list with a shared highlight indicator, hover activation, focus activation, and arrow-key navigation.",
+      "description": "A Motion-powered tab list with a shared highlight indicator and keyboard navigation.",
+      "categories": ["navigation", "tabs"],
+      "meta": {
+        "tags": ["tab-list", "roving-focus", "arrow-keys", "indicator"],
+        "effects": ["shared-layout", "highlight"]
+      },
       "dependencies": ["motion"],
       "files": [
         {
@@ -62,30 +82,40 @@
       ]
     },
     {
-      "name": "morph",
+      "name": "text-morph",
       "type": "registry:ui",
-      "title": "Morph",
-      "description": "A Motion-powered text primitive that morphs matching characters between string updates with shared layout transitions.",
+      "title": "Text Morph",
+      "description": "A Motion-powered text primitive that morphs matching characters between string updates.",
+      "categories": ["text", "animation"],
+      "meta": {
+        "tags": ["typography", "character-transition", "word-rotation"],
+        "effects": ["text-morph", "shared-layout"]
+      },
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/morph.tsx",
+          "path": "registry/base/ui/text-morph.tsx",
           "type": "registry:ui",
-          "target": "components/ui/morph.tsx"
+          "target": "components/ui/text-morph.tsx"
         }
       ]
     },
     {
-      "name": "animated-modal",
+      "name": "expandable-modal",
       "type": "registry:ui",
-      "title": "Animated Modal",
-      "description": "A Motion-powered shared layout modal that expands list items into an accessible dialog with overlay, Escape handling, and reduced-motion support.",
+      "title": "Expandable Modal",
+      "description": "A shared-layout modal that expands list items into an accessible dialog.",
+      "categories": ["overlay", "dialog"],
+      "meta": {
+        "tags": ["modal", "details", "list-item", "escape-key", "focus-trap"],
+        "effects": ["shared-layout", "expand", "fade"]
+      },
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/animated-modal.tsx",
+          "path": "registry/base/ui/expandable-modal.tsx",
           "type": "registry:ui",
-          "target": "components/ui/animated-modal.tsx"
+          "target": "components/ui/expandable-modal.tsx"
         }
       ]
     },
@@ -94,6 +124,11 @@
       "type": "registry:ui",
       "title": "Context Cursor",
       "description": "A scoped custom cursor for pointer-rich surfaces where each target can register its own label, icon, and interaction intent.",
+      "categories": ["cursor", "interaction"],
+      "meta": {
+        "tags": ["pointer", "mouse", "context-label", "drag", "preview"],
+        "effects": ["spring-follow", "cursor-fade"]
+      },
       "dependencies": ["motion"],
       "files": [
         {
@@ -104,25 +139,35 @@
       ]
     },
     {
-      "name": "feedback",
+      "name": "feedback-popover",
       "type": "registry:ui",
-      "title": "Feedback",
+      "title": "Feedback Popover",
       "description": "A Motion-powered feedback popover that expands from a trigger, supports keyboard submission, and confirms receipt inline.",
+      "categories": ["feedback", "popover"],
+      "meta": {
+        "tags": ["textarea", "submit", "confirmation", "keyboard-submit"],
+        "effects": ["expand", "success-state", "shared-layout"]
+      },
       "registryDependencies": ["button"],
       "dependencies": ["motion", "lucide-react"],
       "files": [
         {
-          "path": "registry/base/ui/feedback.tsx",
+          "path": "registry/base/ui/feedback-popover.tsx",
           "type": "registry:ui",
-          "target": "components/ui/feedback.tsx"
+          "target": "components/ui/feedback-popover.tsx"
         }
       ]
     },
     {
       "name": "multi-step",
       "type": "registry:ui",
-      "title": "Multi Step",
-      "description": "A Motion-powered multi-step container that slides between steps and animates height as content changes.",
+      "title": "Multi-Step",
+      "description": "A Motion-powered multi-step container that slides between steps and animates height changes.",
+      "categories": ["flow", "form"],
+      "meta": {
+        "tags": ["wizard", "stepper", "onboarding", "form-flow"],
+        "effects": ["slide", "height-animation"]
+      },
       "registryDependencies": ["button"],
       "dependencies": ["motion"],
       "files": [
@@ -134,28 +179,38 @@
       ]
     },
     {
-      "name": "orchestration",
+      "name": "staggered-entrance",
       "type": "registry:ui",
-      "title": "Orchestration",
-      "description": "A CSS-powered staggered entrance primitive for orchestrating any list of children, cards, steps, rows, or search results.",
+      "title": "Staggered Entrance",
+      "description": "A CSS-powered staggered entrance primitive for lists, cards, steps, rows, and search results.",
+      "categories": ["animation", "list"],
+      "meta": {
+        "tags": ["stagger", "entrance", "css-only", "list-animation"],
+        "effects": ["stagger", "fade", "slide"]
+      },
       "files": [
         {
-          "path": "registry/base/ui/orchestration.tsx",
+          "path": "registry/base/ui/staggered-entrance.tsx",
           "type": "registry:ui",
-          "target": "components/ui/orchestration.tsx"
+          "target": "components/ui/staggered-entrance.tsx"
         },
         {
-          "path": "registry/base/ui/orchestration.css",
+          "path": "registry/base/ui/staggered-entrance.css",
           "type": "registry:file",
-          "target": "components/ui/orchestration.css"
+          "target": "components/ui/staggered-entrance.css"
         }
       ]
     },
     {
       "name": "use-reduced-motion",
       "type": "registry:hook",
-      "title": "Use Reduced Motion",
+      "title": "useReducedMotion",
       "description": "A client-safe React hook for reading prefers-reduced-motion and reacting to preference changes.",
+      "categories": ["accessibility", "motion"],
+      "meta": {
+        "tags": ["prefers-reduced-motion", "media-query", "user-preference"],
+        "effects": ["reduced-motion"]
+      },
       "files": [
         {
           "path": "registry/base/hooks/use-reduced-motion.ts",

@@ -6,11 +6,11 @@ product
 
 ## Users
 
-Developers evaluating and installing ericts/ui components and blocks through a shadcn-compatible registry.
+Developers evaluating and installing ericts/ui components, hooks, and blocks through a shadcn-compatible registry.
 
 ## Product Purpose
 
-This site documents the component registry, shows available blocks, and gives developers a predictable path from discovery to installation or preview.
+This site documents the component registry, shows available components, hooks, and blocks, and gives developers a predictable path from discovery to installation or preview.
 
 ## Brand Personality
 

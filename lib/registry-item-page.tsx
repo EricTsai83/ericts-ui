@@ -12,6 +12,7 @@ import {
 } from "@/components/component-showcase";
 import {
   getRegistryItem,
+  getRegistryItemBadges,
   getRegistryItemsByCategory,
   type RegistryItem,
 } from "@/lib/registry";
@@ -83,6 +84,7 @@ export async function RegistryItemPage({
 
   const installTarget = getInstallTarget(item);
   const targetPath = getRegistryItemTargetPath(item);
+  const badges = getRegistryItemBadges(item);
   const motionApiSnippets =
     item.name === "use-reduced-motion"
       ? await highlightCodeFiles(motionApiReducedMotionSnippets, true)
@@ -98,6 +100,23 @@ export async function RegistryItemPage({
           <p className="text-base leading-7 text-muted-foreground sm:text-lg">
             {item.description}
           </p>
+        ) : null}
+        {badges.visible.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {badges.visible.map((badge) => (
+              <span
+                key={badge}
+                className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+              >
+                {badge}
+              </span>
+            ))}
+            {badges.hiddenCount > 0 ? (
+              <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                +{badges.hiddenCount}
+              </span>
+            ) : null}
+          </div>
         ) : null}
       </header>
 

@@ -2,21 +2,21 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-import "./orchestration.css";
+import "./staggered-entrance.css";
 
 type CssVariableStyle = React.CSSProperties & Record<`--${string}`, string>;
-type OrchestrationAxis = "x" | "y";
-type OrchestrationKey<TItem> =
+type StaggeredEntranceAxis = "x" | "y";
+type StaggeredEntranceKey<TItem> =
   | React.Key
   | ((item: TItem, index: number) => React.Key);
-type OrchestrationClassName<TItem> =
+type StaggeredEntranceClassName<TItem> =
   | string
   | ((item: TItem, index: number) => string | undefined);
-type OrchestrationStyle<TItem> =
+type StaggeredEntranceStyle<TItem> =
   | React.CSSProperties
   | ((item: TItem, index: number) => React.CSSProperties | undefined);
 
-export type OrchestrationProps<TItem = React.ReactNode> = Omit<
+export type StaggeredEntranceProps<TItem = React.ReactNode> = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "children"
 > & {
@@ -25,27 +25,27 @@ export type OrchestrationProps<TItem = React.ReactNode> = Omit<
   children?: React.ReactNode;
   items?: readonly TItem[];
   renderItem?: (item: TItem, index: number) => React.ReactNode;
-  getItemKey?: OrchestrationKey<TItem>;
   delay?: number | string;
   duration?: number | string;
   initialDelay?: number | string;
   staggerOffset?: number;
-  axis?: OrchestrationAxis;
+  axis?: StaggeredEntranceAxis;
   distance?: number | string;
   scale?: number;
   opacity?: number;
   reverse?: boolean;
   disabled?: boolean;
-  itemClassName?: OrchestrationClassName<TItem>;
-  itemStyle?: OrchestrationStyle<TItem>;
+  getItemKey?: StaggeredEntranceKey<TItem>;
+  itemClassName?: StaggeredEntranceClassName<TItem>;
+  itemStyle?: StaggeredEntranceStyle<TItem>;
 };
 
-export type OrchestrationItemProps = React.ComponentPropsWithoutRef<"div"> & {
+export type StaggeredEntranceItemProps = React.ComponentPropsWithoutRef<"div"> & {
   as?: React.ElementType;
   index?: number;
 };
 
-export function Orchestration<TItem = React.ReactNode>({
+export function StaggeredEntrance<TItem = React.ReactNode>({
   as: Component = "div",
   itemAs = "div",
   children,
@@ -67,7 +67,7 @@ export function Orchestration<TItem = React.ReactNode>({
   className,
   style,
   ...props
-}: OrchestrationProps<TItem>) {
+}: StaggeredEntranceProps<TItem>) {
   const entries = React.useMemo(
     () =>
       items
@@ -85,24 +85,24 @@ export function Orchestration<TItem = React.ReactNode>({
   );
   const count = entries.length;
   const resolvedDistance = toCssLength(distance);
-  const orchestrationStyle: CssVariableStyle = {
-    "--orchestration-delay": toCssTime(delay),
-    "--orchestration-duration": toCssTime(duration),
-    "--orchestration-initial-delay": toCssTime(initialDelay),
-    "--orchestration-from-x": axis === "x" ? resolvedDistance : "0px",
-    "--orchestration-from-y": axis === "y" ? resolvedDistance : "0px",
-    "--orchestration-from-scale": String(scale),
-    "--orchestration-from-opacity": String(opacity),
+  const staggeredEntranceStyle: CssVariableStyle = {
+    "--staggered-entrance-delay": toCssTime(delay),
+    "--staggered-entrance-duration": toCssTime(duration),
+    "--staggered-entrance-initial-delay": toCssTime(initialDelay),
+    "--staggered-entrance-from-x": axis === "x" ? resolvedDistance : "0px",
+    "--staggered-entrance-from-y": axis === "y" ? resolvedDistance : "0px",
+    "--staggered-entrance-from-scale": String(scale),
+    "--staggered-entrance-from-opacity": String(opacity),
     ...style,
   };
 
   return (
     <Component
       {...props}
-      data-slot="orchestration"
+      data-slot="staggered-entrance"
       data-disabled={disabled ? "true" : undefined}
-      className={cn("orchestration", className)}
-      style={orchestrationStyle}
+      className={cn("staggered-entrance", className)}
+      style={staggeredEntranceStyle}
     >
       {entries.map(({ item, content }, index) => {
         const resolvedIndex = reverse ? count - index - 1 : index;
@@ -112,7 +112,7 @@ export function Orchestration<TItem = React.ReactNode>({
             : getItemKey ?? getFallbackKey(content, index);
 
         return (
-          <OrchestrationItem
+          <StaggeredEntranceItem
             key={key}
             as={itemAs}
             index={resolvedIndex + staggerOffset}
@@ -120,30 +120,30 @@ export function Orchestration<TItem = React.ReactNode>({
             style={resolveValue(itemStyle, item, index)}
           >
             {content}
-          </OrchestrationItem>
+          </StaggeredEntranceItem>
         );
       })}
     </Component>
   );
 }
 
-export function OrchestrationItem({
+export function StaggeredEntranceItem({
   as: Component = "div",
   index,
   className,
   style,
   ...props
-}: OrchestrationItemProps) {
+}: StaggeredEntranceItemProps) {
   const itemStyle: CssVariableStyle =
     index === undefined
       ? (style as CssVariableStyle)
-      : { "--orchestration-index": String(index), ...style };
+      : { "--staggered-entrance-index": String(index), ...style };
 
   return (
     <Component
       {...props}
-      data-slot="orchestration-item"
-      className={cn("orchestration-item", className)}
+      data-slot="staggered-entrance-item"
+      className={cn("staggered-entrance-item", className)}
       style={itemStyle}
     />
   );

@@ -4,11 +4,12 @@ import { registryItems } from "@/lib/registry";
 
 const REGISTRY_RESULT_LIMIT = 8;
 
-export type RegistrySearchKind = "component" | "hook";
+export type RegistrySearchKind = "component" | "hook" | "block";
 
 const registrySearchKindRank: Record<RegistrySearchKind, number> = {
   component: 0,
   hook: 1,
+  block: 2,
 };
 
 type RegistrySearchEntry = {
@@ -46,6 +47,7 @@ export function searchRegistryItems(query: string): SortedResult[] {
         name: item.name,
         category: item.category,
         description: item.description,
+        searchTerms: item.searchTerms,
       });
 
       if (score === 0) {
@@ -116,10 +118,18 @@ export function getRegistrySearchKindFromId(
     return "hook";
   }
 
+  if (id.startsWith("block-")) {
+    return "block";
+  }
+
   return null;
 }
 
 function getRegistrySearchKind(category: string): RegistrySearchKind | null {
+  if (category === "blocks") {
+    return "block";
+  }
+
   if (category === "hooks") {
     return "hook";
   }
@@ -136,6 +146,10 @@ function getRegistrySearchId(kind: RegistrySearchKind, name: string) {
 }
 
 function getRegistryItemSection(category: string) {
+  if (category === "blocks") {
+    return "Blocks";
+  }
+
   if (category === "hooks") {
     return "Hooks";
   }
@@ -160,22 +174,28 @@ function getRegistryItemScore({
   name,
   category,
   description,
+  searchTerms,
 }: {
   query: string;
   title: string;
   name: string;
   category: string;
   description?: string;
+  searchTerms?: string[];
 }) {
   const normalizedName = normalizeSearchText(name);
   const normalizedTitle = normalizeSearchText(title);
   const normalizedCategory = normalizeSearchText(category);
   const normalizedDescription = normalizeSearchText(description ?? "");
+  const normalizedSearchTerms = (searchTerms ?? [])
+    .map(normalizeSearchText)
+    .filter(Boolean);
   const searchableText = [
     normalizedName,
     normalizedTitle,
     normalizedCategory,
     normalizedDescription,
+    ...normalizedSearchTerms,
   ].join(" ");
 
   if (normalizedName === query || normalizedTitle === query) {
@@ -192,6 +212,18 @@ function getRegistryItemScore({
 
   if (normalizedCategory.includes(query)) {
     return 40;
+  }
+
+  if (normalizedSearchTerms.some((term) => term === query)) {
+    return 55;
+  }
+
+  if (normalizedSearchTerms.some((term) => term.startsWith(query))) {
+    return 50;
+  }
+
+  if (normalizedSearchTerms.some((term) => term.includes(query))) {
+    return 45;
   }
 
   if (normalizedDescription.includes(query)) {

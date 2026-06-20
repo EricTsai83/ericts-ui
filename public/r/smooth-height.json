@@ -3,7 +3,7 @@
   "name": "smooth-height",
   "type": "registry:ui",
   "title": "Smooth Height",
-  "description": "A Motion-powered container that observes its content and smoothly animates between heights as it changes.",
+  "description": "A Motion-powered layout primitive that observes content size and animates height changes.",
   "dependencies": [
     "motion"
   ],
@@ -14,5 +14,20 @@
       "type": "registry:ui",
       "target": "components/ui/smooth-height.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "resize-observer",
+      "content-transition",
+      "height-animation"
+    ],
+    "effects": [
+      "height",
+      "resize"
+    ]
+  },
+  "categories": [
+    "layout",
+    "animation"
   ]
 }

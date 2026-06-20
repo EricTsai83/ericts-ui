@@ -5,14 +5,14 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
-export type MorphProps = Omit<
+export type TextMorphProps = Omit<
   React.ComponentPropsWithoutRef<"span">,
   "children"
 > & {
   children: string | string[];
 };
 
-function getText(children: MorphProps["children"]) {
+function getText(children: TextMorphProps["children"]) {
   return Array.isArray(children) ? children.join("") : children;
 }
 
@@ -29,7 +29,7 @@ function generateKeys(text: string) {
   });
 }
 
-export function Morph({ children, className, ...props }: MorphProps) {
+export function TextMorph({ children, className, ...props }: TextMorphProps) {
   const shouldReduceMotion = useReducedMotion();
   const text = getText(children);
   const textToDisplay = React.useMemo(() => generateKeys(text), [text]);

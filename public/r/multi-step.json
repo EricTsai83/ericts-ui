@@ -2,8 +2,8 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "multi-step",
   "type": "registry:ui",
-  "title": "Multi Step",
-  "description": "A Motion-powered multi-step container that slides between steps and animates height as content changes.",
+  "title": "Multi-Step",
+  "description": "A Motion-powered multi-step container that slides between steps and animates height changes.",
   "dependencies": [
     "motion"
   ],
@@ -17,5 +17,21 @@
       "type": "registry:ui",
       "target": "components/ui/multi-step.tsx"
     }
+  ],
+  "meta": {
+    "tags": [
+      "wizard",
+      "stepper",
+      "onboarding",
+      "form-flow"
+    ],
+    "effects": [
+      "slide",
+      "height-animation"
+    ]
+  },
+  "categories": [
+    "flow",
+    "form"
   ]
 }

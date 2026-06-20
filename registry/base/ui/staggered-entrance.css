@@ -1,0 +1,49 @@
+.staggered-entrance {
+  --staggered-entrance-delay: 80ms;
+  --staggered-entrance-duration: 500ms;
+  --staggered-entrance-initial-delay: 0ms;
+  --staggered-entrance-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --staggered-entrance-from-x: 0px;
+  --staggered-entrance-from-y: 10px;
+  --staggered-entrance-from-scale: 1;
+  --staggered-entrance-from-opacity: 0;
+}
+
+.staggered-entrance-item {
+  animation-name: staggered-entrance-enter;
+  animation-duration: var(--staggered-entrance-duration);
+  animation-timing-function: var(--staggered-entrance-ease);
+  animation-fill-mode: both;
+  animation-delay: calc(
+    var(--staggered-entrance-initial-delay) +
+      (var(--staggered-entrance-delay) * var(--staggered-entrance-index, 0))
+  );
+}
+
+.staggered-entrance[data-disabled="true"] .staggered-entrance-item {
+  animation: none;
+}
+
+@keyframes staggered-entrance-enter {
+  from {
+    opacity: var(--staggered-entrance-from-opacity);
+    transform: translate3d(
+        var(--staggered-entrance-from-x),
+        var(--staggered-entrance-from-y),
+        0
+      )
+      scale(var(--staggered-entrance-from-scale));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staggered-entrance-item {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

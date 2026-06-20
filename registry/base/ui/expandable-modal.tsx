@@ -10,7 +10,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-export type AnimatedModalItem = {
+export type ExpandableModalItem = {
   id: string;
   title: string;
   description: string;
@@ -20,15 +20,15 @@ export type AnimatedModalItem = {
   actionLabel?: string;
 };
 
-export type AnimatedModalProps = Omit<
+export type ExpandableModalProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "children" | "defaultValue" | "onChange" | "value"
 > & {
-  items?: readonly AnimatedModalItem[];
-  value?: AnimatedModalItem | null;
-  defaultValue?: AnimatedModalItem | null;
-  onValueChange?: (item: AnimatedModalItem | null) => void;
-  onAction?: (item: AnimatedModalItem) => void;
+  items?: readonly ExpandableModalItem[];
+  value?: ExpandableModalItem | null;
+  defaultValue?: ExpandableModalItem | null;
+  onValueChange?: (item: ExpandableModalItem | null) => void;
+  onAction?: (item: ExpandableModalItem) => void;
   actionLabel?: string;
   modalLabel?: string;
   listClassName?: string;
@@ -91,7 +91,7 @@ const coverImages = {
   `),
 };
 
-const defaultItems: AnimatedModalItem[] = [
+const defaultItems: ExpandableModalItem[] = [
   {
     id: "analytics",
     title: "Analytics report",
@@ -121,7 +121,7 @@ const defaultItems: AnimatedModalItem[] = [
 const actionButtonClassName =
   "inline-flex h-7 shrink-0 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-transparent bg-primary bg-clip-padding px-2.5 pt-px text-[0.8rem] leading-[1.4285714286] font-medium whitespace-nowrap text-primary-foreground outline-none transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-export function AnimatedModal({
+export function ExpandableModal({
   items = defaultItems,
   value,
   defaultValue = null,
@@ -133,7 +133,7 @@ export function AnimatedModal({
   listClassName,
   itemClassName,
   ...props
-}: AnimatedModalProps) {
+}: ExpandableModalProps) {
   const shouldReduceMotion = useReducedMotion();
   const reactId = React.useId();
   const titleId = `${reactId}-title`;
@@ -145,12 +145,12 @@ export function AnimatedModal({
   const openRequestId = React.useRef(0);
   const isControlled = value !== undefined;
   const [uncontrolledValue, setUncontrolledValue] =
-    React.useState<AnimatedModalItem | null>(defaultValue);
+    React.useState<ExpandableModalItem | null>(defaultValue);
 
   const activeItem = isControlled ? value : uncontrolledValue;
 
   const setActiveItem = React.useCallback(
-    (nextItem: AnimatedModalItem | null) => {
+    (nextItem: ExpandableModalItem | null) => {
       if (!isControlled) {
         setUncontrolledValue(nextItem);
       }
@@ -206,7 +206,7 @@ export function AnimatedModal({
   }, [setActiveItem]);
 
   const handleAction = React.useCallback(
-    (item: AnimatedModalItem) => {
+    (item: ExpandableModalItem) => {
       onAction?.(item);
       closeActiveItem();
     },
@@ -214,7 +214,7 @@ export function AnimatedModal({
   );
 
   const openItem = React.useCallback(
-    async (item: AnimatedModalItem) => {
+    async (item: ExpandableModalItem) => {
       const requestId = openRequestId.current + 1;
 
       openRequestId.current = requestId;
@@ -310,7 +310,7 @@ export function AnimatedModal({
 
   return (
     <div
-      data-slot="animated-modal"
+      data-slot="expandable-modal"
       className={cn(
         "relative mx-auto flex w-full items-center justify-center",
         className,
@@ -417,7 +417,7 @@ export function AnimatedModal({
         </AnimatePresence>
 
         <ul
-          data-slot="animated-modal-list"
+          data-slot="expandable-modal-list"
           aria-hidden={activeItem ? true : undefined}
           className={cn("flex w-full max-w-md flex-col gap-2", listClassName)}
         >

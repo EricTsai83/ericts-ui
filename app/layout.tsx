@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ericts/ui Registry",
   description:
-    "A ericts/ui components and blocks registry documentation and preview site.",
+    "An ericts/ui components, hooks, and blocks registry documentation and preview site.",
 };
 
 const searchLinks = getSearchLinks();
