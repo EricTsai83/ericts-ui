@@ -84,6 +84,29 @@
       ]
     },
     {
+      "name": "navigation-menu",
+      "type": "registry:ui",
+      "title": "Navigation Menu",
+      "description": "A Base UI navigation menu with centered popups, animated viewport sizing, and shadcn-style composition.",
+      "categories": ["navigation"],
+      "meta": {
+        "tags": ["navigation", "menu", "viewport", "links"],
+        "effects": ["viewport-resize", "menu-transition"]
+      },
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "registry/base/ui/navigation-menu.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/navigation-menu.tsx"
+        }
+      ]
+    },
+    {
       "name": "text-morph",
       "type": "registry:ui",
       "title": "Morphing Text",

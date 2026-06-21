@@ -39,6 +39,15 @@ import {
   ContextCursorTarget,
   type ContextCursorTargetAnimation,
 } from "@/registry/base/ui/context-cursor";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/registry/base/ui/navigation-menu";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
@@ -50,6 +59,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "copy-button": () => <CopyButtonPreview />,
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
+  "navigation-menu": () => <NavigationMenuPreview />,
   "text-morph": () => <TextMorphPreview />,
   "expandable-modal": () => <ExpandableModalPreview />,
   "context-cursor": () => <ContextCursorPreview />,
@@ -308,11 +318,141 @@ function HighlightTabsPreview() {
       />
       <div className="min-w-64 rounded-lg border bg-background px-4 py-3 text-center">
         <p className="text-sm font-medium">{activeLabel}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          3 recent changes
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">3 recent changes</p>
       </div>
     </div>
+  );
+}
+
+const componentItems = [
+  {
+    title: "Interactive primitives",
+    description: "Menus, dialogs, drawers, tabs, and form controls.",
+  },
+  {
+    title: "Motion patterns",
+    description: "Feedback, layout changes, and state transitions.",
+  },
+  {
+    title: "Client hooks",
+    description: "Small utilities for preferences and browser behavior.",
+  },
+];
+
+const resourceItems = [
+  {
+    title: "Installation",
+    description: "Add registry items with your package runner.",
+  },
+  {
+    title: "API reference",
+    description: "Review props, slots, and composition details.",
+  },
+  {
+    title: "Examples",
+    description: "Preview behavior before copying code.",
+  },
+  {
+    title: "Changelog",
+    description: "Track updates before pulling a component again.",
+  },
+  {
+    title: "Design notes",
+    description: "Understand interaction and accessibility decisions.",
+  },
+  {
+    title: "Support",
+    description: "Find setup, theming, and troubleshooting docs.",
+  },
+];
+
+function NavigationMenuPreview() {
+  return (
+    <div className="flex min-h-[24rem] w-full items-start justify-center pt-4">
+      <NavigationMenu>
+        <NavigationMenuList className="rounded-lg border bg-background p-1 shadow-sm">
+          <NavigationMenuItem value="components">
+            <NavigationMenuTrigger>Components</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[min(31rem,calc(100vw-2rem))] gap-2 p-3 sm:grid-cols-[0.8fr_1fr]">
+                <li className="sm:row-span-3">
+                  <NavigationMenuLink
+                    href="#"
+                    className="flex h-full min-h-44 flex-col justify-end rounded-md bg-primary p-5 text-primary-foreground hover:bg-primary/90 focus-visible:bg-primary/90"
+                  >
+                    <span
+                      className="mb-auto flex size-9 items-center justify-center rounded-md bg-primary-foreground/10"
+                      aria-hidden="true"
+                    >
+                      <Sparkles className="size-4" />
+                    </span>
+                    <div className="mt-6 text-base font-semibold">
+                      Registry components
+                    </div>
+                    <p className="mt-1 text-sm leading-5 text-primary-foreground/75">
+                      Install copy-ready UI primitives through the shadcn CLI.
+                    </p>
+                  </NavigationMenuLink>
+                </li>
+
+                {componentItems.map((item) => (
+                  <NavigationMenuPreviewItem
+                    key={item.title}
+                    title={item.title}
+                  >
+                    {item.description}
+                  </NavigationMenuPreviewItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem value="resources">
+            <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[min(35rem,calc(100vw-2rem))] gap-2 p-3 sm:grid-cols-2">
+                {resourceItems.map((item) => (
+                  <NavigationMenuPreviewItem
+                    key={item.title}
+                    title={item.title}
+                  >
+                    {item.description}
+                  </NavigationMenuPreviewItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              href="#"
+              className={cn(navigationMenuTriggerStyle(), "p-0 px-3 py-0")}
+            >
+              Docs
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
+  );
+}
+
+function NavigationMenuPreviewItem({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <li>
+      <NavigationMenuLink href="#" className="p-3">
+        <div className="text-sm font-medium leading-5">{title}</div>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">
+          {children}
+        </p>
+      </NavigationMenuLink>
+    </li>
   );
 }
 
@@ -344,7 +484,7 @@ function TextMorphPreview() {
             key={word}
             className={cn(
               "size-1.5 rounded-full transition-colors",
-              wordIndex === index ? "bg-foreground" : "bg-muted-foreground/25"
+              wordIndex === index ? "bg-foreground" : "bg-muted-foreground/25",
             )}
           />
         ))}
@@ -524,7 +664,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
   const remainingPool = teammatePool.filter(
-    (email) => !teammates.includes(email)
+    (email) => !teammates.includes(email),
   );
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === steps.length - 1;
@@ -557,7 +697,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
                 key={step.title}
                 className={cn(
                   "h-1.5 w-5 rounded-full transition-colors",
-                  index <= stepIndex ? "bg-foreground" : "bg-muted"
+                  index <= stepIndex ? "bg-foreground" : "bg-muted",
                 )}
               />
             ))}
@@ -592,7 +732,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
                       "flex flex-col gap-0.5 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       selected
                         ? "border-foreground bg-muted/50"
-                        : "bg-background hover:bg-muted/40"
+                        : "bg-background hover:bg-muted/40",
                     )}
                   >
                     <span className="flex items-center justify-between gap-2">
@@ -601,7 +741,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
                         className={cn(
                           "flex size-4 items-center justify-center rounded-full border transition-colors",
                           selected &&
-                            "border-foreground bg-foreground text-background"
+                            "border-foreground bg-foreground text-background",
                         )}
                         aria-hidden
                       >
@@ -660,7 +800,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
                       setTeammates((current) =>
                         current.length > 1
                           ? current.filter((value) => value !== email)
-                          : current
+                          : current,
                       )
                     }
                     disabled={teammates.length === 1}
@@ -675,7 +815,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
                 type="button"
                 onClick={() =>
                   setTeammates((current) =>
-                    remainingPool[0] ? [...current, remainingPool[0]] : current
+                    remainingPool[0] ? [...current, remainingPool[0]] : current,
                   )
                 }
                 disabled={remainingPool.length === 0}
@@ -700,8 +840,7 @@ function SmoothHeightPreview({ variant }: { variant: string }) {
               <p className="text-sm font-medium">Workspace ready</p>
               <p className="text-xs leading-5 text-muted-foreground">
                 {teammates.length} teammate{teammates.length === 1 ? "" : "s"}{" "}
-                invited to your{" "}
-                {selectedPlanData?.name ?? "new"} workspace.
+                invited to your {selectedPlanData?.name ?? "new"} workspace.
               </p>
             </div>
           ) : null}
@@ -802,10 +941,7 @@ const adaptiveDrawerPanels: AdaptiveDrawerPanel[] = [
     title: "Compact content",
     description: "A short panel keeps the sheet tight.",
     content: ({ setPanel }) => (
-      <AdaptiveDrawerDemoActions
-        activePanel="compact"
-        setPanel={setPanel}
-      />
+      <AdaptiveDrawerDemoActions activePanel="compact" setPanel={setPanel} />
     ),
   },
   {
@@ -816,16 +952,19 @@ const adaptiveDrawerPanels: AdaptiveDrawerPanel[] = [
       <div className="grid gap-3">
         <AdaptiveDrawerDemoActions activePanel="list" setPanel={setPanel} />
         <div className="grid gap-2">
-          {["Design review", "Accessibility pass", "Motion timing", "QA notes"].map(
-            (item) => (
-              <div
-                key={item}
-                className="rounded-md border bg-background px-3 py-2 text-sm"
-              >
-                {item}
-              </div>
-            ),
-          )}
+          {[
+            "Design review",
+            "Accessibility pass",
+            "Motion timing",
+            "QA notes",
+          ].map((item) => (
+            <div
+              key={item}
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              {item}
+            </div>
+          ))}
         </div>
       </div>
     ),
