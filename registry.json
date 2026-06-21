@@ -181,6 +181,26 @@
       ]
     },
     {
+      "name": "adaptive-drawer",
+      "type": "registry:ui",
+      "title": "Adaptive Drawer",
+      "description": "A shadcn Drawer that measures panel content and animates height changes.",
+      "categories": ["drawer", "layout"],
+      "meta": {
+        "tags": ["drawer", "adaptive-height", "bottom-sheet", "content-transition"],
+        "effects": ["height-animation", "fade", "scale"]
+      },
+      "registryDependencies": ["button", "drawer"],
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/adaptive-drawer.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/adaptive-drawer.tsx"
+        }
+      ]
+    },
+    {
       "name": "staggered-entrance",
       "type": "registry:ui",
       "title": "Staggered List",
