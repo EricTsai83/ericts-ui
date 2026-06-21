@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useMemo, useState } from "react";
-
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 
 export type RegistryListItem = {
   name: string;
@@ -138,30 +137,16 @@ export function RegistryItemsBrowser({
           >
             {searchLabel}
           </label>
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <Input
+          <div>
+            <SearchInput
               id={searchInputId}
-              type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onClear={clearSearch}
               placeholder={searchPlaceholder}
-              className="h-11 bg-background pl-10 pr-10 shadow-none hover:border-foreground/30"
+              clearLabel={`Clear ${itemLabel} search`}
+              className="h-11 bg-background shadow-none hover:border-foreground/30"
             />
-            {query ? (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={`Clear ${itemLabel} search`}
-                title="Clear search"
-              >
-                <X className="size-4" aria-hidden="true" />
-              </button>
-            ) : null}
           </div>
         </div>
       </section>
