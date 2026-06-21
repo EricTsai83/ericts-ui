@@ -3,7 +3,9 @@
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { Search } from "lucide-react";
 
+import { GitHubIcon } from "@/components/icons";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function HeaderActions() {
@@ -37,7 +39,28 @@ export function HeaderActions() {
           ) : null}
         </button>
       ) : null}
+      {enabled ? <HeaderActionSeparator className="hidden md:block" /> : null}
+      <a
+        href="https://github.com/EricTsai83/ericts-ui"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Open GitHub repository"
+        title="Open GitHub repository"
+        className={buttonVariants({ variant: "ghost", size: "icon" })}
+      >
+        <GitHubIcon aria-hidden="true" />
+      </a>
+      <HeaderActionSeparator />
       <ThemeModeToggle />
     </div>
+  );
+}
+
+function HeaderActionSeparator({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("h-4 w-px shrink-0 bg-border/60", className)}
+    />
   );
 }
