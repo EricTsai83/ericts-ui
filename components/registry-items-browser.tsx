@@ -14,7 +14,9 @@ export type RegistryListItem = {
   meta?: {
     tags?: string[];
     effects?: string[];
+    cssOnly?: boolean;
   };
+  hasCssOnly?: boolean;
   searchTerms?: string[];
   href: string;
 };
@@ -47,9 +49,12 @@ function getCountLabel(
 
 function getItemMetadata(item: RegistryListItem) {
   return uniqueStrings([
-    ...(item.categories ?? []),
-    ...(item.meta?.effects ?? []),
-  ]).slice(0, 3);
+    item.categories?.[0],
+    item.meta?.effects?.[0],
+    item.hasCssOnly || item.meta?.cssOnly
+      ? "CSS-only alternative"
+      : undefined,
+  ]);
 }
 
 function getSearchableText(item: RegistryListItem) {
@@ -58,10 +63,11 @@ function getSearchableText(item: RegistryListItem) {
       item.title,
       item.name,
       item.category,
-      item.description,
       ...(item.categories ?? []),
-      ...(item.meta?.tags ?? []),
       ...(item.meta?.effects ?? []),
+      ...(item.hasCssOnly || item.meta?.cssOnly
+        ? ["css-only alternative", "css alternative", "css-only", "css version"]
+        : []),
       ...(item.searchTerms ?? []),
     ]
       .filter(Boolean)
@@ -69,8 +75,10 @@ function getSearchableText(item: RegistryListItem) {
   );
 }
 
-function uniqueStrings(values: string[]) {
-  return Array.from(new Set(values.filter(Boolean)));
+function uniqueStrings(values: Array<string | undefined>) {
+  return Array.from(
+    new Set(values.filter((value): value is string => Boolean(value))),
+  );
 }
 
 function normalizeSearchText(value: string) {

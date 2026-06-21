@@ -46,7 +46,6 @@ export function searchRegistryItems(query: string): SortedResult[] {
         title,
         name: item.name,
         category: item.category,
-        description: item.description,
         searchTerms: item.searchTerms,
       });
 
@@ -173,20 +172,17 @@ function getRegistryItemScore({
   title,
   name,
   category,
-  description,
   searchTerms,
 }: {
   query: string;
   title: string;
   name: string;
   category: string;
-  description?: string;
   searchTerms?: string[];
 }) {
   const normalizedName = normalizeSearchText(name);
   const normalizedTitle = normalizeSearchText(title);
   const normalizedCategory = normalizeSearchText(category);
-  const normalizedDescription = normalizeSearchText(description ?? "");
   const normalizedSearchTerms = (searchTerms ?? [])
     .map(normalizeSearchText)
     .filter(Boolean);
@@ -194,7 +190,6 @@ function getRegistryItemScore({
     normalizedName,
     normalizedTitle,
     normalizedCategory,
-    normalizedDescription,
     ...normalizedSearchTerms,
   ].join(" ");
 
@@ -224,10 +219,6 @@ function getRegistryItemScore({
 
   if (normalizedSearchTerms.some((term) => term.includes(query))) {
     return 45;
-  }
-
-  if (normalizedDescription.includes(query)) {
-    return 30;
   }
 
   if (query.split(" ").every((term) => searchableText.includes(term))) {

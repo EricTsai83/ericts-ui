@@ -21,6 +21,7 @@ export default function BlocksPage() {
       category: block.category,
       categories: block.categories,
       meta: block.meta,
+      hasCssOnly: block.hasCssOnly,
       searchTerms: block.searchTerms,
       href: block.href,
     }));
@@ -33,11 +34,11 @@ export default function BlocksPage() {
         description="Installable registry blocks will appear here."
         searchInputId="blocks-search"
         searchLabel="Search blocks"
-        searchPlaceholder="Search by name, category, effect, or description..."
+        searchPlaceholder="Search by name, category, or effect..."
         itemLabel="block"
         itemLabelPlural="blocks"
         emptyTitle="No blocks found"
-        emptyDescription="Try a different name, category, effect, or description."
+        emptyDescription="Try a different name, category, or effect."
         noItemsLabel="No blocks yet."
       />
     </main>

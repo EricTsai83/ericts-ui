@@ -29,10 +29,10 @@
     "effects": [
       "state-transition",
       "icon-swap"
-    ]
+    ],
+    "cssOnly": true
   },
   "categories": [
-    "button",
-    "feedback"
+    "button"
   ]
 }

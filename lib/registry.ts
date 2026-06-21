@@ -9,6 +9,7 @@ type RegistryFile = {
 export type RegistryItemMeta = {
   tags?: string[];
   effects?: string[];
+  cssOnly?: boolean;
 };
 
 type RegistrySourceItem = {
@@ -25,6 +26,7 @@ type RegistrySourceItem = {
 
 export type RegistryItem = RegistrySourceItem & {
   category: string;
+  hasCssOnly: boolean;
   href: string;
   registryUrl: string;
   searchTerms: string[];
@@ -61,17 +63,30 @@ function getCategory(item: RegistrySourceItem) {
 
 const registrySourceItems = registry.items as RegistrySourceItem[];
 
+function hasCssOnlySupport(item: RegistrySourceItem) {
+  return Boolean(
+    item.meta?.cssOnly ||
+      item.files?.some(
+        (file) =>
+          file.path.endsWith(".css") ||
+          file.target?.endsWith(".css") ||
+          file.type === "registry:file",
+      ),
+  );
+}
+
 function getSearchTerms(item: RegistrySourceItem, category: string) {
+  const cssOnly = hasCssOnlySupport(item);
+
   return uniqueStrings([
     item.name,
     item.title,
     category,
-    item.type.replace("registry:", ""),
     ...(item.categories ?? []),
-    ...(item.meta?.tags ?? []),
     ...(item.meta?.effects ?? []),
-    ...(item.registryDependencies ?? []),
-    ...(item.dependencies ?? []),
+    ...(cssOnly
+      ? ["css-only alternative", "css alternative", "css-only", "css version"]
+      : []),
   ]);
 }
 
@@ -93,6 +108,7 @@ export const registryItems: RegistryItem[] = registrySourceItems.map((item) => {
   return {
     ...item,
     category,
+    hasCssOnly: hasCssOnlySupport(item),
     href: getHref(item, category),
     registryUrl: `/r/${item.name}.json`,
     searchTerms: getSearchTerms(item, category),
@@ -119,8 +135,9 @@ export function getRegistryItemFacets(items: RegistryItem[] = registryItems) {
 
 export function getRegistryItemBadges(item: RegistryItem, limit = 5) {
   const badges = uniqueStrings([
-    ...(item.categories ?? []),
-    ...(item.meta?.effects ?? []),
+    item.categories?.[0],
+    item.meta?.effects?.[0],
+    item.hasCssOnly ? "CSS-only alternative" : undefined,
   ]);
 
   return {

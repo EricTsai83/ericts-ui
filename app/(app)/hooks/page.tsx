@@ -21,6 +21,7 @@ export default function HooksPage() {
       category: hook.category,
       categories: hook.categories,
       meta: hook.meta,
+      hasCssOnly: hook.hasCssOnly,
       searchTerms: hook.searchTerms,
       href: hook.href,
     }));
@@ -33,11 +34,11 @@ export default function HooksPage() {
         description="Client-safe React hooks available in the registry."
         searchInputId="hooks-search"
         searchLabel="Search hooks"
-        searchPlaceholder="Search by name, category, effect, or description..."
+        searchPlaceholder="Search by name, category, or effect..."
         itemLabel="hook"
         itemLabelPlural="hooks"
         emptyTitle="No hooks found"
-        emptyDescription="Try a different name, category, effect, or description."
+        emptyDescription="Try a different name, category, or effect."
         noItemsLabel="No hooks yet."
       />
     </main>

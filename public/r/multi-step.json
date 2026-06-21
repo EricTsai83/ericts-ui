@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "multi-step",
   "type": "registry:ui",
-  "title": "Multi-Step",
+  "title": "Multi-Step Flow",
   "description": "A Motion-powered multi-step container that slides between steps and animates height changes.",
   "dependencies": [
     "motion"
@@ -31,7 +31,6 @@
     ]
   },
   "categories": [
-    "flow",
-    "form"
+    "flow"
   ]
 }

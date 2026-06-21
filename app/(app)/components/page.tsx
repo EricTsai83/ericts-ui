@@ -21,6 +21,7 @@ export default function ComponentsPage() {
       category: component.category,
       categories: component.categories,
       meta: component.meta,
+      hasCssOnly: component.hasCssOnly,
       searchTerms: component.searchTerms,
       href: component.href,
     }));
@@ -33,11 +34,11 @@ export default function ComponentsPage() {
         description="Here you can find the installable UI components available in the registry."
         searchInputId="components-search"
         searchLabel="Search components"
-        searchPlaceholder="Search by name, category, effect, or description..."
+        searchPlaceholder="Search by name, category, or effect..."
         itemLabel="component"
         itemLabelPlural="components"
         emptyTitle="No components found"
-        emptyDescription="Try a different name, category, effect, or description."
+        emptyDescription="Try a different name, category, or effect."
         noItemsLabel="No components yet."
       />
     </main>

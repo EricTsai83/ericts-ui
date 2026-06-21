@@ -2,8 +2,8 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "expandable-modal",
   "type": "registry:ui",
-  "title": "Expandable Modal",
-  "description": "A shared-layout modal that expands list items into an accessible dialog.",
+  "title": "Expandable Dialog",
+  "description": "A shared-layout dialog that expands list items into an accessible detail view.",
   "dependencies": [
     "motion"
   ],
@@ -30,7 +30,6 @@
     ]
   },
   "categories": [
-    "overlay",
     "dialog"
   ]
 }
