@@ -60,7 +60,7 @@ function HeaderActionSeparator({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={cn("h-4 w-px shrink-0 bg-border/60", className)}
+      className={cn("h-4 w-px shrink-0 bg-foreground/15", className)}
     />
   );
 }
