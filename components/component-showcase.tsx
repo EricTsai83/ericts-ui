@@ -236,9 +236,10 @@ const hookPreviewConfigs: Partial<Record<
         >
           reduced-motion preference
         </a>{" "}
-        without changing what the interface means. The custom hook is the
-        default copyable code below; the preview controls only simulate Standard
-        and Reduced states so both paths can be compared on the page.
+        without changing what the interface means. The local hook gives
+        components the same preference signal without adding a motion-library
+        dependency; the preview controls only simulate Standard and Reduced
+        states so both paths can be compared on the page.
       </>
     ),
   },
@@ -547,36 +548,36 @@ function UseReducedMotionInstallationNotes({
   return (
     <section className="flex max-w-3xl flex-col gap-6 border-t pt-6">
       <div className="flex flex-col gap-2">
-        <h3 className="text-base font-semibold">After installation</h3>
+        <h3 className="text-base font-semibold">Choose the right trade-off</h3>
         <p className="text-sm leading-6 text-muted-foreground">
-          The installed hook stays intentionally small: it reads{" "}
-          <code className="font-mono text-foreground">matchMedia</code> after
-          mount, updates immediately, and cleans up the change listener. The
-          preview controls above are only local demo states; production
-          components can call{" "}
-          <code className="font-mono text-foreground">useReducedMotion()</code>{" "}
-          with no arguments and branch their animation feedback from that value.
+          The local hook does one job: it reads{" "}
+          <code className="font-mono text-foreground">prefers-reduced-motion</code>{" "}
+          with <code className="font-mono text-foreground">matchMedia</code>,
+          syncs the current value after mount, and removes its change listener
+          during cleanup. That gives components the same reduced-motion branch
+          point as Motion&apos;s{" "}
+          <code className="font-mono text-foreground">useReducedMotion</code>{" "}
+          hook, without installing Motion or adding its bundle weight.
         </p>
       </div>
       <article className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground">
-        <h4 className="text-base font-semibold text-foreground">
-          Motion API as an alternative
-        </h4>
+        <h4 className="text-base font-semibold text-foreground">Using Motion</h4>
         <p>
-          If a project already uses Motion for most transitions, Motion&apos;s
-          own{" "}
+          If Motion already drives the component&apos;s animations, use
+          Motion&apos;s{" "}
           <code className="font-mono text-foreground">useReducedMotion</code>{" "}
-          hook can replace the custom hook. Keep the UI state the same, then
-          change the animated values that create large visual travel.
+          instead. It keeps the decision inside the same API you use for
+          variants, transitions, and animated values, which is usually clearer
+          than mixing in a separate local hook.
         </p>
         {reducedMotionSnippet ? (
           <CodeSnippet snippet={reducedMotionSnippet} />
         ) : null}
         <p>
-          You can also set the behavior once for a subtree with{" "}
+          For a larger Motion tree, set the preference once with{" "}
           <code className="font-mono text-foreground">MotionConfig</code>. This
-          is useful when Motion already owns the animation tree and should
-          follow the user&apos;s device preference by default.
+          is useful when a parent should make every Motion child follow the
+          user&apos;s device preference by default.
         </p>
         {motionConfigSnippet ? (
           <CodeSnippet snippet={motionConfigSnippet} />

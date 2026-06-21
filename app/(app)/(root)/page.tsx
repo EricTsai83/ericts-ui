@@ -14,7 +14,7 @@ export default function Home() {
             Custom shadcn registry
           </h1>
           <p className="text-lg text-muted-foreground">
-            Documentation, previews, and installable registry JSON for EricTS UI
+            Documentation, previews, and installable registry JSON for ericts/ui
             components, hooks, and blocks.
           </p>
           <div className="flex flex-wrap gap-2">

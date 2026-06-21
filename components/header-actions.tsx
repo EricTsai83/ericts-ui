@@ -19,10 +19,7 @@ export function HeaderActions() {
           onClick={() => setOpenSearch(true)}
         >
           <Search className="size-4 shrink-0 text-foreground" aria-hidden="true" />
-          <span className="hidden truncate xl:inline-flex">
-            Search docs, components, and hooks...
-          </span>
-          <span className="truncate xl:hidden">Search...</span>
+          <span className="truncate">search...</span>
           {hotKey.length > 0 ? (
             <span className="ml-auto hidden items-center gap-1 text-[0.7rem] text-muted-foreground lg:inline-flex">
               {hotKey.map((key, index) => (
