@@ -55,22 +55,14 @@ export async function RegistryItemPage({
     notFound();
   }
 
-  const source = await getRegistryItemSource(item);
+  const primarySource = await getRegistryItemSource(item);
+  const primaryFiles = await getRegistryItemCodeFiles(item);
   const cssOnlyFiles = await getCssOnlyFiles(item);
   const codeVariants: ComponentCodeVariant[] = [
     {
       value: "motion",
-      label: getPrimaryVariantLabel(item, source),
-      files: await highlightCodeFiles(
-        [
-          {
-            name: path.basename(getRegistryItemTargetPath(item)),
-            language: getCodeLanguage(getRegistryItemTargetPath(item)),
-            source,
-          },
-        ],
-        item.type === "registry:hook",
-      ),
+      label: getPrimaryVariantLabel(item, primarySource),
+      files: await highlightCodeFiles(primaryFiles, item.type === "registry:hook"),
     },
   ];
 
@@ -169,6 +161,38 @@ async function getRegistryItemSource(item: RegistryItem) {
   }
 
   return readOptionalFile(path.join(process.cwd(), "registry", registryPath));
+}
+
+async function getRegistryItemCodeFiles(
+  item: RegistryItem,
+): Promise<ComponentCodeVariant["files"]> {
+  const files = await Promise.all(
+    (item.files ?? []).map(async (file) => {
+      const registryPath = file.path.replace(/^registry\//, "");
+
+      if (registryPath === file.path) {
+        return undefined;
+      }
+
+      const source = await readOptionalFile(
+        path.join(process.cwd(), "registry", registryPath),
+      );
+
+      if (!source) {
+        return undefined;
+      }
+
+      const fileName = path.basename(file.target ?? file.path);
+
+      return {
+        name: fileName,
+        language: getCodeLanguage(fileName),
+        source,
+      };
+    }),
+  );
+
+  return files.filter((file): file is ComponentCodeFile => Boolean(file));
 }
 
 async function getCssOnlyFiles(

@@ -64,15 +64,7 @@ function getCategory(item: RegistrySourceItem) {
 const registrySourceItems = registry.items as RegistrySourceItem[];
 
 function hasCssOnlySupport(item: RegistrySourceItem) {
-  return Boolean(
-    item.meta?.cssOnly ||
-      item.files?.some(
-        (file) =>
-          file.path.endsWith(".css") ||
-          file.target?.endsWith(".css") ||
-          file.type === "registry:file",
-      ),
-  );
+  return Boolean(item.meta?.cssOnly);
 }
 
 function getSearchTerms(item: RegistrySourceItem, category: string) {

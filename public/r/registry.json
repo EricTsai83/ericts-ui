@@ -65,6 +65,29 @@
       ]
     },
     {
+      "name": "checkbox-animation",
+      "type": "registry:ui",
+      "title": "Checkbox Animation",
+      "description": "An SVG checkbox completion animation that draws the box and checkmark in sequence.",
+      "categories": ["animation", "svg"],
+      "meta": {
+        "tags": ["svg", "svg-animation", "checkbox", "complete", "checkmark"],
+        "effects": ["svg-draw", "path-draw", "completion"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/checkbox-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/checkbox-animation.tsx"
+        },
+        {
+          "path": "registry/base/ui/checkbox-animation.css",
+          "type": "registry:file",
+          "target": "components/ui/checkbox-animation.css"
+        }
+      ]
+    },
+    {
       "name": "highlight-tabs",
       "type": "registry:ui",
       "title": "Highlight Tabs",

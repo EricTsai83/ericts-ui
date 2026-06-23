@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
+import { CheckboxAnimation } from "@/registry/base/ui/checkbox-animation";
 import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { TextMorph } from "@/registry/base/ui/text-morph";
@@ -57,6 +58,7 @@ import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-he
 const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
+  "checkbox-animation": () => <CheckboxAnimationPreview />,
   "status-button": () => <StatusButtonPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "navigation-menu": () => <NavigationMenuPreview />,
@@ -114,6 +116,16 @@ function CopyButtonPreview() {
         aria-label="Copy outline variant"
       />
     </div>
+  );
+}
+
+function CheckboxAnimationPreview() {
+  return (
+    <ReplayablePreview>
+      {(replayKey) => (
+        <CheckboxAnimation key={replayKey} className="w-full max-w-xs" />
+      )}
+    </ReplayablePreview>
   );
 }
 

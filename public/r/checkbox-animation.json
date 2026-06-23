@@ -1,0 +1,39 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "checkbox-animation",
+  "type": "registry:ui",
+  "title": "Checkbox Animation",
+  "description": "An SVG checkbox completion animation that draws the box and checkmark in sequence.",
+  "files": [
+    {
+      "path": "registry/base/ui/checkbox-animation.tsx",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nimport \"./checkbox-animation.css\";\n\nexport type CheckboxAnimationProps = React.ComponentPropsWithoutRef<\"div\">;\n\nexport function CheckboxAnimation({\n  className,\n  ...props\n}: CheckboxAnimationProps) {\n  return (\n    <div\n      data-slot=\"checkbox-animation\"\n      className={cn(\n        \"checkbox-animation flex flex-col items-center text-foreground\",\n        className,\n      )}\n      {...props}\n    >\n      <svg\n        viewBox=\"0 0 100 100\"\n        aria-hidden=\"true\"\n        className=\"h-auto w-full max-w-80\"\n      >\n        <path\n          className=\"checkbox-animation-square\"\n          d=\"M 50,30 L 70,30 L 70,70 L 30,70 L 30,30 Z\"\n          fill=\"none\"\n          stroke=\"currentColor\"\n          strokeWidth=\"2\"\n          pathLength=\"100\"\n          strokeDasharray=\"100 100\"\n          strokeDashoffset=\"100\"\n        />\n        <path\n          className=\"checkbox-animation-checkmark\"\n          d=\"M 40,51 L 48,60 L 61,41\"\n          fill=\"none\"\n          stroke=\"currentColor\"\n          strokeWidth=\"2\"\n          pathLength=\"100\"\n          strokeDasharray=\"100 100\"\n          strokeDashoffset=\"100\"\n        />\n      </svg>\n    </div>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/checkbox-animation.tsx"
+    },
+    {
+      "path": "registry/base/ui/checkbox-animation.css",
+      "content": ".checkbox-animation {\n  --checkbox-animation-ease: cubic-bezier(0.645, 0.045, 0.355, 1);\n}\n\n.checkbox-animation-square {\n  animation: checkbox-animation-draw 600ms var(--checkbox-animation-ease)\n    forwards;\n}\n\n.checkbox-animation-checkmark {\n  animation: checkbox-animation-draw 400ms var(--checkbox-animation-ease) 600ms\n    forwards;\n}\n\n@keyframes checkbox-animation-draw {\n  to {\n    stroke-dashoffset: 0;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .checkbox-animation-square,\n  .checkbox-animation-checkmark {\n    animation-duration: 1ms;\n    animation-delay: 0ms;\n  }\n}\n",
+      "type": "registry:file",
+      "target": "components/ui/checkbox-animation.css"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "svg",
+      "svg-animation",
+      "checkbox",
+      "complete",
+      "checkmark"
+    ],
+    "effects": [
+      "svg-draw",
+      "path-draw",
+      "completion"
+    ]
+  },
+  "categories": [
+    "animation",
+    "svg"
+  ]
+}
