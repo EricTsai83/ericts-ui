@@ -23,6 +23,9 @@
       }
     ],
     "paths": {
+      "@/hooks/*": [
+        "./registry/base/hooks/*"
+      ],
       "@/*": [
         "./*"
       ],

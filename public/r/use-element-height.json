@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-element-height",
+  "type": "registry:hook",
+  "title": "useElementHeight",
+  "description": "A client-safe React hook that measures an element's height with ResizeObserver so a container can animate between content heights.",
+  "files": [
+    {
+      "path": "registry/base/hooks/use-element-height.ts",
+      "content": "\"use client\";\n\nimport { useCallback, useRef, useState } from \"react\";\n\n/**\n * Tracks an element's rendered height so a container can animate between content\n * heights — accordions, collapsibles, step flows, expanding cards, anything that\n * grows or shrinks to fit its content.\n *\n * Why this exists: you still can't reliably CSS-transition `height: auto` across\n * browsers (the native `interpolate-size` / `calc-size()` approach is promising\n * but not yet universally supported). The portable pattern is \"measure, then\n * animate to a pixel value\" — which is exactly what this hook gives you.\n *\n * @example\n *   const [ref, height] = useElementHeight<HTMLDivElement>();\n *   return (\n *     <motion.div animate={{ height: height ?? \"auto\" }} className=\"overflow-hidden\">\n *       <div ref={ref}>{content}</div>\n *     </motion.div>\n *   );\n *\n * Notes for animators:\n * - Uses a *callback ref*, so it re-measures correctly even when the measured\n *   element is conditionally rendered or swapped out — the common case for\n *   collapsibles. (A `useRef` + `useEffect([])` hook would silently miss that.)\n * - Reads the *border-box* height (padding + border included), because that's the\n *   box the parent actually has to grow to.\n * - `threshold` ignores sub-pixel ResizeObserver noise that would otherwise\n *   re-trigger the animation every frame and read as jitter.\n */\nexport function useElementHeight<T extends HTMLElement>(threshold = 0.5) {\n  const [height, setHeight] = useState<number | null>(null);\n  const observerRef = useRef<ResizeObserver | null>(null);\n\n  const ref = useCallback(\n    (element: T | null) => {\n      // Tear down the previous observer whenever the element changes or unmounts.\n      observerRef.current?.disconnect();\n\n      if (!element) return;\n\n      const updateHeight = (nextHeight: number) => {\n        setHeight((currentHeight) => {\n          if (currentHeight === null) return nextHeight;\n\n          return Math.abs(currentHeight - nextHeight) > threshold\n            ? nextHeight\n            : currentHeight;\n        });\n      };\n\n      updateHeight(element.getBoundingClientRect().height);\n\n      if (typeof ResizeObserver === \"undefined\") return;\n\n      const observer = new ResizeObserver((entries) => {\n        const entry = entries[0];\n\n        if (!entry) return;\n\n        const borderBoxSize = Array.isArray(entry.borderBoxSize)\n          ? entry.borderBoxSize[0]\n          : entry.borderBoxSize;\n\n        updateHeight(\n          borderBoxSize?.blockSize ??\n            entry.target.getBoundingClientRect().height\n        );\n      });\n\n      observer.observe(element);\n      observerRef.current = observer;\n    },\n    [threshold]\n  );\n\n  return [ref, height] as const;\n}\n",
+      "type": "registry:hook",
+      "target": "@hooks/use-element-height.ts"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "resize-observer",
+      "auto-height",
+      "measure",
+      "height-animation"
+    ],
+    "effects": [
+      "height-animation"
+    ]
+  },
+  "categories": [
+    "animation"
+  ]
+}

@@ -10,6 +10,7 @@ import {
 } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { useElementHeight } from "@/hooks/use-element-height";
 import { cn } from "@/lib/utils";
 
 type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
@@ -60,8 +61,7 @@ export function MultiStep({
 }: MultiStepProps) {
   const [uncontrolledStep, setUncontrolledStep] = React.useState(defaultStep);
   const [direction, setDirection] = React.useState<StepDirection>(1);
-  const [height, setHeight] = React.useState<number | null>(null);
-  const innerRef = React.useRef<HTMLDivElement>(null);
+  const [innerRef, height] = useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
 
   const selectedStep = clampStep(
@@ -72,44 +72,6 @@ export function MultiStep({
   const isFirstStep = selectedStep === 0;
   const isLastStep = selectedStep === steps.length - 1;
   const activeStep = steps[selectedStep];
-
-  React.useEffect(() => {
-    const element = innerRef.current;
-
-    if (!element) return;
-
-    const updateHeight = (nextHeight: number) => {
-      setHeight((currentHeight) => {
-        if (currentHeight === null) return nextHeight;
-
-        return Math.abs(currentHeight - nextHeight) > 0.5
-          ? nextHeight
-          : currentHeight;
-      });
-    };
-
-    updateHeight(element.getBoundingClientRect().height);
-
-    if (typeof ResizeObserver === "undefined") return;
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-
-      if (!entry) return;
-
-      const borderBoxSize = Array.isArray(entry.borderBoxSize)
-        ? entry.borderBoxSize[0]
-        : entry.borderBoxSize;
-
-      updateHeight(
-        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height
-      );
-    });
-
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, []);
 
   const setStep = React.useCallback(
     (nextStep: number, nextDirection: StepDirection) => {
@@ -139,6 +101,12 @@ export function MultiStep({
 
   return (
     <MotionConfig reducedMotion="user" transition={resolvedTransition}>
+      {/*
+        `contain: layout` scopes the per-frame reflow of the height animation to this
+        element, so the layout cost stays bounded no matter how heavy a step's content
+        is. This keeps the transition smooth on lower-powered / mobile devices; removing
+        it can cause frame drops there. It does not affect the measured `auto` height.
+      */}
       <motion.div
         {...props}
         data-slot="multi-step"
@@ -146,7 +114,10 @@ export function MultiStep({
         animate={
           shouldReduceMotion ? { height: "auto" } : { height: height ?? "auto" }
         }
-        className={cn("overflow-hidden rounded-lg border bg-background", className)}
+        className={cn(
+          "overflow-hidden rounded-lg border bg-background [contain:layout]",
+          className
+        )}
       >
         <div
           ref={innerRef}
