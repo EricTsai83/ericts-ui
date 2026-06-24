@@ -102,7 +102,6 @@ const defaultVisibleScale = 1;
 // Once the edge-fade has shrunk the badge below this much progress it is
 // effectively gone, so the native cursor is handed back at that exact point.
 const nativeHandoffProgress = 0.08;
-let nativeCursorLockCount = 0;
 
 const variantClassNames: Record<ContextCursorVariant, string> = {
   default: "border-border bg-background text-foreground",
@@ -172,14 +171,14 @@ export function ContextCursor({
     if (hasNativeCursorLock.current) return;
 
     hasNativeCursorLock.current = true;
-    acquireNativeCursorLock();
+    acquireNativeCursorLock(wrapperRef.current);
   }, []);
 
   const showNativeCursor = React.useCallback(() => {
     if (!hasNativeCursorLock.current) return;
 
     hasNativeCursorLock.current = false;
-    releaseNativeCursorLock();
+    releaseNativeCursorLock(wrapperRef.current);
   }, []);
 
   const getAnimation = React.useCallback(
@@ -286,8 +285,8 @@ export function ContextCursor({
       wrapperBounds: DOMRectReadOnly,
       targetBounds: DOMRectReadOnly | null = activeTargetBounds.current,
     ) => {
-      rawX.set(point.x - wrapperBounds.left);
-      rawY.set(point.y - wrapperBounds.top);
+      rawX.set(snapToDevicePixel(point.x - wrapperBounds.left));
+      rawY.set(snapToDevicePixel(point.y - wrapperBounds.top));
 
       if (targetBounds) {
         updateCursorPresence(point, targetBounds);
@@ -575,6 +574,7 @@ function ContextCursorIndicator({
         y,
         opacity,
         scale,
+        willChange: "transform, opacity",
       }}
       className={cn(
         // Anchored to the pointer coordinate; the badge inside is centered on it
@@ -646,18 +646,17 @@ function useFinePointer() {
   return supportsFinePointer;
 }
 
-function acquireNativeCursorLock() {
-  nativeCursorLockCount += 1;
+function acquireNativeCursorLock(element: HTMLElement | null) {
+  if (!element) return;
+
   ensureNativeCursorStyle();
-  document.documentElement.dataset.contextCursorNativeHidden = "true";
+  element.dataset.contextCursorNativeHidden = "true";
 }
 
-function releaseNativeCursorLock() {
-  nativeCursorLockCount = Math.max(0, nativeCursorLockCount - 1);
+function releaseNativeCursorLock(element: HTMLElement | null) {
+  if (!element) return;
 
-  if (nativeCursorLockCount === 0) {
-    delete document.documentElement.dataset.contextCursorNativeHidden;
-  }
+  delete element.dataset.contextCursorNativeHidden;
 }
 
 function ensureNativeCursorStyle() {
@@ -666,8 +665,8 @@ function ensureNativeCursorStyle() {
   const style = document.createElement("style");
   style.id = nativeCursorStyleId;
   style.textContent = `
-    html[data-context-cursor-native-hidden="true"],
-    html[data-context-cursor-native-hidden="true"] * {
+    [data-context-cursor-native-hidden="true"],
+    [data-context-cursor-native-hidden="true"] * {
       cursor: none !important;
     }
   `;
@@ -684,6 +683,12 @@ function smoothstep(value: number) {
 
 function interpolate(from: number, to: number, progress: number) {
   return from + (to - from) * progress;
+}
+
+function snapToDevicePixel(value: number) {
+  const ratio = window.devicePixelRatio || 1;
+
+  return Math.round(value * ratio) / ratio;
 }
 
 export type ContextCursorTargetProps =
