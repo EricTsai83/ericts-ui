@@ -146,6 +146,12 @@ export function ContextCursor({
   const activeTargetAnimation =
     React.useRef<ContextCursorTargetAnimation | null>(null);
   const hideTimer = React.useRef<number | null>(null);
+  const pointerFrame = React.useRef<number | null>(null);
+  const latestPointerFrame = React.useRef<{
+    point: CursorPoint;
+    wrapperBounds: DOMRectReadOnly;
+    targetBounds: DOMRectReadOnly | null;
+  } | null>(null);
   const hasNativeCursorLock = React.useRef(false);
   const activeTargetId = React.useRef<string | null>(null);
   const isDisabled = Boolean(
@@ -274,6 +280,53 @@ export function ContextCursor({
     return currentBounds;
   }, []);
 
+  const updatePointerPosition = React.useCallback(
+    (
+      point: CursorPoint,
+      wrapperBounds: DOMRectReadOnly,
+      targetBounds: DOMRectReadOnly | null = activeTargetBounds.current,
+    ) => {
+      rawX.set(point.x - wrapperBounds.left);
+      rawY.set(point.y - wrapperBounds.top);
+
+      if (targetBounds) {
+        updateCursorPresence(point, targetBounds);
+      }
+    },
+    [rawX, rawY, updateCursorPresence],
+  );
+
+  const schedulePointerPosition = React.useCallback(
+    (
+      point: CursorPoint,
+      wrapperBounds: DOMRectReadOnly,
+      targetBounds: DOMRectReadOnly | null = activeTargetBounds.current,
+    ) => {
+      latestPointerFrame.current = {
+        point,
+        wrapperBounds,
+        targetBounds,
+      };
+
+      if (pointerFrame.current !== null) return;
+
+      pointerFrame.current = window.requestAnimationFrame(() => {
+        pointerFrame.current = null;
+        const nextFrame = latestPointerFrame.current;
+        latestPointerFrame.current = null;
+
+        if (!nextFrame) return;
+
+        updatePointerPosition(
+          nextFrame.point,
+          nextFrame.wrapperBounds,
+          nextFrame.targetBounds,
+        );
+      });
+    },
+    [updatePointerPosition],
+  );
+
   const showCursor = React.useCallback(
     (
       nextCursor: ContextCursorState,
@@ -296,15 +349,10 @@ export function ContextCursor({
 
       const currentWrapperBounds = getWrapperBounds();
       if (point && currentWrapperBounds) {
-        rawX.set(Math.round(point.x - currentWrapperBounds.left));
-        rawY.set(Math.round(point.y - currentWrapperBounds.top));
+        updatePointerPosition(point, currentWrapperBounds, targetBounds ?? null);
       }
 
-      if (point && targetBounds) {
-        // Respect edge proximity even on enter, so entering right at the border
-        // doesn't snap the badge fully in.
-        updateCursorPresence(point, targetBounds);
-      } else {
+      if (!point || !targetBounds) {
         hideNativeCursor();
         const currentAnimation = getAnimation(targetAnimation ?? null);
         opacity.set(currentAnimation.visibleOpacity);
@@ -316,11 +364,9 @@ export function ContextCursor({
       getWrapperBounds,
       isDisabled,
       opacity,
-      rawX,
-      rawY,
       scale,
       getAnimation,
-      updateCursorPresence,
+      updatePointerPosition,
     ],
   );
 
@@ -342,8 +388,7 @@ export function ContextCursor({
 
       const currentBounds = bounds.current;
       if (point && currentBounds) {
-        rawX.set(Math.round(point.x - currentBounds.left));
-        rawY.set(Math.round(point.y - currentBounds.top));
+        updatePointerPosition(point, currentBounds, null);
       }
 
       // Leaving the target snaps the badge away (no spring tail) and hands the
@@ -366,13 +411,16 @@ export function ContextCursor({
         hideTimer.current = null;
       }, currentAnimation.hideDelay);
     },
-    [getAnimation, opacity, rawX, rawY, scale, showNativeCursor],
+    [getAnimation, opacity, scale, showNativeCursor, updatePointerPosition],
   );
 
   React.useEffect(() => {
     return () => {
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current);
+      }
+      if (pointerFrame.current !== null) {
+        window.cancelAnimationFrame(pointerFrame.current);
       }
       showNativeCursor();
     };
@@ -386,6 +434,11 @@ export function ContextCursor({
       hideTimer.current = null;
     }
 
+    if (pointerFrame.current !== null) {
+      window.cancelAnimationFrame(pointerFrame.current);
+      pointerFrame.current = null;
+    }
+    latestPointerFrame.current = null;
     activeTargetId.current = null;
     activeTargetBounds.current = null;
     activeTargetAnimation.current = null;
@@ -421,18 +474,12 @@ export function ContextCursor({
       const currentBounds =
         bounds.current ?? event.currentTarget.getBoundingClientRect();
 
-      rawX.set(Math.round(event.clientX - currentBounds.left));
-      rawY.set(Math.round(event.clientY - currentBounds.top));
-
-      const currentTargetBounds = activeTargetBounds.current;
-      if (currentTargetBounds) {
-        updateCursorPresence(
-          { x: event.clientX, y: event.clientY },
-          currentTargetBounds,
-        );
-      }
+      schedulePointerPosition(
+        { x: event.clientX, y: event.clientY },
+        currentBounds,
+      );
     },
-    [isDisabled, rawX, rawY, updateCursorPresence],
+    [isDisabled, schedulePointerPosition],
   );
 
   const handlePointerLeave = React.useCallback(
