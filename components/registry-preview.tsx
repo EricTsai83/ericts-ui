@@ -515,21 +515,21 @@ function ExpandableModalPreview() {
 
 function ContextCursorPreview() {
   const largeTargetAnimation = {
-    edgeFadeDistance: 56,
+    edgeFadeDistance: 40,
     opacity: { hidden: 0, visible: 1 },
-    scale: { hidden: 0.96, visible: 1 },
-    hideDelay: 120,
+    scale: { hidden: 0.4, visible: 1 },
+    hideDelay: 150,
   } satisfies ContextCursorTargetAnimation;
   const compactTargetAnimation = {
-    edgeFadeDistance: 22,
-    opacity: { hidden: 0.08, visible: 1 },
-    scale: { hidden: 0.98, visible: 1 },
-    hideDelay: 80,
+    edgeFadeDistance: 26,
+    opacity: { hidden: 0, visible: 1 },
+    scale: { hidden: 0.4, visible: 1 },
+    hideDelay: 140,
   } satisfies ContextCursorTargetAnimation;
 
   return (
     <ContextCursor className="w-full max-w-xl rounded-lg border bg-background p-3">
-      <div className="grid gap-3 sm:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-3 sm:grid-cols-2">
         <ContextCursorTarget
           label="Open"
           variant="open"
@@ -567,18 +567,18 @@ function ContextCursorPreview() {
             variant="drag"
             icon={<GripHorizontal className="size-3.5" aria-hidden />}
             animation={compactTargetAnimation}
-            className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
+            className="flex-1 rounded-md border bg-background p-4 transition-colors hover:bg-muted/50"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex h-full items-center gap-3">
               <span
-                className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground"
+                className="flex size-11 items-center justify-center rounded-md bg-muted text-muted-foreground"
                 aria-hidden
               >
-                <GripHorizontal className="size-4" />
+                <GripHorizontal className="size-5" />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">Backlog column</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-base font-medium">Backlog column</p>
+                <p className="text-sm text-muted-foreground">
                   Reorder workspace lanes
                 </p>
               </div>
@@ -590,15 +590,15 @@ function ContextCursorPreview() {
             variant="preview"
             icon={<Eye className="size-3.5" aria-hidden />}
             animation={compactTargetAnimation}
-            className="rounded-md border bg-background p-3 transition-colors hover:bg-muted/50"
+            className="flex-1 rounded-md border bg-background p-4 transition-colors hover:bg-muted/50"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40">
-                <Eye className="size-4 text-muted-foreground" aria-hidden />
+            <div className="flex h-full items-center gap-3">
+              <div className="flex size-11 items-center justify-center rounded-md border bg-muted/40">
+                <Eye className="size-5 text-muted-foreground" aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">Design brief</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-base font-medium">Design brief</p>
+                <p className="text-sm text-muted-foreground">
                   Show a quick file preview
                 </p>
               </div>
