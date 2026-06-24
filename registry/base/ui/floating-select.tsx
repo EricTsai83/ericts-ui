@@ -57,19 +57,11 @@ const SHELL_TRANSITION = {
 };
 const PANEL_TRANSITION = { duration: 0.12, ease: EASE_OUT };
 
-const LIST_VARIANTS = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.028, delayChildren: 0.04 } },
-};
+function getCssPixels(value: string) {
+  const pixels = Number.parseFloat(value);
 
-const OPTION_VARIANTS = {
-  hidden: { opacity: 0, y: -4 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.14, ease: EASE_OUT },
-  },
-};
+  return Number.isFinite(pixels) ? pixels : 0;
+}
 
 export function FloatingSelect({
   options,
@@ -90,9 +82,14 @@ export function FloatingSelect({
   panelClassName,
 }: FloatingSelectProps) {
   const shellRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLDivElement>(null);
   const selectId = React.useId();
   const shouldReduceMotion = useReducedMotion();
   const [open, setOpen] = React.useState(false);
+  const [inlineAnchorSize, setInlineAnchorSize] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [internalSelected, setInternalSelected] = React.useState(
     defaultValue ?? options[0]?.id ?? "",
   );
@@ -148,7 +145,71 @@ export function FloatingSelect({
     }
   };
 
+  const updateInlineAnchorSize = React.useCallback(
+    (nextSize: { width: number; height: number }) => {
+      setInlineAnchorSize((current) => {
+        if (
+          current?.width === nextSize.width &&
+          current.height === nextSize.height
+        ) {
+          return current;
+        }
+
+        return nextSize;
+      });
+    },
+    [],
+  );
+
+  const measureInlineAnchorSize = React.useCallback(() => {
+    if (placement !== "inline") return;
+
+    const trigger = triggerRef.current;
+
+    if (!trigger) return;
+
+    const { width, height } = trigger.getBoundingClientRect();
+    const shell = shellRef.current;
+    const shellStyles = shell ? window.getComputedStyle(shell) : null;
+    const borderX = shellStyles
+      ? getCssPixels(shellStyles.borderLeftWidth) +
+        getCssPixels(shellStyles.borderRightWidth)
+      : 0;
+    const borderY = shellStyles
+      ? getCssPixels(shellStyles.borderTopWidth) +
+        getCssPixels(shellStyles.borderBottomWidth)
+      : 0;
+
+    updateInlineAnchorSize({
+      width: width + borderX,
+      height: height + borderY,
+    });
+  }, [placement, updateInlineAnchorSize]);
+
+  const handleOpen = () => {
+    measureInlineAnchorSize();
+    setOpen(true);
+  };
+
   const reduceMotionTransition = shouldReduceMotion ? { duration: 0 } : {};
+  const listVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.028,
+        staggerDirection: position === "bottom" ? -1 : 1,
+        delayChildren: 0.04,
+      },
+    },
+  };
+  const optionVariants = {
+    hidden: { opacity: 0, y: position === "bottom" ? 4 : -4 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.14, ease: EASE_OUT },
+    },
+  };
 
   const shell = (
     <motion.div
@@ -163,7 +224,6 @@ export function FloatingSelect({
       transition={shouldReduceMotion ? { duration: 0 } : SHELL_TRANSITION}
       className={cn(
         "pointer-events-auto flex w-fit flex-col overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-sm",
-        position === "bottom" && "justify-end",
         className,
       )}
       style={{ transformOrigin }}
@@ -183,7 +243,7 @@ export function FloatingSelect({
           >
             <motion.div
               className="flex flex-col gap-1.5 p-2"
-              variants={shouldReduceMotion ? undefined : LIST_VARIANTS}
+              variants={shouldReduceMotion ? undefined : listVariants}
               initial={shouldReduceMotion ? false : "hidden"}
               animate={shouldReduceMotion ? undefined : "visible"}
             >
@@ -196,7 +256,7 @@ export function FloatingSelect({
                     role="option"
                     aria-selected={active}
                     type="button"
-                    variants={shouldReduceMotion ? undefined : OPTION_VARIANTS}
+                    variants={shouldReduceMotion ? undefined : optionVariants}
                     onClick={() => handleSelect(option)}
                     className={cn(
                       "flex h-8 w-full items-center gap-6 rounded-md px-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
@@ -220,6 +280,7 @@ export function FloatingSelect({
           </motion.div>
         ) : (
           <motion.div
+            ref={triggerRef}
             key="floating-select-trigger"
             initial={shouldReduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -232,7 +293,7 @@ export function FloatingSelect({
               aria-haspopup="listbox"
               aria-expanded={open}
               aria-controls={`${selectId}-listbox`}
-              onClick={() => setOpen(true)}
+              onClick={handleOpen}
               className={cn(
                 "group flex h-8 items-center gap-2 rounded-md px-3 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
                 triggerClassName,
@@ -257,7 +318,21 @@ export function FloatingSelect({
   );
 
   if (placement === "inline") {
-    return <div className="flex justify-center">{shell}</div>;
+    return (
+      <div
+        className="relative flex justify-center"
+        style={open && inlineAnchorSize ? inlineAnchorSize : undefined}
+      >
+        <div
+          className={cn(
+            open && "absolute left-1/2 -translate-x-1/2",
+            open && (position === "top" ? "top-0" : "bottom-0"),
+          )}
+        >
+          {shell}
+        </div>
+      </div>
+    );
   }
 
   return (

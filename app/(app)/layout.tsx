@@ -3,21 +3,24 @@ import type { ReactNode } from "react";
 
 import { HeaderActions } from "@/components/header-actions";
 import { LogoIcon } from "@/components/icons";
+import { MobileHeaderMenu } from "@/components/mobile-header-menu";
 import { primaryNavItems } from "@/lib/navigation";
+import { source } from "@/lib/source";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 h-14 border-b bg-background/95 text-foreground shadow-none backdrop-blur supports-[backdrop-filter]:bg-background/80 dark:shadow-sm">
         <div className="relative flex h-full w-full items-center px-4 sm:px-6">
+          <MobileHeaderMenu tree={source.pageTree} items={primaryNavItems} />
           <Link
             href="/"
-            className="absolute left-1/2 top-0 flex h-full -translate-x-1/2 items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-accent-foreground md:static md:mr-5 md:min-w-28 md:translate-x-0"
+            className="hidden h-full items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-accent-foreground lg:mr-5 lg:flex lg:min-w-28"
           >
             <LogoIcon className="block size-5 shrink-0" aria-hidden="true" />
-            <span className="hidden sm:inline">ericts/ui</span>
+            <span>ericts/ui</span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm font-medium text-foreground md:flex">
+          <nav className="hidden items-center gap-1 text-sm font-medium text-foreground lg:flex">
             {primaryNavItems.map((item) => (
               <Link
                 key={`${item.href}-${item.label}`}
