@@ -195,7 +195,10 @@ export function FeedbackPopover({
   return (
     <div
       data-slot="feedback-popover"
-      className={cn("relative inline-flex", className)}
+      className={cn(
+        "relative inline-flex max-w-full [--feedback-popover-width:min(22rem,calc(100vw-2rem))]",
+        className,
+      )}
       {...props}
     >
       <LayoutGroup id={reactId}>
@@ -236,7 +239,7 @@ export function FeedbackPopover({
               }
               transition={layoutTransition}
               style={{ borderRadius: 12 }}
-              className="absolute left-1/2 top-1/2 z-50 h-48 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
+              className="absolute left-1/2 top-1/2 z-50 h-48 w-[var(--feedback-popover-width)] -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
             >
               <motion.span
                 id={titleId}

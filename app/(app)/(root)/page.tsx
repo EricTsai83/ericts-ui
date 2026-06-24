@@ -1,105 +1,146 @@
+import {
+  ArrowRight,
+  Check,
+  Component,
+  FileJson2,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 
-import { RegistryPreview } from "@/components/registry-preview";
-import { getRegistryItemsByCategory, registryItems } from "@/lib/registry";
+import { HomeMotionShowcase } from "@/components/home-motion-showcase";
+import { buttonVariants } from "@/components/ui/button";
+import { CopyButton } from "@/registry/base/ui/copy-button";
+import { getRegistryItem, getRegistryItemBadges } from "@/lib/registry";
+import { getRegistryItemUrl } from "@/lib/site-url";
+
+const featuredNames = ["smooth-height", "highlight-tabs", "text-morph"];
 
 export default function Home() {
-  const featuredItems = getRegistryItemsByCategory("ui").slice(0, 4);
+  const installCommand = `pnpm dlx shadcn@latest add ${getRegistryItemUrl(
+    "text-morph",
+  )}`;
+  const featuredItems = featuredNames
+    .map((name) => getRegistryItem(name))
+    .filter((item) => item !== undefined);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">
-      <section className="grid gap-6 border-b pb-10 lg:grid-cols-[1fr_320px]">
-        <div className="flex max-w-2xl flex-col gap-4">
-          <h1 className="text-4xl font-semibold tracking-tight">
-            Custom shadcn registry
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Documentation, previews, and installable registry JSON for ericts/ui
-            components, hooks, and blocks.
-          </p>
+    <main className="mx-auto flex min-w-0 w-full max-w-6xl flex-col overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
+      <section className="grid min-w-0 gap-10 pb-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(420px,1fr)] lg:items-center lg:gap-12">
+        <div className="flex min-w-0 max-w-2xl flex-col gap-7">
+          <div className="flex flex-col gap-4">
+            <div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-muted/40 px-2.5 py-1 text-sm font-medium text-muted-foreground">
+              <Sparkles aria-hidden="true" className="size-4 text-foreground" />
+              ericts/ui registry
+            </div>
+            <div className="flex flex-col gap-4">
+              <h1 className="max-w-[13ch] text-4xl font-semibold tracking-tight text-balance sm:max-w-xl sm:text-5xl">
+                Fluid motion components for shadcn.
+              </h1>
+              <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+                Install small UI primitives for layout changes, state feedback,
+                and interaction motion without leaving the shadcn workflow.
+              </p>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/components"
+              className={buttonVariants({ variant: "default", size: "lg" })}
+            >
+              Browse components
+              <ArrowRight data-icon="inline-end" aria-hidden="true" />
+            </Link>
+            <Link
               href="/docs"
-              className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
             >
               Read docs
             </Link>
-            <Link
-              href="/components"
-              className="inline-flex h-9 items-center rounded-md border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              Browse components
-            </Link>
+          </div>
+
+          <div className="max-w-2xl rounded-lg border bg-muted/30 p-2">
+            <div className="flex items-center gap-2 rounded-lg bg-background px-3 py-2">
+              <FileJson2
+                aria-hidden="true"
+                className="hidden size-4 shrink-0 text-muted-foreground sm:block"
+              />
+              <code className="min-w-0 flex-1 truncate font-mono text-xs leading-6 text-muted-foreground sm:text-sm">
+                {installCommand}
+              </code>
+              <CopyButton
+                value={installCommand}
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Copy install command"
+                className="shrink-0"
+              />
+            </div>
           </div>
         </div>
-        <dl className="grid grid-cols-3 gap-3 self-start text-sm lg:grid-cols-1">
-          <div className="rounded-md border p-3">
-            <dt className="text-muted-foreground">Items</dt>
-            <dd className="text-2xl font-semibold">{registryItems.length}</dd>
-          </div>
-          <div className="rounded-md border p-3">
-            <dt className="text-muted-foreground">Style</dt>
-            <dd className="text-2xl font-semibold">base</dd>
-          </div>
-          <div className="rounded-md border p-3">
-            <dt className="text-muted-foreground">Output</dt>
-            <dd className="text-2xl font-semibold">JSON</dd>
-          </div>
-        </dl>
+
+        <HomeMotionShowcase />
       </section>
 
-      <section className="flex flex-col gap-4">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Featured components
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Registry entries available through `/r/:name.json`.
-            </p>
-          </div>
-          <Link
-            href="/components"
-            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            View all
-          </Link>
+      <section className="grid gap-6 border-t pt-10 lg:grid-cols-[220px_1fr]">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Start with motion
+          </h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Three compact entries that show the registry&apos;s focus: smooth
+            layout, clear navigation, and careful text transitions.
+          </p>
         </div>
-        <div className="grid gap-4">
-          {featuredItems.length > 0 ? (
-            featuredItems.map((item) => (
-              <article
+
+        <div className="overflow-hidden rounded-lg border bg-background">
+          {featuredItems.map((item) => {
+            const badges = getRegistryItemBadges(item, 2).visible;
+
+            return (
+              <Link
                 key={item.name}
-                className="grid gap-4 rounded-md border p-4 lg:grid-cols-[280px_1fr]"
+                href={item.href}
+                className="group grid gap-3 border-b p-4 transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-center"
               >
-                <div className="flex flex-col justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium">{item.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Component
+                      aria-hidden="true"
+                      className="size-4 shrink-0 text-muted-foreground"
+                    />
+                    <h3 className="truncate text-sm font-semibold">
+                      {item.title}
+                    </h3>
+                  </div>
+                  {item.description ? (
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                       {item.description}
                     </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Link
-                      href={item.href}
-                      className="inline-flex h-8 items-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                  ) : null}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 md:justify-end">
+                  {badges.map((badge) => (
+                    <span
+                      key={badge}
+                      className="inline-flex h-6 items-center gap-1 rounded-md border bg-muted/40 px-2 text-xs font-medium text-muted-foreground"
                     >
-                      Preview
-                    </Link>
-                  </div>
+                      <Check aria-hidden="true" className="size-3" />
+                      {badge}
+                    </span>
+                  ))}
                 </div>
-                <div className="flex min-h-[260px] items-center justify-center rounded-md bg-muted/40 p-6">
-                  <RegistryPreview name={item.name} />
-                </div>
-              </article>
-            ))
-          ) : (
-            <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-              No registry components yet.
-            </div>
-          )}
+
+                <span className="inline-flex h-8 items-center justify-start gap-1.5 text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground md:justify-end">
+                  Open
+                  <ArrowRight aria-hidden="true" className="size-4" />
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
-    </div>
+    </main>
   );
 }

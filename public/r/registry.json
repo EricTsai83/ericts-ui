@@ -65,6 +65,25 @@
       ]
     },
     {
+      "name": "floating-select",
+      "type": "registry:ui",
+      "title": "Floating Select",
+      "description": "A single-button floating select that expands into an animated option list.",
+      "categories": ["select", "button"],
+      "meta": {
+        "tags": ["floating", "select", "single-trigger", "listbox"],
+        "effects": ["shared-layout", "stagger", "fade"]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/floating-select.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/floating-select.tsx"
+        }
+      ]
+    },
+    {
       "name": "checkbox-animation",
       "type": "registry:ui",
       "title": "Checkbox Animation",

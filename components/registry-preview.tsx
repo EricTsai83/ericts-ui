@@ -34,6 +34,7 @@ import {
 } from "@/registry/base/ui/adaptive-drawer";
 import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
 import { StatusButton } from "@/registry/base/ui/status-button";
+import { FloatingSelect } from "@/registry/base/ui/floating-select";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
   ContextCursor,
@@ -60,6 +61,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "copy-button": () => <CopyButtonPreview />,
   "checkbox-animation": () => <CheckboxAnimationPreview />,
   "status-button": () => <StatusButtonPreview />,
+  "floating-select": () => <FloatingSelectPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "navigation-menu": () => <NavigationMenuPreview />,
   "text-morph": () => <TextMorphPreview />,
@@ -893,10 +895,41 @@ function StatusButtonPreview() {
   );
 }
 
+const floatingSelectOptions = [
+  {
+    id: "command",
+    label: "Command",
+  },
+  {
+    id: "design",
+    label: "Design",
+  },
+  {
+    id: "review",
+    label: "Review",
+  },
+];
+
+function FloatingSelectPreview() {
+  const [value, setValue] = useState(floatingSelectOptions[0].id);
+
+  return (
+    <div className="flex min-h-48 w-full items-center justify-center">
+      <FloatingSelect
+        placement="inline"
+        label="Mode"
+        value={value}
+        onChange={setValue}
+        options={floatingSelectOptions}
+      />
+    </div>
+  );
+}
+
 function FeedbackPopoverPreview() {
   return (
     <div className="flex min-h-72 w-full items-center justify-center">
-      <FeedbackPopover />
+      <FeedbackPopover className="w-full justify-center [--feedback-popover-width:min(22rem,100%)]" />
     </div>
   );
 }
