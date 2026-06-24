@@ -25,11 +25,9 @@ type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
 
 const minPanelDuration = 0.15;
 const maxPanelDuration = 0.27;
-const drawerExitResetDelay = 220;
+const drawerExitResetDelay = 550;
 const heightChangeDurationDivisor = 500;
 const heightChangeThreshold = 0.5;
-const drawerTransitionClass =
-  "![transition:transform_0.2s_cubic-bezier(0.165,0.84,0.44,1)]";
 
 export type AdaptiveDrawerControls = {
   activePanel: string;
@@ -247,80 +245,92 @@ export function AdaptiveDrawer({
         {trigger ?? <Button type="button">{triggerLabel}</Button>}
       </DrawerTrigger>
       <DrawerContent
+        onPointerDown={(event) => {
+          if (event.target === event.currentTarget) {
+            setOpen(false);
+          }
+        }}
         className={cn(
-          "inset-x-4 bottom-4 mx-auto max-w-sm overflow-hidden rounded-2xl border bg-background p-0",
-          "data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:border",
-          drawerTransitionClass,
-          drawerClassName,
+          "inset-x-0 bottom-0 mx-auto max-w-none overflow-visible border-0 bg-transparent p-4 shadow-none after:hidden [&>div:first-child]:hidden",
+          "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none data-[vaul-drawer-direction=bottom]:rounded-none data-[vaul-drawer-direction=bottom]:border-0",
         )}
       >
-        <MotionConfig reducedMotion="user">
-          <motion.div
-            initial={false}
-            animate={
-              shouldReduceMotion ? { height: "auto" } : { height: height ?? 0 }
-            }
-            transition={resolvedHeightTransition}
-            className="overflow-hidden"
-          >
-            <div
-              ref={setContentElement}
-              className={cn("px-6 pb-6 pt-5", contentClassName)}
+        <div
+          className={cn(
+            "mx-auto max-w-sm overflow-hidden rounded-2xl border bg-background",
+            drawerClassName,
+          )}
+        >
+          <MotionConfig reducedMotion="user">
+            <motion.div
+              initial={false}
+              animate={
+                shouldReduceMotion
+                  ? { height: "auto" }
+                  : { height: height ?? 0 }
+              }
+              transition={resolvedHeightTransition}
+              className="overflow-hidden"
             >
-              <div className="grid grid-cols-[1fr_2rem] items-start gap-4">
-                <div className="min-w-0">
-                  <DrawerTitle className="text-base font-semibold">
-                    {title}
-                  </DrawerTitle>
-                  {description ? (
-                    <DrawerDescription className="mt-1">
-                      {description}
-                    </DrawerDescription>
-                  ) : null}
+              <div
+                ref={setContentElement}
+                className={cn("px-6 pb-6 pt-5", contentClassName)}
+              >
+                <div className="grid grid-cols-[1fr_2rem] items-start gap-4">
+                  <div className="min-w-0">
+                    <DrawerTitle className="text-base font-semibold">
+                      {title}
+                    </DrawerTitle>
+                    {description ? (
+                      <DrawerDescription className="mt-1">
+                        {description}
+                      </DrawerDescription>
+                    ) : null}
+                  </div>
+                  <DrawerClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={closeLabel}
+                      className="rounded-full"
+                    >
+                      <X aria-hidden />
+                    </Button>
+                  </DrawerClose>
                 </div>
-                <DrawerClose asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={closeLabel}
-                    className="rounded-full"
-                  >
-                    <X aria-hidden />
-                  </Button>
-                </DrawerClose>
-              </div>
 
-              <div className="relative mt-6 overflow-hidden">
-                <AnimatePresence initial={false} mode="popLayout">
-                  <motion.div
-                    key={activePanel.id}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={resolvedPanelTransition}
-                  >
-                    <div>
-                      <h3 className="text-lg font-semibold tracking-tight">
-                        {activePanel.title}
-                      </h3>
-                      {activePanel.description ? (
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          {activePanel.description}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="mt-5">
-                      {typeof activePanel.content === "function"
-                        ? activePanel.content(controls)
-                        : activePanel.content}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+                <div className="relative mt-6 overflow-hidden">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.div
+                      key={activePanel.id}
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      transition={resolvedPanelTransition}
+                    >
+                      <div>
+                        <h3 className="text-lg font-semibold tracking-tight">
+                          {activePanel.title}
+                        </h3>
+                        {activePanel.description ? (
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            {activePanel.description}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="mt-5">
+                        {typeof activePanel.content === "function"
+                          ? activePanel.content(controls)
+                          : activePanel.content}
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </MotionConfig>
+            </motion.div>
+          </MotionConfig>
+        </div>
       </DrawerContent>
     </Drawer>
   );
