@@ -9,7 +9,7 @@
   ],
   "registryDependencies": [
     "button",
-    "use-element-height"
+    "https://ui.ericts.com/r/use-element-height.json"
   ],
   "files": [
     {

@@ -114,6 +114,11 @@ function NavigationMenuPositioner({
   sideOffset = 8,
   align = "center",
   collisionPadding = 16,
+  collisionAvoidance = {
+    side: "none",
+    align: "shift",
+    fallbackAxisSide: "none",
+  },
   children,
   ...props
 }: NavigationMenuPrimitive.Positioner.Props) {
@@ -124,6 +129,7 @@ function NavigationMenuPositioner({
         sideOffset={sideOffset}
         align={align}
         collisionPadding={collisionPadding}
+        collisionAvoidance={collisionAvoidance}
         data-slot="navigation-menu-positioner"
         className={cn(
           "isolate z-50 h-[var(--positioner-height)] w-[var(--positioner-width)] max-w-[var(--available-width)] transition-[top,left,right,bottom] duration-200 ease-out data-[instant]:transition-none motion-reduce:transition-none",
@@ -147,7 +153,7 @@ function NavigationMenuPopup({
     <NavigationMenuPrimitive.Popup
       data-slot="navigation-menu-popup"
       className={cn(
-        "relative h-[var(--popup-height)] w-[var(--popup-width)] max-w-[calc(100vw-2rem)] origin-[var(--transform-origin)] overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-sm outline-none transition-[opacity,transform,width,height] duration-200 ease-out data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[ending-style]:scale-100 motion-reduce:data-[ending-style]:opacity-100 motion-reduce:data-[starting-style]:scale-100 motion-reduce:data-[starting-style]:opacity-100",
+        "relative h-[var(--popup-height)] w-[var(--popup-width)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-sm outline-none transition-[opacity,transform,width,height] duration-200 ease-out data-[side=bottom]:origin-top data-[side=left]:origin-right data-[side=right]:origin-left data-[side=top]:origin-bottom data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[ending-style]:scale-100 motion-reduce:data-[ending-style]:opacity-100 motion-reduce:data-[starting-style]:scale-100 motion-reduce:data-[starting-style]:opacity-100",
         className,
       )}
       {...props}

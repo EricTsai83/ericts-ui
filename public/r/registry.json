@@ -216,7 +216,10 @@
         "tags": ["wizard", "stepper", "onboarding", "form-flow"],
         "effects": ["slide", "height-animation"]
       },
-      "registryDependencies": ["button", "use-element-height"],
+      "registryDependencies": [
+        "button",
+        "https://ui.ericts.com/r/use-element-height.json"
+      ],
       "dependencies": ["motion"],
       "files": [
         {
