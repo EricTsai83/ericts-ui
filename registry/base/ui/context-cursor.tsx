@@ -82,30 +82,33 @@ const defaultSpring: SpringOptions = {
 
 const opacitySpring: SpringOptions = {
   mass: 0.1,
-  stiffness: 260,
-  damping: 28,
-};
-
-const scaleSpring: SpringOptions = {
-  mass: 0.1,
-  stiffness: 300,
+  stiffness: 480,
   damping: 24,
 };
 
+const scaleSpring: SpringOptions = {
+  mass: 0.12,
+  stiffness: 420,
+  damping: 22,
+};
+
 const nativeCursorStyleId = "context-cursor-native-hidden";
-const defaultEdgeFadeDistance = 56;
-const defaultCursorHideDelay = 120;
+const defaultEdgeFadeDistance = 40;
+const defaultCursorHideDelay = 140;
 const defaultHiddenOpacity = 0;
 const defaultVisibleOpacity = 1;
-const defaultHiddenScale = 0.96;
+const defaultHiddenScale = 0.4;
 const defaultVisibleScale = 1;
+// Once the edge-fade has shrunk the badge below this much progress it is
+// effectively gone, so the native cursor is handed back at that exact point.
+const nativeHandoffProgress = 0.08;
 let nativeCursorLockCount = 0;
 
 const variantClassNames: Record<ContextCursorVariant, string> = {
-  default: "border-border bg-background text-foreground shadow-sm",
-  open: "border-transparent bg-primary text-primary-foreground shadow-sm",
-  drag: "border-border bg-muted text-foreground shadow-sm",
-  preview: "border-border bg-background text-foreground shadow-sm",
+  default: "border-border bg-background text-foreground",
+  open: "border-transparent bg-primary text-primary-foreground",
+  drag: "border-border bg-muted text-foreground",
+  preview: "border-border bg-background text-foreground",
 };
 
 export type ContextCursorProps = Omit<
@@ -211,35 +214,53 @@ export function ContextCursor({
     [animation, edgeFadeDistance],
   );
 
+  // Drives the badge by how close the pointer is to the target edge: it shrinks
+  // and fades as the edge nears, and the native cursor is handed back at the
+  // exact moment the badge vanishes — so the two never overlap and there is no
+  // gap where neither cursor is visible.
+  //
+  // Scale and opacity are written with `jump` (not `set`), so the badge size is
+  // an exact function of the pointer's distance to the border with zero spring
+  // lag. A laggy spring can't keep up with a fast pointer, which is what made
+  // the badge finish shrinking *outside* the target; jumping ties the shrink to
+  // position, so it always completes inside the box no matter how fast the move.
   const updateCursorPresence = React.useCallback(
-    (point: CursorPoint, currentBounds: DOMRectReadOnly) => {
+    (point: CursorPoint, targetBounds: DOMRectReadOnly) => {
       const currentAnimation = getAnimation();
       const distanceToEdge = Math.min(
-        point.x - currentBounds.left,
-        currentBounds.right - point.x,
-        point.y - currentBounds.top,
-        currentBounds.bottom - point.y,
+        point.x - targetBounds.left,
+        targetBounds.right - point.x,
+        point.y - targetBounds.top,
+        targetBounds.bottom - point.y,
       );
       const fadeDistance = Math.max(1, currentAnimation.edgeFadeDistance);
       const edgeProgress = clamp(distanceToEdge / fadeDistance, 0, 1);
       const easedProgress = currentAnimation.edgeFade
         ? clamp(currentAnimation.edgeFadeEasing(edgeProgress), 0, 1)
         : 1;
-      const nextOpacity = interpolate(
-        currentAnimation.hiddenOpacity,
-        currentAnimation.visibleOpacity,
-        easedProgress,
+
+      opacity.jump(
+        interpolate(
+          currentAnimation.hiddenOpacity,
+          currentAnimation.visibleOpacity,
+          easedProgress,
+        ),
       );
-      const nextScale = interpolate(
-        currentAnimation.hiddenScale,
-        currentAnimation.visibleScale,
-        easedProgress,
+      scale.jump(
+        interpolate(
+          currentAnimation.hiddenScale,
+          currentAnimation.visibleScale,
+          easedProgress,
+        ),
       );
 
-      opacity.set(nextOpacity);
-      scale.set(nextScale);
+      if (easedProgress <= nativeHandoffProgress) {
+        showNativeCursor();
+      } else {
+        hideNativeCursor();
+      }
     },
-    [getAnimation, opacity, scale],
+    [getAnimation, hideNativeCursor, opacity, scale, showNativeCursor],
   );
 
   const getWrapperBounds = React.useCallback(() => {
@@ -272,7 +293,6 @@ export function ContextCursor({
       activeTargetBounds.current = targetBounds ?? null;
       activeTargetAnimation.current = targetAnimation ?? null;
       setCursor(nextCursor);
-      hideNativeCursor();
 
       const currentWrapperBounds = getWrapperBounds();
       if (point && currentWrapperBounds) {
@@ -281,10 +301,12 @@ export function ContextCursor({
       }
 
       if (point && targetBounds) {
+        // Respect edge proximity even on enter, so entering right at the border
+        // doesn't snap the badge fully in.
         updateCursorPresence(point, targetBounds);
       } else {
+        hideNativeCursor();
         const currentAnimation = getAnimation(targetAnimation ?? null);
-
         opacity.set(currentAnimation.visibleOpacity);
         scale.set(currentAnimation.visibleScale);
       }
@@ -319,17 +341,21 @@ export function ContextCursor({
       }
 
       const currentBounds = bounds.current;
-      const exitX =
-        point && currentBounds ? point.x - currentBounds.left : rawX.get();
-      const exitY =
-        point && currentBounds ? point.y - currentBounds.top : rawY.get();
+      if (point && currentBounds) {
+        rawX.set(Math.round(point.x - currentBounds.left));
+        rawY.set(Math.round(point.y - currentBounds.top));
+      }
 
-      rawX.set(Math.round(exitX));
-      rawY.set(Math.round(exitY));
-      opacity.set(currentAnimation.hiddenOpacity);
-      scale.set(currentAnimation.hiddenScale);
+      // Leaving the target snaps the badge away (no spring tail) and hands the
+      // native cursor back on the same frame — so crossing the border reads as
+      // an instant switch back to the normal cursor, never a badge shrinking
+      // outside the box on a fast exit that skipped the edge-fade band.
+      opacity.jump(currentAnimation.hiddenOpacity);
+      scale.jump(currentAnimation.hiddenScale);
       showNativeCursor();
 
+      // The badge is already invisible; this only clears the React state once
+      // we're sure the pointer hasn't re-entered another target in the meantime.
       hideTimer.current = window.setTimeout(() => {
         if (targetIdAtLeave && activeTargetId.current !== targetIdAtLeave) {
           return;
@@ -337,20 +363,10 @@ export function ContextCursor({
 
         activeTargetId.current = null;
         setCursor(null);
-        showNativeCursor();
-        opacity.set(currentAnimation.hiddenOpacity);
-        scale.set(currentAnimation.hiddenScale);
         hideTimer.current = null;
       }, currentAnimation.hideDelay);
     },
-    [
-      getAnimation,
-      opacity,
-      rawX,
-      rawY,
-      scale,
-      showNativeCursor,
-    ],
+    [getAnimation, opacity, rawX, rawY, scale, showNativeCursor],
   );
 
   React.useEffect(() => {
@@ -383,13 +399,7 @@ export function ContextCursor({
       setCursor(null);
       hideTimer.current = null;
     }, 0);
-  }, [
-    getAnimation,
-    isDisabled,
-    opacity,
-    scale,
-    showNativeCursor,
-  ]);
+  }, [getAnimation, isDisabled, opacity, scale, showNativeCursor]);
 
   const updateBounds = React.useCallback((element: HTMLDivElement) => {
     bounds.current = element.getBoundingClientRect();
@@ -415,7 +425,6 @@ export function ContextCursor({
       rawY.set(Math.round(event.clientY - currentBounds.top));
 
       const currentTargetBounds = activeTargetBounds.current;
-
       if (currentTargetBounds) {
         updateCursorPresence(
           { x: event.clientX, y: event.clientY },
@@ -521,21 +530,30 @@ function ContextCursorIndicator({
         scale,
       }}
       className={cn(
-        "pointer-events-none absolute left-0 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium leading-5 will-change-transform",
-        variantClassNames[variant],
+        // Anchored to the pointer coordinate; the badge inside is centered on it
+        // so it reads as the cursor itself, and the scale pops from that point.
+        "pointer-events-none absolute left-0 top-0 z-50 origin-center will-change-transform",
         !cursor && "invisible",
         cursorClassName,
       )}
     >
-      {cursor?.icon ? (
-        <span
-          data-slot="context-cursor-icon"
-          className="flex size-3.5 items-center justify-center"
-        >
-          {cursor.icon}
-        </span>
-      ) : null}
-      {cursor?.label}
+      <span
+        data-slot="context-cursor-label"
+        className={cn(
+          "inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium leading-5 shadow-sm",
+          variantClassNames[variant],
+        )}
+      >
+        {cursor?.icon ? (
+          <span
+            data-slot="context-cursor-icon"
+            className="flex size-3.5 items-center justify-center"
+          >
+            {cursor.icon}
+          </span>
+        ) : null}
+        {cursor?.label}
+      </span>
     </motion.div>
   );
 }
@@ -646,10 +664,7 @@ export function ContextCursorTarget({
   return (
     <div
       data-slot="context-cursor-target"
-      className={cn(
-        !context?.isDisabled && "cursor-none [&_*]:cursor-none",
-        className,
-      )}
+      className={className}
       onPointerEnter={(event) => {
         if (event.pointerType === "mouse") {
           context?.showCursor(
