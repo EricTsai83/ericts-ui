@@ -1,13 +1,11 @@
-import {
-  ArrowRight,
-  Code2,
-  Component,
-  Layers3,
-  PackageCheck,
-} from "lucide-react";
+import { ArrowRight, Code2 } from "lucide-react";
 import Link from "next/link";
 import type { SVGProps } from "react";
 
+import {
+  ComponentPreviewBrowser,
+  type ComponentPreviewBrowserItem,
+} from "@/components/component-preview-browser";
 import { LogoIcon } from "@/components/icons";
 import { RegistryKindIcon } from "@/components/registry-kind-icon";
 import { buttonVariants } from "@/components/ui/button";
@@ -58,27 +56,6 @@ const builtOn = [
   },
 ] as const;
 
-const registryNotes = [
-  {
-    icon: Component,
-    title: "Installable source",
-    description:
-      "Every entry lands in your codebase as editable component or hook source.",
-  },
-  {
-    icon: Layers3,
-    title: "Motion primitives",
-    description:
-      "Layout, state, text, and navigation transitions with restrained defaults.",
-  },
-  {
-    icon: PackageCheck,
-    title: "Registry workflow",
-    description:
-      "Use the same shadcn add flow for previews, docs, and JSON endpoints.",
-  },
-] as const;
-
 export default function Home() {
   const installCommand = `npx shadcn@latest add ${getRegistryItemUrl(
     "copy-button",
@@ -89,15 +66,29 @@ export default function Home() {
   const componentCount = getRegistryItemsByCategory("ui").length;
   const hookCount = getRegistryItemsByCategory("hooks").length;
   const blockCount = getRegistryItemsByCategory("blocks").length;
+  const previewItems: ComponentPreviewBrowserItem[] = featuredItems
+    .filter((item) => item.category === "ui")
+    .slice(0, 6)
+    .map((item) => {
+      const registryKind = getRegistryKindFromCategory(item.category);
+
+      return {
+        name: item.name,
+        title: item.title ?? item.name,
+        description: item.description,
+        href: item.href,
+        installUrl: getRegistryItemUrl(item.name),
+        kindLabel: registryKind
+          ? getRegistryKindLabel(registryKind)
+          : item.category,
+        badges: getRegistryItemBadges(item, 2).visible,
+      };
+    });
 
   return (
     <main className="isolate min-h-[calc(100vh-3.5rem)] bg-background text-foreground">
       <section className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(340px,42vw)_minmax(0,1fr)] lg:items-start">
         <div className="relative flex min-h-[560px] flex-col justify-between overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:72px_72px] opacity-45 [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] dark:opacity-20"
-          />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-muted/40 to-transparent"
@@ -133,11 +124,9 @@ export default function Home() {
 
           <div className="relative z-10 my-12 flex flex-1 items-center justify-center lg:my-0">
             <div className="relative aspect-square w-full max-w-[360px] lg:w-[min(100%,360px,38vh)]">
-              <div className="absolute inset-5 border border-border/60" />
-              <div className="absolute inset-12 border border-border/40" />
               <LogoIcon
                 aria-hidden="true"
-                className="absolute inset-0 size-full -rotate-6 text-foreground/20"
+                className="absolute inset-0 size-full -rotate-6 text-foreground/[0.045] dark:text-foreground/[0.03]"
               />
               <LogoIcon
                 aria-hidden="true"
@@ -250,37 +239,12 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="grid gap-5 border-t pt-8 lg:grid-cols-[220px_1fr]">
-              <div className="flex flex-col gap-2">
-                <h2 className="text-xl font-semibold tracking-tight">
-                  Framework
-                </h2>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  Designed for teams that want motion without a new design
-                  system.
-                </p>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-3">
-                {registryNotes.map((note) => (
-                  <div
-                    key={note.title}
-                    className="flex min-w-0 flex-col gap-3 rounded-lg border bg-card p-4"
-                  >
-                    <note.icon
-                      aria-hidden="true"
-                      className="size-4 text-foreground"
-                    />
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-sm font-medium">{note.title}</h3>
-                      <p className="text-sm leading-6 text-muted-foreground">
-                        {note.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <ComponentPreviewBrowser
+              items={previewItems}
+              componentCount={componentCount}
+              hookCount={hookCount}
+              blockCount={blockCount}
+            />
           </div>
         </div>
       </section>
