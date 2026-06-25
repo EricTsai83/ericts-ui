@@ -22,7 +22,7 @@ import {
 import { getRegistryItemUrl } from "@/lib/site-url";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
-const featuredNames = [
+const homeRegistryItemNames = [
   "smooth-height",
   "copy-button",
   "status-button",
@@ -33,6 +33,17 @@ const featuredNames = [
   "multi-step",
   "adaptive-drawer",
   "use-reduced-motion",
+] as const;
+
+// Keep the preview browser curated independently from the registry highlight grid.
+// These should be UI components with strong live demos, in the order they appear.
+const componentPreviewNames = [
+  "highlight-tabs",
+  "smooth-height",
+  "status-button",
+  "multi-step",
+  "adaptive-drawer",
+  "text-morph",
 ] as const;
 
 const builtOn = [
@@ -62,15 +73,16 @@ export default function Home() {
   const installCommand = `npx shadcn@latest add ${getRegistryItemUrl(
     "copy-button",
   )}`;
-  const featuredItems = featuredNames
+  const homeRegistryItems = homeRegistryItemNames
     .map((name) => getRegistryItem(name))
     .filter((item): item is RegistryItem => item !== undefined);
   const componentCount = getRegistryItemsByCategory("ui").length;
   const hookCount = getRegistryItemsByCategory("hooks").length;
   const blockCount = getRegistryItemsByCategory("blocks").length;
-  const previewItems: ComponentPreviewBrowserItem[] = featuredItems
+  const previewItems: ComponentPreviewBrowserItem[] = componentPreviewNames
+    .map((name) => getRegistryItem(name))
+    .filter((item): item is RegistryItem => item !== undefined)
     .filter((item) => item.category === "ui")
-    .slice(0, 6)
     .map((item) => ({
       name: item.name,
       title: item.title ?? item.name,
@@ -227,13 +239,13 @@ export default function Home() {
             <section className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <h2 className="shrink-0 text-xl font-semibold tracking-tight">
-                  Featured registry
+                  Registry highlights
                 </h2>
                 <div className="h-px flex-1 bg-border" />
               </div>
 
               <div className="grid overflow-hidden rounded-lg border sm:grid-cols-2 xl:grid-cols-4">
-                {featuredItems.map((item) => (
+                {homeRegistryItems.map((item) => (
                   <FeaturedItem key={item.name} item={item} />
                 ))}
               </div>

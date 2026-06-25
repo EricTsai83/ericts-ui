@@ -25,12 +25,7 @@ type ComponentPreviewBrowserProps = {
 export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
-  const [activeName, setActiveName] = useState(
-    () =>
-      items.find((item) => item.name === "highlight-tabs")?.name ??
-      items[0]?.name ??
-      "",
-  );
+  const [activeName, setActiveName] = useState(() => items[0]?.name ?? "");
   const activeItem = useMemo(
     () => items.find((item) => item.name === activeName) ?? items[0],
     [activeName, items],
