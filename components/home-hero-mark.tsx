@@ -6,31 +6,47 @@ import { motion, useReducedMotion } from "motion/react";
 import { LogoIcon } from "@/components/icons";
 
 const heartRestState = {
-  rotate: 12,
-  scale: 1,
-  x: "5%",
-  y: "-3%",
+  rotate: 10,
+  scale: 1.06,
+  x: "8%",
+  y: "-6%",
 };
 
 const heartHoverState = {
   rotate: 0,
-  scale: 1.125,
+  scale: 0.86,
   x: "0%",
   y: "0%",
 };
 
-const shadowRestState = {
-  opacity: 0.92,
-  rotate: -10,
-  scale: 1,
-  x: "-20%",
-  y: "-23%",
+const projectedShadowRestState = {
+  opacity: 1,
+  rotate: -8,
+  scale: 1.08,
+  x: "-14%",
+  y: "-18%",
 };
 
-const shadowHoverState = {
-  opacity: 0.9,
+const projectedShadowHoverState = {
+  opacity: 0,
+  rotate: -3,
+  scale: 0.94,
+  x: "-4%",
+  y: "-5%",
+};
+
+const contactShadowRestState = {
+  opacity: 0.16,
+  rotate: -2,
+  scale: 0.92,
+  x: "-4%",
+  y: "-5%",
+};
+
+const contactShadowHoverState = {
+  opacity: 0.72,
   rotate: 0,
-  scale: 0.72,
+  scale: 0.86,
   x: "0%",
   y: "0%",
 };
@@ -48,13 +64,12 @@ const heartExitTransition = {
 } as const;
 const shadowEnterTransition = {
   type: "spring",
-  duration: 0.42,
+  duration: 0.38,
   bounce: 0,
-  delay: 0.025,
 } as const;
 const shadowExitTransition = {
   type: "spring",
-  duration: 0.28,
+  duration: 0.3,
   bounce: 0,
 } as const;
 
@@ -64,12 +79,18 @@ const heartHitAreaPath =
 export function HomeHeroMark() {
   const shouldReduceMotion = useReducedMotion();
   const [isHovering, setIsHovering] = React.useState(false);
-  const isAligned = !shouldReduceMotion && isHovering;
+  const isCompressed = !shouldReduceMotion && isHovering;
 
   function handleHitAreaPointerEnter(
     event: React.PointerEvent<SVGPathElement>,
   ) {
     if (event.pointerType !== "touch") {
+      setIsHovering(true);
+    }
+  }
+
+  function handleHitAreaMouseEnter() {
+    if (window.matchMedia("(hover: hover)").matches) {
       setIsHovering(true);
     }
   }
@@ -81,15 +102,19 @@ export function HomeHeroMark() {
     >
       <motion.div
         initial={false}
-        animate={isAligned ? shadowHoverState : shadowRestState}
+        animate={
+          isCompressed
+            ? projectedShadowHoverState
+            : projectedShadowRestState
+        }
         transition={
           shouldReduceMotion
             ? instantTransition
-            : isAligned
+            : isCompressed
               ? shadowEnterTransition
               : shadowExitTransition
         }
-        className="pointer-events-none absolute inset-0 size-full text-foreground/[0.085] dark:text-muted/75"
+        className="pointer-events-none absolute inset-[14%] size-[72%] blur-[6px] text-foreground/[0.075] dark:text-muted/50"
         style={{ transformOrigin: "center" }}
       >
         <LogoIcon className="size-full" />
@@ -97,36 +122,61 @@ export function HomeHeroMark() {
 
       <motion.div
         initial={false}
-        animate={isAligned ? heartHoverState : heartRestState}
+        animate={
+          isCompressed ? contactShadowHoverState : contactShadowRestState
+        }
         transition={
           shouldReduceMotion
             ? instantTransition
-            : isAligned
+            : isCompressed
+              ? shadowEnterTransition
+              : shadowExitTransition
+        }
+        className="pointer-events-none absolute inset-[14%] size-[72%] text-foreground/[0.16] dark:text-muted/55"
+        style={{ transformOrigin: "center" }}
+      >
+        <LogoIcon className="size-full" />
+      </motion.div>
+
+      <motion.div
+        initial={false}
+        animate={isCompressed ? heartHoverState : heartRestState}
+        transition={
+          shouldReduceMotion
+            ? instantTransition
+            : isCompressed
               ? heartEnterTransition
               : heartExitTransition
         }
-        className="pointer-events-none absolute inset-[18%] size-[64%] text-foreground/88"
+        className="pointer-events-none absolute inset-[14%] size-[72%] text-foreground/88"
         style={{ transformOrigin: "center" }}
       >
         <LogoIcon className="pointer-events-none size-full" />
-        <svg
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 size-full"
-          viewBox="0 0 256 256"
-        >
-          <path
-            d={heartHitAreaPath}
-            fill="transparent"
-            stroke="transparent"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="18"
-            pointerEvents="all"
-            onPointerEnter={handleHitAreaPointerEnter}
-            onPointerLeave={() => setIsHovering(false)}
-          />
-        </svg>
       </motion.div>
+
+      <svg
+        aria-hidden="true"
+        className="pointer-events-auto absolute inset-[6%] size-[88%]"
+        viewBox="0 0 256 256"
+      >
+        <path
+          d={heartHitAreaPath}
+          fill="transparent"
+          stroke="transparent"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="28"
+          pointerEvents="all"
+          onPointerEnter={handleHitAreaPointerEnter}
+          onPointerOver={handleHitAreaPointerEnter}
+          onPointerLeave={() => setIsHovering(false)}
+          onPointerOut={() => setIsHovering(false)}
+          onMouseEnter={handleHitAreaMouseEnter}
+          onMouseOver={handleHitAreaMouseEnter}
+          onMouseLeave={() => setIsHovering(false)}
+          onMouseOut={() => setIsHovering(false)}
+        />
+      </svg>
     </div>
   );
 }
