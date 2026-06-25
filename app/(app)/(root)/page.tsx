@@ -4,7 +4,6 @@ import {
   Component,
   Layers3,
   PackageCheck,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import type { SVGProps } from "react";
@@ -105,11 +104,6 @@ export default function Home() {
           />
 
           <div className="relative z-10 flex max-w-xl flex-col gap-7">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border bg-muted/50 px-3 py-1 text-sm font-medium text-muted-foreground">
-              <Sparkles aria-hidden="true" className="size-4 text-foreground" />
-              ericts/ui registry
-            </div>
-
             <div className="flex flex-col gap-5">
               <h1 className="max-w-[12ch] text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
                 Motion primitives for shadcn teams.
