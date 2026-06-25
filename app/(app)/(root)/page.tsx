@@ -6,7 +6,7 @@ import {
   ComponentPreviewBrowser,
   type ComponentPreviewBrowserItem,
 } from "@/components/component-preview-browser";
-import { LogoIcon } from "@/components/icons";
+import { HomeHeroMark } from "@/components/home-hero-mark";
 import { RegistryKindIcon } from "@/components/registry-kind-icon";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -123,16 +123,7 @@ export default function Home() {
           </div>
 
           <div className="relative z-10 my-12 flex flex-1 items-center justify-center lg:my-0">
-            <div className="relative aspect-square w-full max-w-[360px] lg:w-[min(100%,360px,38vh)]">
-              <LogoIcon
-                aria-hidden="true"
-                className="absolute inset-0 size-full -rotate-6 text-foreground/[0.045] dark:text-foreground/[0.03]"
-              />
-              <LogoIcon
-                aria-hidden="true"
-                className="absolute inset-[18%] size-[64%] rotate-6 text-foreground/80"
-              />
-            </div>
+            <HomeHeroMark />
           </div>
 
           <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
@@ -239,12 +230,7 @@ export default function Home() {
               </div>
             </section>
 
-            <ComponentPreviewBrowser
-              items={previewItems}
-              componentCount={componentCount}
-              hookCount={hookCount}
-              blockCount={blockCount}
-            />
+            <ComponentPreviewBrowser items={previewItems} />
           </div>
         </div>
       </section>

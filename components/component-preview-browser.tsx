@@ -21,17 +21,9 @@ export type ComponentPreviewBrowserItem = {
 
 type ComponentPreviewBrowserProps = {
   items: ComponentPreviewBrowserItem[];
-  componentCount: number;
-  hookCount: number;
-  blockCount: number;
 };
 
-export function ComponentPreviewBrowser({
-  items,
-  componentCount,
-  hookCount,
-  blockCount,
-}: ComponentPreviewBrowserProps) {
+export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps) {
   const [activeName, setActiveName] = useState(
     () =>
       items.find((item) => item.name === "highlight-tabs")?.name ??
@@ -199,22 +191,6 @@ export function ComponentPreviewBrowser({
               );
             })}
           </div>
-
-          <div className="mt-auto flex flex-col gap-3 border-t p-4">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Browse the whole registry by type, then open any item for the full
-              demo, source notes, and install command.
-            </p>
-            <div className="grid gap-2">
-              <CatalogLink
-                href="/components"
-                label="Components"
-                value={componentCount}
-              />
-              <CatalogLink href="/hooks" label="Hooks" value={hookCount} />
-              <CatalogLink href="/blocks" label="Blocks" value={blockCount} />
-            </div>
-          </div>
         </aside>
       </div>
 
@@ -229,25 +205,5 @@ export function ComponentPreviewBrowser({
         </Link>
       </div>
     </section>
-  );
-}
-
-function CatalogLink({
-  href,
-  label,
-  value,
-}: {
-  href: string;
-  label: string;
-  value: number;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2 text-sm transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <span>{label}</span>
-      <span className="font-mono text-xs text-muted-foreground">{value}</span>
-    </Link>
   );
 }
