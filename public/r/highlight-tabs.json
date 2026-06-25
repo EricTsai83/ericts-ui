@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "highlight-tabs",
-  "type": "registry:ui",
   "title": "Highlight Tabs",
   "description": "A Motion-powered tab list with a shared highlight indicator and keyboard navigation.",
   "dependencies": [
@@ -29,5 +28,6 @@
   },
   "categories": [
     "navigation"
-  ]
+  ],
+  "type": "registry:ui"
 }

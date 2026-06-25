@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "use-reduced-motion",
-  "type": "registry:hook",
   "title": "useReducedMotion",
   "description": "A client-safe React hook for reading prefers-reduced-motion and reacting to preference changes.",
   "files": [
@@ -24,5 +23,6 @@
   },
   "categories": [
     "accessibility"
-  ]
+  ],
+  "type": "registry:hook"
 }

@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "navigation-menu",
-  "type": "registry:ui",
   "title": "Navigation Menu",
   "description": "A Base UI navigation menu with centered popups, animated viewport sizing, and shadcn-style composition.",
   "dependencies": [
@@ -31,5 +30,6 @@
   },
   "categories": [
     "navigation"
-  ]
+  ],
+  "type": "registry:ui"
 }

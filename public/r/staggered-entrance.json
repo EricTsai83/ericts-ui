@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "staggered-entrance",
-  "type": "registry:ui",
   "title": "Staggered List",
   "description": "A CSS-powered staggered entrance primitive for lists, cards, steps, rows, and search results.",
   "files": [
@@ -34,5 +33,6 @@
   },
   "categories": [
     "list"
-  ]
+  ],
+  "type": "registry:ui"
 }

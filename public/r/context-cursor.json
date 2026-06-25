@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "context-cursor",
-  "type": "registry:ui",
   "title": "Context Cursor",
   "description": "A scoped custom cursor for pointer-rich surfaces where each target can register its own label, icon, and interaction intent.",
   "dependencies": [
@@ -30,5 +29,6 @@
   },
   "categories": [
     "cursor"
-  ]
+  ],
+  "type": "registry:ui"
 }

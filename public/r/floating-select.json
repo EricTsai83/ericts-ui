@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "floating-select",
-  "type": "registry:ui",
   "title": "Floating Select",
   "description": "A single-button floating select that expands into an animated option list.",
   "dependencies": [
@@ -31,5 +30,6 @@
   "categories": [
     "select",
     "button"
-  ]
+  ],
+  "type": "registry:ui"
 }
