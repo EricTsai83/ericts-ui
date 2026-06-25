@@ -11,14 +11,13 @@ import type { SearchLink, SharedProps } from "fumadocs-ui/contexts/search";
 import { useRouter } from "next/navigation";
 import {
   AlignLeft,
-  Braces,
-  Component,
   CornerDownLeft,
   FileText,
   Hash,
   Loader2,
 } from "lucide-react";
 
+import { RegistryKindIcon } from "@/components/registry-kind-icon";
 import {
   Command,
   CommandEmpty,
@@ -38,8 +37,8 @@ import {
 import {
   getDefaultRegistrySearchItems,
   getRegistrySearchKindFromId,
-  type RegistrySearchKind,
 } from "@/lib/component-search";
+import { getRegistryKindGroupLabel } from "@/lib/registry-kind";
 import { cn } from "@/lib/utils";
 
 type SearchItemType =
@@ -202,16 +201,15 @@ function DocsSearchResultItem({
   }
 
   const registryKind = getRegistrySearchKindFromId(item.id);
-  const isRegistryItem = Boolean(registryKind);
 
   return (
     <CommandItem
       value={item.id}
-      className={resultItemClassName(isRegistryItem ? "registry" : "result")}
+      className={resultItemClassName(registryKind ? "registry" : "result")}
       onSelect={onSelect}
     >
-      {isRegistryItem ? (
-        <RegistryResultIcon kind={registryKind ?? undefined} />
+      {registryKind ? (
+        <RegistryKindIcon kind={registryKind} />
       ) : (
         <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
           {item.type === "page" ? (
@@ -224,7 +222,7 @@ function DocsSearchResultItem({
         </span>
       )}
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        {!isRegistryItem && item.breadcrumbs?.length ? (
+        {!registryKind && item.breadcrumbs?.length ? (
           <span className="flex min-w-0 items-center gap-1 truncate text-xs font-normal text-muted-foreground">
             {item.breadcrumbs.map((breadcrumb, index) => (
               <span key={index} className="min-w-0 truncate">
@@ -236,7 +234,7 @@ function DocsSearchResultItem({
         <span
           className={cn(
             "min-w-0 text-foreground [&_mark]:rounded-sm [&_mark]:bg-transparent [&_mark]:font-medium [&_mark]:text-foreground",
-            isRegistryItem
+            registryKind
               ? "truncate text-sm font-medium leading-5"
               : "line-clamp-2 text-sm font-medium leading-5",
           )}
@@ -245,24 +243,6 @@ function DocsSearchResultItem({
         </span>
       </span>
     </CommandItem>
-  );
-}
-
-function RegistryResultIcon({ kind }: { kind?: RegistrySearchKind }) {
-  if (kind === "hook") {
-    return (
-      <Braces
-        className="size-4 shrink-0 text-muted-foreground"
-        aria-hidden="true"
-      />
-    );
-  }
-
-  return (
-    <Component
-      className="size-4 shrink-0 text-muted-foreground"
-      aria-hidden="true"
-    />
   );
 }
 
@@ -316,12 +296,8 @@ function getCommandGroupHeading(item: SearchItemType, hasSearch: boolean) {
 
   const registryKind = getRegistrySearchKindFromId(item.id);
 
-  if (registryKind === "component") {
-    return "Components";
-  }
-
-  if (registryKind === "hook") {
-    return "Hooks";
+  if (registryKind) {
+    return getRegistryKindGroupLabel(registryKind);
   }
 
   return hasSearch ? "Search Results" : "Pages";

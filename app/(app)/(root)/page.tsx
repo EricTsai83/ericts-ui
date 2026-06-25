@@ -2,7 +2,6 @@ import {
   ArrowRight,
   Code2,
   Component,
-  FileJson2,
   Layers3,
   PackageCheck,
   Sparkles,
@@ -10,6 +9,7 @@ import {
 import Link from "next/link";
 
 import { LogoIcon } from "@/components/icons";
+import { RegistryKindIcon } from "@/components/registry-kind-icon";
 import { buttonVariants } from "@/components/ui/button";
 import {
   getRegistryItem,
@@ -17,6 +17,10 @@ import {
   getRegistryItemsByCategory,
   type RegistryItem,
 } from "@/lib/registry";
+import {
+  getRegistryKindFromCategory,
+  getRegistryKindLabel,
+} from "@/lib/registry-kind";
 import { getRegistryItemUrl } from "@/lib/site-url";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
@@ -63,11 +67,12 @@ export default function Home() {
     .filter((item): item is RegistryItem => item !== undefined);
   const componentCount = getRegistryItemsByCategory("ui").length;
   const hookCount = getRegistryItemsByCategory("hooks").length;
+  const blockCount = getRegistryItemsByCategory("blocks").length;
 
   return (
-    <main className="isolate min-h-[calc(100vh-3.5rem)] overflow-hidden bg-background text-foreground">
-      <section className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(340px,42vw)_minmax(0,1fr)]">
-        <div className="relative flex min-h-[560px] flex-col justify-between overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
+    <main className="isolate min-h-[calc(100vh-3.5rem)] bg-background text-foreground lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:overflow-hidden">
+      <section className="grid min-h-[calc(100vh-3.5rem)] lg:h-full lg:min-h-0 lg:grid-cols-[minmax(340px,42vw)_minmax(0,1fr)]">
+        <div className="relative flex min-h-[560px] flex-col justify-between overflow-hidden border-b px-5 py-8 sm:px-8 lg:h-full lg:min-h-0 lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:72px_72px] opacity-45 [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] dark:opacity-20"
@@ -111,7 +116,7 @@ export default function Home() {
           </div>
 
           <div className="relative z-10 my-12 flex flex-1 items-center justify-center lg:my-0">
-            <div className="relative aspect-square w-full max-w-[360px]">
+            <div className="relative aspect-square w-full max-w-[360px] lg:w-[min(100%,360px,38vh)]">
               <div className="absolute inset-5 border border-border/60" />
               <div className="absolute inset-12 border border-border/40" />
               <LogoIcon
@@ -143,7 +148,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
+        <div className="min-w-0 px-5 py-8 sm:px-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:px-10 lg:py-10 lg:[scrollbar-gutter:stable] xl:px-12">
           <div className="mx-auto flex max-w-6xl flex-col gap-10">
             <section className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
@@ -158,9 +163,13 @@ export default function Home() {
                   drawers, and reduced-motion-aware behavior.
                 </p>
                 <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-                  <Stat value={componentCount} label="components" />
-                  <Stat value={hookCount} label="hooks" />
-                  <Stat value={featuredItems.length} label="featured entries" />
+                  <Stat
+                    href="/components"
+                    value={componentCount}
+                    label="components"
+                  />
+                  <Stat href="/hooks" value={hookCount} label="hooks" />
+                  <Stat href="/blocks" value={blockCount} label="blocks" />
                 </div>
               </div>
 
@@ -255,17 +264,30 @@ export default function Home() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({
+  href,
+  value,
+  label,
+}: {
+  href: string;
+  value: number;
+  label: string;
+}) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+    <Link
+      href={href}
+      aria-label={`View ${value} ${label}`}
+      className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <span className="font-mono text-sm text-foreground">{value}</span>
       <span>{label}</span>
-    </div>
+    </Link>
   );
 }
 
 function FeaturedItem({ item }: { item: RegistryItem }) {
   const badges = getRegistryItemBadges(item, 2).visible;
+  const registryKind = getRegistryKindFromCategory(item.category);
 
   return (
     <Link
@@ -275,8 +297,10 @@ function FeaturedItem({ item }: { item: RegistryItem }) {
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs font-medium text-muted-foreground">
-            <FileJson2 aria-hidden="true" className="size-3.5" />
-            {item.category}
+            {registryKind ? (
+              <RegistryKindIcon kind={registryKind} className="size-3.5" />
+            ) : null}
+            {registryKind ? getRegistryKindLabel(registryKind) : item.category}
           </span>
           <ArrowRight
             aria-hidden="true"

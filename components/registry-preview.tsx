@@ -897,21 +897,21 @@ function StatusButtonPreview() {
 
 const floatingSelectOptions = [
   {
-    id: "command",
+    value: "command",
     label: "Command",
   },
   {
-    id: "design",
+    value: "design",
     label: "Design",
   },
   {
-    id: "review",
+    value: "review",
     label: "Review",
   },
 ];
 
 function FloatingSelectPreview() {
-  const [value, setValue] = useState(floatingSelectOptions[0].id);
+  const [value, setValue] = useState(floatingSelectOptions[0].value);
 
   return (
     <div className="flex min-h-48 w-full items-center justify-center">
@@ -919,7 +919,7 @@ function FloatingSelectPreview() {
         placement="inline"
         label="Mode"
         value={value}
-        onChange={setValue}
+        onValueChange={setValue}
         options={floatingSelectOptions}
       />
     </div>

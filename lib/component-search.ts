@@ -1,16 +1,18 @@
 import type { SortedResult } from "fumadocs-core/search";
 
+import {
+  getRegistryKindFromCategory,
+  getRegistryKindFromSearchId,
+  getRegistryKindGroupLabel,
+  getRegistryKindSearchId,
+  registryKindRank,
+  type RegistryKind,
+} from "@/lib/registry-kind";
 import { registryItems } from "@/lib/registry";
 
 const REGISTRY_RESULT_LIMIT = 8;
 
-export type RegistrySearchKind = "component" | "hook" | "block";
-
-const registrySearchKindRank: Record<RegistrySearchKind, number> = {
-  component: 0,
-  hook: 1,
-  block: 2,
-};
+export type RegistrySearchKind = RegistryKind;
 
 type RegistrySearchEntry = {
   score: number;
@@ -34,7 +36,7 @@ export function searchRegistryItems(query: string): SortedResult[] {
 
   return registryItems
     .flatMap((item): RegistrySearchEntry[] => {
-      const kind = getRegistrySearchKind(item.category);
+      const kind = getRegistryKindFromCategory(item.category);
 
       if (!kind) {
         return [];
@@ -59,7 +61,7 @@ export function searchRegistryItems(query: string): SortedResult[] {
           kind,
           title,
           result: {
-            id: getRegistrySearchId(kind, item.name),
+            id: getRegistryKindSearchId(kind, item.name),
             type: "page",
             content: highlightText(title, query),
             breadcrumbs: [getRegistryItemSection(item.category)],
@@ -76,7 +78,7 @@ export function searchRegistryItems(query: string): SortedResult[] {
 export function getDefaultRegistrySearchItems(): SortedResult[] {
   return [...registryItems]
     .flatMap((item): DefaultRegistrySearchEntry[] => {
-      const kind = getRegistrySearchKind(item.category);
+      const kind = getRegistryKindFromCategory(item.category);
 
       if (!kind) {
         return [];
@@ -92,12 +94,12 @@ export function getDefaultRegistrySearchItems(): SortedResult[] {
     })
     .sort(
       (a, b) =>
-        registrySearchKindRank[a.kind] - registrySearchKindRank[b.kind] ||
+        registryKindRank[a.kind] - registryKindRank[b.kind] ||
         a.title.localeCompare(b.title),
     )
     .map((item): SortedResult => {
       return {
-        id: getRegistrySearchId(item.kind, item.item.name),
+        id: getRegistryKindSearchId(item.kind, item.item.name),
         type: "page",
         content: escapeHtml(item.title),
         breadcrumbs: [getRegistryItemSection(item.item.category)],
@@ -109,51 +111,13 @@ export function getDefaultRegistrySearchItems(): SortedResult[] {
 export function getRegistrySearchKindFromId(
   id: string,
 ): RegistrySearchKind | null {
-  if (id.startsWith("component-")) {
-    return "component";
-  }
-
-  if (id.startsWith("hook-")) {
-    return "hook";
-  }
-
-  if (id.startsWith("block-")) {
-    return "block";
-  }
-
-  return null;
-}
-
-function getRegistrySearchKind(category: string): RegistrySearchKind | null {
-  if (category === "blocks") {
-    return "block";
-  }
-
-  if (category === "hooks") {
-    return "hook";
-  }
-
-  if (category === "ui") {
-    return "component";
-  }
-
-  return null;
-}
-
-function getRegistrySearchId(kind: RegistrySearchKind, name: string) {
-  return `${kind}-${name}`;
+  return getRegistryKindFromSearchId(id);
 }
 
 function getRegistryItemSection(category: string) {
-  if (category === "blocks") {
-    return "Blocks";
-  }
+  const kind = getRegistryKindFromCategory(category);
 
-  if (category === "hooks") {
-    return "Hooks";
-  }
-
-  return "Components";
+  return kind ? getRegistryKindGroupLabel(kind) : "Components";
 }
 
 function sortRegistrySearchEntries(
@@ -162,7 +126,7 @@ function sortRegistrySearchEntries(
 ) {
   return (
     b.score - a.score ||
-    registrySearchKindRank[a.kind] - registrySearchKindRank[b.kind] ||
+    registryKindRank[a.kind] - registryKindRank[b.kind] ||
     a.title.localeCompare(b.title)
   );
 }
