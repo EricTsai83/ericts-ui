@@ -4,14 +4,55 @@ import { cn } from "@/lib/utils";
 
 import "./squeeze-animation.css";
 
-export type SqueezeAnimationProps = React.ComponentPropsWithoutRef<"div"> & {
+type SqueezeAnimationValue = number | string;
+
+export type SqueezeOptions = {
   /** Horizontal rebound distance. Numeric values are converted to px. Set to 0 to disable. */
-  shakeX?: number | string;
+  shakeX?: SqueezeAnimationValue;
   /** Vertical rebound distance. Numeric values are converted to px. Set to 0 to disable. */
-  shakeY?: number | string;
+  shakeY?: SqueezeAnimationValue;
   /** Animation duration. Numeric values are converted to ms. */
-  duration?: number | string;
+  duration?: SqueezeAnimationValue;
 };
+
+export type SqueezeProps = React.ComponentPropsWithoutRef<"span"> &
+  SqueezeOptions & {
+    /** Classes applied to the animated child wrapper. */
+    targetClassName?: string;
+  };
+
+export function Squeeze({
+  className,
+  children,
+  duration,
+  shakeX,
+  shakeY,
+  style,
+  targetClassName,
+  ...props
+}: SqueezeProps) {
+  return (
+    <span
+      data-slot="squeeze"
+      className={cn("squeeze-animation inline-flex", className)}
+      style={getSqueezeAnimationStyle({ duration, shakeX, shakeY }, style)}
+      {...props}
+    >
+      <span
+        data-slot="squeeze-target"
+        className={cn("squeeze-animation-target inline-flex", targetClassName)}
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
+
+export type SqueezeAnimationProps = React.ComponentPropsWithoutRef<"div"> &
+  SqueezeOptions & {
+    /** Classes applied to the animated SVG group. */
+    targetClassName?: string;
+  };
 
 export function SqueezeAnimation({
   className,
@@ -19,24 +60,9 @@ export function SqueezeAnimation({
   shakeX,
   shakeY,
   style,
+  targetClassName,
   ...props
 }: SqueezeAnimationProps) {
-  const animationStyle =
-    duration === undefined && shakeX === undefined && shakeY === undefined
-      ? style
-      : ({
-          ...style,
-          ...(duration !== undefined
-            ? { "--squeeze-animation-duration": formatDurationValue(duration) }
-            : {}),
-          ...(shakeX !== undefined
-            ? { "--squeeze-animation-shake-x": formatShakeValue(shakeX) }
-            : {}),
-          ...(shakeY !== undefined
-            ? { "--squeeze-animation-shake-y": formatShakeValue(shakeY) }
-            : {}),
-        } as React.CSSProperties);
-
   return (
     <div
       data-slot="squeeze-animation"
@@ -44,7 +70,7 @@ export function SqueezeAnimation({
         "squeeze-animation flex flex-col items-center text-foreground",
         className,
       )}
-      style={animationStyle}
+      style={getSqueezeAnimationStyle({ duration, shakeX, shakeY }, style)}
       {...props}
     >
       <svg
@@ -52,7 +78,13 @@ export function SqueezeAnimation({
         aria-hidden="true"
         className="squeeze-animation-svg h-auto w-full max-w-80"
       >
-        <g className="squeeze-animation-icon">
+        <g
+          data-slot="squeeze-animation-target"
+          className={cn(
+            "squeeze-animation-target squeeze-animation-icon",
+            targetClassName,
+          )}
+        >
           <rect
             x="26"
             y="30"
@@ -84,10 +116,36 @@ export function SqueezeAnimation({
   );
 }
 
-function formatShakeValue(value: number | string | undefined) {
+function getSqueezeAnimationStyle(
+  {
+    duration,
+    shakeX,
+    shakeY,
+  }: Pick<SqueezeOptions, "duration" | "shakeX" | "shakeY">,
+  style: React.CSSProperties | undefined,
+) {
+  if (duration === undefined && shakeX === undefined && shakeY === undefined) {
+    return style;
+  }
+
+  return {
+    ...style,
+    ...(duration !== undefined
+      ? { "--squeeze-animation-duration": formatDurationValue(duration) }
+      : {}),
+    ...(shakeX !== undefined
+      ? { "--squeeze-animation-shake-x": formatShakeValue(shakeX) }
+      : {}),
+    ...(shakeY !== undefined
+      ? { "--squeeze-animation-shake-y": formatShakeValue(shakeY) }
+      : {}),
+  } as React.CSSProperties;
+}
+
+function formatShakeValue(value: SqueezeAnimationValue | undefined) {
   return typeof value === "number" ? `${value}px` : value;
 }
 
-function formatDurationValue(value: number | string | undefined) {
+function formatDurationValue(value: SqueezeAnimationValue | undefined) {
   return typeof value === "number" ? `${value}ms` : value;
 }

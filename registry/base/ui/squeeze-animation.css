@@ -4,11 +4,17 @@
   --squeeze-animation-shake-y: 3px;
 }
 
+.squeeze-animation-target,
 .squeeze-animation-icon {
-  transform-box: fill-box;
+  backface-visibility: hidden;
   transform-origin: center;
   animation: squeeze-animation var(--squeeze-animation-duration) both;
   will-change: transform;
+}
+
+.squeeze-animation-svg .squeeze-animation-target,
+.squeeze-animation-icon {
+  transform-box: fill-box;
 }
 
 @keyframes squeeze-animation {
@@ -87,6 +93,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .squeeze-animation-target,
   .squeeze-animation-icon {
     animation: none;
     will-change: auto;

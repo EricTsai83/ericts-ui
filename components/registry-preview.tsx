@@ -188,7 +188,7 @@ function SqueezeAnimationPreview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (
-        <SqueezeAnimation key={replayKey} className="w-full max-w-xs" />
+        <SqueezeAnimation key={replayKey} className="w-full max-w-36" />
       )}
     </ReplayablePreview>
   );

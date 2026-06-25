@@ -133,7 +133,7 @@
       "name": "squeeze-animation",
       "type": "registry:ui",
       "title": "Squeeze Animation",
-      "description": "A simple SVG icon with configurable squeeze, rebound, shake, and timing.",
+      "description": "A squeeze animation primitive plus a ready-made SVG card icon.",
       "categories": ["animation", "svg"],
       "meta": {
         "tags": [
@@ -142,7 +142,8 @@
           "squeeze",
           "squash-stretch",
           "rebound",
-          "shake"
+          "shake",
+          "primitive"
         ],
         "effects": [
           "squeeze",
