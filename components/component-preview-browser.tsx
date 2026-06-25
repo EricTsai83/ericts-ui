@@ -2,7 +2,7 @@
 
 import { ArrowRight, ArrowUpRight, Code2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import { buttonVariants } from "@/components/ui/button";
@@ -23,6 +23,8 @@ type ComponentPreviewBrowserProps = {
 };
 
 export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps) {
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
   const [activeName, setActiveName] = useState(
     () =>
       items.find((item) => item.name === "highlight-tabs")?.name ??
@@ -39,6 +41,20 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
   const activeTabId = activeItem
     ? `component-preview-${activeItem.name}-tab`
     : undefined;
+
+  useEffect(() => {
+    const tabList = tabListRef.current;
+    const activeTab = activeTabRef.current;
+
+    if (!tabList || !activeTab || tabList.scrollWidth <= tabList.clientWidth) {
+      return;
+    }
+
+    tabList.scrollTo({
+      left: Math.max(activeTab.offsetLeft - 16, 0),
+      behavior: "auto",
+    });
+  }, [activeName]);
 
   if (!activeItem) {
     return null;
@@ -96,7 +112,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
                 "group/page-link text-muted-foreground hover:border-foreground/20 sm:w-auto sm:gap-1.5 sm:px-2.5",
               )}
             >
-              <span className="sr-only sm:not-sr-only">View page</span>
+              <span className="sr-only sm:not-sr-only">View detail</span>
               <ArrowUpRight
                 data-icon="inline-end"
                 aria-hidden="true"
@@ -143,22 +159,11 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
         </div>
 
         <aside className="flex min-w-0 flex-col border-t bg-background lg:border-l lg:border-t-0">
-          <div className="flex min-h-10 items-center justify-between gap-3 border-b px-3">
-            <p className="text-xs font-medium text-muted-foreground">
-              Components
-            </p>
-            <span
-              aria-label={`${items.length} preview components`}
-              className="font-mono text-[11px] text-muted-foreground"
-            >
-              {items.length}
-            </span>
-          </div>
-
           <div
+            ref={tabListRef}
             role="tablist"
             aria-label="Preview components"
-            className="flex min-w-0 gap-1 overflow-x-auto p-2 lg:flex-col lg:overflow-visible"
+            className="flex min-w-0 overflow-x-auto lg:flex-col lg:overflow-visible"
           >
             {items.map((item) => {
               const isActive = item.name === activeItem.name;
@@ -166,6 +171,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
               return (
                 <button
                   key={item.name}
+                  ref={isActive ? activeTabRef : undefined}
                   id={`component-preview-${item.name}-tab`}
                   type="button"
                   role="tab"
@@ -173,22 +179,13 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
                   aria-controls="component-preview-panel"
                   onClick={() => setActiveName(item.name)}
                   className={cn(
-                    "flex h-10 min-w-40 items-center justify-between gap-2 rounded-md px-2.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-w-0",
+                    "relative -mb-px flex h-11 min-w-44 items-center justify-between gap-3 border-b px-4 text-left font-mono text-[11px] font-medium uppercase tracking-[0.08em] transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-w-0",
                     isActive
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                      ? "bg-muted/35 text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-foreground lg:after:inset-x-auto lg:after:inset-y-2 lg:after:right-0 lg:after:h-auto lg:after:w-px"
+                      : "text-muted-foreground hover:bg-muted/30 hover:text-foreground",
                   )}
                 >
-                  <span className="truncate font-medium">
-                    {item.title}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "size-1.5 shrink-0 rounded-full",
-                      isActive ? "bg-foreground" : "bg-transparent",
-                    )}
-                  />
+                  <span className="truncate">{item.title}</span>
                 </button>
               );
             })}

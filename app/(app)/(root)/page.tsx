@@ -119,21 +119,35 @@ export default function Home() {
             <HomeHeroMark />
           </div>
 
-          <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
-            <Link href="/docs" className="transition-colors hover:text-foreground">
-              Docs
-            </Link>
-            <span aria-hidden="true">/</span>
+          <div className="relative z-10 max-w-lg text-xs leading-5 text-muted-foreground">
+            Special thanks to{" "}
             <Link
-              href="/components"
-              className="transition-colors hover:text-foreground"
+              href="https://x.com/shadcn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              Components
+              shadcn
             </Link>
-            <span aria-hidden="true">/</span>
-            <Link href="/hooks" className="transition-colors hover:text-foreground">
-              Hooks
+            ,{" "}
+            <Link
+              href="https://x.com/emilkowalski"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Emil Kowalski
             </Link>
+            ,{" "}
+            <Link
+              href="https://x.com/mannupaaji"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Manu Arora
+            </Link>
+            , and the open-source UI work that shaped this site.
           </div>
         </div>
 
