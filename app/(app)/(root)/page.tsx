@@ -69,21 +69,14 @@ export default function Home() {
   const previewItems: ComponentPreviewBrowserItem[] = featuredItems
     .filter((item) => item.category === "ui")
     .slice(0, 6)
-    .map((item) => {
-      const registryKind = getRegistryKindFromCategory(item.category);
-
-      return {
-        name: item.name,
-        title: item.title ?? item.name,
-        description: item.description,
-        href: item.href,
-        installUrl: getRegistryItemUrl(item.name),
-        kindLabel: registryKind
-          ? getRegistryKindLabel(registryKind)
-          : item.category,
-        badges: getRegistryItemBadges(item, 2).visible,
-      };
-    });
+    .map((item) => ({
+      name: item.name,
+      title: item.title ?? item.name,
+      description: item.description,
+      href: item.href,
+      installUrl: getRegistryItemUrl(item.name),
+      badges: getRegistryItemBadges(item, 2).visible,
+    }));
 
   return (
     <main className="isolate min-h-[calc(100vh-3.5rem)] bg-background text-foreground">

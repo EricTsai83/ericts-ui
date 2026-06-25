@@ -6,10 +6,10 @@ import { motion, useReducedMotion } from "motion/react";
 import { LogoIcon } from "@/components/icons";
 
 const heartRestState = {
-  rotate: 6,
+  rotate: 12,
   scale: 1,
-  x: "3.5%",
-  y: "-2%",
+  x: "5%",
+  y: "-3%",
 };
 
 const heartHoverState = {
@@ -21,10 +21,10 @@ const heartHoverState = {
 
 const shadowRestState = {
   opacity: 0.92,
-  rotate: -8,
+  rotate: -10,
   scale: 1,
-  x: "-10%",
-  y: "-16%",
+  x: "-20%",
+  y: "-23%",
 };
 
 const shadowHoverState = {
