@@ -1,0 +1,70 @@
+.squeeze-animation {
+  --squeeze-animation-duration: 1080ms;
+  --squeeze-animation-shake-x: 4px;
+  --squeeze-animation-shake-y: 2.5px;
+}
+
+.squeeze-animation-icon {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: squeeze-animation var(--squeeze-animation-duration) both;
+  will-change: transform;
+}
+
+@keyframes squeeze-animation {
+  0% {
+    transform: translate(0, 0) scale(1);
+    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+  22%,
+  30% {
+    transform: translate(
+        calc(var(--squeeze-animation-shake-x) * -0.28),
+        calc(var(--squeeze-animation-shake-y) * 0.32)
+      )
+      scale(1.34, 0.68);
+    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  40% {
+    transform: translate(
+        var(--squeeze-animation-shake-x),
+        calc(var(--squeeze-animation-shake-y) * -1)
+      )
+      scale(0.8, 1.22);
+    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  }
+  54% {
+    transform: translate(
+        calc(var(--squeeze-animation-shake-x) * -0.55),
+        calc(var(--squeeze-animation-shake-y) * 0.46)
+      )
+      scale(1.1, 0.91);
+    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  }
+  72% {
+    transform: translate(
+        calc(var(--squeeze-animation-shake-x) * 0.26),
+        calc(var(--squeeze-animation-shake-y) * -0.24)
+      )
+      scale(0.975, 1.03);
+    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  }
+  92% {
+    transform: translate(
+        calc(var(--squeeze-animation-shake-x) * -0.09),
+        calc(var(--squeeze-animation-shake-y) * 0.08)
+      )
+      scale(1.012, 0.992);
+    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squeeze-animation-icon {
+    animation: none;
+    will-change: auto;
+  }
+}

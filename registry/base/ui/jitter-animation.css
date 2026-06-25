@@ -1,0 +1,99 @@
+.jitter-animation {
+  --jitter-animation-x: 3px;
+  --jitter-animation-y: 0px;
+}
+
+.jitter-animation-icon {
+  backface-visibility: hidden;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jitter-animation 480ms steps(1, end) both;
+  will-change: transform;
+}
+
+.jitter-animation[data-axis="vertical"] {
+  --jitter-animation-x: 0px;
+  --jitter-animation-y: 3px;
+}
+
+.jitter-animation[data-axis="both"] {
+  --jitter-animation-x: 3px;
+  --jitter-animation-y: 2px;
+}
+
+@keyframes jitter-animation {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  8% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * -1),
+      calc(var(--jitter-animation-y) * 1),
+      0
+    );
+  }
+  16% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * 0.9),
+      calc(var(--jitter-animation-y) * -0.9),
+      0
+    );
+  }
+  26% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * -0.8),
+      calc(var(--jitter-animation-y) * 0.8),
+      0
+    );
+  }
+  36% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * 0.67),
+      calc(var(--jitter-animation-y) * -0.67),
+      0
+    );
+  }
+  48% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * -0.52),
+      calc(var(--jitter-animation-y) * 0.52),
+      0
+    );
+  }
+  60% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * 0.4),
+      calc(var(--jitter-animation-y) * -0.4),
+      0
+    );
+  }
+  72% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * -0.27),
+      calc(var(--jitter-animation-y) * 0.27),
+      0
+    );
+  }
+  84% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * 0.15),
+      calc(var(--jitter-animation-y) * -0.15),
+      0
+    );
+  }
+  92% {
+    transform: translate3d(
+      calc(var(--jitter-animation-x) * -0.07),
+      calc(var(--jitter-animation-y) * 0.07),
+      0
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jitter-animation-icon {
+    animation: none;
+    will-change: auto;
+  }
+}

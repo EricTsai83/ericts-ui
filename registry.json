@@ -107,6 +107,66 @@
       ]
     },
     {
+      "name": "jitter-animation",
+      "type": "registry:ui",
+      "title": "Jitter Animation",
+      "description": "A simple SVG icon with configurable horizontal, vertical, or combined jitter.",
+      "categories": ["animation", "svg"],
+      "meta": {
+        "tags": ["svg", "svg-animation", "jitter", "axis"],
+        "effects": ["jitter", "horizontal-jitter", "vertical-jitter"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/jitter-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/jitter-animation.tsx"
+        },
+        {
+          "path": "registry/base/ui/jitter-animation.css",
+          "type": "registry:file",
+          "target": "components/ui/jitter-animation.css"
+        }
+      ]
+    },
+    {
+      "name": "squeeze-animation",
+      "type": "registry:ui",
+      "title": "Squeeze Animation",
+      "description": "A simple SVG icon with configurable squeeze, rebound, shake, and timing.",
+      "categories": ["animation", "svg"],
+      "meta": {
+        "tags": [
+          "svg",
+          "svg-animation",
+          "squeeze",
+          "squash-stretch",
+          "rebound",
+          "shake"
+        ],
+        "effects": [
+          "squeeze",
+          "squash-stretch",
+          "rebound",
+          "shake-x",
+          "shake-y",
+          "settle"
+        ]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/squeeze-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/squeeze-animation.tsx"
+        },
+        {
+          "path": "registry/base/ui/squeeze-animation.css",
+          "type": "registry:file",
+          "target": "components/ui/squeeze-animation.css"
+        }
+      ]
+    },
+    {
       "name": "highlight-tabs",
       "type": "registry:ui",
       "title": "Highlight Tabs",

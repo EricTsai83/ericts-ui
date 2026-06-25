@@ -26,6 +26,8 @@ const featuredNames = [
   "smooth-height",
   "copy-button",
   "status-button",
+  "jitter-animation",
+  "squeeze-animation",
   "highlight-tabs",
   "text-morph",
   "multi-step",

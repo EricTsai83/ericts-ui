@@ -24,6 +24,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { CheckboxAnimation } from "@/registry/base/ui/checkbox-animation";
+import {
+  JitterAnimation,
+  type JitterAnimationAxis,
+} from "@/registry/base/ui/jitter-animation";
+import { SqueezeAnimation } from "@/registry/base/ui/squeeze-animation";
 import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { TextMorph } from "@/registry/base/ui/text-morph";
@@ -60,6 +65,8 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
   "checkbox-animation": () => <CheckboxAnimationPreview />,
+  "jitter-animation": () => <JitterAnimationPreview />,
+  "squeeze-animation": () => <SqueezeAnimationPreview />,
   "status-button": () => <StatusButtonPreview />,
   "floating-select": () => <FloatingSelectPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
@@ -126,6 +133,62 @@ function CheckboxAnimationPreview() {
     <ReplayablePreview>
       {(replayKey) => (
         <CheckboxAnimation key={replayKey} className="w-full max-w-xs" />
+      )}
+    </ReplayablePreview>
+  );
+}
+
+function JitterAnimationPreview() {
+  const [axis, setAxis] = useState<JitterAnimationAxis>("horizontal");
+
+  return (
+    <ReplayablePreview>
+      {(replayKey) => (
+        <div
+          key={`${replayKey}-${axis}`}
+          className="mx-auto flex w-full max-w-xs flex-col items-center gap-5"
+        >
+          <div
+            role="radiogroup"
+            aria-label="Jitter axis"
+            className="inline-flex rounded-lg border bg-muted/50 p-1"
+          >
+            {jitterAxisOptions.map((option) => (
+              <Button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={axis === option.value}
+                variant={axis === option.value ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setAxis(option.value)}
+                className="min-w-20"
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          <JitterAnimation axis={axis} className="w-full max-w-36" />
+        </div>
+      )}
+    </ReplayablePreview>
+  );
+}
+
+const jitterAxisOptions: {
+  label: string;
+  value: JitterAnimationAxis;
+}[] = [
+  { label: "Horizontal", value: "horizontal" },
+  { label: "Vertical", value: "vertical" },
+  { label: "Both", value: "both" },
+];
+
+function SqueezeAnimationPreview() {
+  return (
+    <ReplayablePreview>
+      {(replayKey) => (
+        <SqueezeAnimation key={replayKey} className="w-full max-w-xs" />
       )}
     </ReplayablePreview>
   );

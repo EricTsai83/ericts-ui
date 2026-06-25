@@ -1,0 +1,43 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "squeeze-animation",
+  "title": "Squeeze Animation",
+  "description": "A simple SVG icon with configurable squeeze, rebound, shake, and timing.",
+  "files": [
+    {
+      "path": "registry/base/ui/squeeze-animation.tsx",
+      "content": "import * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nimport \"./squeeze-animation.css\";\n\nexport type SqueezeAnimationProps = React.ComponentPropsWithoutRef<\"div\"> & {\n  /** Horizontal rebound distance. Numeric values are converted to px. Set to 0 to disable. */\n  shakeX?: number | string;\n  /** Vertical rebound distance. Numeric values are converted to px. Set to 0 to disable. */\n  shakeY?: number | string;\n  /** Animation duration. Numeric values are converted to ms. */\n  duration?: number | string;\n};\n\nexport function SqueezeAnimation({\n  className,\n  duration,\n  shakeX,\n  shakeY,\n  style,\n  ...props\n}: SqueezeAnimationProps) {\n  const animationStyle =\n    duration === undefined && shakeX === undefined && shakeY === undefined\n      ? style\n      : ({\n          ...style,\n          ...(duration !== undefined\n            ? { \"--squeeze-animation-duration\": formatDurationValue(duration) }\n            : {}),\n          ...(shakeX !== undefined\n            ? { \"--squeeze-animation-shake-x\": formatShakeValue(shakeX) }\n            : {}),\n          ...(shakeY !== undefined\n            ? { \"--squeeze-animation-shake-y\": formatShakeValue(shakeY) }\n            : {}),\n        } as React.CSSProperties);\n\n  return (\n    <div\n      data-slot=\"squeeze-animation\"\n      className={cn(\n        \"squeeze-animation flex flex-col items-center text-foreground\",\n        className,\n      )}\n      style={animationStyle}\n      {...props}\n    >\n      <svg\n        viewBox=\"0 0 100 100\"\n        aria-hidden=\"true\"\n        className=\"squeeze-animation-svg h-auto w-full max-w-80\"\n      >\n        <g className=\"squeeze-animation-icon\">\n          <rect\n            x=\"26\"\n            y=\"30\"\n            width=\"48\"\n            height=\"40\"\n            rx=\"12\"\n            fill=\"currentColor\"\n            fillOpacity=\"0.1\"\n            stroke=\"currentColor\"\n            strokeWidth=\"6\"\n          />\n          <path\n            d=\"M 38 46 H 62\"\n            fill=\"none\"\n            stroke=\"currentColor\"\n            strokeLinecap=\"round\"\n            strokeWidth=\"6\"\n          />\n          <path\n            d=\"M 38 58 H 54\"\n            fill=\"none\"\n            stroke=\"currentColor\"\n            strokeLinecap=\"round\"\n            strokeWidth=\"6\"\n          />\n        </g>\n      </svg>\n    </div>\n  );\n}\n\nfunction formatShakeValue(value: number | string | undefined) {\n  return typeof value === \"number\" ? `${value}px` : value;\n}\n\nfunction formatDurationValue(value: number | string | undefined) {\n  return typeof value === \"number\" ? `${value}ms` : value;\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/squeeze-animation.tsx"
+    },
+    {
+      "path": "registry/base/ui/squeeze-animation.css",
+      "content": ".squeeze-animation {\n  --squeeze-animation-duration: 1080ms;\n  --squeeze-animation-shake-x: 4px;\n  --squeeze-animation-shake-y: 2.5px;\n}\n\n.squeeze-animation-icon {\n  transform-box: fill-box;\n  transform-origin: center;\n  animation: squeeze-animation var(--squeeze-animation-duration) both;\n  will-change: transform;\n}\n\n@keyframes squeeze-animation {\n  0% {\n    transform: translate(0, 0) scale(1);\n    animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);\n  }\n  22%,\n  30% {\n    transform: translate(\n        calc(var(--squeeze-animation-shake-x) * -0.28),\n        calc(var(--squeeze-animation-shake-y) * 0.32)\n      )\n      scale(1.34, 0.68);\n    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);\n  }\n  40% {\n    transform: translate(\n        var(--squeeze-animation-shake-x),\n        calc(var(--squeeze-animation-shake-y) * -1)\n      )\n      scale(0.8, 1.22);\n    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);\n  }\n  54% {\n    transform: translate(\n        calc(var(--squeeze-animation-shake-x) * -0.55),\n        calc(var(--squeeze-animation-shake-y) * 0.46)\n      )\n      scale(1.1, 0.91);\n    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);\n  }\n  72% {\n    transform: translate(\n        calc(var(--squeeze-animation-shake-x) * 0.26),\n        calc(var(--squeeze-animation-shake-y) * -0.24)\n      )\n      scale(0.975, 1.03);\n    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);\n  }\n  92% {\n    transform: translate(\n        calc(var(--squeeze-animation-shake-x) * -0.09),\n        calc(var(--squeeze-animation-shake-y) * 0.08)\n      )\n      scale(1.012, 0.992);\n    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);\n  }\n  100% {\n    transform: translate(0, 0) scale(1);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .squeeze-animation-icon {\n    animation: none;\n    will-change: auto;\n  }\n}\n",
+      "type": "registry:file",
+      "target": "components/ui/squeeze-animation.css"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "svg",
+      "svg-animation",
+      "squeeze",
+      "squash-stretch",
+      "rebound",
+      "shake"
+    ],
+    "effects": [
+      "squeeze",
+      "squash-stretch",
+      "rebound",
+      "shake-x",
+      "shake-y",
+      "settle"
+    ]
+  },
+  "categories": [
+    "animation",
+    "svg"
+  ],
+  "type": "registry:ui"
+}
