@@ -110,10 +110,10 @@
       "name": "jitter-animation",
       "type": "registry:ui",
       "title": "Jitter Animation",
-      "description": "A simple SVG icon with configurable horizontal, vertical, or combined jitter.",
+      "description": "A jitter animation primitive plus a ready-made SVG code icon.",
       "categories": ["animation", "svg"],
       "meta": {
-        "tags": ["svg", "svg-animation", "jitter", "axis"],
+        "tags": ["svg", "svg-animation", "jitter", "axis", "primitive"],
         "effects": ["jitter", "horizontal-jitter", "vertical-jitter"]
       },
       "files": [

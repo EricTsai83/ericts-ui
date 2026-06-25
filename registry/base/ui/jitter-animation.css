@@ -3,9 +3,8 @@
   --jitter-animation-y: 0px;
 }
 
-.jitter-animation-icon {
+.jitter-target {
   backface-visibility: hidden;
-  transform-box: fill-box;
   transform-origin: center;
   animation: jitter-animation 480ms steps(1, end) both;
   will-change: transform;
@@ -21,7 +20,7 @@
   --jitter-animation-y: 2px;
 }
 
-.jitter-animation[data-axis="both"] .jitter-animation-icon {
+.jitter[data-axis="both"] .jitter-target {
   animation-name: jitter-animation-both;
 }
 
@@ -130,7 +129,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .jitter-animation-icon {
+  .jitter-target {
     animation: none;
     will-change: auto;
   }
