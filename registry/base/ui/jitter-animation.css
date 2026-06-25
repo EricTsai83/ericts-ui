@@ -21,6 +21,10 @@
   --jitter-animation-y: 2px;
 }
 
+.jitter-animation[data-axis="both"] .jitter-animation-icon {
+  animation-name: jitter-animation-both;
+}
+
 @keyframes jitter-animation {
   0%,
   100% {
@@ -88,6 +92,40 @@
       calc(var(--jitter-animation-y) * 0.07),
       0
     );
+  }
+}
+
+@keyframes jitter-animation-both {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  8% {
+    transform: translate3d(-3px, 1.8px, 0);
+  }
+  16% {
+    transform: translate3d(2.7px, -1.8px, 0);
+  }
+  26% {
+    transform: translate3d(-2.4px, -1.6px, 0);
+  }
+  36% {
+    transform: translate3d(2px, 1.34px, 0);
+  }
+  48% {
+    transform: translate3d(-1.56px, 1.04px, 0);
+  }
+  60% {
+    transform: translate3d(1.2px, -0.8px, 0);
+  }
+  72% {
+    transform: translate3d(-0.81px, -0.54px, 0);
+  }
+  84% {
+    transform: translate3d(0.45px, 0.3px, 0);
+  }
+  92% {
+    transform: translate3d(-0.21px, 0.14px, 0);
   }
 }
 
