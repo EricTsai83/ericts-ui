@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "checkbox-animation",
-  "type": "registry:ui",
   "title": "Checkbox Animation",
   "description": "An SVG checkbox completion animation that draws the box and checkmark in sequence.",
   "files": [
@@ -35,5 +34,6 @@
   "categories": [
     "animation",
     "svg"
-  ]
+  ],
+  "type": "registry:ui"
 }

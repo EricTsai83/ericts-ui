@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "status-button",
-  "type": "registry:ui",
   "title": "Status Button",
   "description": "A shadcn Button-based action that transitions through idle, loading, and success states.",
   "dependencies": [
@@ -32,5 +31,6 @@
   },
   "categories": [
     "button"
-  ]
+  ],
+  "type": "registry:ui"
 }

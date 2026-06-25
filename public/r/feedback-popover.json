@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "feedback-popover",
-  "type": "registry:ui",
   "title": "Feedback Popover",
   "description": "A Motion-powered feedback popover that expands from a trigger, supports keyboard submission, and confirms receipt inline.",
   "dependencies": [
@@ -34,5 +33,6 @@
   },
   "categories": [
     "popover"
-  ]
+  ],
+  "type": "registry:ui"
 }

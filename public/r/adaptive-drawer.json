@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "adaptive-drawer",
-  "type": "registry:ui",
   "title": "Adaptive Drawer",
   "description": "A shadcn Drawer that measures panel content and animates height changes.",
   "dependencies": [
@@ -36,5 +35,6 @@
   "categories": [
     "drawer",
     "layout"
-  ]
+  ],
+  "type": "registry:ui"
 }

@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "use-element-height",
-  "type": "registry:hook",
   "title": "useElementHeight",
   "description": "A client-safe React hook that measures an element's height with ResizeObserver so a container can animate between content heights.",
   "files": [
@@ -25,5 +24,6 @@
   },
   "categories": [
     "animation"
-  ]
+  ],
+  "type": "registry:hook"
 }
