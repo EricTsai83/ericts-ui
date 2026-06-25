@@ -158,12 +158,12 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
           </div>
         </div>
 
-        <aside className="flex min-w-0 flex-col border-t bg-background lg:border-l lg:border-t-0">
+        <aside className="min-w-0 overflow-hidden border-t bg-background lg:flex lg:flex-col lg:overflow-visible lg:border-l lg:border-t-0">
           <div
             ref={tabListRef}
             role="tablist"
             aria-label="Preview components"
-            className="flex min-w-0 overflow-x-auto lg:flex-col lg:overflow-visible"
+            className="no-scrollbar flex min-w-0 flex-nowrap overflow-x-auto overflow-y-hidden lg:flex-col lg:overflow-visible"
           >
             {items.map((item) => {
               const isActive = item.name === activeItem.name;
@@ -179,7 +179,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
                   aria-controls="component-preview-panel"
                   onClick={() => setActiveName(item.name)}
                   className={cn(
-                    "relative -mb-px flex h-11 min-w-44 items-center justify-between gap-3 border-b px-4 text-left font-mono text-[11px] font-medium uppercase tracking-[0.08em] transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-w-0",
+                    "relative -mb-px flex h-11 min-w-44 flex-none items-center justify-between gap-3 border-b px-4 text-left font-mono text-[11px] font-medium uppercase tracking-[0.08em] transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-w-0",
                     isActive
                       ? "bg-muted/35 text-foreground after:absolute after:inset-x-4 after:bottom-0 after:h-px after:bg-foreground lg:after:inset-x-auto lg:after:inset-y-2 lg:after:right-0 lg:after:h-auto lg:after:w-px"
                       : "text-muted-foreground hover:bg-muted/30 hover:text-foreground",

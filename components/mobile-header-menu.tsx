@@ -30,14 +30,14 @@ export function MobileHeaderMenu({
   const groups = buildDocsGroups(tree);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger
         render={
           <Button
             type="button"
             variant="ghost"
             className={cn(
-              "extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 p-0! hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent lg:hidden dark:hover:bg-transparent",
+              "extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 p-0! hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent aria-expanded:bg-transparent lg:hidden dark:hover:bg-transparent dark:aria-expanded:bg-transparent",
               className,
             )}
           />
@@ -65,13 +65,21 @@ export function MobileHeaderMenu({
         </span>
       </PopoverTrigger>
       <PopoverContent
-        className="no-scrollbar h-[calc(100dvh-3.5rem)] w-screen overflow-y-auto rounded-none border-none bg-background/95 p-0 shadow-none ring-0 backdrop-blur duration-100 data-open:animate-none! lg:hidden"
+        aria-label="Mobile navigation"
+        className="no-scrollbar h-[calc(100dvh-3.5rem)] w-dvw max-w-none touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain rounded-none border-none bg-background/95 p-0 shadow-none ring-0 backdrop-blur duration-100 data-open:animate-none! lg:hidden"
         align="start"
-        side="bottom"
         alignOffset={-16}
+        collisionAvoidance={{
+          align: "shift",
+          fallbackAxisSide: "none",
+          side: "none",
+        }}
+        collisionPadding={0}
+        positionMethod="fixed"
+        side="bottom"
         sideOffset={14}
       >
-        <div className="flex flex-col gap-12 overflow-auto px-6 py-6">
+        <div className="flex min-h-full min-w-0 flex-col gap-12 px-6 py-6">
           <div className="flex flex-col gap-4">
             <div className="text-sm font-medium text-muted-foreground">
               Menu
@@ -139,7 +147,7 @@ function MobileLink({
       aria-current={active ? "page" : undefined}
       onClick={() => onOpenChange(false)}
       className={cn(
-        "flex items-center gap-2 text-2xl font-medium leading-none text-foreground transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "flex min-w-0 max-w-full items-center gap-2 break-words text-2xl font-medium leading-tight text-foreground transition-colors [overflow-wrap:anywhere] hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active && "text-foreground",
         className,
       )}

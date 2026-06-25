@@ -13,26 +13,46 @@ function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
 
+type PopoverContentProps = PopoverPrimitive.Popup.Props &
+  Pick<
+    PopoverPrimitive.Positioner.Props,
+    | "align"
+    | "alignOffset"
+    | "collisionAvoidance"
+    | "collisionPadding"
+    | "positionMethod"
+    | "side"
+    | "sideOffset"
+    | "sticky"
+  > & {
+    positionerClassName?: string
+  }
+
 function PopoverContent({
   className,
   align = "center",
   alignOffset = 0,
+  collisionAvoidance,
+  collisionPadding,
+  positionerClassName,
+  positionMethod,
   side = "bottom",
   sideOffset = 4,
+  sticky,
   ...props
-}: PopoverPrimitive.Popup.Props &
-  Pick<
-    PopoverPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
-  >) {
+}: PopoverContentProps) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
+        collisionAvoidance={collisionAvoidance}
+        collisionPadding={collisionPadding}
+        positionMethod={positionMethod}
         side={side}
         sideOffset={sideOffset}
-        className="isolate z-50"
+        sticky={sticky}
+        className={cn("isolate z-50", positionerClassName)}
       >
         <PopoverPrimitive.Popup
           data-slot="popover-content"
