@@ -1,18 +1,37 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+} from "motion/react";
 
 import { cn } from "@/lib/utils";
 
-export type FloatingSelectOption = {
-  /** Stable identifier passed back in callbacks. */
-  id: string;
+type FloatingSelectOptionBase = {
   /** What renders for this option. Can be text or any node. */
   label: React.ReactNode;
   /** Optional leading node (icon, swatch, etc.) shown before the label. */
   icon?: React.ReactNode;
 };
+
+export type FloatingSelectOption = FloatingSelectOptionBase &
+  (
+    | {
+        /** Stable value passed back in callbacks. */
+        value: string;
+        /** @deprecated Use `value`. Kept for compatibility with earlier versions. */
+        id?: string;
+      }
+    | {
+        /** @deprecated Use `value`. Kept for compatibility with earlier versions. */
+        id: string;
+        /** Stable value passed back in callbacks. */
+        value?: string;
+      }
+  );
 
 export interface FloatingSelectProps {
   /** The choices revealed when the button is opened. */
@@ -21,12 +40,14 @@ export interface FloatingSelectProps {
   label?: React.ReactNode;
   /** Optional leading icon for the trigger. */
   icon?: React.ReactNode;
-  /** Uncontrolled initial selected option id. */
+  /** Uncontrolled initial selected option value. */
   defaultValue?: string;
-  /** Controlled selected option id. */
+  /** Controlled selected option value. */
   value?: string;
   /** Fires with the selected option whenever it changes. */
-  onChange?: (optionId: string, option: FloatingSelectOption) => void;
+  onValueChange?: (value: string, option: FloatingSelectOption) => void;
+  /** @deprecated Use `onValueChange`. Kept for compatibility with earlier versions. */
+  onChange?: (value: string, option: FloatingSelectOption) => void;
   /** Close the panel after selecting an option. */
   closeOnSelect?: boolean;
   /** Show the selected value next to the trigger label. */
@@ -51,16 +72,27 @@ export interface FloatingSelectProps {
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const SHELL_TRANSITION = {
-  layout: { duration: 0.2, ease: EASE_OUT },
-  opacity: { duration: 0.12, ease: EASE_OUT },
-  y: { duration: 0.2, ease: EASE_OUT },
-};
-const PANEL_TRANSITION = { duration: 0.12, ease: EASE_OUT };
+  layout: { type: "spring", duration: 0.26, bounce: 0 },
+  opacity: { duration: 0.16, ease: EASE_OUT },
+  y: { duration: 0.22, ease: EASE_OUT },
+} as const;
+const PANEL_TRANSITION = { duration: 0.16, ease: EASE_OUT };
+const PANEL_EXIT_TRANSITION = { duration: 0.08, ease: EASE_OUT };
+const ACTIVE_SURFACE_TRANSITION = {
+  type: "spring",
+  duration: 0.22,
+  bounce: 0,
+  opacity: { duration: 0.14, ease: EASE_OUT },
+} as const;
 
 function getCssPixels(value: string) {
   const pixels = Number.parseFloat(value);
 
   return Number.isFinite(pixels) ? pixels : 0;
+}
+
+function getOptionValue(option: FloatingSelectOption) {
+  return (option.value ?? option.id) as string;
 }
 
 export function FloatingSelect({
@@ -69,6 +101,7 @@ export function FloatingSelect({
   icon,
   defaultValue,
   value,
+  onValueChange,
   onChange,
   closeOnSelect = true,
   showSelectedValue = true,
@@ -83,7 +116,8 @@ export function FloatingSelect({
 }: FloatingSelectProps) {
   const shellRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLDivElement>(null);
-  const selectId = React.useId();
+  const reactId = React.useId();
+  const listboxId = `${reactId}-listbox`;
   const shouldReduceMotion = useReducedMotion();
   const [open, setOpen] = React.useState(false);
   const [inlineAnchorSize, setInlineAnchorSize] = React.useState<{
@@ -91,7 +125,7 @@ export function FloatingSelect({
     height: number;
   } | null>(null);
   const [internalSelected, setInternalSelected] = React.useState(
-    defaultValue ?? options[0]?.id ?? "",
+    defaultValue ?? (options[0] ? getOptionValue(options[0]) : ""),
   );
 
   React.useEffect(() => {
@@ -120,8 +154,11 @@ export function FloatingSelect({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
-  const selectedId = value ?? internalSelected ?? options[0]?.id;
-  const selectedOption = options.find((option) => option.id === selectedId);
+  const selectedValue =
+    value ?? internalSelected ?? (options[0] ? getOptionValue(options[0]) : "");
+  const selectedOption = options.find(
+    (option) => getOptionValue(option) === selectedValue,
+  );
   const alignClass =
     align === "start"
       ? "justify-start"
@@ -132,13 +169,22 @@ export function FloatingSelect({
     align === "start" ? "left" : align === "end" ? "right" : "center";
   const transformOrigin = `${transformOriginX} ${position}`;
   const edgeOffset = (offset + 20) * (position === "top" ? -1 : 1);
+  const activeSurfaceLayoutId = shouldReduceMotion
+    ? undefined
+    : "floating-select-active-surface";
 
   const handleSelect = (option: FloatingSelectOption) => {
+    const nextValue = getOptionValue(option);
+
     if (value === undefined) {
-      setInternalSelected(option.id);
+      setInternalSelected(nextValue);
     }
 
-    onChange?.(option.id, option);
+    onValueChange?.(nextValue, option);
+
+    if (!onValueChange) {
+      onChange?.(nextValue, option);
+    }
 
     if (closeOnSelect) {
       setOpen(false);
@@ -203,118 +249,151 @@ export function FloatingSelect({
     },
   };
   const optionVariants = {
-    hidden: { opacity: 0, y: position === "bottom" ? 4 : -4 },
+    hidden: { opacity: 0, y: position === "bottom" ? 3 : -3 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.14, ease: EASE_OUT },
+      transition: { duration: 0.13, ease: EASE_OUT },
     },
   };
 
   const shell = (
-    <motion.div
-      ref={shellRef}
-      layout
-      initial={
-        reveal && !shouldReduceMotion
-          ? { opacity: 0, y: edgeOffset }
-          : false
-      }
-      animate={{ opacity: 1, y: 0 }}
-      transition={shouldReduceMotion ? { duration: 0 } : SHELL_TRANSITION}
-      className={cn(
-        "pointer-events-auto flex w-fit flex-col overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-sm",
-        className,
-      )}
-      style={{ transformOrigin }}
-    >
-      <AnimatePresence mode="popLayout" initial={false}>
-        {open ? (
-          <motion.div
-            key="floating-select-options"
-            id={`${selectId}-listbox`}
-            role="listbox"
-            aria-label={typeof label === "string" ? label : "Options"}
-            initial={shouldReduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0 }}
-            transition={{ ...PANEL_TRANSITION, ...reduceMotionTransition }}
-            className={cn("w-fit", panelClassName)}
-          >
-            <motion.div
-              className="flex flex-col gap-1.5 p-2"
-              variants={shouldReduceMotion ? undefined : listVariants}
-              initial={shouldReduceMotion ? false : "hidden"}
-              animate={shouldReduceMotion ? undefined : "visible"}
-            >
-              {options.map((option) => {
-                const active = option.id === selectedId;
-
-                return (
-                  <motion.button
-                    key={option.id}
-                    role="option"
-                    aria-selected={active}
-                    type="button"
-                    variants={shouldReduceMotion ? undefined : optionVariants}
-                    onClick={() => handleSelect(option)}
-                    className={cn(
-                      "flex h-8 w-full items-center gap-6 rounded-md px-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                    )}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      {option.icon ? (
-                        <span className="flex shrink-0 items-center justify-center">
-                          {option.icon}
-                        </span>
-                      ) : null}
-                      <span>{option.label}</span>
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </motion.div>
-          </motion.div>
-        ) : (
-          <motion.div
-            ref={triggerRef}
-            key="floating-select-trigger"
-            initial={shouldReduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0 }}
-            transition={{ ...PANEL_TRANSITION, ...reduceMotionTransition }}
-            className="flex w-fit items-center p-1"
-          >
-            <button
-              type="button"
-              aria-haspopup="listbox"
-              aria-expanded={open}
-              aria-controls={`${selectId}-listbox`}
-              onClick={handleOpen}
-              className={cn(
-                "group flex h-8 items-center gap-2 rounded-md px-3 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
-                triggerClassName,
-              )}
-            >
-              {icon ? (
-                <span className="flex shrink-0 items-center justify-center">
-                  {icon}
-                </span>
-              ) : null}
-              {label ? <span className="text-foreground">{label}</span> : null}
-              {showSelectedValue && selectedOption ? (
-                <span className="text-muted-foreground">
-                  {selectedOption.label}
-                </span>
-              ) : null}
-            </button>
-          </motion.div>
+    <LayoutGroup id={reactId}>
+      <motion.div
+        ref={shellRef}
+        layout
+        data-slot="floating-select"
+        data-state={open ? "open" : "closed"}
+        initial={
+          reveal && !shouldReduceMotion
+            ? { opacity: 0, y: edgeOffset }
+            : false
+        }
+        animate={{ opacity: 1, y: 0 }}
+        transition={shouldReduceMotion ? { duration: 0 } : SHELL_TRANSITION}
+        className={cn(
+          "pointer-events-auto flex w-fit flex-col overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-sm",
+          className,
         )}
-      </AnimatePresence>
-    </motion.div>
+        style={{ transformOrigin }}
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
+          {open ? (
+            <motion.div
+              key="floating-select-options"
+              id={listboxId}
+              role="listbox"
+              aria-label={typeof label === "string" ? label : "Options"}
+              data-slot="floating-select-listbox"
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={
+                shouldReduceMotion
+                  ? undefined
+                  : { opacity: 0, transition: PANEL_EXIT_TRANSITION }
+              }
+              transition={{ ...PANEL_TRANSITION, ...reduceMotionTransition }}
+              className={cn("w-fit", panelClassName)}
+            >
+              <motion.div
+                data-slot="floating-select-options"
+                className="flex flex-col gap-1.5 p-2"
+                variants={shouldReduceMotion ? undefined : listVariants}
+                initial={shouldReduceMotion ? false : "hidden"}
+                animate={shouldReduceMotion ? undefined : "visible"}
+              >
+                {options.map((option) => {
+                  const optionValue = getOptionValue(option);
+                  const active = optionValue === selectedValue;
+
+                  return (
+                    <motion.button
+                      key={optionValue}
+                      role="option"
+                      aria-selected={active}
+                      type="button"
+                      data-slot="floating-select-option"
+                      data-active={active ? "" : undefined}
+                      variants={shouldReduceMotion ? undefined : optionVariants}
+                      onClick={() => handleSelect(option)}
+                      className={cn(
+                        "relative flex h-8 w-full items-center gap-6 overflow-hidden rounded-md px-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+                        active
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      )}
+                    >
+                      {active ? (
+                        <motion.span
+                          layoutId={activeSurfaceLayoutId}
+                          aria-hidden="true"
+                          initial={
+                            shouldReduceMotion
+                              ? false
+                              : { opacity: 0, scale: 0.98 }
+                          }
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={ACTIVE_SURFACE_TRANSITION}
+                          className="absolute inset-0 rounded-md bg-primary"
+                        />
+                      ) : null}
+                      <span className="relative z-10 flex items-center gap-2.5">
+                        {option.icon ? (
+                          <span className="flex shrink-0 items-center justify-center">
+                            {option.icon}
+                          </span>
+                        ) : null}
+                        <span>{option.label}</span>
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              ref={triggerRef}
+              key="floating-select-trigger"
+              data-slot="floating-select-trigger-wrapper"
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0 }}
+              transition={{ ...PANEL_TRANSITION, ...reduceMotionTransition }}
+              className="flex w-fit items-center p-1"
+            >
+              <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-controls={listboxId}
+                data-slot="floating-select-trigger"
+                onClick={handleOpen}
+                className={cn(
+                  "group relative flex h-8 items-center gap-2 overflow-hidden rounded-md px-3 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+                  triggerClassName,
+                )}
+              >
+                {icon ? (
+                  <span className="relative z-10 flex shrink-0 items-center justify-center">
+                    {icon}
+                  </span>
+                ) : null}
+                {label ? (
+                  <span className="relative z-10 text-foreground">
+                    {label}
+                  </span>
+                ) : null}
+                {showSelectedValue && selectedOption ? (
+                  <span className="relative z-10 text-muted-foreground">
+                    {selectedOption.label}
+                  </span>
+                ) : null}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </LayoutGroup>
   );
 
   if (placement === "inline") {
