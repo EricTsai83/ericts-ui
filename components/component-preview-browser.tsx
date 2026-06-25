@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, Code2, Eye, PackageCheck } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Code2,
+  Eye,
+  PackageCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -69,9 +75,11 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
             </div>
             <Link
               href={activeItem.href}
-              className="shrink-0 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Open ${activeItem.title} component page`}
+              title={`Open ${activeItem.title} component page`}
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              Docs
+              <ArrowUpRight aria-hidden="true" className="size-3.5" />
             </Link>
           </div>
 
@@ -161,7 +169,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
           <div
             role="tablist"
             aria-label="Preview components"
-            className="flex flex-col"
+            className="flex flex-1 flex-col"
           >
             {items.map((item) => {
               const isActive = item.name === activeItem.name;
@@ -175,7 +183,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
                   aria-controls="component-preview-panel"
                   onClick={() => setActiveName(item.name)}
                   className={cn(
-                    "flex min-h-16 w-full flex-col items-start justify-center gap-1 border-b px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "flex min-h-16 w-full flex-1 flex-col items-start justify-center gap-1 border-b px-4 py-3 text-left transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isActive
                       ? "bg-muted/50 text-foreground"
                       : "text-muted-foreground hover:bg-muted/30 hover:text-foreground",

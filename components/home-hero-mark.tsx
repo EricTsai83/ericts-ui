@@ -8,23 +8,31 @@ import { LogoIcon } from "@/components/icons";
 const heartRestState = {
   rotate: 6,
   scale: 1,
+  x: "3.5%",
+  y: "-2%",
 };
 
 const heartHoverState = {
   rotate: 0,
   scale: 1.125,
+  x: "0%",
+  y: "0%",
 };
 
 const shadowRestState = {
-  opacity: 1,
-  rotate: -6,
+  opacity: 0.92,
+  rotate: -8,
   scale: 1,
+  x: "-10%",
+  y: "-16%",
 };
 
 const shadowHoverState = {
   opacity: 0.9,
   rotate: 0,
   scale: 0.72,
+  x: "0%",
+  y: "0%",
 };
 
 const instantTransition = { duration: 0 } as const;
@@ -50,10 +58,21 @@ const shadowExitTransition = {
   bounce: 0,
 } as const;
 
+const heartHitAreaPath =
+  "M128 224.6l-8.8-7.8C54 158.8 16 124 16 78.4 16 46 39.2 24 72 24c22.8 0 41.8 13.2 56 36 14.2-22.8 33.2-36 56-36 32.8 0 56 22 56 54.4 0 45.6-38 80.4-103.2 138.4L128 224.6z";
+
 export function HomeHeroMark() {
   const shouldReduceMotion = useReducedMotion();
   const [isHovering, setIsHovering] = React.useState(false);
   const isAligned = !shouldReduceMotion && isHovering;
+
+  function handleHitAreaPointerEnter(
+    event: React.PointerEvent<SVGPathElement>,
+  ) {
+    if (event.pointerType !== "touch") {
+      setIsHovering(true);
+    }
+  }
 
   return (
     <div
@@ -70,7 +89,7 @@ export function HomeHeroMark() {
               ? shadowEnterTransition
               : shadowExitTransition
         }
-        className="pointer-events-none absolute inset-0 size-full text-foreground/10 dark:text-muted/85"
+        className="pointer-events-none absolute inset-0 size-full text-foreground/[0.085] dark:text-muted/75"
         style={{ transformOrigin: "center" }}
       >
         <LogoIcon className="size-full" />
@@ -86,12 +105,27 @@ export function HomeHeroMark() {
               ? heartEnterTransition
               : heartExitTransition
         }
-        className="pointer-events-auto absolute inset-[18%] size-[64%] text-foreground/85"
-        onHoverStart={() => setIsHovering(true)}
-        onHoverEnd={() => setIsHovering(false)}
+        className="pointer-events-none absolute inset-[18%] size-[64%] text-foreground/88"
         style={{ transformOrigin: "center" }}
       >
-        <LogoIcon className="size-full" />
+        <LogoIcon className="pointer-events-none size-full" />
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 size-full"
+          viewBox="0 0 256 256"
+        >
+          <path
+            d={heartHitAreaPath}
+            fill="transparent"
+            stroke="transparent"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="18"
+            pointerEvents="all"
+            onPointerEnter={handleHitAreaPointerEnter}
+            onPointerLeave={() => setIsHovering(false)}
+          />
+        </svg>
       </motion.div>
     </div>
   );
