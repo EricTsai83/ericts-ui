@@ -17,7 +17,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   useEffect,
   useId,
@@ -28,6 +28,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useElementHeight } from "@/registry/base/hooks/use-element-height";
+import {
+  useElementSizeMap,
+  type ElementSize,
+} from "@/registry/base/hooks/use-element-size-map";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { CheckboxAnimation } from "@/registry/base/ui/checkbox-animation";
 import {
@@ -95,6 +100,8 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "adaptive-drawer": () => <AdaptiveDrawerPreview />,
   "staggered-entrance": () => <StaggeredEntrancePreview />,
   "use-reduced-motion": () => <UseReducedMotionPreview />,
+  "use-element-height": () => <UseElementHeightPreview />,
+  "use-element-size-map": () => <UseElementSizeMapPreview />,
 };
 
 export function RegistryPreview({
@@ -262,6 +269,212 @@ function UseReducedMotionPreview() {
   );
 }
 
+function UseElementHeightPreview() {
+  const [activeId, setActiveId] = useState<string>(elementHeightPanels[0].id);
+  const [measureRef, height] = useElementHeight<HTMLDivElement>();
+  const shouldReduceMotion = useReducedMotion();
+  const activePanel =
+    elementHeightPanels.find((panel) => panel.id === activeId) ??
+    elementHeightPanels[0];
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col gap-4">
+      <DemoSegmentedControl
+        label="Panel height"
+        items={elementHeightPanels}
+        value={activeId}
+        onValueChange={setActiveId}
+      />
+
+      <motion.div
+        animate={{ height: height ?? "auto" }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { duration: 0.24, ease: easeOutCubicTuple }
+        }
+        className="overflow-hidden rounded-lg border bg-background"
+      >
+        <div ref={measureRef} className="p-4">
+          <motion.div
+            key={activePanel.id}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.18,
+              ease: easeOutCubicTuple,
+            }}
+            className="flex flex-col gap-3"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  {activePanel.title}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {activePanel.meta}
+                </p>
+              </div>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {activePanel.badge}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {activePanel.rows.map((row) => (
+                <div
+                  key={row}
+                  className="flex items-center gap-2 rounded-md bg-muted/45 px-2.5 py-2 text-sm text-foreground"
+                >
+                  <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+                  <span className="min-w-0 truncate">{row}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function UseElementSizeMapPreview() {
+  const [activeId, setActiveId] = useState<string>(
+    elementSizeMapPanels[0].id,
+  );
+  const { setMeasureRef, sizes } = useElementSizeMap<HTMLDivElement>();
+  const shouldReduceMotion = useReducedMotion();
+  const activePanel =
+    elementSizeMapPanels.find((panel) => panel.id === activeId) ??
+    elementSizeMapPanels[0];
+  const activeSize = sizes[activePanel.id] ?? elementSizeMapFallbackSize;
+
+  return (
+    <div className="relative mx-auto flex w-full max-w-xl flex-col items-center gap-4">
+      <DemoSegmentedControl
+        label="Measured panel"
+        items={elementSizeMapPanels}
+        value={activeId}
+        onValueChange={setActiveId}
+      />
+
+      <div
+        aria-hidden
+        className="pointer-events-none invisible absolute left-0 top-0"
+      >
+        {elementSizeMapPanels.map((panel) => (
+          <div key={panel.id} ref={setMeasureRef(panel.id)} className="w-max">
+            <ElementSizeMapPanel panel={panel} />
+          </div>
+        ))}
+      </div>
+
+      <motion.div
+        animate={{ width: activeSize.width, height: activeSize.height }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { duration: 0.24, ease: easeOutCubicTuple }
+        }
+        className="relative overflow-hidden rounded-lg border bg-background shadow-sm"
+      >
+        <motion.div
+          key={activePanel.id}
+          initial={
+            shouldReduceMotion
+              ? false
+              : { opacity: 0, scale: 0.98, filter: "blur(4px)" }
+          }
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.18,
+            ease: easeOutCubicTuple,
+          }}
+          className="absolute left-0 top-0"
+          style={{ transformOrigin: "top left" }}
+        >
+          <ElementSizeMapPanel panel={activePanel} />
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
+function DemoSegmentedControl<T extends { id: string; label: string }>({
+  label,
+  items,
+  value,
+  onValueChange,
+}: {
+  label: string;
+  items: readonly T[];
+  value: string;
+  onValueChange: (value: string) => void;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="flex flex-wrap justify-center gap-1 rounded-lg border bg-muted/50 p-1"
+    >
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          role="radio"
+          aria-checked={item.id === value}
+          onClick={() => onValueChange(item.id)}
+          className={cn(
+            "h-8 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors",
+            "hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            item.id === value && "bg-background text-foreground shadow-sm",
+          )}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ElementSizeMapPanel({ panel }: { panel: ElementSizeMapPanelData }) {
+  return (
+    <div className={cn("flex flex-col gap-3 p-4", panel.className)}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">{panel.title}</p>
+          <p className="text-xs text-muted-foreground">{panel.meta}</p>
+        </div>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {panel.badge}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {panel.rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between gap-4 rounded-md bg-muted/45 px-2.5 py-2 text-sm"
+          >
+            <span className="min-w-0 truncate text-foreground">
+              {row.label}
+            </span>
+            <span className="shrink-0 font-medium text-muted-foreground">
+              {row.value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {panel.footer ? (
+        <p className="rounded-md border bg-background px-2.5 py-2 text-xs leading-5 text-muted-foreground">
+          {panel.footer}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ReducedMotionSidebarDemo({
   isOpen,
   shouldReduceMotion,
@@ -374,6 +587,108 @@ function MainPane() {
     </div>
   );
 }
+
+const elementHeightPanels = [
+  {
+    id: "brief",
+    label: "Brief",
+    title: "Daily pulse",
+    meta: "3 pinned updates",
+    badge: "Short",
+    rows: ["Design review at 10:00", "Billing copy is ready", "Deploy note sent"],
+  },
+  {
+    id: "queue",
+    label: "Queue",
+    title: "Review queue",
+    meta: "5 changes waiting",
+    badge: "Medium",
+    rows: [
+      "Navigation labels",
+      "Checkout empty state",
+      "Webhook retry copy",
+      "Team invite flow",
+      "Audit log filters",
+    ],
+  },
+  {
+    id: "handoff",
+    label: "Handoff",
+    title: "Release handoff",
+    meta: "Cross-functional checklist",
+    badge: "Tall",
+    rows: [
+      "QA pass confirmed",
+      "Migration notes attached",
+      "Support macros updated",
+      "Launch dashboard pinned",
+      "Rollback owner assigned",
+      "Metrics review scheduled",
+    ],
+  },
+] as const;
+
+type ElementSizeMapPanelData = {
+  id: string;
+  label: string;
+  title: string;
+  meta: string;
+  badge: string;
+  className: string;
+  rows: { label: string; value: string }[];
+  footer?: string;
+};
+
+const elementSizeMapPanels: ElementSizeMapPanelData[] = [
+  {
+    id: "compact",
+    label: "Compact",
+    title: "Inbox",
+    meta: "Focused triage",
+    badge: "3",
+    className: "w-56",
+    rows: [
+      { label: "Mentions", value: "12" },
+      { label: "Assigned", value: "4" },
+      { label: "Snoozed", value: "2" },
+    ],
+  },
+  {
+    id: "wide",
+    label: "Wide",
+    title: "Campaign health",
+    meta: "Live segments",
+    badge: "Live",
+    className: "w-72",
+    rows: [
+      { label: "Activation", value: "68%" },
+      { label: "Retention", value: "41%" },
+      { label: "Expansion", value: "19%" },
+    ],
+    footer: "North America is pacing ahead of forecast after the pricing update.",
+  },
+  {
+    id: "tall",
+    label: "Tall",
+    title: "Launch plan",
+    meta: "Final sequence",
+    badge: "6",
+    className: "w-64",
+    rows: [
+      { label: "Freeze scope", value: "Done" },
+      { label: "Notify beta", value: "9:00" },
+      { label: "Publish docs", value: "10:30" },
+      { label: "Enable flag", value: "11:00" },
+      { label: "Read metrics", value: "14:00" },
+    ],
+    footer: "Owners are assigned for each launch window and rollback review.",
+  },
+];
+
+const elementSizeMapFallbackSize = {
+  width: 224,
+  height: 168,
+} satisfies ElementSize;
 
 const preferenceOptions: {
   value: ReducedMotionDemoPreference;

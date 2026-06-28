@@ -243,6 +243,30 @@ const hookPreviewConfigs: Partial<Record<
       </>
     ),
   },
+  "use-element-height": {
+    title: "Animate to real content height",
+    description: (
+      <>
+        <code className="font-mono text-foreground">useElementHeight</code>{" "}
+        measures one rendered element and gives a container a stable pixel
+        height to animate toward. It is the right fit for accordions,
+        collapsibles, step flows, drawers, and panels where the width is fixed
+        but the content height changes.
+      </>
+    ),
+  },
+  "use-element-size-map": {
+    title: "Measure multiple layouts before they become active",
+    description: (
+      <>
+        <code className="font-mono text-foreground">useElementSizeMap</code>{" "}
+        stores width and height by key, so a component can animate an outer
+        shell, highlight, toolbar, or floating panel toward the measured size of
+        the selected item. It is useful when inactive content still needs to
+        define the next layout target.
+      </>
+    ),
+  },
 };
 
 function ComponentPreviewCard({

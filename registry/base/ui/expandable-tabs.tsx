@@ -17,6 +17,10 @@ import {
   type ReactNode,
 } from "react";
 
+import {
+  useElementSizeMap,
+  type ElementSize,
+} from "@/hooks/use-element-size-map";
 import { cn } from "@/lib/utils";
 
 // Inlined so the registry item is self-contained. Strong custom ease — the
@@ -87,7 +91,6 @@ export interface ExpandableTabsProps {
   classNames?: ExpandableTabsClassNames;
 }
 
-type Size = { width: number; height: number };
 type ButtonState = "active" | "inactive";
 type DockButtonGeometry = { x: number; width: number };
 
@@ -159,46 +162,10 @@ function getButtonState(tabId: string, activeId: string | null): ButtonState {
   return tabId === activeId ? "active" : "inactive";
 }
 
-function sameSize(a: Size | null | undefined, b: Size | null | undefined) {
-  return a?.width === b?.width && a?.height === b?.height;
-}
-
-// Callback-ref measurement for hidden sizers. Each target is measured
-// independently, so panel and dock geometry can stay content-driven.
-function useMeasuredSizes<T extends HTMLElement = HTMLDivElement>() {
-  const [sizes, setSizes] = useState<Record<string, Size>>({});
-  const observers = useRef<Record<string, ResizeObserver>>({});
-
-  const setMeasureRef = useCallback(
-    (id: string) => (node: T | null) => {
-      observers.current[id]?.disconnect();
-      delete observers.current[id];
-      if (!node) return;
-
-      const measure = () => {
-        const next = { width: node.offsetWidth, height: node.offsetHeight };
-        setSizes((current) =>
-          sameSize(current[id], next) ? current : { ...current, [id]: next },
-        );
-      };
-
-      measure();
-
-      if (typeof ResizeObserver === "undefined") return;
-      const observer = new ResizeObserver(measure);
-      observer.observe(node);
-      observers.current[id] = observer;
-    },
-    [],
-  );
-
-  return { setMeasureRef, sizes };
-}
-
 function useDockGeometry(
   items: ExpandableTabItem[],
   activeId: string | null,
-  buttonSizes: Record<string, Size>,
+  buttonSizes: Record<string, ElementSize>,
 ) {
   return useMemo(() => {
     const buttonsById: Record<string, DockButtonGeometry> = {};
@@ -556,9 +523,9 @@ export function ExpandableTabs({
   const baseId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const { setMeasureRef: setPanelMeasureRef, sizes: panelSizes } =
-    useMeasuredSizes<HTMLDivElement>();
+    useElementSizeMap<HTMLDivElement>();
   const { setMeasureRef: setButtonMeasureRef, sizes: buttonSizes } =
-    useMeasuredSizes<HTMLButtonElement>();
+    useElementSizeMap<HTMLButtonElement>();
 
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);

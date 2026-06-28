@@ -65,6 +65,16 @@ export async function RegistryItemPage({
       files: await highlightCodeFiles(primaryFiles, item.type === "registry:hook"),
     },
   ];
+  const hookUsageFiles =
+    item.type === "registry:hook" ? getHookUsageSnippets(item.name) : [];
+
+  if (hookUsageFiles.length > 0) {
+    codeVariants.push({
+      value: "usage",
+      label: "Usage",
+      files: await highlightCodeFiles(hookUsageFiles, true),
+    });
+  }
 
   if (cssOnlyFiles.length > 0) {
     codeVariants.push({
@@ -289,6 +299,94 @@ function getPrimaryRegistryFile(item: RegistryItem) {
     ["registry:ui", "registry:hook"].includes(entry.type),
   );
 }
+
+function getHookUsageSnippets(name: string) {
+  return hookUsageSnippets[name] ?? [];
+}
+
+const hookUsageSnippets: Record<string, ComponentCodeFile[]> = {
+  "use-element-height": [
+    {
+      name: "auto-height-panel.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { motion } from "motion/react";
+import type { ReactNode } from "react";
+
+import { useElementHeight } from "@/hooks/use-element-height";
+
+export function AutoHeightPanel({ children }: { children: ReactNode }) {
+  const [measureRef, height] = useElementHeight<HTMLDivElement>();
+
+  return (
+    <motion.div
+      animate={{ height: height ?? "auto" }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="overflow-hidden"
+    >
+      <div ref={measureRef}>{children}</div>
+    </motion.div>
+  );
+}`,
+    },
+  ],
+  "use-element-size-map": [
+    {
+      name: "morphing-panel.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { motion } from "motion/react";
+import type { ReactNode } from "react";
+
+import { useElementSizeMap } from "@/hooks/use-element-size-map";
+
+type Panel = {
+  id: string;
+  content: ReactNode;
+};
+
+export function MorphingPanel({
+  panels,
+  activeId,
+}: {
+  panels: Panel[];
+  activeId: string;
+}) {
+  const { setMeasureRef, sizes } = useElementSizeMap<HTMLDivElement>();
+  const activePanel = panels.find((panel) => panel.id === activeId);
+  const activeSize = activePanel ? sizes[activePanel.id] : undefined;
+  const targetSize = activeSize ?? { width: 320, height: 180 };
+
+  if (!activePanel) return null;
+
+  return (
+    <div className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none invisible absolute left-0 top-0"
+      >
+        {panels.map((panel) => (
+          <div key={panel.id} ref={setMeasureRef(panel.id)} className="w-max">
+            {panel.content}
+          </div>
+        ))}
+      </div>
+
+      <motion.div
+        animate={{ width: targetSize.width, height: targetSize.height }}
+        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+        className="overflow-hidden"
+      >
+        {activePanel.content}
+      </motion.div>
+    </div>
+  );
+}`,
+    },
+  ],
+};
 
 const motionApiReducedMotionSnippets: ComponentCodeFile[] = [
   {

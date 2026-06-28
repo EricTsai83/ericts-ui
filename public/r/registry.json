@@ -223,6 +223,9 @@
         ],
         "effects": ["shared-layout", "morph", "blur", "spring"]
       },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-element-size-map.json"
+      ],
       "dependencies": ["motion"],
       "files": [
         {
@@ -432,6 +435,30 @@
           "path": "registry/base/hooks/use-element-height.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-height.ts"
+        }
+      ]
+    },
+    {
+      "name": "use-element-size-map",
+      "type": "registry:hook",
+      "title": "useElementSizeMap",
+      "description": "A client-safe React hook that measures multiple keyed element sizes with ResizeObserver so animated shells can morph to active content.",
+      "categories": ["animation", "layout"],
+      "meta": {
+        "tags": [
+          "resize-observer",
+          "auto-size",
+          "measure",
+          "width-animation",
+          "height-animation"
+        ],
+        "effects": ["morph", "size-animation", "layout-animation"]
+      },
+      "files": [
+        {
+          "path": "registry/base/hooks/use-element-size-map.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-element-size-map.ts"
         }
       ]
     }
