@@ -374,31 +374,14 @@ export function OTPInput({
           })}
         </div>
 
-        <AnimatePresence>
-          {showSuccess ? (
-            <motion.span
-              initial={
-                shouldReduceMotion ? { opacity: 0 } : { scale: 0.7, opacity: 0 }
-              }
-              animate={{ scale: 1, opacity: 1 }}
-              exit={
-                shouldReduceMotion ? { opacity: 0 } : { scale: 0.7, opacity: 0 }
-              }
-              transition={
-                shouldReduceMotion
-                  ? { duration: 0 }
-                  : { type: "spring", stiffness: 500, damping: 28, mass: 0.6 }
-              }
-              className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2"
-            >
-              <CheckAnimation
-                variant="circle"
-                label={successIndicatorLabel}
-                className="text-primary"
-              />
-            </motion.span>
-          ) : null}
-        </AnimatePresence>
+        {showSuccess ? (
+          <CheckAnimation
+            variant="circle"
+            size="md"
+            label={successIndicatorLabel}
+            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-emerald-500 [--check-animation-check-duration:260ms] [--check-animation-shape-duration:420ms]"
+          />
+        ) : null}
       </div>
 
       {hasMessageSlot ? (
