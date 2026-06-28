@@ -7,9 +7,6 @@
 .check-animation-shape {
   animation: check-animation-draw var(--check-animation-shape-duration)
     var(--check-animation-ease) forwards;
-}
-
-.check-animation-circle {
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
 }
