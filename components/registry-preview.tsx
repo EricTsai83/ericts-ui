@@ -35,8 +35,7 @@ import {
   type ElementSize,
 } from "@/registry/base/hooks/use-element-size-map";
 import { CopyButton } from "@/registry/base/ui/copy-button";
-import { CircleCheckAnimation } from "@/registry/base/ui/circle-check-animation";
-import { CheckboxAnimation } from "@/registry/base/ui/checkbox-animation";
+import { CheckAnimation } from "@/registry/base/ui/check-animation";
 import {
   JitterAnimation,
   type JitterAnimationAxis,
@@ -86,8 +85,7 @@ import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-he
 const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
-  "checkbox-animation": () => <CheckboxAnimationPreview />,
-  "circle-check-animation": () => <CircleCheckAnimationPreview />,
+  "check-animation": () => <CheckAnimationPreview />,
   "jitter-animation": () => <JitterAnimationPreview />,
   "squeeze-animation": () => <SqueezeAnimationPreview />,
   "status-badge": () => <StatusBadgePreview />,
@@ -156,26 +154,27 @@ function CopyButtonPreview() {
   );
 }
 
-function CheckboxAnimationPreview() {
+function CheckAnimationPreview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (
-        <CheckboxAnimation key={replayKey} className="w-full max-w-xs" />
-      )}
-    </ReplayablePreview>
-  );
-}
-
-function CircleCheckAnimationPreview() {
-  return (
-    <ReplayablePreview>
-      {(replayKey) => (
-        <CircleCheckAnimation
+        <div
           key={replayKey}
-          size="lg"
-          label="Verified"
-          className="text-emerald-500"
-        />
+          className="mx-auto flex w-full max-w-xs items-center justify-center gap-8"
+        >
+          <CheckAnimation
+            variant="square"
+            size="lg"
+            label="Checked"
+            className="text-foreground"
+          />
+          <CheckAnimation
+            variant="circle"
+            size="lg"
+            label="Verified"
+            className="text-primary"
+          />
+        </div>
       )}
     </ReplayablePreview>
   );

@@ -103,44 +103,33 @@
       ]
     },
     {
-      "name": "checkbox-animation",
+      "name": "check-animation",
       "type": "registry:ui",
-      "title": "Checkbox Animation",
-      "description": "An SVG checkbox completion animation that draws the box and checkmark in sequence.",
-      "categories": ["animation", "svg"],
-      "meta": {
-        "tags": ["svg", "svg-animation", "checkbox", "complete", "checkmark"],
-        "effects": ["svg-draw", "path-draw", "completion"]
-      },
-      "files": [
-        {
-          "path": "registry/base/ui/checkbox-animation.tsx",
-          "type": "registry:ui",
-          "target": "components/ui/checkbox-animation.tsx"
-        },
-        {
-          "path": "registry/base/ui/checkbox-animation.css",
-          "type": "registry:file",
-          "target": "components/ui/checkbox-animation.css"
-        }
-      ]
-    },
-    {
-      "name": "circle-check-animation",
-      "type": "registry:ui",
-      "title": "Circle Check Animation",
-      "description": "A compact SVG success indicator that draws a circle before the checkmark.",
+      "title": "Check Animation",
+      "description": "A pure SVG checkmark animation that draws a square or circle before the check.",
       "categories": ["animation", "svg", "feedback"],
       "meta": {
-        "tags": ["svg", "svg-animation", "success", "checkmark", "completion"],
+        "tags": [
+          "svg",
+          "svg-animation",
+          "checkbox",
+          "circle",
+          "success",
+          "checkmark",
+          "completion"
+        ],
         "effects": ["svg-draw", "path-draw", "completion"]
       },
-      "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/circle-check-animation.tsx",
+          "path": "registry/base/ui/check-animation.tsx",
           "type": "registry:ui",
-          "target": "components/ui/circle-check-animation.tsx"
+          "target": "components/ui/check-animation.tsx"
+        },
+        {
+          "path": "registry/base/ui/check-animation.css",
+          "type": "registry:file",
+          "target": "components/ui/check-animation.css"
         }
       ]
     },
@@ -217,7 +206,7 @@
         "effects": ["digit-roll", "error-shake", "svg-draw", "success-state"]
       },
       "registryDependencies": [
-        "https://ui.ericts.com/r/circle-check-animation.json"
+        "https://ui.ericts.com/r/check-animation.json"
       ],
       "dependencies": ["motion"],
       "files": [

@@ -8,7 +8,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 
-import { CircleCheckAnimation } from "@/components/ui/circle-check-animation";
+import { CheckAnimation } from "@/components/ui/check-animation";
 import { cn } from "@/lib/utils";
 
 export type OTPStatus = "idle" | "error" | "success";
@@ -391,9 +391,10 @@ export function OTPInput({
               }
               className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2"
             >
-              <CircleCheckAnimation
+              <CheckAnimation
+                variant="circle"
                 label={successIndicatorLabel}
-                className="text-emerald-500"
+                className="text-primary"
               />
             </motion.span>
           ) : null}
