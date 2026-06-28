@@ -1,0 +1,37 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "status-badge",
+  "title": "Status Badge",
+  "description": "A compact animated badge for status labels with icon and text slot transitions.",
+  "dependencies": [
+    "motion",
+    "lucide-react"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/status-badge.tsx",
+      "content": "\"use client\";\n\nimport {\n  AlertTriangle,\n  Check,\n  Circle,\n  Info,\n  LoaderCircle,\n  X,\n  type LucideIcon,\n} from \"lucide-react\";\nimport {\n  AnimatePresence,\n  motion,\n  useReducedMotion,\n  type HTMLMotionProps,\n  type Variants,\n} from \"motion/react\";\nimport type { ReactNode } from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nexport type StatusBadgeStatus =\n  | \"neutral\"\n  | \"info\"\n  | \"success\"\n  | \"warning\"\n  | \"danger\"\n  | \"loading\";\n\nexport type StatusBadgeSize = \"sm\" | \"md\";\n\nexport interface StatusBadgeProps\n  extends Omit<HTMLMotionProps<\"span\">, \"children\"> {\n  status?: StatusBadgeStatus;\n  size?: StatusBadgeSize;\n  children?: ReactNode;\n  icon?: ReactNode;\n  showIcon?: boolean;\n  pulse?: boolean;\n  contentKey?: string | number;\n}\n\nconst EASE = [0.4, 0, 0.2, 1] as const;\nconst SPRING_LAYOUT = {\n  type: \"spring\",\n  stiffness: 420,\n  damping: 38,\n  mass: 0.7,\n} as const;\nconst CONTENT_TRANSITION = {\n  type: \"spring\",\n  duration: 0.3,\n  bounce: 0,\n} as const;\n\nconst statusClassNames: Record<StatusBadgeStatus, string> = {\n  neutral: \"border-border bg-muted text-muted-foreground\",\n  info: \"border-primary/25 bg-primary/10 text-primary\",\n  success:\n    \"border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300\",\n  warning:\n    \"border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300\",\n  danger: \"border-destructive/25 bg-destructive/10 text-destructive\",\n  loading: \"border-primary/25 bg-primary/10 text-primary\",\n};\n\nconst sizeClassNames: Record<StatusBadgeSize, string> = {\n  sm: \"h-6 gap-1.5 px-2 text-[11px]\",\n  md: \"h-8 gap-2 px-3 text-xs\",\n};\n\nconst iconClassNames: Record<StatusBadgeSize, string> = {\n  sm: \"size-3\",\n  md: \"size-3.5\",\n};\n\nconst statusIcons: Record<StatusBadgeStatus, LucideIcon> = {\n  neutral: Circle,\n  info: Info,\n  success: Check,\n  warning: AlertTriangle,\n  danger: X,\n  loading: LoaderCircle,\n};\n\nconst iconVariants: Variants = {\n  initial: {\n    opacity: 0,\n    y: 12,\n    scale: 0.96,\n    rotateX: -35,\n  },\n  animate: {\n    opacity: 1,\n    y: 0,\n    scale: 1,\n    rotateX: 0,\n    transition: {\n      y: CONTENT_TRANSITION,\n      scale: CONTENT_TRANSITION,\n      rotateX: CONTENT_TRANSITION,\n      opacity: CONTENT_TRANSITION,\n    },\n  },\n  exit: {\n    opacity: 0,\n    y: -12,\n    scale: 0.96,\n    rotateX: 35,\n    transition: {\n      y: CONTENT_TRANSITION,\n      scale: CONTENT_TRANSITION,\n      rotateX: CONTENT_TRANSITION,\n      opacity: CONTENT_TRANSITION,\n    },\n  },\n};\n\nconst labelVariants: Variants = {\n  initial: { opacity: 0, y: 12, rotateX: -35 },\n  animate: {\n    opacity: 1,\n    y: 0,\n    rotateX: 0,\n    transition: {\n      y: CONTENT_TRANSITION,\n      rotateX: CONTENT_TRANSITION,\n      opacity: CONTENT_TRANSITION,\n    },\n  },\n  exit: {\n    opacity: 0,\n    y: -12,\n    rotateX: 35,\n    transition: {\n      y: CONTENT_TRANSITION,\n      rotateX: CONTENT_TRANSITION,\n      opacity: CONTENT_TRANSITION,\n    },\n  },\n};\n\nexport function StatusBadge({\n  status = \"neutral\",\n  size = \"md\",\n  children,\n  icon,\n  showIcon = true,\n  pulse = status === \"loading\",\n  contentKey,\n  className,\n  ...props\n}: StatusBadgeProps) {\n  const shouldReduceMotion = useReducedMotion();\n  const Icon = statusIcons[status];\n  const resolvedContentKey =\n    contentKey ??\n    (typeof children === \"string\" || typeof children === \"number\"\n      ? children\n      : status);\n\n  return (\n    <motion.span\n      layout\n      data-slot=\"status-badge\"\n      transition={shouldReduceMotion ? { duration: 0 } : SPRING_LAYOUT}\n      className={cn(\n        \"relative inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full border font-medium tabular-nums\",\n        \"transition-colors duration-150 ease-out\",\n        statusClassNames[status],\n        sizeClassNames[size],\n        className\n      )}\n      {...props}\n    >\n      {pulse && !shouldReduceMotion ? (\n        <motion.span\n          aria-hidden=\"true\"\n          className=\"absolute inset-0 rounded-full bg-current\"\n          initial={{ opacity: 0, scale: 0.98 }}\n          animate={{ scale: [0.98, 1.04, 0.98], opacity: [0.04, 0.12, 0.04] }}\n          exit={{ opacity: 0, transition: { duration: 0.12, ease: EASE } }}\n          transition={{ duration: 1.8, repeat: Infinity, ease: EASE }}\n        />\n      ) : null}\n\n      {showIcon ? (\n        <span\n          data-slot=\"status-badge-icon-wrap\"\n          className=\"relative z-10 inline-flex items-center justify-center overflow-hidden\"\n        >\n          <AnimatePresence mode=\"popLayout\" initial={false}>\n            <motion.span\n              key={status}\n              aria-hidden=\"true\"\n              data-slot=\"status-badge-icon\"\n              variants={iconVariants}\n              initial={shouldReduceMotion ? false : \"initial\"}\n              animate={shouldReduceMotion ? { opacity: 1 } : \"animate\"}\n              exit={shouldReduceMotion ? undefined : \"exit\"}\n              className=\"inline-flex [transform-origin:50%_65%] [transform-style:preserve-3d] will-change-transform\"\n            >\n              {status === \"loading\" && !shouldReduceMotion && !icon ? (\n                <motion.span\n                  animate={{ rotate: 360 }}\n                  transition={{ duration: 0.9, repeat: Infinity, ease: \"linear\" }}\n                  className=\"inline-flex\"\n                >\n                  <Icon className={iconClassNames[size]} />\n                </motion.span>\n              ) : (\n                (icon ?? <Icon className={iconClassNames[size]} />)\n              )}\n            </motion.span>\n          </AnimatePresence>\n        </span>\n      ) : null}\n\n      {children != null ? (\n        <span\n          data-slot=\"status-badge-label-wrap\"\n          className=\"relative z-10 inline-flex overflow-hidden\"\n        >\n          <AnimatePresence mode=\"popLayout\" initial={false}>\n            <motion.span\n              key={resolvedContentKey}\n              data-slot=\"status-badge-label\"\n              variants={labelVariants}\n              initial={shouldReduceMotion ? false : \"initial\"}\n              animate={shouldReduceMotion ? { opacity: 1 } : \"animate\"}\n              exit={shouldReduceMotion ? undefined : \"exit\"}\n              className=\"inline-block [transform-origin:50%_65%] [transform-style:preserve-3d] will-change-transform\"\n            >\n              {children}\n            </motion.span>\n          </AnimatePresence>\n        </span>\n      ) : null}\n    </motion.span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/status-badge.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "badge",
+      "status",
+      "loading",
+      "state-transition",
+      "icon-swap"
+    ],
+    "effects": [
+      "state-transition",
+      "icon-swap",
+      "pulse"
+    ]
+  },
+  "categories": [
+    "badge",
+    "data-display"
+  ],
+  "type": "registry:ui"
+}

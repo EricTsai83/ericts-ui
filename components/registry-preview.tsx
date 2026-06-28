@@ -11,7 +11,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import {
   useEffect,
   useId,
@@ -39,9 +39,9 @@ import {
 } from "@/registry/base/ui/adaptive-drawer";
 import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
 import {
-  StateBadge,
-  type StateBadgeStatus,
-} from "@/registry/base/ui/state-badge";
+  StatusBadge,
+  type StatusBadgeStatus,
+} from "@/registry/base/ui/status-badge";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { FloatingSelect } from "@/registry/base/ui/floating-select";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
@@ -71,7 +71,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "checkbox-animation": () => <CheckboxAnimationPreview />,
   "jitter-animation": () => <JitterAnimationPreview />,
   "squeeze-animation": () => <SqueezeAnimationPreview />,
-  "state-badge": () => <StateBadgePreview />,
+  "status-badge": () => <StatusBadgePreview />,
   "status-button": () => <StatusButtonPreview />,
   "floating-select": () => <FloatingSelectPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
@@ -963,10 +963,10 @@ function StatusButtonPreview() {
   );
 }
 
-const stateBadgeFlow: {
+const statusBadgeFlow: {
   label: string;
   detail: string;
-  status: StateBadgeStatus;
+  status: StatusBadgeStatus;
 }[] = [
   {
     label: "Draft",
@@ -1000,47 +1000,19 @@ const stateBadgeFlow: {
   },
 ];
 
-function StateBadgePreview() {
+function StatusBadgePreview() {
   const [statusIndex, setStatusIndex] = useState(0);
-  const shouldReduceMotion = useReducedMotion();
-  const activeStep = stateBadgeFlow[statusIndex];
+  const activeStep = statusBadgeFlow[statusIndex];
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 text-center">
       <div className="flex min-h-32 w-full max-w-sm flex-col items-center justify-center gap-3 rounded-lg border bg-background px-5 py-5 shadow-sm">
-        <StateBadge status={activeStep.status}>{activeStep.label}</StateBadge>
-        <div className="flex min-h-5 items-center justify-center overflow-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.p
-              key={activeStep.detail}
-              initial={
-                shouldReduceMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, y: 4, filter: "blur(2px)" }
-              }
-              animate={
-                shouldReduceMotion
-                  ? { opacity: 1 }
-                  : { opacity: 1, y: 0, filter: "blur(0px)" }
-              }
-              exit={
-                shouldReduceMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, y: -4, filter: "blur(2px)" }
-              }
-              transition={
-                shouldReduceMotion
-                  ? { duration: 0 }
-                  : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }
-              }
-              className="text-sm text-muted-foreground will-change-[filter,transform,opacity]"
-            >
-              {activeStep.detail}
-            </motion.p>
-          </AnimatePresence>
+        <StatusBadge status={activeStep.status}>{activeStep.label}</StatusBadge>
+        <div className="flex min-h-5 items-center justify-center">
+          <p className="text-sm text-muted-foreground">{activeStep.detail}</p>
         </div>
         <div className="flex items-center gap-1.5" aria-hidden="true">
-          {stateBadgeFlow.map((step, index) => (
+          {statusBadgeFlow.map((step, index) => (
             <span
               key={step.label}
               className={cn(
@@ -1056,7 +1028,7 @@ function StateBadgePreview() {
         variant="outline"
         size="sm"
         onClick={() =>
-          setStatusIndex((index) => (index + 1) % stateBadgeFlow.length)
+          setStatusIndex((index) => (index + 1) % statusBadgeFlow.length)
         }
       >
         Advance release

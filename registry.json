@@ -65,9 +65,9 @@
       ]
     },
     {
-      "name": "state-badge",
+      "name": "status-badge",
       "type": "registry:ui",
-      "title": "State Badge",
+      "title": "Status Badge",
       "description": "A compact animated badge for status labels with icon and text slot transitions.",
       "categories": ["badge", "data-display"],
       "meta": {
@@ -77,9 +77,9 @@
       "dependencies": ["motion", "lucide-react"],
       "files": [
         {
-          "path": "registry/base/ui/state-badge.tsx",
+          "path": "registry/base/ui/status-badge.tsx",
           "type": "registry:ui",
-          "target": "components/ui/state-badge.tsx"
+          "target": "components/ui/status-badge.tsx"
         }
       ]
     },
