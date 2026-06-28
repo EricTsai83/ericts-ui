@@ -21,6 +21,7 @@ import { motion, useReducedMotion } from "motion/react";
 import {
   useEffect,
   useId,
+  useRef,
   useState,
   type ComponentType,
   type ReactNode,
@@ -34,6 +35,7 @@ import {
   type ElementSize,
 } from "@/registry/base/hooks/use-element-size-map";
 import { CopyButton } from "@/registry/base/ui/copy-button";
+import { CircleCheckAnimation } from "@/registry/base/ui/circle-check-animation";
 import { CheckboxAnimation } from "@/registry/base/ui/checkbox-animation";
 import {
   JitterAnimation,
@@ -55,6 +57,7 @@ import {
 } from "@/registry/base/ui/status-badge";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { FloatingSelect } from "@/registry/base/ui/floating-select";
+import { OTPInput, type OTPStatus } from "@/registry/base/ui/otp-input";
 import {
   ExpandableTabs,
   type ExpandableTabItem,
@@ -84,11 +87,13 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
   "copy-button": () => <CopyButtonPreview />,
   "checkbox-animation": () => <CheckboxAnimationPreview />,
+  "circle-check-animation": () => <CircleCheckAnimationPreview />,
   "jitter-animation": () => <JitterAnimationPreview />,
   "squeeze-animation": () => <SqueezeAnimationPreview />,
   "status-badge": () => <StatusBadgePreview />,
   "status-button": () => <StatusButtonPreview />,
   "floating-select": () => <FloatingSelectPreview />,
+  "otp-input": () => <OTPInputPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "expandable-tabs": () => <ExpandableTabsPreview />,
   "navigation-menu": () => <NavigationMenuPreview />,
@@ -156,6 +161,21 @@ function CheckboxAnimationPreview() {
     <ReplayablePreview>
       {(replayKey) => (
         <CheckboxAnimation key={replayKey} className="w-full max-w-xs" />
+      )}
+    </ReplayablePreview>
+  );
+}
+
+function CircleCheckAnimationPreview() {
+  return (
+    <ReplayablePreview>
+      {(replayKey) => (
+        <CircleCheckAnimation
+          key={replayKey}
+          size="lg"
+          label="Verified"
+          className="text-emerald-500"
+        />
       )}
     </ReplayablePreview>
   );
@@ -1391,6 +1411,129 @@ function StatusButtonPreview() {
   return (
     <div className="flex items-center justify-center">
       <StatusButton />
+    </div>
+  );
+}
+
+const demoValidOtp = "248917";
+const demoExpiredOtp = "123456";
+const maxOtpAttempts = 3;
+
+function OTPInputPreview() {
+  const [value, setValue] = useState("");
+  const [status, setStatus] = useState<OTPStatus>("idle");
+  const [attemptsLeft, setAttemptsLeft] = useState(maxOtpAttempts);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const verificationTimer = useRef<number | null>(null);
+  const isLocked = attemptsLeft === 0;
+
+  useEffect(() => {
+    return () => {
+      if (verificationTimer.current) {
+        window.clearTimeout(verificationTimer.current);
+      }
+    };
+  }, []);
+
+  const clearVerificationTimer = () => {
+    if (!verificationTimer.current) return;
+
+    window.clearTimeout(verificationTimer.current);
+    verificationTimer.current = null;
+  };
+
+  const verify = (code: string) => {
+    if (isVerifying || isLocked || status === "success") return;
+
+    clearVerificationTimer();
+    setIsVerifying(true);
+    setStatus("idle");
+
+    verificationTimer.current = window.setTimeout(() => {
+      verificationTimer.current = null;
+      setIsVerifying(false);
+
+      if (code === demoValidOtp) {
+        setStatus("success");
+        return;
+      }
+
+      setValue("");
+      setAttemptsLeft((current) => Math.max(current - 1, 0));
+      setStatus("error");
+    }, 650);
+  };
+
+  const pasteCode = (code: string) => {
+    if (isVerifying || isLocked || status === "success") return;
+
+    setValue(code);
+    verify(code);
+  };
+
+  const reset = () => {
+    clearVerificationTimer();
+    setValue("");
+    setStatus("idle");
+    setAttemptsLeft(maxOtpAttempts);
+    setIsVerifying(false);
+  };
+
+  const attemptsMessage =
+    attemptsLeft === 1
+      ? "1 attempt remaining."
+      : `${attemptsLeft} attempts remaining.`;
+  const errorMessage =
+    attemptsLeft > 0
+      ? `Code expired. ${attemptsMessage}`
+      : "Code expired. No attempts remaining.";
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4">
+      <OTPInput
+        label="Security code"
+        value={value}
+        onChange={(nextValue) => {
+          setValue(nextValue);
+          if (status === "error") {
+            setStatus("idle");
+          }
+        }}
+        onComplete={verify}
+        status={status}
+        disabled={isVerifying || isLocked}
+        errorMessage={errorMessage}
+      />
+
+      <div
+        role="group"
+        aria-label="OTP demo actions"
+        className="flex flex-wrap justify-center gap-2"
+      >
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isVerifying || isLocked || status === "success"}
+          onClick={() => pasteCode(demoValidOtp)}
+        >
+          Paste valid code
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isVerifying || isLocked || status === "success"}
+          onClick={() => pasteCode(demoExpiredOtp)}
+        >
+          Paste expired code
+        </Button>
+        {status === "success" || isLocked ? (
+          <Button type="button" variant="ghost" size="sm" onClick={reset}>
+            Reset
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

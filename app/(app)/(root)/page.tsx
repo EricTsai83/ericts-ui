@@ -42,6 +42,7 @@ const componentPreviewNames = [
   "highlight-tabs",
   "smooth-height",
   "status-button",
+  "otp-input",
   "multi-step",
   "adaptive-drawer",
   "text-morph",

@@ -126,6 +126,25 @@
       ]
     },
     {
+      "name": "circle-check-animation",
+      "type": "registry:ui",
+      "title": "Circle Check Animation",
+      "description": "A compact SVG success indicator that draws a circle before the checkmark.",
+      "categories": ["animation", "svg", "feedback"],
+      "meta": {
+        "tags": ["svg", "svg-animation", "success", "checkmark", "completion"],
+        "effects": ["svg-draw", "path-draw", "completion"]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/circle-check-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/circle-check-animation.tsx"
+        }
+      ]
+    },
+    {
       "name": "jitter-animation",
       "type": "registry:ui",
       "title": "Jitter Animation",
@@ -184,6 +203,28 @@
           "path": "registry/base/ui/squeeze-animation.css",
           "type": "registry:file",
           "target": "components/ui/squeeze-animation.css"
+        }
+      ]
+    },
+    {
+      "name": "otp-input",
+      "type": "registry:ui",
+      "title": "OTP Input",
+      "description": "A fixed-slot one-time passcode input with paste, autofill, error shake, and animated success feedback.",
+      "categories": ["form", "input", "feedback"],
+      "meta": {
+        "tags": ["otp", "one-time-code", "passcode", "paste", "autofill"],
+        "effects": ["digit-roll", "error-shake", "svg-draw", "success-state"]
+      },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/circle-check-animation.json"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/otp-input.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/otp-input.tsx"
         }
       ]
     },

@@ -23,6 +23,9 @@
       }
     ],
     "paths": {
+      "@/components/ui/circle-check-animation": [
+        "./registry/base/ui/circle-check-animation"
+      ],
       "@/hooks/*": [
         "./registry/base/hooks/*"
       ],
