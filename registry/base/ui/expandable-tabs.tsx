@@ -10,6 +10,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -87,6 +88,8 @@ export interface ExpandableTabsProps {
 }
 
 type Size = { width: number; height: number };
+type ButtonState = "active" | "inactive";
+type DockButtonGeometry = { x: number; width: number };
 
 // Width/height transitions use a deterministic ease instead of a spring. Even
 // with bounce disabled, spring settling can read as a small horizontal wobble
@@ -148,8 +151,12 @@ function hasPanel(item: ExpandableTabItem) {
   return isMenuTab(item) || "content" in item;
 }
 
-function buttonSizeId(tabId: string, state: "active" | "inactive") {
+function buttonSizeId(tabId: string, state: ButtonState) {
   return `${tabId}:${state}`;
+}
+
+function getButtonState(tabId: string, activeId: string | null): ButtonState {
+  return tabId === activeId ? "active" : "inactive";
 }
 
 function sameSize(a: Size | null | undefined, b: Size | null | undefined) {
@@ -218,6 +225,34 @@ function useElementSizes<T extends HTMLElement = HTMLDivElement>() {
   );
 
   return { setMeasureRef, sizes };
+}
+
+function useDockGeometry(
+  items: ExpandableTabItem[],
+  activeId: string | null,
+  buttonSizes: Record<string, Size>,
+) {
+  return useMemo(() => {
+    const buttonsById: Record<string, DockButtonGeometry> = {};
+    let x = BAR_X / 2;
+    let buttonsWidth = 0;
+
+    for (const item of items) {
+      const state = getButtonState(item.id, activeId);
+      const measured = buttonSizes[buttonSizeId(item.id, state)];
+      const width = measured?.width ?? TAB_W;
+
+      buttonsById[item.id] = { x, width };
+      buttonsWidth += width;
+      x += width + BAR_GAP;
+    }
+
+    return {
+      buttonsById,
+      width:
+        buttonsWidth + Math.max(0, items.length - 1) * BAR_GAP + BAR_X,
+    };
+  }, [activeId, buttonSizes, items]);
 }
 
 /**
@@ -294,6 +329,304 @@ function PanelBody({
     <div role="group" aria-label={item.label} className="w-max">
       {"content" in item ? item.content : null}
     </div>
+  );
+}
+
+function TabIcon({
+  item,
+  classNames,
+}: {
+  item: ExpandableTabItem;
+  classNames?: ExpandableTabsClassNames;
+}) {
+  return (
+    <span
+      className={cn("grid shrink-0 place-items-center", classNames?.icon)}
+    >
+      {item.icon}
+    </span>
+  );
+}
+
+function StaticDockButton({
+  item,
+  state,
+  classNames,
+  measureRef,
+}: {
+  item: ExpandableTabItem;
+  state: ButtonState;
+  classNames?: ExpandableTabsClassNames;
+  measureRef: (node: HTMLButtonElement | null) => void;
+}) {
+  const isActive = state === "active";
+
+  return (
+    <button
+      ref={measureRef}
+      type="button"
+      tabIndex={-1}
+      className={cn(
+        "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
+        isActive && "justify-start pl-2.5 pr-4",
+        classNames?.tab,
+        isActive && classNames?.activeTab,
+      )}
+    >
+      <TabIcon item={item} classNames={classNames} />
+      {isActive ? (
+        <span
+          className={cn(
+            "ml-1.5 inline-block whitespace-nowrap",
+            classNames?.label,
+          )}
+        >
+          {item.label}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function DockMeasurers({
+  items,
+  classNames,
+  setButtonMeasureRef,
+}: {
+  items: ExpandableTabItem[];
+  classNames?: ExpandableTabsClassNames;
+  setButtonMeasureRef: (
+    id: string,
+  ) => (node: HTMLButtonElement | null) => void;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none invisible absolute left-0 top-0 flex"
+    >
+      {items.map((item) => (
+        <div key={item.id} className="flex">
+          <StaticDockButton
+            item={item}
+            state="inactive"
+            classNames={classNames}
+            measureRef={setButtonMeasureRef(
+              buttonSizeId(item.id, "inactive"),
+            )}
+          />
+          <StaticDockButton
+            item={item}
+            state="active"
+            classNames={classNames}
+            measureRef={setButtonMeasureRef(buttonSizeId(item.id, "active"))}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PanelMeasurers({
+  items,
+  classNames,
+  setPanelMeasureRef,
+}: {
+  items: ExpandableTabItem[];
+  classNames?: ExpandableTabsClassNames;
+  setPanelMeasureRef: (id: string) => (node: HTMLDivElement | null) => void;
+}) {
+  return (
+    <>
+      {items.filter(hasPanel).map((item) => (
+        <div
+          key={item.id}
+          ref={setPanelMeasureRef(item.id)}
+          aria-hidden
+          className={cn(
+            "pointer-events-none invisible absolute left-0 top-0 w-max px-2 pt-2",
+            classNames?.panel,
+          )}
+          style={{ paddingBottom: BAR_H + PANEL_DOCK_GAP }}
+        >
+          <div className="w-max">
+            <PanelBody item={item} classNames={classNames} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function LiveDockButton({
+  item,
+  baseId,
+  geometry,
+  isActive,
+  isTabbable,
+  openingFromClosed,
+  popup,
+  reduce,
+  classNames,
+  registerTabRef,
+  onActivate,
+  onKeyDown,
+}: {
+  item: ExpandableTabItem;
+  baseId: string;
+  geometry: DockButtonGeometry;
+  isActive: boolean;
+  isTabbable: boolean;
+  openingFromClosed: boolean;
+  popup?: "menu" | "dialog";
+  reduce: boolean | null;
+  classNames?: ExpandableTabsClassNames;
+  registerTabRef: (id: string, node: HTMLButtonElement | null) => void;
+  onActivate: (item: ExpandableTabItem) => void;
+  onKeyDown: (
+    event: KeyboardEvent<HTMLButtonElement>,
+    item: ExpandableTabItem,
+  ) => void;
+}) {
+  return (
+    <motion.button
+      key={item.id}
+      type="button"
+      disabled={item.disabled}
+      aria-haspopup={popup}
+      aria-expanded={hasPanel(item) ? isActive : undefined}
+      aria-controls={isActive ? `${baseId}-panel-${item.id}` : undefined}
+      aria-label={item.label}
+      tabIndex={isTabbable ? 0 : -1}
+      ref={(node) => registerTabRef(item.id, node)}
+      onClick={() => onActivate(item)}
+      onKeyDown={(event) => onKeyDown(event, item)}
+      initial={false}
+      animate={{ x: geometry.x, width: geometry.width }}
+      transition={
+        reduce || openingFromClosed ? { duration: 0 } : TAB_CHANGE_TRANSITION
+      }
+      className={cn(
+        "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "disabled:pointer-events-none disabled:opacity-40",
+        isActive && "justify-start pl-2.5 pr-4",
+        isActive
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground",
+        classNames?.tab,
+        isActive && classNames?.activeTab,
+      )}
+    >
+      {isActive ? (
+        <span
+          className={cn(
+            "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
+            classNames?.pill,
+          )}
+        />
+      ) : null}
+      <TabIcon item={item} classNames={classNames} />
+      {isActive ? (
+        <motion.span
+          key={item.id}
+          aria-hidden
+          initial={
+            reduce
+              ? { opacity: 1, filter: "blur(0px)" }
+              : { opacity: 0, filter: "blur(3px)" }
+          }
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={reduce ? { duration: 0 } : LABEL_OPEN}
+          className={cn(
+            "ml-1.5 inline-block whitespace-nowrap",
+            classNames?.label,
+          )}
+        >
+          {item.label}
+        </motion.span>
+      ) : null}
+    </motion.button>
+  );
+}
+
+function DockToolbar({
+  items,
+  activeId,
+  baseId,
+  width,
+  buttonsById,
+  enabledTabIds,
+  openingFromClosed,
+  reduce,
+  ariaLabel,
+  classNames,
+  registerTabRef,
+  onActivate,
+  onKeyDown,
+}: {
+  items: ExpandableTabItem[];
+  activeId: string | null;
+  baseId: string;
+  width: number;
+  buttonsById: Record<string, DockButtonGeometry>;
+  enabledTabIds: string[];
+  openingFromClosed: boolean;
+  reduce: boolean | null;
+  ariaLabel: string;
+  classNames?: ExpandableTabsClassNames;
+  registerTabRef: (id: string, node: HTMLButtonElement | null) => void;
+  onActivate: (item: ExpandableTabItem) => void;
+  onKeyDown: (
+    event: KeyboardEvent<HTMLButtonElement>,
+    item: ExpandableTabItem,
+  ) => void;
+}) {
+  return (
+    <motion.div
+      role="toolbar"
+      aria-label={ariaLabel}
+      aria-orientation="horizontal"
+      initial={false}
+      animate={{ width }}
+      transition={
+        reduce || openingFromClosed ? { duration: 0 } : SHELL_TRANSITION
+      }
+      className={cn(
+        "absolute bottom-0 left-1/2 z-20 -translate-x-1/2",
+        classNames?.bar,
+      )}
+      style={{ height: BAR_H }}
+    >
+      {items.map((item) => {
+        const isActive = item.id === activeId;
+        const geometry = buttonsById[item.id] ?? { x: BAR_X / 2, width: TAB_W };
+        const isTabbable =
+          item.id === (activeId ?? enabledTabIds[0]) && !item.disabled;
+        const popup = isMenuTab(item)
+          ? "menu"
+          : "content" in item
+            ? "dialog"
+            : undefined;
+
+        return (
+          <LiveDockButton
+            key={item.id}
+            item={item}
+            baseId={baseId}
+            geometry={geometry}
+            isActive={isActive}
+            isTabbable={isTabbable}
+            openingFromClosed={openingFromClosed}
+            popup={popup}
+            reduce={reduce}
+            classNames={classNames}
+            registerTabRef={registerTabRef}
+            onActivate={onActivate}
+            onKeyDown={onKeyDown}
+          />
+        );
+      })}
+    </motion.div>
   );
 }
 
@@ -515,30 +848,15 @@ export function ExpandableTabs({
     [focusTab, setActive, visualActiveId],
   );
 
-  const buttonTargets = items.map((item) => {
-    const state = item.id === visualActiveId ? "active" : "inactive";
-    const measured = buttonSizes[buttonSizeId(item.id, state)];
-
-    return {
-      id: item.id,
-      width: measured?.width ?? TAB_W,
-    };
-  });
-  const buttonTargetById = new Map(
-    buttonTargets.map((target) => [target.id, target]),
+  const dock = useDockGeometry(items, visualActiveId, buttonSizes);
+  const registerTabRef = useCallback(
+    (id: string, node: HTMLButtonElement | null) => {
+      tabRefs.current[id] = node;
+    },
+    [],
   );
-  const buttonOffsets = new Map<string, number>();
-  let nextButtonX = 8;
-  for (const target of buttonTargets) {
-    buttonOffsets.set(target.id, nextButtonX);
-    nextButtonX += target.width + BAR_GAP;
-  }
-  const measuredBarWidth =
-    buttonTargets.reduce((total, item) => total + item.width, 0) +
-    Math.max(0, items.length - 1) * BAR_GAP +
-    BAR_X;
   const closedSize = {
-    width: measuredBarWidth + ROOT_BORDER,
+    width: dock.width + ROOT_BORDER,
     height: BAR_H + ROOT_BORDER,
   };
 
@@ -566,79 +884,16 @@ export function ExpandableTabs({
         }}
         className={cn("relative", className)}
       >
-        {/* Hidden measurers live outside the animated shell so clipping never
-            affects the target geometry. */}
-        {items.filter(hasPanel).map((item) => (
-          <div
-            key={item.id}
-            ref={setPanelMeasureRef(item.id)}
-            aria-hidden
-            className={cn(
-              "pointer-events-none invisible absolute left-0 top-0 w-max px-2 pt-2",
-              classNames?.panel,
-            )}
-            style={{ paddingBottom: BAR_H + PANEL_DOCK_GAP }}
-          >
-            <div className="w-max">
-              <PanelBody item={item} classNames={classNames} />
-            </div>
-          </div>
-        ))}
-
-        <div
-          aria-hidden
-          className="pointer-events-none invisible absolute left-0 top-0 flex"
-        >
-          {items.map((item) => (
-            <div key={item.id} className="flex">
-              <button
-                ref={setButtonMeasureRef(buttonSizeId(item.id, "inactive"))}
-                type="button"
-                tabIndex={-1}
-                className={cn(
-                  "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
-                  classNames?.tab,
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid shrink-0 place-items-center",
-                    classNames?.icon,
-                  )}
-                >
-                  {item.icon}
-                </span>
-              </button>
-              <button
-                ref={setButtonMeasureRef(buttonSizeId(item.id, "active"))}
-                type="button"
-                tabIndex={-1}
-                className={cn(
-                  "relative isolate flex h-9 shrink-0 items-center justify-start overflow-hidden rounded-xl px-2 pl-2.5 pr-4 text-sm font-medium outline-none",
-                  classNames?.tab,
-                  classNames?.activeTab,
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid shrink-0 place-items-center",
-                    classNames?.icon,
-                  )}
-                >
-                  {item.icon}
-                </span>
-                <span
-                  className={cn(
-                    "ml-1.5 inline-block whitespace-nowrap",
-                    classNames?.label,
-                  )}
-                >
-                  {item.label}
-                </span>
-              </button>
-            </div>
-          ))}
-        </div>
+        <PanelMeasurers
+          items={items}
+          classNames={classNames}
+          setPanelMeasureRef={setPanelMeasureRef}
+        />
+        <DockMeasurers
+          items={items}
+          classNames={classNames}
+          setButtonMeasureRef={setButtonMeasureRef}
+        />
 
         <motion.div
           initial={false}
@@ -705,114 +960,21 @@ export function ExpandableTabs({
           </div>
         </motion.div>
 
-        <motion.div
-            role="toolbar"
-            aria-label={ariaLabel}
-            aria-orientation="horizontal"
-            initial={false}
-            animate={{ width: measuredBarWidth }}
-            transition={
-              reduce || openingFromClosed ? { duration: 0 } : SHELL_TRANSITION
-            }
-            className={cn(
-              "absolute bottom-0 left-1/2 z-20 -translate-x-1/2",
-              classNames?.bar,
-            )}
-            style={{ height: BAR_H }}
-          >
-            {items.map((item) => {
-              const isActive = item.id === visualActiveId;
-              const targetButton = buttonTargetById.get(item.id);
-              const targetButtonX = buttonOffsets.get(item.id) ?? 8;
-              // Roving tabindex: the open tab, else the first enabled tab.
-              const tabbable =
-                item.id === (visualActiveId ?? enabledTabIds[0]) &&
-                !item.disabled;
-              const popup = isMenuTab(item)
-                ? "menu"
-                : "content" in item
-                  ? "dialog"
-                  : undefined;
-
-              return (
-                <motion.button
-                  key={item.id}
-                  type="button"
-                  disabled={item.disabled}
-                  aria-haspopup={popup}
-                  aria-expanded={hasPanel(item) ? isActive : undefined}
-                  aria-controls={
-                    isActive ? `${baseId}-panel-${item.id}` : undefined
-                  }
-                  aria-label={item.label}
-                  tabIndex={tabbable ? 0 : -1}
-                  ref={(node) => {
-                    tabRefs.current[item.id] = node;
-                  }}
-                  onClick={() => activateTab(item)}
-                  onKeyDown={(event) => handleTabKeyDown(event, item)}
-                  initial={false}
-                  animate={
-                    targetButton
-                      ? { x: targetButtonX, width: targetButton.width }
-                      : { x: targetButtonX }
-                  }
-                  transition={
-                    reduce || openingFromClosed
-                      ? { duration: 0 }
-                      : TAB_CHANGE_TRANSITION
-                  }
-                  className={cn(
-                    "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
-                    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    "disabled:pointer-events-none disabled:opacity-40",
-                    isActive && "justify-start pl-2.5 pr-4",
-                    isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                    classNames?.tab,
-                    isActive && classNames?.activeTab,
-                  )}
-                >
-                  {isActive ? (
-                    <span
-                      className={cn(
-                        "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
-                        classNames?.pill,
-                      )}
-                    />
-                  ) : null}
-                  <span
-                    className={cn(
-                      "grid shrink-0 place-items-center",
-                      classNames?.icon,
-                    )}
-                  >
-                    {item.icon}
-                  </span>
-                  {isActive ? (
-                    <motion.span
-                      key={item.id}
-                      aria-hidden
-                      initial={
-                        reduce
-                          ? { opacity: 1, filter: "blur(0px)" }
-                          : { opacity: 0, filter: "blur(3px)" }
-                      }
-                      animate={{ opacity: 1, filter: "blur(0px)" }}
-                      transition={reduce ? { duration: 0 } : LABEL_OPEN}
-                      className={cn(
-                        "ml-1.5 inline-block whitespace-nowrap",
-                        classNames?.label,
-                      )}
-                    >
-                      {item.label}
-                    </motion.span>
-                  ) : null}
-                </motion.button>
-              );
-            })}
-        </motion.div>
+        <DockToolbar
+          items={items}
+          activeId={visualActiveId}
+          baseId={baseId}
+          width={dock.width}
+          buttonsById={dock.buttonsById}
+          enabledTabIds={enabledTabIds}
+          openingFromClosed={openingFromClosed}
+          reduce={reduce}
+          ariaLabel={ariaLabel}
+          classNames={classNames}
+          registerTabRef={registerTabRef}
+          onActivate={activateTab}
+          onKeyDown={handleTabKeyDown}
+        />
       </div>
     </>
   );
