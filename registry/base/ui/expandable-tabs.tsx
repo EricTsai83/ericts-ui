@@ -88,21 +88,12 @@ export interface ExpandableTabsProps {
 
 type Size = { width: number; height: number };
 
-// DynamicIsland-style real width/height motion, tuned tighter here so the bar
-// feels controlled instead of elastic.
-// Timing forms a size→speed gradient so the whole morph reads as one unit:
-// shell (largest) is slowest, label (smallest) is fastest. Bounce is 0 on
-// purpose: any overshoot makes the centered icon row (and the island) drift
-// past the target and snap back, which reads as jitter.
-const SHELL_SPRING = { type: "spring", duration: 0.42, bounce: 0 } as const;
-
-const TAB_CHANGE_SPRING = {
-  type: "spring",
-  duration: 0.36,
-  bounce: 0,
-} as const;
-const LABEL_OPEN = { type: "spring", duration: 0.3, bounce: 0 } as const;
-const LABEL_CLOSE = { duration: 0.14, ease: EASE_OUT } as const;
+// Width/height transitions use a deterministic ease instead of a spring. Even
+// with bounce disabled, spring settling can read as a small horizontal wobble
+// when the active label also changes the bar's measured width.
+const SHELL_TRANSITION = { duration: 0.24, ease: EASE_OUT } as const;
+const TAB_CHANGE_TRANSITION = { duration: 0.24, ease: EASE_OUT } as const;
+const LABEL_OPEN = { duration: 0.18, ease: EASE_OUT } as const;
 
 // Fixed bar height keeps the content panel's bottom reserve static so the open
 // height is right on the first frame. p-2 (16) + h-9 button (36).
@@ -111,10 +102,6 @@ const TAB_W = 32;
 const BAR_X = 16;
 const BAR_GAP = 4;
 const ROOT_BORDER = 2;
-const ICON_W = 16;
-const ACTIVE_LEFT_PAD = 10;
-const ACTIVE_RIGHT_PAD = 16;
-const LABEL_GAP = 7;
 const PANEL_DOCK_GAP = 4;
 
 // The island grows upward from the bar, so the content emanates from the
@@ -161,6 +148,10 @@ function hasPanel(item: ExpandableTabItem) {
   return isMenuTab(item) || "content" in item;
 }
 
+function buttonSizeId(tabId: string, state: "active" | "inactive") {
+  return `${tabId}:${state}`;
+}
+
 function sameSize(a: Size | null | undefined, b: Size | null | undefined) {
   return a?.width === b?.width && a?.height === b?.height;
 }
@@ -199,20 +190,20 @@ function usePanelSizes() {
   return { setPanelMeasureRef, sizes };
 }
 
-function useLabelWidths() {
-  const [widths, setWidths] = useState<Record<string, number>>({});
+function useElementSizes<T extends HTMLElement = HTMLDivElement>() {
+  const [sizes, setSizes] = useState<Record<string, Size>>({});
   const observers = useRef<Record<string, ResizeObserver>>({});
 
-  const setLabelMeasureRef = useCallback(
-    (id: string) => (node: HTMLSpanElement | null) => {
+  const setMeasureRef = useCallback(
+    (id: string) => (node: T | null) => {
       observers.current[id]?.disconnect();
       delete observers.current[id];
       if (!node) return;
 
       const measure = () => {
-        const width = Math.ceil(node.offsetWidth);
-        setWidths((current) =>
-          current[id] === width ? current : { ...current, [id]: width },
+        const next = { width: node.offsetWidth, height: node.offsetHeight };
+        setSizes((current) =>
+          sameSize(current[id], next) ? current : { ...current, [id]: next },
         );
       };
 
@@ -226,7 +217,7 @@ function useLabelWidths() {
     [],
   );
 
-  return { setLabelMeasureRef, widths };
+  return { setMeasureRef, sizes };
 }
 
 /**
@@ -321,7 +312,8 @@ export function ExpandableTabs({
   const baseId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const { setPanelMeasureRef, sizes: panelSizes } = usePanelSizes();
-  const { setLabelMeasureRef, widths: labelWidths } = useLabelWidths();
+  const { setMeasureRef: setButtonMeasureRef, sizes: buttonSizes } =
+    useElementSizes<HTMLButtonElement>();
 
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -335,13 +327,19 @@ export function ExpandableTabs({
   // An action tab (or a disabled one) never counts as visually open.
   const visualActiveId = active && hasPanel(active) ? active.id : null;
   const visualActive = visualActiveId ? active : null;
+  const [openingFromClosed, setOpeningFromClosed] = useState(false);
 
   const setActive = useCallback(
     (next: string | null) => {
+      const nextItem = items.find((item) => item.id === next) ?? null;
+      const nextVisualActiveId = nextItem && hasPanel(nextItem) ? next : null;
+      setOpeningFromClosed(
+        visualActiveId === null && nextVisualActiveId !== null,
+      );
       if (!controlled) setInternal(next);
       onValueChange?.(next);
     },
-    [controlled, onValueChange],
+    [controlled, items, onValueChange, visualActiveId],
   );
 
   const enabledTabIds = items
@@ -517,62 +515,59 @@ export function ExpandableTabs({
     [focusTab, setActive, visualActiveId],
   );
 
-  const getActiveTabWidth = useCallback(
-    (item: ExpandableTabItem) =>
-      Math.max(
-        TAB_W,
-        ACTIVE_LEFT_PAD +
-          ICON_W +
-          LABEL_GAP +
-          (labelWidths[item.id] ?? 0) +
-          ACTIVE_RIGHT_PAD,
-      ),
-    [labelWidths],
-  );
+  const buttonTargets = items.map((item) => {
+    const state = item.id === visualActiveId ? "active" : "inactive";
+    const measured = buttonSizes[buttonSizeId(item.id, state)];
 
+    return {
+      id: item.id,
+      width: measured?.width ?? TAB_W,
+    };
+  });
+  const buttonTargetById = new Map(
+    buttonTargets.map((target) => [target.id, target]),
+  );
+  const buttonOffsets = new Map<string, number>();
+  let nextButtonX = 8;
+  for (const target of buttonTargets) {
+    buttonOffsets.set(target.id, nextButtonX);
+    nextButtonX += target.width + BAR_GAP;
+  }
+  const measuredBarWidth =
+    buttonTargets.reduce((total, item) => total + item.width, 0) +
+    Math.max(0, items.length - 1) * BAR_GAP +
+    BAR_X;
   const closedSize = {
-    width:
-      items.length * TAB_W +
-      Math.max(0, items.length - 1) * BAR_GAP +
-      BAR_X +
-      ROOT_BORDER,
+    width: measuredBarWidth + ROOT_BORDER,
     height: BAR_H + ROOT_BORDER,
   };
 
-  // The active panel drives the width; the bar still has to fit its own
-  // expanded tab (collapsed row, swapping the open tab for its label width).
+  // The active panel drives the shell, while the dock width is derived from the
+  // measured target width of each button state. That keeps the geometry explicit:
+  // shell, dock, and buttons all animate toward the same stable numbers.
   const activePanelSize = visualActive ? panelSizes[visualActive.id] : undefined;
-  const expandedBarWidth = visualActive
-    ? closedSize.width - TAB_W + getActiveTabWidth(visualActive)
-    : closedSize.width;
   const openSize = activePanelSize
     ? {
-        width: Math.max(activePanelSize.width + ROOT_BORDER, expandedBarWidth),
+        width: Math.max(activePanelSize.width + ROOT_BORDER, closedSize.width),
         height: Math.max(activePanelSize.height + ROOT_BORDER, closedSize.height),
       }
-    : { width: expandedBarWidth, height: closedSize.height };
+    : closedSize;
   const targetSize = visualActive ? openSize : closedSize;
 
   return (
     <>
-      <motion.div
+      <div
         ref={rootRef}
-        initial={false}
-        animate={
-          targetSize
-            ? { width: targetSize.width, height: targetSize.height }
-            : undefined
-        }
-        transition={reduce ? { duration: 0 } : SHELL_SPRING}
         onKeyDown={handleRootKeyDown}
-        style={{ transformOrigin: "bottom center" }}
-        className={cn(
-          "relative overflow-hidden rounded-2xl border border-border bg-card",
-          className,
-          classNames?.root,
-        )}
+        style={{
+          width: targetSize.width,
+          height: targetSize.height,
+          transformOrigin: "bottom center",
+        }}
+        className={cn("relative", className)}
       >
-        {/* One hidden measurer per panel so each tab reports its own size. */}
+        {/* Hidden measurers live outside the animated shell so clipping never
+            affects the target geometry. */}
         {items.filter(hasPanel).map((item) => (
           <div
             key={item.id}
@@ -591,111 +586,20 @@ export function ExpandableTabs({
         ))}
 
         <div
-          className={cn(
-            "absolute left-0 right-0 top-0 z-10 overflow-hidden px-2 pt-2",
-            classNames?.panel,
-          )}
-          style={{ bottom: BAR_H + PANEL_DOCK_GAP }}
+          aria-hidden
+          className="pointer-events-none invisible absolute left-0 top-0 flex"
         >
-          <AnimatePresence mode="popLayout" initial={false}>
-            {visualActive ? (
-              <motion.div
-                key={visualActive.id}
-                id={`${baseId}-panel-${visualActive.id}`}
-                variants={reduce ? REDUCED_CONTENT_VARIANTS : CONTENT_VARIANTS}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={
-                  reduce ? { duration: 0.15, ease: EASE_OUT } : CONTENT_SPRING
-                }
-                className="w-max"
-                style={{
-                  transformOrigin: "bottom center",
-                  willChange: "transform, opacity, filter",
-                }}
-              >
-                <PanelBody
-                  item={visualActive}
-                  classNames={classNames}
-                  registerItemRef={(index, node) => {
-                    menuItemRefs.current[index] = node;
-                  }}
-                  onItemKeyDown={handleMenuKeyDown}
-                  onItemSelect={(menuItem) =>
-                    selectMenuItem(visualActive, menuItem)
-                  }
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
-
-        <div
-          role="toolbar"
-          aria-label={ariaLabel}
-          aria-orientation="horizontal"
-          className={cn(
-            "absolute bottom-0 left-0 z-20 flex w-full items-center justify-center gap-1 p-2",
-            classNames?.bar,
-          )}
-          style={{ height: BAR_H }}
-        >
-          {items.map((item) => {
-            const isActive = item.id === visualActiveId;
-            const activeTabWidth = getActiveTabWidth(item);
-            const labelWidth = labelWidths[item.id] ?? 0;
-            // Roving tabindex: the open tab, else the first enabled tab.
-            const tabbable =
-              item.id === (visualActiveId ?? enabledTabIds[0]) &&
-              !item.disabled;
-            const popup = isMenuTab(item)
-              ? "menu"
-              : "content" in item
-                ? "dialog"
-                : undefined;
-
-            return (
-              <motion.button
-                key={item.id}
+          {items.map((item) => (
+            <div key={item.id} className="flex">
+              <button
+                ref={setButtonMeasureRef(buttonSizeId(item.id, "inactive"))}
                 type="button"
-                disabled={item.disabled}
-                aria-haspopup={popup}
-                aria-expanded={hasPanel(item) ? isActive : undefined}
-                aria-controls={
-                  isActive ? `${baseId}-panel-${item.id}` : undefined
-                }
-                aria-label={item.label}
-                tabIndex={tabbable ? 0 : -1}
-                ref={(node) => {
-                  tabRefs.current[item.id] = node;
-                }}
-                onClick={() => activateTab(item)}
-                onKeyDown={(event) => handleTabKeyDown(event, item)}
-                animate={{
-                  width: isActive ? activeTabWidth : TAB_W,
-                }}
-                transition={reduce ? { duration: 0 } : TAB_CHANGE_SPRING}
+                tabIndex={-1}
                 className={cn(
-                  "relative isolate flex h-9 min-w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
-                  "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  "disabled:pointer-events-none disabled:opacity-40",
-                  isActive && "min-w-0 justify-start pl-2.5 pr-4",
-                  isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                  "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
                   classNames?.tab,
-                  isActive && classNames?.activeTab,
                 )}
               >
-                {isActive ? (
-                  <span
-                    className={cn(
-                      "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
-                      classNames?.pill,
-                    )}
-                  />
-                ) : null}
                 <span
                   className={cn(
                     "grid shrink-0 place-items-center",
@@ -704,59 +608,211 @@ export function ExpandableTabs({
                 >
                   {item.icon}
                 </span>
-                <motion.span
-                  aria-hidden
-                  initial={false}
-                  animate={
-                    reduce
-                      ? {
-                          width: isActive ? labelWidth : 0,
-                          opacity: isActive ? 1 : 0,
-                          marginLeft: isActive ? LABEL_GAP : 0,
-                          filter: "blur(0px)",
-                        }
-                      : {
-                          width: isActive ? labelWidth : 0,
-                          opacity: isActive ? 1 : 0,
-                          marginLeft: isActive ? LABEL_GAP : 0,
-                          filter: isActive ? "blur(0px)" : "blur(3px)",
-                        }
-                  }
-                  transition={
-                    reduce
-                      ? { duration: 0 }
-                      : isActive
-                        ? LABEL_OPEN
-                        : LABEL_CLOSE
-                  }
+              </button>
+              <button
+                ref={setButtonMeasureRef(buttonSizeId(item.id, "active"))}
+                type="button"
+                tabIndex={-1}
+                className={cn(
+                  "relative isolate flex h-9 shrink-0 items-center justify-start overflow-hidden rounded-xl px-2 pl-2.5 pr-4 text-sm font-medium outline-none",
+                  classNames?.tab,
+                  classNames?.activeTab,
+                )}
+              >
+                <span
                   className={cn(
-                    "inline-block overflow-hidden whitespace-nowrap",
+                    "grid shrink-0 place-items-center",
+                    classNames?.icon,
+                  )}
+                >
+                  {item.icon}
+                </span>
+                <span
+                  className={cn(
+                    "ml-1.5 inline-block whitespace-nowrap",
                     classNames?.label,
                   )}
                 >
                   {item.label}
-                </motion.span>
-              </motion.button>
-            );
-          })}
+                </span>
+              </button>
+            </div>
+          ))}
         </div>
-      </motion.div>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 -z-10 flex opacity-0"
-      >
-        {items.map((item) => (
-          <span
+
+        <motion.div
+          initial={false}
+          animate={{ width: targetSize.width, height: targetSize.height }}
+          transition={
+            reduce
+              ? { duration: 0 }
+              : openingFromClosed
+                ? { width: { duration: 0 }, height: SHELL_TRANSITION }
+                : SHELL_TRANSITION
+          }
+          onAnimationComplete={() => setOpeningFromClosed(false)}
+          style={{ transformOrigin: "bottom center" }}
+          className={cn(
+            "absolute bottom-0 left-1/2 -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card",
+            classNames?.root,
+          )}
+        >
+          <div
             className={cn(
-              "whitespace-nowrap text-sm font-medium leading-none",
-              classNames?.label,
+              "absolute left-0 right-0 top-0 z-10 overflow-hidden px-2 pt-2",
+              classNames?.panel,
             )}
-            key={item.id}
-            ref={setLabelMeasureRef(item.id)}
+            style={{ bottom: BAR_H + PANEL_DOCK_GAP }}
           >
-            {item.label}
-          </span>
-        ))}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {visualActive ? (
+                <motion.div
+                  key={visualActive.id}
+                  id={`${baseId}-panel-${visualActive.id}`}
+                  variants={
+                    reduce ? REDUCED_CONTENT_VARIANTS : CONTENT_VARIANTS
+                  }
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={
+                    reduce
+                      ? { duration: 0.15, ease: EASE_OUT }
+                      : openingFromClosed
+                        ? { ...CONTENT_SPRING, delay: 0.04 }
+                        : CONTENT_SPRING
+                  }
+                  className="w-max"
+                  style={{
+                    transformOrigin: "bottom center",
+                    willChange: "transform, opacity, filter",
+                  }}
+                >
+                  <PanelBody
+                    item={visualActive}
+                    classNames={classNames}
+                    registerItemRef={(index, node) => {
+                      menuItemRefs.current[index] = node;
+                    }}
+                    onItemKeyDown={handleMenuKeyDown}
+                    onItemSelect={(menuItem) =>
+                      selectMenuItem(visualActive, menuItem)
+                    }
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        <motion.div
+            role="toolbar"
+            aria-label={ariaLabel}
+            aria-orientation="horizontal"
+            initial={false}
+            animate={{ width: measuredBarWidth }}
+            transition={
+              reduce || openingFromClosed ? { duration: 0 } : SHELL_TRANSITION
+            }
+            className={cn(
+              "absolute bottom-0 left-1/2 z-20 -translate-x-1/2",
+              classNames?.bar,
+            )}
+            style={{ height: BAR_H }}
+          >
+            {items.map((item) => {
+              const isActive = item.id === visualActiveId;
+              const targetButton = buttonTargetById.get(item.id);
+              const targetButtonX = buttonOffsets.get(item.id) ?? 8;
+              // Roving tabindex: the open tab, else the first enabled tab.
+              const tabbable =
+                item.id === (visualActiveId ?? enabledTabIds[0]) &&
+                !item.disabled;
+              const popup = isMenuTab(item)
+                ? "menu"
+                : "content" in item
+                  ? "dialog"
+                  : undefined;
+
+              return (
+                <motion.button
+                  key={item.id}
+                  type="button"
+                  disabled={item.disabled}
+                  aria-haspopup={popup}
+                  aria-expanded={hasPanel(item) ? isActive : undefined}
+                  aria-controls={
+                    isActive ? `${baseId}-panel-${item.id}` : undefined
+                  }
+                  aria-label={item.label}
+                  tabIndex={tabbable ? 0 : -1}
+                  ref={(node) => {
+                    tabRefs.current[item.id] = node;
+                  }}
+                  onClick={() => activateTab(item)}
+                  onKeyDown={(event) => handleTabKeyDown(event, item)}
+                  initial={false}
+                  animate={
+                    targetButton
+                      ? { x: targetButtonX, width: targetButton.width }
+                      : { x: targetButtonX }
+                  }
+                  transition={
+                    reduce || openingFromClosed
+                      ? { duration: 0 }
+                      : TAB_CHANGE_TRANSITION
+                  }
+                  className={cn(
+                    "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
+                    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "disabled:pointer-events-none disabled:opacity-40",
+                    isActive && "justify-start pl-2.5 pr-4",
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                    classNames?.tab,
+                    isActive && classNames?.activeTab,
+                  )}
+                >
+                  {isActive ? (
+                    <span
+                      className={cn(
+                        "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
+                        classNames?.pill,
+                      )}
+                    />
+                  ) : null}
+                  <span
+                    className={cn(
+                      "grid shrink-0 place-items-center",
+                      classNames?.icon,
+                    )}
+                  >
+                    {item.icon}
+                  </span>
+                  {isActive ? (
+                    <motion.span
+                      key={item.id}
+                      aria-hidden
+                      initial={
+                        reduce
+                          ? { opacity: 1, filter: "blur(0px)" }
+                          : { opacity: 0, filter: "blur(3px)" }
+                      }
+                      animate={{ opacity: 1, filter: "blur(0px)" }}
+                      transition={reduce ? { duration: 0 } : LABEL_OPEN}
+                      className={cn(
+                        "ml-1.5 inline-block whitespace-nowrap",
+                        classNames?.label,
+                      )}
+                    >
+                      {item.label}
+                    </motion.span>
+                  ) : null}
+                </motion.button>
+              );
+            })}
+        </motion.div>
       </div>
     </>
   );
