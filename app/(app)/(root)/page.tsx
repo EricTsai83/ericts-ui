@@ -161,6 +161,15 @@ export default function Home() {
             >
               Manu Arora
             </Link>
+            ,{" "}
+            <Link
+              href="https://x.com/saurra3h"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Saurabh
+            </Link>
             , and the open-source UI work that shaped this site.
           </div>
         </div>

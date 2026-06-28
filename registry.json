@@ -65,6 +65,25 @@
       ]
     },
     {
+      "name": "state-badge",
+      "type": "registry:ui",
+      "title": "State Badge",
+      "description": "A compact animated badge for status labels with icon and text slot transitions.",
+      "categories": ["badge", "data-display"],
+      "meta": {
+        "tags": ["badge", "status", "loading", "state-transition", "icon-swap"],
+        "effects": ["state-transition", "icon-swap", "pulse"]
+      },
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/state-badge.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/state-badge.tsx"
+        }
+      ]
+    },
+    {
       "name": "floating-select",
       "type": "registry:ui",
       "title": "Floating Select",
