@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AlarmClock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -60,49 +61,9 @@ export function JitterAnimation({
     >
       <div
         data-slot="jitter-animation-target"
-        className="jitter-target w-full max-w-80"
+        className="jitter-target w-full max-w-72"
       >
-        <svg viewBox="0 0 100 100" aria-hidden="true" className="h-auto w-full">
-          <g
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path
-              d="M 24 34 L 16 42 L 24 50"
-              strokeWidth="5"
-              opacity="0.55"
-            />
-            <path
-              d="M 24 50 L 16 58 L 24 66"
-              strokeWidth="5"
-              opacity="0.35"
-            />
-            <path
-              d="M 76 34 L 84 42 L 76 50"
-              strokeWidth="5"
-              opacity="0.55"
-            />
-            <path
-              d="M 76 50 L 84 58 L 76 66"
-              strokeWidth="5"
-              opacity="0.35"
-            />
-            <rect
-              x="35"
-              y="34"
-              width="30"
-              height="32"
-              rx="8"
-              fill="currentColor"
-              fillOpacity="0.1"
-              strokeWidth="6"
-            />
-            <path d="M 45 46 L 50 42 L 55 46" strokeWidth="5" />
-            <path d="M 45 54 L 50 58 L 55 54" strokeWidth="5" />
-          </g>
-        </svg>
+        <AlarmClock aria-hidden="true" className="h-auto w-full" />
       </div>
     </div>
   );

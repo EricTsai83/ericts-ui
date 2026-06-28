@@ -129,12 +129,13 @@
       "name": "jitter-animation",
       "type": "registry:ui",
       "title": "Jitter Animation",
-      "description": "A jitter animation primitive plus a ready-made SVG vibration icon.",
+      "description": "A jitter animation primitive plus a ready-made vibration icon.",
       "categories": ["animation", "svg"],
       "meta": {
         "tags": ["svg", "svg-animation", "jitter", "axis", "primitive"],
         "effects": ["jitter", "horizontal-jitter", "vertical-jitter"]
       },
+      "dependencies": ["lucide-react"],
       "files": [
         {
           "path": "registry/base/ui/jitter-animation.tsx",
@@ -202,6 +203,32 @@
           "path": "registry/base/ui/highlight-tabs.tsx",
           "type": "registry:ui",
           "target": "components/ui/highlight-tabs.tsx"
+        }
+      ]
+    },
+    {
+      "name": "expandable-tabs",
+      "type": "registry:ui",
+      "title": "Expandable Tabs",
+      "description": "A DynamicIsland-style toolbar whose icon tabs expand into actionable menu or content panels, with full keyboard and ARIA support.",
+      "categories": ["navigation", "menu"],
+      "meta": {
+        "tags": [
+          "toolbar",
+          "expandable",
+          "menu",
+          "command-bar",
+          "roving-focus",
+          "arrow-keys"
+        ],
+        "effects": ["shared-layout", "morph", "blur", "spring"]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/expandable-tabs.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/expandable-tabs.tsx"
         }
       ]
     },

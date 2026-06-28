@@ -38,6 +38,7 @@ const homeRegistryItemNames = [
 // Keep the preview browser curated independently from the registry highlight grid.
 // These should be UI components with strong live demos, in the order they appear.
 const componentPreviewNames = [
+  "expandable-tabs",
   "highlight-tabs",
   "smooth-height",
   "status-button",
