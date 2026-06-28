@@ -163,41 +163,9 @@ function sameSize(a: Size | null | undefined, b: Size | null | undefined) {
   return a?.width === b?.width && a?.height === b?.height;
 }
 
-// Callback-ref measurement (mirrors use-element-height): measure on mount and
-// keep a ResizeObserver alive, so we never call setState inside an effect.
-// Each panel is measured on its own so the shell can fit the *active* panel
-// (true auto width) instead of the largest one.
-function usePanelSizes() {
-  const [sizes, setSizes] = useState<Record<string, Size>>({});
-  const observers = useRef<Record<string, ResizeObserver>>({});
-
-  const setPanelMeasureRef = useCallback(
-    (id: string) => (node: HTMLDivElement | null) => {
-      observers.current[id]?.disconnect();
-      delete observers.current[id];
-      if (!node) return;
-
-      const measure = () => {
-        const next = { width: node.offsetWidth, height: node.offsetHeight };
-        setSizes((current) =>
-          sameSize(current[id], next) ? current : { ...current, [id]: next },
-        );
-      };
-
-      measure();
-
-      if (typeof ResizeObserver === "undefined") return;
-      const observer = new ResizeObserver(measure);
-      observer.observe(node);
-      observers.current[id] = observer;
-    },
-    [],
-  );
-
-  return { setPanelMeasureRef, sizes };
-}
-
-function useElementSizes<T extends HTMLElement = HTMLDivElement>() {
+// Callback-ref measurement for hidden sizers. Each target is measured
+// independently, so panel and dock geometry can stay content-driven.
+function useMeasuredSizes<T extends HTMLElement = HTMLDivElement>() {
   const [sizes, setSizes] = useState<Record<string, Size>>({});
   const observers = useRef<Record<string, ResizeObserver>>({});
 
@@ -332,59 +300,52 @@ function PanelBody({
   );
 }
 
-function TabIcon({
+function DockButtonContent({
   item,
+  showLabel,
+  animatedLabel = false,
+  reduce,
   classNames,
 }: {
   item: ExpandableTabItem;
+  showLabel: boolean;
+  animatedLabel?: boolean;
+  reduce?: boolean | null;
   classNames?: ExpandableTabsClassNames;
 }) {
-  return (
-    <span
-      className={cn("grid shrink-0 place-items-center", classNames?.icon)}
-    >
-      {item.icon}
-    </span>
+  const labelClassName = cn(
+    "ml-1.5 inline-block whitespace-nowrap",
+    classNames?.label,
   );
-}
-
-function StaticDockButton({
-  item,
-  state,
-  classNames,
-  measureRef,
-}: {
-  item: ExpandableTabItem;
-  state: ButtonState;
-  classNames?: ExpandableTabsClassNames;
-  measureRef: (node: HTMLButtonElement | null) => void;
-}) {
-  const isActive = state === "active";
 
   return (
-    <button
-      ref={measureRef}
-      type="button"
-      tabIndex={-1}
-      className={cn(
-        "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
-        isActive && "justify-start pl-2.5 pr-4",
-        classNames?.tab,
-        isActive && classNames?.activeTab,
-      )}
-    >
-      <TabIcon item={item} classNames={classNames} />
-      {isActive ? (
-        <span
-          className={cn(
-            "ml-1.5 inline-block whitespace-nowrap",
-            classNames?.label,
-          )}
-        >
-          {item.label}
-        </span>
+    <>
+      <span
+        className={cn("grid shrink-0 place-items-center", classNames?.icon)}
+      >
+        {item.icon}
+      </span>
+      {showLabel ? (
+        animatedLabel ? (
+          <motion.span
+            key={item.id}
+            aria-hidden
+            initial={
+              reduce
+                ? { opacity: 1, filter: "blur(0px)" }
+                : { opacity: 0, filter: "blur(3px)" }
+            }
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            transition={reduce ? { duration: 0 } : LABEL_OPEN}
+            className={labelClassName}
+          >
+            {item.label}
+          </motion.span>
+        ) : (
+          <span className={labelClassName}>{item.label}</span>
+        )
       ) : null}
-    </button>
+    </>
   );
 }
 
@@ -406,20 +367,30 @@ function DockMeasurers({
     >
       {items.map((item) => (
         <div key={item.id} className="flex">
-          <StaticDockButton
-            item={item}
-            state="inactive"
-            classNames={classNames}
-            measureRef={setButtonMeasureRef(
-              buttonSizeId(item.id, "inactive"),
-            )}
-          />
-          <StaticDockButton
-            item={item}
-            state="active"
-            classNames={classNames}
-            measureRef={setButtonMeasureRef(buttonSizeId(item.id, "active"))}
-          />
+          {(["inactive", "active"] as const).map((state) => {
+            const isActive = state === "active";
+
+            return (
+              <button
+                key={state}
+                ref={setButtonMeasureRef(buttonSizeId(item.id, state))}
+                type="button"
+                tabIndex={-1}
+                className={cn(
+                  "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
+                  isActive && "justify-start pl-2.5 pr-4",
+                  classNames?.tab,
+                  isActive && classNames?.activeTab,
+                )}
+              >
+                <DockButtonContent
+                  item={item}
+                  showLabel={isActive}
+                  classNames={classNames}
+                />
+              </button>
+            );
+          })}
         </div>
       ))}
     </div>
@@ -454,98 +425,6 @@ function PanelMeasurers({
         </div>
       ))}
     </>
-  );
-}
-
-function LiveDockButton({
-  item,
-  baseId,
-  geometry,
-  isActive,
-  isTabbable,
-  openingFromClosed,
-  popup,
-  reduce,
-  classNames,
-  registerTabRef,
-  onActivate,
-  onKeyDown,
-}: {
-  item: ExpandableTabItem;
-  baseId: string;
-  geometry: DockButtonGeometry;
-  isActive: boolean;
-  isTabbable: boolean;
-  openingFromClosed: boolean;
-  popup?: "menu" | "dialog";
-  reduce: boolean | null;
-  classNames?: ExpandableTabsClassNames;
-  registerTabRef: (id: string, node: HTMLButtonElement | null) => void;
-  onActivate: (item: ExpandableTabItem) => void;
-  onKeyDown: (
-    event: KeyboardEvent<HTMLButtonElement>,
-    item: ExpandableTabItem,
-  ) => void;
-}) {
-  return (
-    <motion.button
-      key={item.id}
-      type="button"
-      disabled={item.disabled}
-      aria-haspopup={popup}
-      aria-expanded={hasPanel(item) ? isActive : undefined}
-      aria-controls={isActive ? `${baseId}-panel-${item.id}` : undefined}
-      aria-label={item.label}
-      tabIndex={isTabbable ? 0 : -1}
-      ref={(node) => registerTabRef(item.id, node)}
-      onClick={() => onActivate(item)}
-      onKeyDown={(event) => onKeyDown(event, item)}
-      initial={false}
-      animate={{ x: geometry.x, width: geometry.width }}
-      transition={
-        reduce || openingFromClosed ? { duration: 0 } : TAB_CHANGE_TRANSITION
-      }
-      className={cn(
-        "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "disabled:pointer-events-none disabled:opacity-40",
-        isActive && "justify-start pl-2.5 pr-4",
-        isActive
-          ? "text-foreground"
-          : "text-muted-foreground hover:text-foreground",
-        classNames?.tab,
-        isActive && classNames?.activeTab,
-      )}
-    >
-      {isActive ? (
-        <span
-          className={cn(
-            "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
-            classNames?.pill,
-          )}
-        />
-      ) : null}
-      <TabIcon item={item} classNames={classNames} />
-      {isActive ? (
-        <motion.span
-          key={item.id}
-          aria-hidden
-          initial={
-            reduce
-              ? { opacity: 1, filter: "blur(0px)" }
-              : { opacity: 0, filter: "blur(3px)" }
-          }
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          transition={reduce ? { duration: 0 } : LABEL_OPEN}
-          className={cn(
-            "ml-1.5 inline-block whitespace-nowrap",
-            classNames?.label,
-          )}
-        >
-          {item.label}
-        </motion.span>
-      ) : null}
-    </motion.button>
   );
 }
 
@@ -609,21 +488,53 @@ function DockToolbar({
             : undefined;
 
         return (
-          <LiveDockButton
+          <motion.button
             key={item.id}
-            item={item}
-            baseId={baseId}
-            geometry={geometry}
-            isActive={isActive}
-            isTabbable={isTabbable}
-            openingFromClosed={openingFromClosed}
-            popup={popup}
-            reduce={reduce}
-            classNames={classNames}
-            registerTabRef={registerTabRef}
-            onActivate={onActivate}
-            onKeyDown={onKeyDown}
-          />
+            type="button"
+            disabled={item.disabled}
+            aria-haspopup={popup}
+            aria-expanded={hasPanel(item) ? isActive : undefined}
+            aria-controls={isActive ? `${baseId}-panel-${item.id}` : undefined}
+            aria-label={item.label}
+            tabIndex={isTabbable ? 0 : -1}
+            ref={(node) => registerTabRef(item.id, node)}
+            onClick={() => onActivate(item)}
+            onKeyDown={(event) => onKeyDown(event, item)}
+            initial={false}
+            animate={{ x: geometry.x, width: geometry.width }}
+            transition={
+              reduce || openingFromClosed
+                ? { duration: 0 }
+                : TAB_CHANGE_TRANSITION
+            }
+            className={cn(
+              "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
+              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              "disabled:pointer-events-none disabled:opacity-40",
+              isActive && "justify-start pl-2.5 pr-4",
+              isActive
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+              classNames?.tab,
+              isActive && classNames?.activeTab,
+            )}
+          >
+            {isActive ? (
+              <span
+                className={cn(
+                  "absolute inset-0 -z-10 rounded-xl bg-foreground/10",
+                  classNames?.pill,
+                )}
+              />
+            ) : null}
+            <DockButtonContent
+              item={item}
+              showLabel={isActive}
+              animatedLabel
+              reduce={reduce}
+              classNames={classNames}
+            />
+          </motion.button>
         );
       })}
     </motion.div>
@@ -644,9 +555,10 @@ export function ExpandableTabs({
   const reduce = useReducedMotion();
   const baseId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const { setPanelMeasureRef, sizes: panelSizes } = usePanelSizes();
+  const { setMeasureRef: setPanelMeasureRef, sizes: panelSizes } =
+    useMeasuredSizes<HTMLDivElement>();
   const { setMeasureRef: setButtonMeasureRef, sizes: buttonSizes } =
-    useElementSizes<HTMLButtonElement>();
+    useMeasuredSizes<HTMLButtonElement>();
 
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
