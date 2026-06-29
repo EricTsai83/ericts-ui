@@ -1658,6 +1658,7 @@ function ExpandableToolbarPreview() {
         open={open}
         onOpenChange={setOpen}
         side="start"
+        anchor="trigger"
         expandIcon={<ChevronsLeft aria-hidden />}
         collapseIcon={<ChevronsRight aria-hidden />}
         expandLabel="Show quick actions"

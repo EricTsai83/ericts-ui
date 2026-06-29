@@ -40,7 +40,7 @@
 }
 
 .home-hero-mark__contact-shadow {
-  opacity: 0.16;
+  opacity: 0;
   transform: translateX(-4%) translateY(-5%) scale(0.92) rotate(-2deg);
 }
 

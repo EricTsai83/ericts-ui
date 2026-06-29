@@ -71,12 +71,17 @@ export interface FloatingSelectProps {
 }
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+const SHELL_LAYOUT_DURATION = 0.26;
+const PANEL_DURATION = 0.16;
+const OPTION_STAGGER = 0.028;
+const OPTION_DELAY = 0.04;
+const OPTION_DURATION = 0.13;
 const SHELL_TRANSITION = {
-  layout: { type: "spring", duration: 0.26, bounce: 0 },
-  opacity: { duration: 0.16, ease: EASE_OUT },
+  layout: { type: "spring", duration: SHELL_LAYOUT_DURATION, bounce: 0 },
+  opacity: { duration: PANEL_DURATION, ease: EASE_OUT },
   y: { duration: 0.22, ease: EASE_OUT },
 } as const;
-const PANEL_TRANSITION = { duration: 0.16, ease: EASE_OUT };
+const PANEL_TRANSITION = { duration: PANEL_DURATION, ease: EASE_OUT };
 const PANEL_EXIT_TRANSITION = { duration: 0.08, ease: EASE_OUT };
 const ACTIVE_SURFACE_TRANSITION = {
   type: "spring",
@@ -93,6 +98,15 @@ function getCssPixels(value: string) {
 
 function getOptionValue(option: FloatingSelectOption) {
   return (option.value ?? option.id) as string;
+}
+
+function getOpenHoverLockDelay(optionCount: number) {
+  const listDuration =
+    OPTION_DELAY + Math.max(optionCount - 1, 0) * OPTION_STAGGER + OPTION_DURATION;
+
+  return Math.ceil(
+    Math.max(SHELL_LAYOUT_DURATION, PANEL_DURATION, listDuration) * 1000,
+  );
 }
 
 export function FloatingSelect({
@@ -120,6 +134,7 @@ export function FloatingSelect({
   const listboxId = `${reactId}-listbox`;
   const shouldReduceMotion = useReducedMotion();
   const [open, setOpen] = React.useState(false);
+  const [optionHoverLocked, setOptionHoverLocked] = React.useState(false);
   const [inlineAnchorSize, setInlineAnchorSize] = React.useState<{
     width: number;
     height: number;
@@ -154,6 +169,16 @@ export function FloatingSelect({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
+  React.useEffect(() => {
+    if (!open || shouldReduceMotion === true || !optionHoverLocked) return;
+
+    const timeout = window.setTimeout(() => {
+      setOptionHoverLocked(false);
+    }, getOpenHoverLockDelay(options.length));
+
+    return () => window.clearTimeout(timeout);
+  }, [open, optionHoverLocked, options.length, shouldReduceMotion]);
+
   const selectedValue =
     value ?? internalSelected ?? (options[0] ? getOptionValue(options[0]) : "");
   const selectedOption = options.find(
@@ -172,6 +197,8 @@ export function FloatingSelect({
   const activeSurfaceLayoutId = shouldReduceMotion
     ? undefined
     : "floating-select-active-surface";
+  const optionHoverEnabled =
+    shouldReduceMotion === true || !optionHoverLocked;
 
   const handleSelect = (option: FloatingSelectOption) => {
     const nextValue = getOptionValue(option);
@@ -234,6 +261,7 @@ export function FloatingSelect({
 
   const handleOpen = () => {
     measureInlineAnchorSize();
+    setOptionHoverLocked(shouldReduceMotion !== true);
     setOpen(true);
   };
 
@@ -242,9 +270,9 @@ export function FloatingSelect({
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.028,
+        staggerChildren: OPTION_STAGGER,
         staggerDirection: position === "bottom" ? -1 : 1,
-        delayChildren: 0.04,
+        delayChildren: OPTION_DELAY,
       },
     },
   };
@@ -253,7 +281,7 @@ export function FloatingSelect({
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.13, ease: EASE_OUT },
+      transition: { duration: OPTION_DURATION, ease: EASE_OUT },
     },
   };
 
@@ -320,7 +348,11 @@ export function FloatingSelect({
                         "relative flex h-8 w-full items-center gap-6 overflow-hidden rounded-md px-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
                         active
                           ? "text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                          : cn(
+                              "text-muted-foreground",
+                              optionHoverEnabled &&
+                                "hover:bg-accent hover:text-accent-foreground",
+                            ),
                       )}
                     >
                       {active ? (

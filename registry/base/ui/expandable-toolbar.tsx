@@ -23,12 +23,13 @@ const TOOLBAR_TRANSITION = {
   width: { duration: 0.2, ease: EASE_OUT },
   opacity: { duration: 0.14, ease: EASE_OUT },
 } as const;
-const TRIGGER_BLEED_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
+const TRIGGER_SURFACE_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 const TOOLBAR_PADDING = 2;
 const TRIGGER_RADIUS_OPEN = 8;
 const TRIGGER_RADIUS_CLOSED = TRIGGER_RADIUS_OPEN + TOOLBAR_PADDING;
 
 type ExpandableToolbarSide = "start" | "end";
+type ExpandableToolbarAnchor = "toolbar" | "trigger";
 type ExpandableToolbarTriggerProps = ComponentPropsWithoutRef<"button"> & {
   "data-state": "open" | "closed";
 };
@@ -61,6 +62,8 @@ type ExpandableToolbarBaseProps = Omit<
   onOpenChange?: (open: boolean) => void;
   /** Which side of the trigger the content should expand into. */
   side?: ExpandableToolbarSide;
+  /** Whether the full toolbar or only the trigger participates in layout. */
+  anchor?: ExpandableToolbarAnchor;
   expandLabel?: string;
   collapseLabel?: string;
   controlsId?: string;
@@ -98,6 +101,7 @@ export function ExpandableToolbar({
   defaultOpen = false,
   onOpenChange,
   side = "start",
+  anchor = "toolbar",
   expandIcon,
   collapseIcon,
   expandLabel = "Expand toolbar",
@@ -172,11 +176,10 @@ export function ExpandableToolbar({
     [closeOnEscape, focusTrigger, isOpen, onKeyDown, setOpen],
   );
 
-  const triggerBleedMargin = isOpen ? 0 : -TOOLBAR_PADDING;
   const triggerRadius = isOpen ? TRIGGER_RADIUS_OPEN : TRIGGER_RADIUS_CLOSED;
   const triggerTransition = shouldReduceMotion
     ? { duration: 0 }
-    : TRIGGER_BLEED_TRANSITION;
+    : TRIGGER_SURFACE_TRANSITION;
   const transition = shouldReduceMotion ? { duration: 0 } : TOOLBAR_TRANSITION;
   const triggerProps = {
     type: "button",
@@ -195,22 +198,28 @@ export function ExpandableToolbar({
       data-slot="expandable-toolbar-trigger-wrapper"
       data-state={isOpen ? "open" : "closed"}
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center transition-colors",
-        !disabled &&
-          !renderTrigger &&
-          "hover:bg-muted data-[state=open]:bg-muted dark:hover:bg-muted/50 dark:data-[state=open]:bg-muted/50",
+        "group/expandable-toolbar-trigger relative isolate flex size-8 shrink-0 items-center justify-center",
         classNames?.triggerWrapper,
       )}
-      initial={false}
-      animate={{
-        marginTop: triggerBleedMargin,
-        marginRight: triggerBleedMargin,
-        marginBottom: triggerBleedMargin,
-        marginLeft: triggerBleedMargin,
-        borderRadius: triggerRadius,
-      }}
-      transition={triggerTransition}
     >
+      {!renderTrigger ? (
+        <motion.span
+          aria-hidden="true"
+          data-slot="expandable-toolbar-trigger-surface"
+          initial={false}
+          animate={{
+            inset: isOpen ? 0 : -TOOLBAR_PADDING,
+            borderRadius: triggerRadius,
+          }}
+          transition={triggerTransition}
+          className={cn(
+            "pointer-events-none absolute z-0 bg-muted opacity-0 transition-opacity",
+            "group-hover/expandable-toolbar-trigger:opacity-100 group-data-[state=open]/expandable-toolbar-trigger:opacity-100",
+            "dark:bg-muted/50",
+            disabled && "hidden",
+          )}
+        />
+      ) : null}
       {renderTrigger ? (
         renderTrigger({
           open: isOpen,
@@ -281,7 +290,7 @@ export function ExpandableToolbar({
     </motion.div>
   );
 
-  return (
+  const toolbar = (
     <div
       role={role ?? "toolbar"}
       aria-label={ariaLabel}
@@ -309,6 +318,28 @@ export function ExpandableToolbar({
       )}
     </div>
   );
+
+  if (anchor === "trigger") {
+    return (
+      <div
+        data-slot="expandable-toolbar-anchor"
+        data-state={isOpen ? "open" : "closed"}
+        data-side={side}
+        className="relative inline-flex size-8 shrink-0"
+      >
+        <motion.div
+          className={cn(
+            "absolute top-0",
+            side === "start" ? "right-0" : "left-0",
+          )}
+        >
+          {toolbar}
+        </motion.div>
+      </div>
+    );
+  }
+
+  return toolbar;
 }
 
 function DefaultExpandableToolbarTrigger({
@@ -330,7 +361,7 @@ function DefaultExpandableToolbarTrigger({
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "size-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground active:scale-100 active:translate-y-0 active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
+        "relative z-10 size-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground active:scale-100 active:translate-y-0 active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
         className,
       )}
       {...buttonProps}
