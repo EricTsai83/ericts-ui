@@ -4,6 +4,8 @@ import {
   ArrowUpRight,
   Bell,
   Check,
+  ChevronsLeft,
+  ChevronsRight,
   Eye,
   FilePlus2,
   FolderPlus,
@@ -56,6 +58,7 @@ import {
 } from "@/registry/base/ui/status-badge";
 import { StatusButton } from "@/registry/base/ui/status-button";
 import { FloatingSelect } from "@/registry/base/ui/floating-select";
+import { ExpandableToolbar } from "@/registry/base/ui/expandable-toolbar";
 import { OTPInput, type OTPStatus } from "@/registry/base/ui/otp-input";
 import {
   ExpandableTabs,
@@ -91,6 +94,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "status-badge": () => <StatusBadgePreview />,
   "status-button": () => <StatusButtonPreview />,
   "floating-select": () => <FloatingSelectPreview />,
+  "expandable-toolbar": () => <ExpandableToolbarPreview />,
   "otp-input": () => <OTPInputPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "expandable-tabs": () => <ExpandableTabsPreview />,
@@ -358,9 +362,7 @@ function UseElementHeightPreview() {
 }
 
 function UseElementSizeMapPreview() {
-  const [activeId, setActiveId] = useState<string>(
-    elementSizeMapPanels[0].id,
-  );
+  const [activeId, setActiveId] = useState<string>(elementSizeMapPanels[0].id);
   const { setMeasureRef, sizes } = useElementSizeMap<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
   const activePanel =
@@ -614,7 +616,11 @@ const elementHeightPanels = [
     title: "Daily pulse",
     meta: "3 pinned updates",
     badge: "Short",
-    rows: ["Design review at 10:00", "Billing copy is ready", "Deploy note sent"],
+    rows: [
+      "Design review at 10:00",
+      "Billing copy is ready",
+      "Deploy note sent",
+    ],
   },
   {
     id: "queue",
@@ -684,7 +690,8 @@ const elementSizeMapPanels: ElementSizeMapPanelData[] = [
       { label: "Retention", value: "41%" },
       { label: "Expansion", value: "19%" },
     ],
-    footer: "North America is pacing ahead of forecast after the pricing update.",
+    footer:
+      "North America is pacing ahead of forecast after the pricing update.",
   },
   {
     id: "tall",
@@ -901,7 +908,7 @@ const resourceItems = [
 
 function NavigationMenuPreview() {
   return (
-    <div className="flex min-h-[24rem] w-full items-start justify-center pt-4">
+    <div className="flex min-h-96 w-full items-start justify-center pt-4">
       <NavigationMenu>
         <NavigationMenuList className="rounded-lg border bg-background p-1 shadow-sm">
           <NavigationMenuItem value="components">
@@ -1028,8 +1035,8 @@ function TextMorphPreview() {
 
 function ExpandableModalPreview() {
   return (
-    <div className="flex min-h-[28rem] w-full items-center justify-center">
-      <ExpandableModal className="min-h-[28rem]" />
+    <div className="flex min-h-112 w-full items-center justify-center">
+      <ExpandableModal className="min-h-112" />
     </div>
   );
 }
@@ -1591,7 +1598,7 @@ function StatusBadgePreview() {
               key={step.label}
               className={cn(
                 "size-1.5 rounded-full transition-colors",
-                index <= statusIndex ? "bg-primary" : "bg-muted-foreground/25"
+                index <= statusIndex ? "bg-primary" : "bg-muted-foreground/25",
               )}
             />
           ))}
@@ -1638,6 +1645,57 @@ function FloatingSelectPreview() {
         onValueChange={setValue}
         options={floatingSelectOptions}
       />
+    </div>
+  );
+}
+
+function ExpandableToolbarPreview() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex min-h-32 w-full items-center justify-center">
+      <ExpandableToolbar
+        open={open}
+        onOpenChange={setOpen}
+        side="start"
+        expandIcon={<ChevronsLeft aria-hidden />}
+        collapseIcon={<ChevronsRight aria-hidden />}
+        expandLabel="Show quick actions"
+        collapseLabel="Hide quick actions"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="New file"
+        >
+          <FilePlus2 aria-hidden />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="New folder"
+        >
+          <FolderPlus aria-hidden />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Invite teammate"
+        >
+          <UserPlus aria-hidden />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Send invite"
+        >
+          <Mail aria-hidden />
+        </Button>
+      </ExpandableToolbar>
     </div>
   );
 }

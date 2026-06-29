@@ -103,6 +103,32 @@
       ]
     },
     {
+      "name": "expandable-toolbar",
+      "type": "registry:ui",
+      "title": "Expandable Toolbar",
+      "description": "A controlled or uncontrolled toolbar primitive that measures its action slot and expands from either side.",
+      "categories": ["toolbar", "button"],
+      "meta": {
+        "tags": [
+          "toolbar",
+          "expandable",
+          "quick-actions",
+          "measurement",
+          "controlled"
+        ],
+        "effects": ["width-animation", "fade", "reduced-motion"]
+      },
+      "registryDependencies": ["button"],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/expandable-toolbar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/expandable-toolbar.tsx"
+        }
+      ]
+    },
+    {
       "name": "check-animation",
       "type": "registry:ui",
       "title": "Check Animation",
