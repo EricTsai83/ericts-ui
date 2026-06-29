@@ -4,7 +4,6 @@ import {
   type ComponentPropsWithoutRef,
   type CSSProperties,
   type KeyboardEvent,
-  type Ref,
   type ReactNode,
   useCallback,
   useId,
@@ -25,6 +24,9 @@ const TOOLBAR_TRANSITION = {
   opacity: { duration: 0.14, ease: EASE_OUT },
 } as const;
 const TRIGGER_BLEED_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
+const TOOLBAR_PADDING = 2;
+const TRIGGER_RADIUS_OPEN = 8;
+const TRIGGER_RADIUS_CLOSED = TRIGGER_RADIUS_OPEN + TOOLBAR_PADDING;
 
 type ExpandableToolbarSide = "start" | "end";
 type ExpandableToolbarTriggerProps = ComponentPropsWithoutRef<"button"> & {
@@ -111,11 +113,13 @@ export function ExpandableToolbar({
   role,
   "aria-label": ariaLabel = "Expandable toolbar",
   onKeyDown,
+  style,
   ...props
 }: ExpandableToolbarProps) {
   const generatedId = useId();
   const panelId = controlsId ?? `${generatedId}-panel`;
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerWrapperRef = useRef<HTMLDivElement>(null);
   const [contentRef, contentWidth] = useMeasuredWidth<HTMLDivElement>();
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const shouldReduceMotion = useReducedMotion();
@@ -123,6 +127,13 @@ export function ExpandableToolbar({
   const isOpen = controlled ? open : internalOpen;
   const panelWidth = isOpen ? contentWidth : 0;
   const currentLabel = isOpen ? collapseLabel : expandLabel;
+
+  const focusTrigger = useCallback(() => {
+    const trigger =
+      triggerRef.current ?? getFirstFocusableElement(triggerWrapperRef.current);
+
+    trigger?.focus();
+  }, []);
 
   const setOpen = useCallback(
     (nextOpen: boolean) => {
@@ -156,13 +167,13 @@ export function ExpandableToolbar({
 
       event.stopPropagation();
       setOpen(false);
-      triggerRef.current?.focus();
+      focusTrigger();
     },
-    [closeOnEscape, isOpen, onKeyDown, setOpen],
+    [closeOnEscape, focusTrigger, isOpen, onKeyDown, setOpen],
   );
 
-  const triggerBleedMargin = isOpen ? 0 : -2;
-  const triggerRadius = isOpen ? 8 : 10;
+  const triggerBleedMargin = isOpen ? 0 : -TOOLBAR_PADDING;
+  const triggerRadius = isOpen ? TRIGGER_RADIUS_OPEN : TRIGGER_RADIUS_CLOSED;
   const triggerTransition = shouldReduceMotion
     ? { duration: 0 }
     : TRIGGER_BLEED_TRANSITION;
@@ -180,6 +191,7 @@ export function ExpandableToolbar({
 
   const trigger = (
     <motion.div
+      ref={triggerWrapperRef}
       data-slot="expandable-toolbar-trigger-wrapper"
       data-state={isOpen ? "open" : "closed"}
       className={cn(
@@ -209,7 +221,6 @@ export function ExpandableToolbar({
         })
       ) : (
         <DefaultExpandableToolbarTrigger
-          ref={triggerRef}
           open={isOpen}
           expandIcon={expandIcon}
           collapseIcon={collapseIcon}
@@ -278,10 +289,11 @@ export function ExpandableToolbar({
       data-state={isOpen ? "open" : "closed"}
       data-side={side}
       className={cn(
-        "inline-flex max-w-full items-center overflow-hidden rounded-lg border bg-background p-0.5 text-foreground shadow-sm",
+        "inline-flex max-w-full items-center overflow-hidden rounded-lg border bg-background text-foreground shadow-sm",
         className,
       )}
       onKeyDown={handleKeyDown}
+      style={{ ...style, padding: TOOLBAR_PADDING }}
       {...props}
     >
       {side === "start" ? (
@@ -300,13 +312,11 @@ export function ExpandableToolbar({
 }
 
 function DefaultExpandableToolbarTrigger({
-  ref,
   open,
   expandIcon,
   collapseIcon,
   triggerProps,
 }: {
-  ref: Ref<HTMLButtonElement>;
   open: boolean;
   expandIcon?: ReactNode;
   collapseIcon?: ReactNode;
@@ -317,7 +327,6 @@ function DefaultExpandableToolbarTrigger({
 
   return (
     <Button
-      ref={ref}
       variant="ghost"
       size="icon-sm"
       className={cn(
@@ -331,6 +340,13 @@ function DefaultExpandableToolbarTrigger({
       </span>
     </Button>
   );
+}
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getFirstFocusableElement(element: HTMLElement | null) {
+  return element?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? null;
 }
 
 function useMeasuredWidth<T extends HTMLElement>() {
