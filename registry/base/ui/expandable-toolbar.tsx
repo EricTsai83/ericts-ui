@@ -24,6 +24,7 @@ const TOOLBAR_TRANSITION = {
   width: { duration: 0.2, ease: EASE_OUT },
   opacity: { duration: 0.14, ease: EASE_OUT },
 } as const;
+const TRIGGER_BLEED_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 
 type ExpandableToolbarSide = "start" | "end";
 type ExpandableToolbarTriggerProps = ComponentPropsWithoutRef<"button"> & {
@@ -160,6 +161,11 @@ export function ExpandableToolbar({
     [closeOnEscape, isOpen, onKeyDown, setOpen],
   );
 
+  const triggerBleedMargin = isOpen ? 0 : -2;
+  const triggerRadius = isOpen ? 8 : 10;
+  const triggerTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : TRIGGER_BLEED_TRANSITION;
   const transition = shouldReduceMotion ? { duration: 0 } : TOOLBAR_TRANSITION;
   const triggerProps = {
     type: "button",
@@ -173,13 +179,25 @@ export function ExpandableToolbar({
   } satisfies ExpandableToolbarTriggerProps;
 
   const trigger = (
-    <div
+    <motion.div
       data-slot="expandable-toolbar-trigger-wrapper"
       data-state={isOpen ? "open" : "closed"}
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center",
+        "flex size-8 shrink-0 items-center justify-center transition-colors",
+        !disabled &&
+          !renderTrigger &&
+          "hover:bg-muted data-[state=open]:bg-muted dark:hover:bg-muted/50 dark:data-[state=open]:bg-muted/50",
         classNames?.triggerWrapper,
       )}
+      initial={false}
+      animate={{
+        marginTop: triggerBleedMargin,
+        marginRight: triggerBleedMargin,
+        marginBottom: triggerBleedMargin,
+        marginLeft: triggerBleedMargin,
+        borderRadius: triggerRadius,
+      }}
+      transition={triggerTransition}
     >
       {renderTrigger ? (
         renderTrigger({
@@ -198,7 +216,7 @@ export function ExpandableToolbar({
           triggerProps={triggerProps}
         />
       )}
-    </div>
+    </motion.div>
   );
 
   const panel = (
@@ -303,7 +321,7 @@ function DefaultExpandableToolbarTrigger({
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "text-muted-foreground hover:text-foreground aria-expanded:text-foreground active:translate-y-0",
+        "size-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground active:scale-100 active:translate-y-0 active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
         className,
       )}
       {...buttonProps}
