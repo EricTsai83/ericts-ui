@@ -1,22 +1,12 @@
 "use client";
 
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  Code2,
-  HelpCircle,
-  Minimize2,
-  Shuffle,
-} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "fumadocs-ui/provider/base";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { RegistryDemoCodeDrawer } from "@/components/registry-demo-code-drawer";
 import { RegistryPreview } from "@/components/registry-preview";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { RegistryCodeModel } from "@/lib/registry-code";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 
@@ -38,41 +27,46 @@ export type RegistryDemoNavigation = {
   next?: RegistryDemoNavigationItem;
   previousCategory?: RegistryDemoNavigationItem;
   nextCategory?: RegistryDemoNavigationItem;
-  randomItems: RegistryDemoNavigationItem[];
 };
 
 export function RegistryDemoShell({
   item,
-  codeModel,
   navigation,
   variant,
 }: {
   item: RegistryDisplayItem;
-  codeModel: RegistryCodeModel;
   navigation: RegistryDemoNavigation;
   variant: string;
 }) {
   const router = useRouter();
-  const [isCodeOpen, setIsCodeOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const itemPageLabel = getItemPageLabel(item.kind);
-  const randomItems = useMemo(
+  const prefetchHrefs = useMemo(
     () =>
-      navigation.randomItems.filter(
-        (navigationItem) => navigationItem.name !== item.name,
-      ),
-    [item.name, navigation.randomItems],
+      uniqueStrings([
+        navigation.previous?.viewHref,
+        navigation.next?.viewHref,
+        navigation.previousCategory?.viewHref,
+        navigation.nextCategory?.viewHref,
+      ]).filter((href) => href !== item.viewHref),
+    [
+      item.viewHref,
+      navigation.next,
+      navigation.nextCategory,
+      navigation.previous,
+      navigation.previousCategory,
+    ],
   );
+
+  useEffect(() => {
+    for (const href of prefetchHrefs) {
+      prefetchRoute(router, href);
+    }
+  }, [prefetchHrefs, router]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (isHelpOpen) {
-        return;
-      }
-
-      if (event.key === "Escape" && isCodeOpen) {
-        event.preventDefault();
-        setIsCodeOpen(false);
         return;
       }
 
@@ -114,23 +108,6 @@ export function RegistryDemoShell({
         return;
       }
 
-      if (event.key.toLowerCase() === "r") {
-        event.preventDefault();
-        const randomItem =
-          randomItems[Math.floor(Math.random() * randomItems.length)];
-
-        if (randomItem) {
-          router.replace(randomItem.viewHref);
-        }
-        return;
-      }
-
-      if (event.key.toLowerCase() === "c") {
-        event.preventDefault();
-        setIsCodeOpen((value) => !value);
-        return;
-      }
-
       if (event.key === "?") {
         event.preventDefault();
         setIsHelpOpen(true);
@@ -141,132 +118,20 @@ export function RegistryDemoShell({
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    isCodeOpen,
     isHelpOpen,
     item.href,
     navigation.next,
     navigation.nextCategory,
     navigation.previous,
     navigation.previousCategory,
-    randomItems,
     router,
   ]);
 
   return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
-      <header className="relative z-30 flex min-h-14 flex-wrap items-center gap-3 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium capitalize text-muted-foreground">
-              {item.kind}
-            </span>
-            <span className="truncate text-sm font-medium">{item.title}</span>
-          </div>
-          <p className="truncate text-xs text-muted-foreground">
-            {item.category} / {item.name}
-          </p>
-        </div>
+    <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
-        <div className="flex items-center gap-1">
-          <NavigationButton
-            label="Previous item"
-            item={navigation.previous}
-            onNavigate={() => replaceNavigationItem(router, navigation.previous)}
-          >
-            <ArrowLeft aria-hidden="true" />
-          </NavigationButton>
-          <NavigationButton
-            label="Next item"
-            item={navigation.next}
-            onNavigate={() => replaceNavigationItem(router, navigation.next)}
-          >
-            <ArrowRight aria-hidden="true" />
-          </NavigationButton>
-          <NavigationButton
-            label="Previous category"
-            item={navigation.previousCategory}
-            onNavigate={() =>
-              replaceNavigationItem(router, navigation.previousCategory)
-            }
-            className="hidden sm:inline-flex"
-          >
-            <ArrowUp aria-hidden="true" />
-          </NavigationButton>
-          <NavigationButton
-            label="Next category"
-            item={navigation.nextCategory}
-            onNavigate={() =>
-              replaceNavigationItem(router, navigation.nextCategory)
-            }
-            className="hidden sm:inline-flex"
-          >
-            <ArrowDown aria-hidden="true" />
-          </NavigationButton>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Open random item"
-            title="Random item"
-            onClick={() => {
-              const randomItem =
-                randomItems[Math.floor(Math.random() * randomItems.length)];
-
-              if (randomItem) {
-                router.replace(randomItem.viewHref);
-              }
-            }}
-            disabled={randomItems.length === 0}
-          >
-            <Shuffle aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant={isCodeOpen ? "secondary" : "ghost"}
-            size="icon-sm"
-            aria-label="Toggle code drawer"
-            title="Code / install"
-            onClick={() => setIsCodeOpen((value) => !value)}
-          >
-            <Code2 aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Show keyboard shortcuts"
-            title="Keyboard shortcuts"
-            onClick={() => setIsHelpOpen(true)}
-          >
-            <HelpCircle aria-hidden="true" />
-          </Button>
-          <Link
-            href={item.href}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "icon-sm" }),
-              "sm:hidden",
-            )}
-            aria-label={`Open ${itemPageLabel.toLowerCase()}`}
-            title={itemPageLabel}
-          >
-            <Minimize2 aria-hidden="true" />
-          </Link>
-          <Link
-            href={item.href}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "hidden sm:inline-flex",
-            )}
-          >
-            {itemPageLabel}
-          </Link>
-        </div>
-      </header>
-
-      <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
+      <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 pb-24 sm:p-8 sm:pb-24">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:56px_56px] opacity-30 [mask-image:radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
@@ -281,11 +146,11 @@ export function RegistryDemoShell({
         </div>
       </section>
 
-      <RegistryDemoCodeDrawer
-        item={item}
-        codeModel={codeModel}
-        open={isCodeOpen}
-        onOpenChange={setIsCodeOpen}
+      <DemoToolbar
+        itemPageLabel={itemPageLabel}
+        itemHref={item.href}
+        navigation={navigation}
+        onHelpOpen={() => setIsHelpOpen(true)}
       />
 
       <ShortcutDialog open={isHelpOpen} onOpenChange={setIsHelpOpen} />
@@ -293,34 +158,216 @@ export function RegistryDemoShell({
   );
 }
 
+function DemoToolbar({
+  itemPageLabel,
+  itemHref,
+  navigation,
+  onHelpOpen,
+}: {
+  itemPageLabel: string;
+  itemHref: string;
+  navigation: RegistryDemoNavigation;
+  onHelpOpen: () => void;
+}) {
+  return (
+    <nav
+      aria-label="Preview controls"
+      className="fixed bottom-3 right-3 z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-popover/85 sm:bottom-4 sm:right-4"
+    >
+      <ToolbarLink
+        href={itemHref}
+        ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
+        title="Exit fullscreen"
+        shortcut="esc"
+        label="exit fullscreen"
+      />
+      <ToolbarSeparator />
+      <NavigationButton
+        label="previous"
+        ariaLabel="Previous item"
+        shortcut="←"
+        item={navigation.previous}
+      />
+      <NavigationButton
+        label="next"
+        ariaLabel="Next item"
+        shortcut="→"
+        item={navigation.next}
+      />
+      <ToolbarSeparator />
+      <NavigationButton
+        label="previous group"
+        ariaLabel="Previous category"
+        shortcut="↑"
+        item={navigation.previousCategory}
+      />
+      <NavigationButton
+        label="next group"
+        ariaLabel="Next category"
+        shortcut="↓"
+        item={navigation.nextCategory}
+      />
+      <ToolbarSeparator />
+      <ThemeToolbarButton />
+      <ToolbarButton
+        ariaLabel="Show keyboard shortcuts"
+        title="Keyboard shortcuts"
+        shortcut="?"
+        label="keys"
+        onClick={onHelpOpen}
+      />
+    </nav>
+  );
+}
+
+function ThemeToolbarButton() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  return (
+    <ToolbarButton
+      ariaLabel="Toggle theme"
+      title="Toggle theme"
+      shortcut="D"
+      label="theme"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+    />
+  );
+}
+
+function ToolbarLink({
+  href,
+  ariaLabel,
+  title,
+  shortcut,
+  label,
+}: {
+  href: string;
+  ariaLabel: string;
+  title: string;
+  shortcut: string;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={ariaLabel}
+      title={title}
+      className={toolbarCommandClassName}
+    >
+      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
+      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
+    </Link>
+  );
+}
+
 function NavigationButton({
   label,
+  ariaLabel,
+  shortcut,
   item,
-  onNavigate,
-  className,
-  children,
 }: {
   label: string;
+  ariaLabel: string;
+  shortcut: string;
   item?: RegistryDemoNavigationItem;
-  onNavigate: () => void;
-  className?: string;
-  children: ReactNode;
 }) {
+  const resolvedLabel = item ? `${ariaLabel}: ${item.title}` : ariaLabel;
+
+  if (item) {
+    return (
+      <Link
+        href={item.viewHref}
+        replace
+        aria-label={resolvedLabel}
+        title={resolvedLabel}
+        className={toolbarCommandClassName}
+      >
+        <ToolbarShortcut>{shortcut}</ToolbarShortcut>
+        <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
+      </Link>
+    );
+  }
+
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon-sm"
-      aria-label={item ? `${label}: ${item.title}` : label}
-      title={item ? `${label}: ${item.title}` : label}
-      onClick={onNavigate}
-      disabled={!item}
-      className={className}
+      aria-label={resolvedLabel}
+      title={resolvedLabel}
+      disabled
+      className={toolbarButtonClassName}
     >
-      {children}
+      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
+      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
     </Button>
   );
 }
+
+function ToolbarButton({
+  ariaLabel,
+  title,
+  shortcut,
+  label,
+  onClick,
+}: {
+  ariaLabel: string;
+  title: string;
+  shortcut: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label={ariaLabel}
+      title={title}
+      onClick={onClick}
+      className={toolbarButtonClassName}
+    >
+      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
+      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
+    </Button>
+  );
+}
+
+function ToolbarShortcut({ children }: { children: ReactNode }) {
+  return (
+    <kbd className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-muted px-1 font-mono text-[0.68rem] font-medium leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]">
+      {children}
+    </kbd>
+  );
+}
+
+function ToolbarCommandLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="whitespace-nowrap text-xs leading-none text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+function ToolbarSeparator() {
+  return (
+    <span
+      aria-hidden="true"
+      className="size-0.5 shrink-0 rounded-full bg-border"
+    />
+  );
+}
+
+const toolbarCommandClassName = cn(
+  "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-1.5 transition-colors",
+  "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+);
+
+const toolbarButtonClassName = cn(
+  toolbarCommandClassName,
+  "rounded-md border-0 bg-transparent text-popover-foreground hover:bg-muted hover:text-popover-foreground aria-pressed:bg-muted",
+);
 
 function ShortcutDialog({
   open,
@@ -362,9 +409,7 @@ const shortcuts = [
   { key: "ArrowLeft", label: "Previous item in this category" },
   { key: "ArrowDown", label: "First item in the next category" },
   { key: "ArrowUp", label: "First item in the previous category" },
-  { key: "Esc", label: "Close code drawer, then open the detail page" },
-  { key: "R", label: "Random item of this type" },
-  { key: "C", label: "Toggle code / install drawer" },
+  { key: "Esc", label: "Exit fullscreen" },
   { key: "D", label: "Toggle theme mode" },
   { key: "?", label: "Show this help" },
 ] as const;
@@ -378,6 +423,14 @@ function replaceNavigationItem(
   }
 
   router.replace(item.viewHref);
+}
+
+function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
+  try {
+    router.prefetch(href);
+  } catch {
+    // Prefetch is opportunistic; navigation still works without it.
+  }
 }
 
 function shouldIgnoreShortcut(event: KeyboardEvent) {
@@ -472,4 +525,10 @@ function getItemPageLabel(kind: RegistryDisplayItem["kind"]) {
   }
 
   return "Component page";
+}
+
+function uniqueStrings(values: Array<string | undefined>) {
+  return Array.from(
+    new Set(values.filter((value): value is string => Boolean(value))),
+  );
 }

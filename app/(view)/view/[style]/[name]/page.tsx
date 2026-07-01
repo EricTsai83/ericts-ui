@@ -119,7 +119,6 @@ function toDemoNavigation(
     next: toDemoNavigationItem(navigation.next),
     previousCategory: toDemoNavigationItem(navigation.previousCategory),
     nextCategory: toDemoNavigationItem(navigation.nextCategory),
-    randomItems: navigation.randomItems.map(toRequiredDemoNavigationItem),
   };
 }
 

@@ -271,7 +271,6 @@ export function getRegistryDisplayNavigation(name: string) {
     return undefined;
   }
 
-  const kindItems = getRegistryDisplayItems(item.kind);
   const categoryItems = getRegistryDisplayItemsByCategory(
     item.kind,
     item.category,
@@ -285,7 +284,6 @@ export function getRegistryDisplayNavigation(name: string) {
     next: getRelativeItem(categoryItems, name, 1),
     previousCategory,
     nextCategory,
-    randomItems: kindItems,
   };
 }
 
