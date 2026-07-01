@@ -6,7 +6,6 @@ import {
   ArrowRight,
   ArrowUp,
   Code2,
-  FileJson2,
   HelpCircle,
   Minimize2,
   Shuffle,
@@ -56,6 +55,7 @@ export function RegistryDemoShell({
   const router = useRouter();
   const [isCodeOpen, setIsCodeOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const itemPageLabel = getItemPageLabel(item.kind);
   const randomItems = useMemo(
     () =>
       navigation.randomItems.filter(
@@ -244,21 +244,13 @@ export function RegistryDemoShell({
             <HelpCircle aria-hidden="true" />
           </Button>
           <Link
-            href={item.registryUrl}
-            aria-label={`Open ${item.title} registry JSON`}
-            title="Registry JSON"
-            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
-          >
-            <FileJson2 aria-hidden="true" />
-          </Link>
-          <Link
             href={item.href}
             className={cn(
               buttonVariants({ variant: "outline", size: "icon-sm" }),
               "sm:hidden",
             )}
-            aria-label="Exit fullscreen demo"
-            title="Exit fullscreen demo"
+            aria-label={`Open ${itemPageLabel.toLowerCase()}`}
+            title={itemPageLabel}
           >
             <Minimize2 aria-hidden="true" />
           </Link>
@@ -269,8 +261,7 @@ export function RegistryDemoShell({
               "hidden sm:inline-flex",
             )}
           >
-            Detail
-            <Minimize2 data-icon="inline-end" aria-hidden="true" />
+            {itemPageLabel}
           </Link>
         </div>
       </header>
@@ -282,7 +273,7 @@ export function RegistryDemoShell({
         />
         <div
           className={cn(
-            "relative z-10 flex w-full min-w-0 items-center justify-center",
+            "z-10 flex w-full min-w-0 items-center justify-center",
             getViewportClassName(item.viewport),
           )}
         >
@@ -469,4 +460,16 @@ function getViewportClassName(viewport = "centered") {
   }
 
   return "max-w-3xl";
+}
+
+function getItemPageLabel(kind: RegistryDisplayItem["kind"]) {
+  if (kind === "hook") {
+    return "Hook page";
+  }
+
+  if (kind === "block") {
+    return "Block page";
+  }
+
+  return "Component page";
 }
