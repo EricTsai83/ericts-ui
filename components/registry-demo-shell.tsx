@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Kbd } from "@/components/ui/kbd";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 
@@ -172,7 +173,7 @@ function DemoToolbar({
   return (
     <nav
       aria-label="Preview controls"
-      className="fixed bottom-3 right-3 z-30 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-popover/85 sm:bottom-4 sm:right-4"
+      className="fixed bottom-3 right-3 z-30 flex max-w-[calc(100vw-1.5rem)] flex-wrap items-center justify-end gap-1 rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-popover/85 sm:bottom-4 sm:right-4"
     >
       <ToolbarLink
         href={itemHref}
@@ -293,7 +294,7 @@ function NavigationButton({
     <Button
       type="button"
       variant="ghost"
-      size="icon-sm"
+      size="sm"
       aria-label={resolvedLabel}
       title={resolvedLabel}
       disabled
@@ -336,9 +337,9 @@ function ToolbarButton({
 
 function ToolbarShortcut({ children }: { children: ReactNode }) {
   return (
-    <kbd className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-muted px-1 font-mono text-[0.68rem] font-medium leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]">
+    <Kbd className="shrink-0 rounded-md font-mono text-[0.68rem] leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]">
       {children}
-    </kbd>
+    </Kbd>
   );
 }
 
@@ -366,7 +367,7 @@ const toolbarCommandClassName = cn(
 
 const toolbarButtonClassName = cn(
   toolbarCommandClassName,
-  "rounded-md border-0 bg-transparent text-popover-foreground hover:bg-muted hover:text-popover-foreground aria-pressed:bg-muted",
+  "rounded-md border-0 bg-transparent text-popover-foreground hover:bg-muted hover:text-popover-foreground",
 );
 
 function ShortcutDialog({
@@ -392,9 +393,9 @@ function ShortcutDialog({
               key={shortcut.key}
               className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-3 rounded-md bg-muted/50 px-3 py-2"
             >
-              <kbd className="font-mono text-xs font-medium text-foreground">
+              <Kbd className="font-mono text-xs font-medium text-foreground">
                 {shortcut.key}
-              </kbd>
+              </Kbd>
               <span className="text-muted-foreground">{shortcut.label}</span>
             </div>
           ))}

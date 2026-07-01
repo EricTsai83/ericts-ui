@@ -6,14 +6,12 @@ import {
   type RegistryDemoNavigation,
   type RegistryDemoNavigationItem,
 } from "@/components/registry-demo-shell";
-import { getRegistryCodeModel } from "@/lib/registry-code";
 import {
   getRegistryDisplayItem,
   getRegistryDisplayItems,
   getRegistryDisplayNavigation,
   type RegistryDisplayItem,
 } from "@/lib/registry-display";
-import { getRegistryItem } from "@/lib/registry";
 
 type PageProps = {
   params: Promise<{
@@ -54,16 +52,14 @@ export default async function ViewPage({ params, searchParams }: PageProps) {
   const { name, style } = await params;
   const displayItem =
     style === "base" ? getRegistryDisplayItem(name) : undefined;
-  const registryItem = getRegistryItem(name);
 
-  if (!displayItem || displayItem.browsable === false || !registryItem) {
+  if (!displayItem || displayItem.browsable === false) {
     notFound();
   }
 
-  const codeModel = await getRegistryCodeModel(registryItem);
   const navigation = getRegistryDisplayNavigation(displayItem.name);
   const requestedVariant = getRequestedVariant(await searchParams);
-  const variant = getResolvedVariant(displayItem, codeModel, requestedVariant);
+  const variant = getResolvedVariant(displayItem, requestedVariant);
 
   if (!navigation) {
     notFound();
@@ -72,7 +68,6 @@ export default async function ViewPage({ params, searchParams }: PageProps) {
   return (
     <RegistryDemoShell
       item={displayItem}
-      codeModel={codeModel}
       navigation={toDemoNavigation(navigation)}
       variant={variant}
     />
@@ -93,23 +88,20 @@ function getRequestedVariant(
 
 function getResolvedVariant(
   item: RegistryDisplayItem,
-  codeModel: Awaited<ReturnType<typeof getRegistryCodeModel>>,
   requestedVariant: string | undefined,
 ) {
-  const validVariants = new Set(
-    codeModel.variants.map((variant) => variant.value),
-  );
-
-  if (requestedVariant && validVariants.has(requestedVariant)) {
+  if (requestedVariant && fullscreenPreviewVariants.has(requestedVariant)) {
     return requestedVariant;
   }
 
-  if (item.defaultVariant && validVariants.has(item.defaultVariant)) {
+  if (item.defaultVariant && fullscreenPreviewVariants.has(item.defaultVariant)) {
     return item.defaultVariant;
   }
 
-  return codeModel.variants[0]?.value ?? "motion";
+  return "motion";
 }
+
+const fullscreenPreviewVariants = new Set(["motion", "css-only", "usage"]);
 
 function toDemoNavigation(
   navigation: NonNullable<ReturnType<typeof getRegistryDisplayNavigation>>,
