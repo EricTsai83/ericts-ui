@@ -1,9 +1,11 @@
 "use client";
 
-import { Atom, Terminal } from "lucide-react";
+import { Atom, Maximize2 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { RegistryInstallCommand } from "@/components/registry-install-command";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tabs,
   TabsContent,
@@ -13,17 +15,6 @@ import {
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { RegistryPreview } from "@/components/registry-preview";
 import { cn } from "@/lib/utils";
-
-const packageManagers = ["pnpm", "npm", "yarn", "bun"] as const;
-
-type PackageManager = (typeof packageManagers)[number];
-
-const commandPrefix: Record<PackageManager, string> = {
-  pnpm: "pnpm dlx",
-  npm: "npx",
-  yarn: "yarn dlx",
-  bun: "bunx --bun",
-};
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
 
@@ -48,6 +39,7 @@ type ComponentShowcaseProps = {
   targetPath: string;
   dependencies?: string[];
   motionApiSnippets?: ComponentCodeFile[];
+  fullscreenHref?: string;
 };
 
 export function ComponentShowcase({
@@ -58,11 +50,16 @@ export function ComponentShowcase({
   targetPath,
   dependencies = [],
   motionApiSnippets = [],
+  fullscreenHref,
 }: ComponentShowcaseProps) {
   if (type === "registry:hook") {
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-12">
-        <HookPreview name={name} codeVariants={codeVariants} />
+        <HookPreview
+          name={name}
+          codeVariants={codeVariants}
+          fullscreenHref={fullscreenHref}
+        />
         <InstallationPanel
           name={name}
           installTarget={installTarget}
@@ -77,7 +74,11 @@ export function ComponentShowcase({
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-12">
-      <ComponentPreviewCard name={name} codeVariants={codeVariants} />
+      <ComponentPreviewCard
+        name={name}
+        codeVariants={codeVariants}
+        fullscreenHref={fullscreenHref}
+      />
       <InstallationPanel
         name={name}
         installTarget={installTarget}
@@ -95,9 +96,11 @@ export function ComponentShowcase({
 function HookPreview({
   name,
   codeVariants,
+  fullscreenHref,
 }: {
   name: string;
   codeVariants: ComponentCodeVariant[];
+  fullscreenHref?: string;
 }) {
   const config = hookPreviewConfigs[name];
   const demoVariants = config?.demoVariants ?? hookDemoVariants;
@@ -126,14 +129,16 @@ function HookPreview({
           </TabsList>
           {demoVariants.map((variant) => (
             <TabsContent key={variant.value} value={variant.value}>
-              <div className="rounded-xl border bg-background p-6">
+              <div className="relative rounded-xl border bg-background p-6">
+                <PreviewFullscreenLink href={fullscreenHref} />
                 <RegistryPreview name={name} variant={variant.value} />
               </div>
             </TabsContent>
           ))}
         </Tabs>
       ) : (
-        <div className="rounded-xl border bg-background p-6">
+        <div className="relative rounded-xl border bg-background p-6">
+          <PreviewFullscreenLink href={fullscreenHref} />
           <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
         </div>
       )}
@@ -272,9 +277,11 @@ const hookPreviewConfigs: Partial<Record<
 function ComponentPreviewCard({
   name,
   codeVariants,
+  fullscreenHref,
 }: {
   name: string;
   codeVariants: ComponentCodeVariant[];
+  fullscreenHref?: string;
 }) {
   const variants: ComponentCodeVariant[] =
     codeVariants.length > 0
@@ -295,6 +302,7 @@ function ComponentPreviewCard({
     >
       <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
         <div className="relative flex min-h-[288px] items-center justify-center p-10">
+          <PreviewFullscreenLink href={fullscreenHref} />
           {hasMultipleVariants ? (
             <TabsList
               aria-label="Implementation"
@@ -337,6 +345,26 @@ function ComponentPreviewCard({
         </div>
       </Tabs>
     </section>
+  );
+}
+
+function PreviewFullscreenLink({ href }: { href?: string }) {
+  if (!href) {
+    return null;
+  }
+
+  return (
+    <Link
+      href={href}
+      aria-label="Open fullscreen demo"
+      title="Open fullscreen demo"
+      className={cn(
+        buttonVariants({ variant: "outline", size: "icon-sm" }),
+        "absolute bottom-3 right-3 z-10 bg-background",
+      )}
+    >
+      <Maximize2 aria-hidden="true" />
+    </Link>
   );
 }
 
@@ -516,9 +544,6 @@ function InstallationPanel({
   hasCssOnlyVariant: boolean;
   motionApiSnippets: ComponentCodeFile[];
 }) {
-  const [packageManager, setPackageManager] = useState<PackageManager>("pnpm");
-  const command = `${commandPrefix[packageManager]} shadcn@latest add ${installTarget}`;
-
   return (
     <section className="min-w-0 flex flex-col gap-5">
       <div className="flex max-w-3xl flex-col gap-2">
@@ -545,11 +570,7 @@ function InstallationPanel({
           </TabsTrigger>
         </TabsList>
         <TabsContent value="command" className="min-w-0">
-          <CommandBlock
-            command={command}
-            packageManager={packageManager}
-            onPackageManagerChange={setPackageManager}
-          />
+          <RegistryInstallCommand installTarget={installTarget} />
         </TabsContent>
         <TabsContent value="manual" className="min-w-0">
           <ManualInstall targetPath={targetPath} dependencies={dependencies} />
@@ -613,47 +634,6 @@ function UseReducedMotionInstallationNotes({
 
 function CodeSnippet({ snippet }: { snippet: ComponentCodeFile }) {
   return <div className="min-w-0 [&_figure]:my-0">{snippet.highlighted}</div>;
-}
-
-function CommandBlock({
-  command,
-  packageManager,
-  onPackageManagerChange,
-}: {
-  command: string;
-  packageManager: PackageManager;
-  onPackageManagerChange: (packageManager: PackageManager) => void;
-}) {
-  return (
-    <div className="min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50">
-      <div className="flex min-h-11 items-center gap-3 border-b px-3">
-        <Terminal className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <div className="flex flex-wrap items-center gap-1">
-          {packageManagers.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => onPackageManagerChange(item)}
-              data-active={packageManager === item}
-              className="inline-flex h-7 items-center rounded-md px-2.5 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground data-[active=true]:border data-[active=true]:bg-background data-[active=true]:text-foreground"
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-        <CopyButton
-          value={command}
-          variant="ghost"
-          className="ml-auto"
-          aria-label="Copy installation command"
-          title="Copy command"
-        />
-      </div>
-      <pre className="no-scrollbar max-w-full overflow-x-auto px-4 py-4 text-sm">
-        <code className="font-mono">{command}</code>
-      </pre>
-    </div>
-  );
 }
 
 function ManualInstall({

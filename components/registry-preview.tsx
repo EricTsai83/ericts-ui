@@ -121,6 +121,14 @@ export function RegistryPreview({
   return previews[name]?.(variant) ?? null;
 }
 
+export function hasRegistryPreview(name: string) {
+  return name in previews;
+}
+
+export function getRegistryPreviewNames() {
+  return Object.keys(previews);
+}
+
 function ReplayablePreview({
   children,
 }: {

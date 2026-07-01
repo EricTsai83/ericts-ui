@@ -12,6 +12,7 @@
     "dev": "next dev",
     "build": "pnpm registry:build && next build",
     "start": "next start",
+    "display:check": "node scripts/validate-registry-display.mjs",
     "lint": "eslint .",
     "typecheck": "fumadocs-mdx source.config.ts .source && tsc --noEmit",
     "registry:build": "shadcn build"
