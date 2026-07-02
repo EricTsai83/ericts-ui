@@ -9,6 +9,7 @@ import {
 import {
   getRegistryDisplayItem,
   getRegistryDisplayItems,
+  getRegistryDisplayNavigationGroups,
   getRegistryDisplayNavigation,
   type RegistryDisplayItem,
 } from "@/lib/registry-display";
@@ -69,6 +70,9 @@ export default async function ViewPage({ params, searchParams }: PageProps) {
     <RegistryDemoShell
       item={displayItem}
       navigation={toDemoNavigation(navigation)}
+      navigationGroups={toDemoNavigationGroups(
+        getRegistryDisplayNavigationGroups(displayItem.kind),
+      )}
       variant={variant}
     />
   );
@@ -129,4 +133,14 @@ function toRequiredDemoNavigationItem(
     category: item.category,
     viewHref: item.viewHref,
   };
+}
+
+function toDemoNavigationGroups(
+  groups: ReturnType<typeof getRegistryDisplayNavigationGroups>,
+) {
+  return groups.map((group) => ({
+    category: group.category,
+    label: group.label,
+    items: group.items.map(toRequiredDemoNavigationItem),
+  }));
 }

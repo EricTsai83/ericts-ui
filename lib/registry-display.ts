@@ -30,6 +30,12 @@ export type RegistryDisplayCategory = {
   description: string;
 };
 
+export type RegistryDisplayNavigationGroup = {
+  category: string;
+  label: string;
+  items: RegistryDisplayItem[];
+};
+
 const registryDisplayCategories = [
   {
     slug: "animation",
@@ -262,6 +268,20 @@ export function getRegistryDisplayItemsByCategory(
   return registryDisplayItems.filter(
     (item) => item.kind === kind && item.category === category,
   );
+}
+
+export function getRegistryDisplayNavigationGroups(
+  kind: RegistryDisplayKind,
+): RegistryDisplayNavigationGroup[] {
+  return getRegistryDisplayCategoryDetails(kind)
+    .map((category) => ({
+      category: category.slug,
+      label: category.label,
+      items: getRegistryDisplayItemsByCategory(kind, category.slug).filter(
+        (item) => item.browsable !== false,
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 }
 
 export function getRegistryDisplayNavigation(name: string) {

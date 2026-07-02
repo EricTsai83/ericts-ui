@@ -1,19 +1,29 @@
 "use client";
 
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ListTree,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "fumadocs-ui/provider/base";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
@@ -30,17 +40,84 @@ export type RegistryDemoNavigation = {
   nextCategory?: RegistryDemoNavigationItem;
 };
 
+export type RegistryDemoNavigationGroup = {
+  category: string;
+  label: string;
+  items: RegistryDemoNavigationItem[];
+};
+
+const navigationShortcutDirections = [
+  "previous",
+  "next",
+  "previousCategory",
+  "nextCategory",
+] as const;
+
+type NavigationShortcutDirection =
+  (typeof navigationShortcutDirections)[number];
+
+type NavigationShortcutMemory = {
+  direction: NavigationShortcutDirection;
+  at: number;
+};
+
+type NavigationCueConfig = {
+  direction: NavigationShortcutDirection;
+  icon: LucideIcon;
+  label: string;
+};
+
+const navigationCues: NavigationCueConfig[] = [
+  {
+    direction: "previous",
+    icon: ChevronLeft,
+    label: "Prev item",
+  },
+  {
+    direction: "next",
+    icon: ChevronRight,
+    label: "Next item",
+  },
+  {
+    direction: "previousCategory",
+    icon: ChevronUp,
+    label: "Prev group",
+  },
+  {
+    direction: "nextCategory",
+    icon: ChevronDown,
+    label: "Next group",
+  },
+];
+
+const navigationShortcutStorageKey = "ericts-ui:registry-demo-shortcut";
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+let navigationPanelOpenMemory = false;
+
+type NavigationPanelState = {
+  open: boolean;
+  activeShortcut: NavigationShortcutDirection | null;
+  autoOpened: boolean;
+  shortcutSequence: number;
+};
+
 export function RegistryDemoShell({
   item,
   navigation,
+  navigationGroups,
   variant,
 }: {
   item: RegistryDisplayItem;
   navigation: RegistryDemoNavigation;
+  navigationGroups: RegistryDemoNavigationGroup[];
   variant: string;
 }) {
   const router = useRouter();
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [navigationPanelState, setNavigationPanelState] = useState(
+    createInitialNavigationPanelState,
+  );
   const itemPageLabel = getItemPageLabel(item.kind);
   const prefetchHrefs = useMemo(
     () =>
@@ -59,6 +136,80 @@ export function RegistryDemoShell({
     ],
   );
 
+  const setNavigationPanelOpen = useCallback((open: boolean) => {
+    navigationPanelOpenMemory = open;
+    setNavigationPanelState((current) => ({
+      ...current,
+      open,
+      activeShortcut: open ? current.activeShortcut : null,
+      autoOpened: false,
+    }));
+  }, []);
+
+  const toggleNavigationPanelOpen = useCallback(() => {
+    setNavigationPanelState((current) => {
+      const open = !current.open;
+
+      navigationPanelOpenMemory = open;
+
+      return {
+        ...current,
+        open,
+        activeShortcut: open ? current.activeShortcut : null,
+        autoOpened: false,
+      };
+    });
+  }, []);
+
+  const activateNavigationShortcut = useCallback(
+    (direction: NavigationShortcutDirection) => {
+      setNavigationPanelState((current) => ({
+        open: true,
+        activeShortcut: direction,
+        autoOpened:
+          !navigationPanelOpenMemory && (current.autoOpened || !current.open),
+        shortcutSequence: current.shortcutSequence + 1,
+      }));
+    },
+    [],
+  );
+
+  useIsomorphicLayoutEffect(() => {
+    const shortcut = consumeRecentNavigationShortcut();
+
+    if (!shortcut) {
+      return;
+    }
+
+    setNavigationPanelState((current) => ({
+      open: true,
+      activeShortcut: shortcut,
+      autoOpened:
+        !navigationPanelOpenMemory && (current.autoOpened || !current.open),
+      shortcutSequence: current.shortcutSequence + 1,
+    }));
+  }, [item.name]);
+
+  useEffect(() => {
+    if (!navigationPanelState.activeShortcut) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setNavigationPanelState((current) => ({
+        ...current,
+        open: current.autoOpened ? false : current.open,
+        activeShortcut: null,
+        autoOpened: false,
+      }));
+    }, 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    navigationPanelState.activeShortcut,
+    navigationPanelState.shortcutSequence,
+  ]);
+
   useEffect(() => {
     for (const href of prefetchHrefs) {
       prefetchRoute(router, href);
@@ -67,10 +218,6 @@ export function RegistryDemoShell({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (isHelpOpen) {
-        return;
-      }
-
       if (event.key === "Escape") {
         if (shouldIgnoreEscapeShortcut(event)) {
           return;
@@ -87,31 +234,51 @@ export function RegistryDemoShell({
 
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        replaceNavigationItem(router, navigation.next);
+        replaceNavigationItem(
+          router,
+          navigation.next,
+          "next",
+          activateNavigationShortcut,
+        );
         return;
       }
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        replaceNavigationItem(router, navigation.previous);
+        replaceNavigationItem(
+          router,
+          navigation.previous,
+          "previous",
+          activateNavigationShortcut,
+        );
         return;
       }
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        replaceNavigationItem(router, navigation.nextCategory);
+        replaceNavigationItem(
+          router,
+          navigation.nextCategory,
+          "nextCategory",
+          activateNavigationShortcut,
+        );
         return;
       }
 
       if (event.key === "ArrowUp") {
         event.preventDefault();
-        replaceNavigationItem(router, navigation.previousCategory);
+        replaceNavigationItem(
+          router,
+          navigation.previousCategory,
+          "previousCategory",
+          activateNavigationShortcut,
+        );
         return;
       }
 
       if (event.key === "?") {
         event.preventDefault();
-        setIsHelpOpen(true);
+        toggleNavigationPanelOpen();
       }
     }
 
@@ -119,20 +286,31 @@ export function RegistryDemoShell({
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    isHelpOpen,
+    activateNavigationShortcut,
     item.href,
     navigation.next,
     navigation.nextCategory,
     navigation.previous,
     navigation.previousCategory,
     router,
+    toggleNavigationPanelOpen,
   ]);
 
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
-      <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 pb-24 sm:p-8 sm:pb-24">
+      <NavigationContextPanel
+        item={item}
+        navigation={navigation}
+        groups={navigationGroups}
+        itemPageLabel={itemPageLabel}
+        open={navigationPanelState.open}
+        activeShortcut={navigationPanelState.activeShortcut}
+        onOpenChange={setNavigationPanelOpen}
+      />
+
+      <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:56px_56px] opacity-30 [mask-image:radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
@@ -146,97 +324,327 @@ export function RegistryDemoShell({
           <RegistryPreview name={item.name} variant={variant} />
         </div>
       </section>
-
-      <DemoToolbar
-        itemPageLabel={itemPageLabel}
-        itemHref={item.href}
-        navigation={navigation}
-        onHelpOpen={() => setIsHelpOpen(true)}
-      />
-
-      <ShortcutDialog open={isHelpOpen} onOpenChange={setIsHelpOpen} />
     </main>
   );
 }
 
-function DemoToolbar({
-  itemPageLabel,
-  itemHref,
+function NavigationContextPanel({
+  item,
   navigation,
-  onHelpOpen,
+  groups,
+  itemPageLabel,
+  open,
+  activeShortcut,
+  onOpenChange,
 }: {
-  itemPageLabel: string;
-  itemHref: string;
+  item: RegistryDisplayItem;
   navigation: RegistryDemoNavigation;
-  onHelpOpen: () => void;
+  groups: RegistryDemoNavigationGroup[];
+  itemPageLabel: string;
+  open: boolean;
+  activeShortcut: NavigationShortcutDirection | null;
+  onOpenChange: (open: boolean) => void;
 }) {
+  const panelId = useId();
+  const treeScrollRef = useRef<HTMLDivElement>(null);
+  const currentGroup =
+    groups.find((group) => group.category === item.category) ??
+    getFallbackNavigationGroup(item);
+  const currentGroupIndex = groups.findIndex(
+    (group) => group.category === currentGroup.category,
+  );
+
+  useIsomorphicLayoutEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const currentItem = treeScrollRef.current?.querySelector(
+      "[data-navigation-current='true']",
+    );
+
+    currentItem?.scrollIntoView({ block: "nearest" });
+  }, [item.name, open]);
+
   return (
-    <nav
-      aria-label="Preview controls"
-      className="fixed bottom-3 right-3 z-30 flex max-w-[calc(100vw-1.5rem)] flex-wrap items-center justify-end gap-1 rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-popover/85 sm:bottom-4 sm:right-4"
+    <aside
+      aria-label="Preview position"
+      className="fixed right-3 top-3 z-30 flex max-w-[calc(100vw-1.5rem)] justify-end sm:right-4 sm:top-4"
     >
-      <ToolbarLink
-        href={itemHref}
-        ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
-        title="Exit fullscreen"
-        shortcut="esc"
-        label="exit fullscreen"
-      />
-      <ToolbarSeparator />
-      <NavigationButton
-        label="previous"
-        ariaLabel="Previous item"
-        shortcut="←"
-        item={navigation.previous}
-      />
-      <NavigationButton
-        label="next"
-        ariaLabel="Next item"
-        shortcut="→"
-        item={navigation.next}
-      />
-      <ToolbarSeparator />
-      <NavigationButton
-        label="previous group"
-        ariaLabel="Previous category"
-        shortcut="↑"
-        item={navigation.previousCategory}
-      />
-      <NavigationButton
-        label="next group"
-        ariaLabel="Next category"
-        shortcut="↓"
-        item={navigation.nextCategory}
-      />
-      <ToolbarSeparator />
-      <ThemeToolbarButton />
-      <ToolbarButton
-        ariaLabel="Show keyboard shortcuts"
-        title="Keyboard shortcuts"
-        shortcut="?"
-        label="keys"
-        onClick={onHelpOpen}
-      />
-    </nav>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-lg border bg-popover/95 text-popover-foreground shadow-sm backdrop-blur-md transition-[width] duration-150 ease-out supports-[backdrop-filter]:bg-popover/85",
+          open
+            ? "w-[min(19rem,calc(100vw-1.5rem))]"
+            : "size-8 sm:size-8",
+        )}
+      >
+        <button
+          type="button"
+          aria-controls={panelId}
+          aria-expanded={open}
+          aria-label={open ? "Collapse navigation map" : "Open navigation map"}
+          onClick={() => onOpenChange(!open)}
+          className={cn(
+            "extend-touch-target flex size-8 items-center justify-center outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+            open && "absolute right-0 top-0 z-10 bg-popover/95",
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-transparent text-muted-foreground"
+          >
+            <ListTree className="size-3.5" />
+          </span>
+        </button>
+
+        {open ? (
+          <div id={panelId}>
+            <div
+              ref={treeScrollRef}
+              className="max-h-[min(26rem,calc(100dvh-8rem))] overflow-y-auto py-1.5 pl-1.5 pr-9"
+            >
+              <div className="flex flex-col gap-1.5">
+                {groups.map((group, groupIndex) => (
+                  <NavigationGroupTree
+                    key={group.category}
+                    group={group}
+                    groupIndex={groupIndex}
+                    currentGroupIndex={currentGroupIndex}
+                    currentItemName={item.name}
+                  />
+                ))}
+              </div>
+            </div>
+            <NavigationShortcutBar
+              activeShortcut={activeShortcut}
+              navigation={navigation}
+              itemHref={item.href}
+              itemPageLabel={itemPageLabel}
+            />
+          </div>
+        ) : null}
+      </div>
+    </aside>
   );
 }
 
-function ThemeToolbarButton() {
+function NavigationGroupTree({
+  group,
+  groupIndex,
+  currentGroupIndex,
+  currentItemName,
+}: {
+  group: RegistryDemoNavigationGroup;
+  groupIndex: number;
+  currentGroupIndex: number;
+  currentItemName: string;
+}) {
+  const isCurrentGroup = groupIndex === currentGroupIndex;
+
+  return (
+    <section className="flex min-w-0 flex-col gap-0.5">
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-medium leading-4",
+          isCurrentGroup ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-1.5 shrink-0 rounded-full",
+            isCurrentGroup ? "bg-primary" : "bg-border",
+          )}
+        />
+        <span className="truncate">{group.label}</span>
+        <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">
+          {group.items.length}
+        </span>
+      </div>
+      <div className="flex min-w-0 flex-col">
+        {group.items.map((groupItem) => {
+          const isCurrentItem = groupItem.name === currentItemName;
+
+          return (
+            <Link
+              key={groupItem.name}
+              href={groupItem.viewHref}
+              replace
+              aria-current={isCurrentItem ? "page" : undefined}
+              data-navigation-current={isCurrentItem ? "true" : undefined}
+              className={cn(
+                "group/navigation-map-item grid h-7 min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-center gap-1.5 rounded-md px-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                isCurrentItem
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "mx-auto size-1 rounded-full transition-colors",
+                  isCurrentItem
+                    ? "bg-primary"
+                    : "bg-border group-hover/navigation-map-item:bg-muted-foreground/40",
+                )}
+              />
+              <span className="truncate">{groupItem.title}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function NavigationShortcutBar({
+  activeShortcut,
+  navigation,
+  itemPageLabel,
+  itemHref,
+}: {
+  activeShortcut: NavigationShortcutDirection | null;
+  navigation: RegistryDemoNavigation;
+  itemPageLabel: string;
+  itemHref: string;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-px border-t bg-border text-xs">
+      <NavigationShortcutGroup
+        label="Prev / Next item"
+        previousCue={navigationCues[0]}
+        previousItem={navigation.previous}
+        nextCue={navigationCues[1]}
+        nextItem={navigation.next}
+        activeShortcut={activeShortcut}
+      />
+      <NavigationShortcutGroup
+        label="Prev / Next group"
+        previousCue={navigationCues[2]}
+        previousItem={navigation.previousCategory}
+        nextCue={navigationCues[3]}
+        nextItem={navigation.nextCategory}
+        activeShortcut={activeShortcut}
+      />
+      <ThemeShortcutAction />
+      <ShortcutActionLink
+        href={itemHref}
+        ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
+        title="Exit fullscreen"
+        shortcut="Esc"
+        label="Exit"
+      />
+    </div>
+  );
+}
+
+function NavigationShortcutGroup({
+  label,
+  previousCue,
+  previousItem,
+  nextCue,
+  nextItem,
+  activeShortcut,
+}: {
+  label: string;
+  previousCue: NavigationCueConfig;
+  previousItem?: RegistryDemoNavigationItem;
+  nextCue: NavigationCueConfig;
+  nextItem?: RegistryDemoNavigationItem;
+  activeShortcut: NavigationShortcutDirection | null;
+}) {
+  return (
+    <div
+      aria-label={label}
+      className={cn(shortcutActionSurfaceClassName, "justify-start gap-1.5")}
+    >
+      <div className="flex shrink-0 items-center gap-0.5">
+        <NavigationShortcutKey
+          cue={previousCue}
+          item={previousItem}
+          active={activeShortcut === previousCue.direction}
+          dimmed={Boolean(
+            activeShortcut && activeShortcut !== previousCue.direction,
+          )}
+        />
+        <NavigationShortcutKey
+          cue={nextCue}
+          item={nextItem}
+          active={activeShortcut === nextCue.direction}
+          dimmed={Boolean(activeShortcut && activeShortcut !== nextCue.direction)}
+        />
+      </div>
+      <ShortcutActionLabel>{label}</ShortcutActionLabel>
+    </div>
+  );
+}
+
+function NavigationShortcutKey({
+  cue,
+  item,
+  active,
+  dimmed,
+}: {
+  cue: NavigationCueConfig;
+  item?: RegistryDemoNavigationItem;
+  active: boolean;
+  dimmed: boolean;
+}) {
+  const Icon = cue.icon;
+  const content = (
+    <ShortcutKey
+      className={cn(
+        shortcutKeyCompactClassName,
+        active && "text-foreground",
+      )}
+    >
+      <Icon aria-hidden="true" className="size-3" />
+    </ShortcutKey>
+  );
+  const className = cn(
+    "rounded-[3px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-ring",
+    dimmed && "opacity-50",
+    !item && "pointer-events-none opacity-35",
+  );
+
+  if (!item) {
+    return (
+      <span aria-disabled="true" title={cue.label} className={className}>
+        {content}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={item.viewHref}
+      replace
+      aria-label={`${cue.label}: ${item.title}`}
+      title={`${cue.label}: ${item.title}`}
+      className={className}
+    >
+      {content}
+    </Link>
+  );
+}
+
+function ThemeShortcutAction() {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
   return (
-    <ToolbarButton
+    <ShortcutActionButton
       ariaLabel="Toggle theme"
       title="Toggle theme"
       shortcut="D"
-      label="theme"
+      label="Theme"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     />
   );
 }
 
-function ToolbarLink({
+function ShortcutActionLink({
   href,
   ariaLabel,
   title,
@@ -254,59 +662,17 @@ function ToolbarLink({
       href={href}
       aria-label={ariaLabel}
       title={title}
-      className={toolbarCommandClassName}
+      className={shortcutActionClassName}
     >
-      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
-      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
+      <ShortcutKey className={shortcutKeyCompactClassName}>
+        {shortcut}
+      </ShortcutKey>
+      <ShortcutActionLabel>{label}</ShortcutActionLabel>
     </Link>
   );
 }
 
-function NavigationButton({
-  label,
-  ariaLabel,
-  shortcut,
-  item,
-}: {
-  label: string;
-  ariaLabel: string;
-  shortcut: string;
-  item?: RegistryDemoNavigationItem;
-}) {
-  const resolvedLabel = item ? `${ariaLabel}: ${item.title}` : ariaLabel;
-
-  if (item) {
-    return (
-      <Link
-        href={item.viewHref}
-        replace
-        aria-label={resolvedLabel}
-        title={resolvedLabel}
-        className={toolbarCommandClassName}
-      >
-        <ToolbarShortcut>{shortcut}</ToolbarShortcut>
-        <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
-      </Link>
-    );
-  }
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      aria-label={resolvedLabel}
-      title={resolvedLabel}
-      disabled
-      className={toolbarButtonClassName}
-    >
-      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
-      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
-    </Button>
-  );
-}
-
-function ToolbarButton({
+function ShortcutActionButton({
   ariaLabel,
   title,
   shortcut,
@@ -327,23 +693,36 @@ function ToolbarButton({
       aria-label={ariaLabel}
       title={title}
       onClick={onClick}
-      className={toolbarButtonClassName}
+      className={shortcutActionButtonClassName}
     >
-      <ToolbarShortcut>{shortcut}</ToolbarShortcut>
-      <ToolbarCommandLabel>{label}</ToolbarCommandLabel>
+      <ShortcutKey className={shortcutKeyCompactClassName}>
+        {shortcut}
+      </ShortcutKey>
+      <ShortcutActionLabel>{label}</ShortcutActionLabel>
     </Button>
   );
 }
 
-function ToolbarShortcut({ children }: { children: ReactNode }) {
+function ShortcutKey({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <Kbd className="shrink-0 rounded-md font-mono text-[0.68rem] leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]">
+    <Kbd
+      className={cn(
+        "shrink-0 rounded-md font-mono text-[0.68rem] leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]",
+        className,
+      )}
+    >
       {children}
     </Kbd>
   );
 }
 
-function ToolbarCommandLabel({ children }: { children: ReactNode }) {
+function ShortcutActionLabel({ children }: { children: ReactNode }) {
   return (
     <span className="whitespace-nowrap text-xs leading-none text-muted-foreground">
       {children}
@@ -351,79 +730,118 @@ function ToolbarCommandLabel({ children }: { children: ReactNode }) {
   );
 }
 
-function ToolbarSeparator() {
-  return (
-    <span
-      aria-hidden="true"
-      className="size-0.5 shrink-0 rounded-full bg-border"
-    />
-  );
-}
+const shortcutActionSurfaceClassName =
+  "flex min-w-0 items-center justify-center gap-1 bg-popover px-1.5 py-1.5";
 
-const toolbarCommandClassName = cn(
-  "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-1.5 transition-colors",
-  "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+const shortcutActionClassName = cn(
+  shortcutActionSurfaceClassName,
+  "transition-colors",
+  "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
 );
 
-const toolbarButtonClassName = cn(
-  toolbarCommandClassName,
-  "rounded-md border-0 bg-transparent text-popover-foreground hover:bg-muted hover:text-popover-foreground",
+const shortcutKeyCompactClassName =
+  "grid size-4 min-w-4 place-items-center rounded-[3px] p-0 px-0 text-center font-mono text-[0.6rem] leading-none text-muted-foreground shadow-none";
+
+const shortcutActionButtonClassName = cn(
+  shortcutActionClassName,
+  "h-auto rounded-none border-0 text-popover-foreground shadow-none hover:text-popover-foreground",
 );
-
-function ShortcutDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
-          <DialogDescription>
-            Shortcuts apply while focus is outside form fields and active
-            overlay controls.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-2 text-sm">
-          {shortcuts.map((shortcut) => (
-            <div
-              key={shortcut.key}
-              className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-3 rounded-md bg-muted/50 px-3 py-2"
-            >
-              <Kbd className="font-mono text-xs font-medium text-foreground">
-                {shortcut.key}
-              </Kbd>
-              <span className="text-muted-foreground">{shortcut.label}</span>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-const shortcuts = [
-  { key: "ArrowRight", label: "Next item in this category" },
-  { key: "ArrowLeft", label: "Previous item in this category" },
-  { key: "ArrowDown", label: "First item in the next category" },
-  { key: "ArrowUp", label: "First item in the previous category" },
-  { key: "Esc", label: "Exit fullscreen" },
-  { key: "D", label: "Toggle theme mode" },
-  { key: "?", label: "Show this help" },
-] as const;
 
 function replaceNavigationItem(
   router: ReturnType<typeof useRouter>,
   item?: RegistryDemoNavigationItem,
+  direction?: NavigationShortcutDirection,
+  onShortcut?: (direction: NavigationShortcutDirection) => void,
 ) {
   if (!item) {
     return;
   }
 
+  if (direction) {
+    onShortcut?.(direction);
+    rememberNavigationShortcut(direction);
+  }
+
   router.replace(item.viewHref);
+}
+
+function createInitialNavigationPanelState(): NavigationPanelState {
+  const shortcut = consumeRecentNavigationShortcut();
+  const open = navigationPanelOpenMemory || Boolean(shortcut);
+
+  return {
+    open,
+    activeShortcut: shortcut,
+    autoOpened: Boolean(shortcut) && !navigationPanelOpenMemory,
+    shortcutSequence: shortcut ? 1 : 0,
+  };
+}
+
+function rememberNavigationShortcut(direction: NavigationShortcutDirection) {
+  try {
+    window.sessionStorage.setItem(
+      navigationShortcutStorageKey,
+      JSON.stringify({
+        direction,
+        at: Date.now(),
+      } satisfies NavigationShortcutMemory),
+    );
+  } catch {
+    // The navigation works even when storage is unavailable.
+  }
+}
+
+function consumeRecentNavigationShortcut(): NavigationShortcutDirection | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawValue = window.sessionStorage.getItem(navigationShortcutStorageKey);
+    window.sessionStorage.removeItem(navigationShortcutStorageKey);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsedValue: unknown = JSON.parse(rawValue);
+
+    if (!isNavigationShortcutMemory(parsedValue)) {
+      return null;
+    }
+
+    if (Date.now() - parsedValue.at > 1500) {
+      return null;
+    }
+
+    return parsedValue.direction;
+  } catch {
+    return null;
+  }
+}
+
+function isNavigationShortcutMemory(
+  value: unknown,
+): value is NavigationShortcutMemory {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return (
+    isNavigationShortcutDirection(record.direction) &&
+    typeof record.at === "number"
+  );
+}
+
+function isNavigationShortcutDirection(
+  value: unknown,
+): value is NavigationShortcutDirection {
+  return (
+    typeof value === "string" &&
+    navigationShortcutDirections.includes(value as NavigationShortcutDirection)
+  );
 }
 
 function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
@@ -526,6 +944,31 @@ function getItemPageLabel(kind: RegistryDisplayItem["kind"]) {
   }
 
   return "Component page";
+}
+
+function getFallbackNavigationGroup(
+  item: RegistryDisplayItem,
+): RegistryDemoNavigationGroup {
+  return {
+    category: item.category,
+    label: formatCategoryLabel(item.category),
+    items: [
+      {
+        name: item.name,
+        title: item.title,
+        category: item.category,
+        viewHref: item.viewHref,
+      },
+    ],
+  };
+}
+
+function formatCategoryLabel(category: string) {
+  return category
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function uniqueStrings(values: Array<string | undefined>) {
