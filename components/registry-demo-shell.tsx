@@ -94,8 +94,12 @@ const navigationPanelTransition = {
   bounce: 0,
 } as const;
 const navigationPanelContentTransition = {
-  duration: 0.16,
-  ease: [0.23, 1, 0.32, 1],
+  duration: 0.2,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+const navigationPanelListTransition = {
+  duration: 0.22,
+  ease: [0.16, 1, 0.3, 1],
 } as const;
 const navigationShortcutFooterTransition = {
   duration: 0.18,
@@ -418,6 +422,9 @@ function NavigationContextPanel({
   const contentTransition = shouldReduceMotion
     ? navigationPanelReducedMotionTransition
     : navigationPanelContentTransition;
+  const listTransition = shouldReduceMotion
+    ? navigationPanelReducedMotionTransition
+    : navigationPanelListTransition;
 
   useIsomorphicLayoutEffect(() => {
     if (!open) {
@@ -470,23 +477,41 @@ function NavigationContextPanel({
                 key="navigation-panel-content"
                 id={panelId}
                 initial={
-                  shouldReduceMotion ? false : { opacity: 0, scale: 0.985 }
+                  shouldReduceMotion
+                    ? false
+                    : { opacity: 0, scale: 0.99, filter: "blur(1.5px)" }
                 }
-                animate={{ opacity: 1, scale: 1 }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 exit={
                   shouldReduceMotion
                     ? { opacity: 0 }
-                    : { opacity: 0, scale: 0.985 }
+                    : { opacity: 0.82, scale: 0.992, filter: "blur(1.25px)" }
                 }
                 transition={contentTransition}
                 style={{ transformOrigin: "top right" }}
-                className="will-change-[transform,opacity]"
+                className="will-change-[filter,transform,opacity]"
               >
-                <div className="group/navigation-list relative">
+                <motion.div
+                  data-navigation-list=""
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : { opacity: 0.94, filter: "blur(1.5px)", y: -1 }
+                  }
+                  animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                  exit={
+                    shouldReduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 1, filter: "blur(2.5px)", y: -1.5 }
+                  }
+                  transition={listTransition}
+                  className="group/navigation-list relative will-change-[filter,transform,opacity]"
+                >
                   <div
                     ref={treeScrollRef}
                     onScroll={(event) => {
-                      navigationPanelScrollTopMemory = event.currentTarget.scrollTop;
+                      navigationPanelScrollTopMemory =
+                        event.currentTarget.scrollTop;
                     }}
                     className="no-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
                   >
@@ -504,7 +529,7 @@ function NavigationContextPanel({
                     </div>
                   </div>
                   <NavigationListShortcutHint />
-                </div>
+                </motion.div>
                 <NavigationShortcutBar
                   expanded={shortcutsExpanded}
                   itemHref={item.href}
