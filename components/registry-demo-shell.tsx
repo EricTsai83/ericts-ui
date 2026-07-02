@@ -446,8 +446,6 @@ function NavigationContextPanel({
       smooth: selectedItemChanged && !shouldReduceMotion,
     });
     lastScrolledItemNameRef.current = currentItemName;
-
-    return () => cancelNavigationScroll(scrollContainer);
   }, [activeShortcut, currentItemName, open, shouldReduceMotion]);
 
   return (
