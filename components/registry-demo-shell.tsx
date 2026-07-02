@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
 import {
   useCallback,
@@ -102,10 +103,15 @@ const navigationShortcutFooterTransition = {
 } as const;
 const navigationPanelReducedMotionTransition = { duration: 0 } as const;
 const navigationItemScrollAnchorRatio = 1 / 3;
+const navigationScrollMinDuration = 160;
+const navigationScrollMaxDuration = 320;
+const navigationScrollDistanceDurationRatio = 0.45;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 let navigationPanelOpenMemory = false;
+let navigationPanelScrollTopMemory = 0;
+const navigationScrollAnimations = new WeakMap<HTMLDivElement, number>();
 
 type NavigationPanelState = {
   open: boolean;
@@ -129,6 +135,10 @@ export function RegistryDemoShell({
   const [navigationPanelState, setNavigationPanelState] = useState(
     createInitialNavigationPanelState,
   );
+  const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
+    sourceItemName: string;
+    selectedItemName: string;
+  } | null>(null);
   const itemPageLabel = getItemPageLabel(item.kind);
   const prefetchHrefs = useMemo(
     () =>
@@ -145,6 +155,27 @@ export function RegistryDemoShell({
       navigation.previous,
       navigation.previousCategory,
     ],
+  );
+  const navigationSelectionName =
+    navigationSelectionIntent?.sourceItemName === item.name
+      ? navigationSelectionIntent.selectedItemName
+      : item.name;
+  const navigationSelection = useMemo(
+    () =>
+      findNavigationItem(navigationGroups, navigationSelectionName) ?? item,
+    [item, navigationGroups, navigationSelectionName],
+  );
+
+  const selectNavigationItem = useCallback(
+    (nextItem: RegistryDemoNavigationItem) => {
+      flushSync(() => {
+        setNavigationSelectionIntent({
+          sourceItemName: item.name,
+          selectedItemName: nextItem.name,
+        });
+      });
+    },
+    [item.name],
   );
 
   const setNavigationPanelOpen = useCallback((open: boolean) => {
@@ -250,6 +281,7 @@ export function RegistryDemoShell({
           navigation.next,
           "next",
           activateNavigationShortcut,
+          selectNavigationItem,
         );
         return;
       }
@@ -261,6 +293,7 @@ export function RegistryDemoShell({
           navigation.previous,
           "previous",
           activateNavigationShortcut,
+          selectNavigationItem,
         );
         return;
       }
@@ -272,6 +305,7 @@ export function RegistryDemoShell({
           navigation.nextCategory,
           "nextCategory",
           activateNavigationShortcut,
+          selectNavigationItem,
         );
         return;
       }
@@ -283,6 +317,7 @@ export function RegistryDemoShell({
           navigation.previousCategory,
           "previousCategory",
           activateNavigationShortcut,
+          selectNavigationItem,
         );
         return;
       }
@@ -304,6 +339,7 @@ export function RegistryDemoShell({
     navigation.previous,
     navigation.previousCategory,
     router,
+    selectNavigationItem,
     toggleNavigationPanelOpen,
   ]);
 
@@ -313,10 +349,13 @@ export function RegistryDemoShell({
 
       <NavigationContextPanel
         item={item}
+        currentItemCategory={navigationSelection.category}
+        currentItemName={navigationSelection.name}
         groups={navigationGroups}
         itemPageLabel={itemPageLabel}
         open={navigationPanelState.open}
         activeShortcut={navigationPanelState.activeShortcut}
+        onItemSelect={selectNavigationItem}
         onOpenChange={setNavigationPanelOpen}
       />
 
@@ -340,28 +379,34 @@ export function RegistryDemoShell({
 
 function NavigationContextPanel({
   item,
+  currentItemCategory,
+  currentItemName,
   groups,
   itemPageLabel,
   open,
   activeShortcut,
+  onItemSelect,
   onOpenChange,
 }: {
   item: RegistryDisplayItem;
+  currentItemCategory: string;
+  currentItemName: string;
   groups: RegistryDemoNavigationGroup[];
   itemPageLabel: string;
   open: boolean;
   activeShortcut: NavigationShortcutDirection | null;
+  onItemSelect: (item: RegistryDemoNavigationItem) => void;
   onOpenChange: (open: boolean) => void;
 }) {
   const panelId = useId();
   const shortcutPanelId = useId();
   const treeScrollRef = useRef<HTMLDivElement>(null);
   const lastScrolledItemNameRef = useRef<string | null>(
-    activeShortcut ? null : item.name,
+    activeShortcut ? null : currentItemName,
   );
   const [shortcutsExpanded, setShortcutsExpanded] = useState(false);
   const currentGroup =
-    groups.find((group) => group.category === item.category) ??
+    groups.find((group) => group.category === currentItemCategory) ??
     getFallbackNavigationGroup(item);
   const currentGroupIndex = groups.findIndex(
     (group) => group.category === currentGroup.category,
@@ -379,7 +424,8 @@ function NavigationContextPanel({
       return;
     }
 
-    const selectedItemChanged = lastScrolledItemNameRef.current !== item.name;
+    const selectedItemChanged =
+      lastScrolledItemNameRef.current !== currentItemName;
 
     if (activeShortcut && !selectedItemChanged) {
       return;
@@ -399,8 +445,10 @@ function NavigationContextPanel({
       item: currentItem,
       smooth: selectedItemChanged && !shouldReduceMotion,
     });
-    lastScrolledItemNameRef.current = item.name;
-  }, [activeShortcut, item.name, open, shouldReduceMotion]);
+    lastScrolledItemNameRef.current = currentItemName;
+
+    return () => cancelNavigationScroll(scrollContainer);
+  }, [activeShortcut, currentItemName, open, shouldReduceMotion]);
 
   return (
     <aside
@@ -439,7 +487,10 @@ function NavigationContextPanel({
                 <div className="group/navigation-list relative">
                   <div
                     ref={treeScrollRef}
-                    className="registry-navigation-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
+                    onScroll={(event) => {
+                      navigationPanelScrollTopMemory = event.currentTarget.scrollTop;
+                    }}
+                    className="no-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
                   >
                     <div className="flex flex-col gap-1.5">
                       {groups.map((group, groupIndex) => (
@@ -448,7 +499,8 @@ function NavigationContextPanel({
                           group={group}
                           groupIndex={groupIndex}
                           currentGroupIndex={currentGroupIndex}
-                          currentItemName={item.name}
+                          currentItemName={currentItemName}
+                          onItemSelect={onItemSelect}
                         />
                       ))}
                     </div>
@@ -501,11 +553,13 @@ function NavigationGroupTree({
   groupIndex,
   currentGroupIndex,
   currentItemName,
+  onItemSelect,
 }: {
   group: RegistryDemoNavigationGroup;
   groupIndex: number;
   currentGroupIndex: number;
   currentItemName: string;
+  onItemSelect: (item: RegistryDemoNavigationItem) => void;
 }) {
   const isCurrentGroup = groupIndex === currentGroupIndex;
 
@@ -529,6 +583,20 @@ function NavigationGroupTree({
               href={groupItem.viewHref}
               replace
               scroll={false}
+              onClick={(event) => {
+                if (
+                  event.defaultPrevented ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.altKey ||
+                  event.shiftKey ||
+                  event.button !== 0
+                ) {
+                  return;
+                }
+
+                onItemSelect(groupItem);
+              }}
               aria-current={isCurrentItem ? "page" : undefined}
               data-navigation-current={isCurrentItem ? "true" : undefined}
               className={cn(
@@ -568,10 +636,8 @@ function NavigationShortcutBar({
   return (
     <div
       className={cn(
-        "text-xs",
-        expanded
-          ? "mx-1 mb-1 overflow-hidden rounded-md bg-muted/20 p-1 ring-1 ring-border/50"
-          : "px-1 pb-1",
+        "overflow-hidden border-t border-border/55 bg-popover/80 text-xs",
+        expanded && "bg-muted/20",
       )}
     >
       <button
@@ -583,10 +649,8 @@ function NavigationShortcutBar({
         }
         onClick={() => onExpandedChange(!expanded)}
         className={cn(
-          "flex items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
-          expanded
-            ? "h-4 w-full bg-transparent"
-            : "h-4 w-full bg-muted/30 ring-1 ring-border/40",
+          "flex h-4 w-full items-center justify-center rounded-none text-muted-foreground outline-none transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
+          expanded ? "bg-transparent" : "bg-muted/20",
         )}
       >
         <ChevronUp
@@ -607,9 +671,13 @@ function NavigationShortcutBar({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={transition}
-            className="overflow-hidden"
+            className="overflow-hidden border-t border-border/55"
           >
-            <div className="grid grid-cols-2 gap-1 pt-1 text-xs">
+            <div
+              role="group"
+              aria-label="Fullscreen preview actions"
+              className="grid grid-cols-2 divide-x divide-border/55 text-xs"
+            >
               <ThemeShortcutAction />
               <ShortcutActionLink
                 href={itemHref}
@@ -774,12 +842,11 @@ function ShortcutActionLabel({ children }: { children: ReactNode }) {
 }
 
 const shortcutActionSurfaceClassName =
-  "flex min-w-0 items-center justify-center gap-1 bg-transparent px-1.5 py-1.5 text-muted-foreground";
+  "flex min-w-0 items-center justify-center gap-1 bg-popover/80 px-1.5 py-1.5 text-muted-foreground transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring";
 
 const shortcutActionClassName = cn(
   shortcutActionSurfaceClassName,
-  "rounded-md bg-popover/80 ring-1 ring-border/60 transition-colors",
-  "hover:bg-popover/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+  "rounded-none",
 );
 
 const shortcutIconKeyCompactClassName =
@@ -790,18 +857,36 @@ const shortcutTextKeyCompactClassName =
 
 const shortcutActionButtonClassName = cn(
   shortcutActionClassName,
-  "h-auto border-0 shadow-none aria-expanded:bg-popover/80 hover:bg-popover/80 dark:hover:bg-popover/80",
+  "h-auto border-0 shadow-none aria-expanded:bg-muted/35 dark:hover:bg-muted/35",
 );
+
+function findNavigationItem(
+  groups: RegistryDemoNavigationGroup[],
+  itemName: string,
+) {
+  for (const group of groups) {
+    const item = group.items.find((groupItem) => groupItem.name === itemName);
+
+    if (item) {
+      return item;
+    }
+  }
+
+  return null;
+}
 
 function replaceNavigationItem(
   router: ReturnType<typeof useRouter>,
   item?: RegistryDemoNavigationItem,
   direction?: NavigationShortcutDirection,
   onShortcut?: (direction: NavigationShortcutDirection) => void,
+  onItemSelect?: (item: RegistryDemoNavigationItem) => void,
 ) {
   if (!item) {
     return;
   }
+
+  onItemSelect?.(item);
 
   if (direction) {
     onShortcut?.(direction);
@@ -820,6 +905,23 @@ function scrollNavigationItemIntoView({
   item: HTMLElement;
   smooth: boolean;
 }) {
+  const maxScrollTop = Math.max(
+    container.scrollHeight - container.clientHeight,
+    0,
+  );
+
+  if (smooth) {
+    const rememberedScrollTop = clamp(
+      navigationPanelScrollTopMemory,
+      0,
+      maxScrollTop,
+    );
+
+    if (Math.abs(container.scrollTop - rememberedScrollTop) > 1) {
+      setNavigationContainerScrollTop(container, rememberedScrollTop);
+    }
+  }
+
   const containerRect = container.getBoundingClientRect();
   const itemRect = item.getBoundingClientRect();
   const itemCenter =
@@ -830,13 +932,79 @@ function scrollNavigationItemIntoView({
   const scrollTop = clamp(
     itemCenter - container.clientHeight * navigationItemScrollAnchorRatio,
     0,
-    container.scrollHeight - container.clientHeight,
+    maxScrollTop,
   );
+  const distance = scrollTop - container.scrollTop;
 
-  container.scrollTo({
-    top: scrollTop,
-    behavior: smooth ? "smooth" : "auto",
-  });
+  cancelNavigationScroll(container);
+
+  if (!smooth || Math.abs(distance) < 1) {
+    setNavigationContainerScrollTop(container, scrollTop);
+    return;
+  }
+
+  animateNavigationScroll(container, scrollTop);
+}
+
+function animateNavigationScroll(
+  container: HTMLDivElement,
+  targetScrollTop: number,
+) {
+  const startScrollTop = container.scrollTop;
+  const distance = targetScrollTop - startScrollTop;
+  const duration = clamp(
+    navigationScrollMinDuration +
+      Math.abs(distance) * navigationScrollDistanceDurationRatio,
+    navigationScrollMinDuration,
+    navigationScrollMaxDuration,
+  );
+  const startedAt = performance.now();
+
+  function frame(now: number) {
+    const progress = clamp((now - startedAt) / duration, 0, 1);
+    const easedProgress = easeOutQuart(progress);
+
+    setNavigationContainerScrollTop(
+      container,
+      startScrollTop + distance * easedProgress,
+    );
+
+    if (progress < 1) {
+      navigationScrollAnimations.set(
+        container,
+        window.requestAnimationFrame(frame),
+      );
+      return;
+    }
+
+    setNavigationContainerScrollTop(container, targetScrollTop);
+    navigationScrollAnimations.delete(container);
+  }
+
+  navigationScrollAnimations.set(container, window.requestAnimationFrame(frame));
+}
+
+function setNavigationContainerScrollTop(
+  container: HTMLDivElement,
+  scrollTop: number,
+) {
+  container.scrollTop = scrollTop;
+  navigationPanelScrollTopMemory = scrollTop;
+}
+
+function cancelNavigationScroll(container: HTMLDivElement) {
+  const frame = navigationScrollAnimations.get(container);
+
+  if (frame === undefined) {
+    return;
+  }
+
+  window.cancelAnimationFrame(frame);
+  navigationScrollAnimations.delete(container);
+}
+
+function easeOutQuart(progress: number) {
+  return 1 - (1 - progress) ** 4;
 }
 
 function clamp(value: number, min: number, max: number) {

@@ -16,25 +16,6 @@
   display: none;
 }
 
-.registry-navigation-scrollbar {
-  scrollbar-color: color-mix(in oklch, var(--border), transparent 20%)
-    transparent;
-  scrollbar-width: thin;
-}
-
-.registry-navigation-scrollbar::-webkit-scrollbar {
-  width: 0.375rem;
-}
-
-.registry-navigation-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.registry-navigation-scrollbar::-webkit-scrollbar-thumb {
-  background: color-mix(in oklch, var(--border), transparent 20%);
-  border-radius: 999px;
-}
-
 @utility extend-touch-target {
   @media (pointer: coarse) {
     @apply relative touch-manipulation after:absolute after:-inset-2;
