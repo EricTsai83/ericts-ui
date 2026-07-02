@@ -209,6 +209,12 @@ const registryDisplayItemConfigs = [
     viewport: "wide",
   },
   {
+    name: "floating-context-map",
+    kind: "component",
+    category: "navigation",
+    viewport: "wide",
+  },
+  {
     name: "navigation-menu",
     kind: "component",
     category: "navigation",

@@ -129,17 +129,21 @@ function HookPreview({
           </TabsList>
           {demoVariants.map((variant) => (
             <TabsContent key={variant.value} value={variant.value}>
-              <div className="relative rounded-xl border bg-background p-6">
-                <PreviewFullscreenLink href={fullscreenHref} />
-                <RegistryPreview name={name} variant={variant.value} />
+              <div className="overflow-hidden rounded-xl border bg-background">
+                <div className="p-6">
+                  <RegistryPreview name={name} variant={variant.value} />
+                </div>
+                <PreviewFullscreenActionBar href={fullscreenHref} />
               </div>
             </TabsContent>
           ))}
         </Tabs>
       ) : (
-        <div className="relative rounded-xl border bg-background p-6">
-          <PreviewFullscreenLink href={fullscreenHref} />
-          <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
+        <div className="overflow-hidden rounded-xl border bg-background">
+          <div className="p-6">
+            <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
+          </div>
+          <PreviewFullscreenActionBar href={fullscreenHref} />
         </div>
       )}
       {codeVariants.length > 0 ? (
@@ -294,6 +298,7 @@ function ComponentPreviewCard({
           },
         ];
   const hasMultipleVariants = variants.length > 1;
+  const hasPreviewToolbar = hasMultipleVariants || Boolean(fullscreenHref);
 
   return (
     <section
@@ -301,33 +306,51 @@ function ComponentPreviewCard({
       className="group relative min-w-0 max-w-full overflow-hidden rounded-xl border bg-background"
     >
       <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
-        <div className="relative flex min-h-[288px] items-center justify-center p-10">
-          <PreviewFullscreenLink href={fullscreenHref} />
+        {hasPreviewToolbar ? (
+          <div
+            className={cn(
+              "flex min-h-12 flex-col gap-3 border-b bg-muted/30 px-3 py-3 sm:flex-row sm:items-center",
+              hasMultipleVariants ? "sm:justify-between" : "sm:justify-end",
+            )}
+          >
+            {hasMultipleVariants ? (
+              <TabsList
+                aria-label="Implementation"
+                className="max-w-full overflow-x-auto shadow-none sm:w-fit"
+              >
+                {variants.map((variant) => (
+                  <TabsTrigger
+                    key={variant.value}
+                    value={variant.value}
+                    className="px-3"
+                  >
+                    {variant.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            ) : null}
+            <PreviewFullscreenAction href={fullscreenHref} />
+          </div>
+        ) : null}
+        <div className="flex min-h-[288px] items-center justify-center p-10">
           {hasMultipleVariants ? (
-            <TabsList
-              aria-label="Implementation"
-              className="absolute left-3 top-3 z-10 shadow-sm"
-            >
-              {variants.map((variant) => (
-                <TabsTrigger
-                  key={variant.value}
-                  value={variant.value}
-                  className="px-3"
-                >
-                  {variant.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          ) : null}
-          {variants.map((variant) => (
+            variants.map((variant) => (
+              <TabsContent
+                key={variant.value}
+                value={variant.value}
+                className="flex w-full items-center justify-center"
+              >
+                <RegistryPreview name={name} variant={variant.value} />
+              </TabsContent>
+            ))
+          ) : (
             <TabsContent
-              key={variant.value}
-              value={variant.value}
+              value={variants[0].value}
               className="flex w-full items-center justify-center"
             >
-              <RegistryPreview name={name} variant={variant.value} />
+              <RegistryPreview name={name} variant={variants[0].value} />
             </TabsContent>
-          ))}
+          )}
         </div>
         <div
           data-slot="code"
@@ -348,7 +371,19 @@ function ComponentPreviewCard({
   );
 }
 
-function PreviewFullscreenLink({ href }: { href?: string }) {
+function PreviewFullscreenActionBar({ href }: { href?: string }) {
+  if (!href) {
+    return null;
+  }
+
+  return (
+    <div className="flex justify-end border-t bg-muted/30 px-3 py-3 sm:px-4">
+      <PreviewFullscreenAction href={href} />
+    </div>
+  );
+}
+
+function PreviewFullscreenAction({ href }: { href?: string }) {
   if (!href) {
     return null;
   }
@@ -356,14 +391,13 @@ function PreviewFullscreenLink({ href }: { href?: string }) {
   return (
     <Link
       href={href}
-      aria-label="Open fullscreen demo"
-      title="Open fullscreen demo"
       className={cn(
-        buttonVariants({ variant: "outline", size: "icon-sm" }),
-        "absolute bottom-3 right-3 z-10 bg-background",
+        buttonVariants({ variant: "default", size: "sm" }),
+        "w-full sm:w-auto",
       )}
     >
-      <Maximize2 aria-hidden="true" />
+      Open fullscreen demo
+      <Maximize2 data-icon="inline-end" aria-hidden="true" />
     </Link>
   );
 }

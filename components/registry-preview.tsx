@@ -3,6 +3,10 @@
 import {
   ArrowUpRight,
   Bell,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
   Check,
   ChevronsLeft,
   ChevronsRight,
@@ -64,6 +68,11 @@ import {
   ExpandableTabs,
   type ExpandableTabItem,
 } from "@/registry/base/ui/expandable-tabs";
+import {
+  FloatingContextMap,
+  type FloatingContextMapGroup,
+  type FloatingContextMapShortcutGroup,
+} from "@/registry/base/ui/floating-context-map";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
   ContextCursor,
@@ -98,6 +107,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "otp-input": () => <OTPInputPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "expandable-tabs": () => <ExpandableTabsPreview />,
+  "floating-context-map": () => <FloatingContextMapPreview />,
   "navigation-menu": () => <NavigationMenuPreview />,
   "text-morph": () => <TextMorphPreview />,
   "expandable-modal": () => <ExpandableModalPreview />,
@@ -868,6 +878,158 @@ function ExpandableTabsPreview() {
   return (
     <div className="flex min-h-80 w-full flex-col items-center justify-end pb-2">
       <ExpandableTabs items={items} aria-label="Workspace quick actions" />
+    </div>
+  );
+}
+
+const floatingContextMapGroups: FloatingContextMapGroup[] = [
+  {
+    id: "compose",
+    label: "Compose",
+    items: [
+      {
+        id: "brief",
+        label: "Brief",
+        description: "Project requirements",
+      },
+      {
+        id: "outline",
+        label: "Outline",
+        description: "Page structure",
+      },
+      {
+        id: "copy",
+        label: "Copy",
+        description: "Draft messaging",
+      },
+    ],
+  },
+  {
+    id: "preview",
+    label: "Preview",
+    items: [
+      {
+        id: "desktop",
+        label: "Desktop",
+        description: "Wide viewport",
+      },
+      {
+        id: "tablet",
+        label: "Tablet",
+        description: "Medium viewport",
+      },
+      {
+        id: "mobile",
+        label: "Mobile",
+        description: "Narrow viewport",
+      },
+    ],
+  },
+  {
+    id: "publish",
+    label: "Publish",
+    items: [
+      {
+        id: "checks",
+        label: "Checks",
+        description: "Lint and types",
+      },
+      {
+        id: "release",
+        label: "Release",
+        description: "Ship workflow",
+      },
+    ],
+  },
+];
+
+const floatingContextMapShortcuts: FloatingContextMapShortcutGroup[] = [
+  {
+    id: "item",
+    label: "Item",
+    keys: [
+      {
+        id: "previous",
+        icon: <ChevronLeft aria-hidden className="size-3" />,
+      },
+      {
+        id: "next",
+        icon: <ChevronRight aria-hidden className="size-3" />,
+      },
+    ],
+  },
+  {
+    id: "group",
+    label: "Group",
+    keys: [
+      {
+        id: "previous-group",
+        icon: <ChevronUp aria-hidden className="size-3" />,
+      },
+      {
+        id: "next-group",
+        icon: <ChevronDown aria-hidden className="size-3" />,
+      },
+    ],
+  },
+];
+
+function FloatingContextMapPreview() {
+  const [currentItemId, setCurrentItemId] = useState("desktop");
+  const currentGroup = floatingContextMapGroups.find((group) =>
+    group.items.some((item) => item.id === currentItemId),
+  );
+  const currentItem =
+    currentGroup?.items.find((item) => item.id === currentItemId) ??
+    floatingContextMapGroups[0].items[0];
+
+  return (
+    <div className="relative mx-auto h-80 w-full max-w-xl overflow-hidden rounded-lg border bg-background text-foreground">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[44px_44px] opacity-35 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
+      />
+
+      <div className="absolute left-5 top-5 flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="size-2 rounded-full bg-primary" aria-hidden />
+        Workspace map
+      </div>
+
+      <div className="relative flex h-full items-center justify-center px-6 text-center">
+        <div className="flex max-w-xs flex-col items-center gap-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            {currentGroup?.label ?? "Context"}
+          </p>
+          <p className="text-lg font-semibold leading-6">{currentItem.label}</p>
+          <p className="text-sm leading-5 text-muted-foreground">
+            {currentItem.description}
+          </p>
+        </div>
+      </div>
+
+      <FloatingContextMap
+        className="absolute right-3 top-3 z-20"
+        groups={floatingContextMapGroups}
+        currentItemId={currentItemId}
+        defaultOpen
+        shortcutGroups={floatingContextMapShortcuts}
+        actions={[
+          {
+            id: "theme",
+            label: "Theme",
+            shortcut: "D",
+            "aria-label": "Toggle theme",
+          },
+          {
+            id: "close",
+            label: "Exit",
+            shortcut: "Esc",
+            "aria-label": "Exit preview",
+          },
+        ]}
+        actionsLabel="Preview actions"
+        onItemSelect={(item) => setCurrentItemId(item.id)}
+      />
     </div>
   );
 }

@@ -5,10 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  ListTree,
   type LucideIcon,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
@@ -16,19 +14,20 @@ import { useTheme } from "fumadocs-ui/provider/base";
 import {
   useCallback,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
-  type ReactNode,
 } from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
-import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
+import {
+  FloatingContextMap,
+  type FloatingContextMapAction,
+  type FloatingContextMapGroup,
+  type FloatingContextMapShortcutGroup,
+} from "@/registry/base/ui/floating-context-map";
 
 export type RegistryDemoNavigationItem = Pick<
   RegistryDisplayItem,
@@ -88,38 +87,14 @@ const navigationCues: NavigationCueConfig[] = [
 ];
 
 const navigationShortcutStorageKey = "ericts-ui:registry-demo-shortcut";
-const navigationPanelTransition = {
-  type: "spring",
-  duration: 0.24,
-  bounce: 0,
-} as const;
-const navigationPanelContentTransition = {
-  duration: 0.2,
-  ease: [0.16, 1, 0.3, 1],
-} as const;
-const navigationPanelListTransition = {
-  duration: 0.22,
-  ease: [0.16, 1, 0.3, 1],
-} as const;
-const navigationShortcutFooterTransition = {
-  duration: 0.18,
-  ease: [0.23, 1, 0.32, 1],
-} as const;
-const navigationPanelReducedMotionTransition = { duration: 0 } as const;
-const navigationItemScrollAnchorRatio = 1 / 3;
-const navigationScrollMinDuration = 160;
-const navigationScrollMaxDuration = 320;
-const navigationScrollDistanceDurationRatio = 0.45;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 let navigationPanelOpenMemory = false;
 let navigationPanelScrollTopMemory = 0;
-const navigationScrollAnimations = new WeakMap<HTMLDivElement, number>();
 
 type NavigationPanelState = {
   open: boolean;
-  activeShortcut: NavigationShortcutDirection | null;
   autoOpened: boolean;
   shortcutSequence: number;
 };
@@ -136,6 +111,7 @@ export function RegistryDemoShell({
   variant: string;
 }) {
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
   const [navigationPanelState, setNavigationPanelState] = useState(
     createInitialNavigationPanelState,
   );
@@ -160,14 +136,48 @@ export function RegistryDemoShell({
       navigation.previousCategory,
     ],
   );
+  const navigationPanelSourceGroups = useMemo(
+    () => getNavigationGroupsWithFallback(navigationGroups, item),
+    [item, navigationGroups],
+  );
   const navigationSelectionName =
     navigationSelectionIntent?.sourceItemName === item.name
       ? navigationSelectionIntent.selectedItemName
       : item.name;
   const navigationSelection = useMemo(
     () =>
-      findNavigationItem(navigationGroups, navigationSelectionName) ?? item,
-    [item, navigationGroups, navigationSelectionName],
+      findNavigationItem(navigationPanelSourceGroups, navigationSelectionName) ??
+      item,
+    [item, navigationPanelSourceGroups, navigationSelectionName],
+  );
+  const contextMapGroups = useMemo(
+    () => toFloatingContextMapGroups(navigationPanelSourceGroups),
+    [navigationPanelSourceGroups],
+  );
+  const contextMapShortcutGroups = useMemo(
+    () => toFloatingContextMapShortcutGroups(),
+    [],
+  );
+  const contextMapActions = useMemo<FloatingContextMapAction[]>(
+    () => [
+      {
+        id: "theme",
+        label: "Theme",
+        shortcut: "D",
+        "aria-label": "Toggle theme",
+        title: "Toggle theme",
+        onSelect: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+      },
+      {
+        id: "exit",
+        label: "Exit",
+        shortcut: "Esc",
+        "aria-label": `Exit fullscreen to ${itemPageLabel.toLowerCase()}`,
+        title: "Exit fullscreen",
+        onSelect: () => router.push(item.href),
+      },
+    ],
+    [item.href, itemPageLabel, resolvedTheme, router, setTheme],
   );
 
   const selectNavigationItem = useCallback(
@@ -187,7 +197,6 @@ export function RegistryDemoShell({
     setNavigationPanelState((current) => ({
       ...current,
       open,
-      activeShortcut: open ? current.activeShortcut : null,
       autoOpened: false,
     }));
   }, []);
@@ -201,17 +210,15 @@ export function RegistryDemoShell({
       return {
         ...current,
         open,
-        activeShortcut: open ? current.activeShortcut : null,
         autoOpened: false,
       };
     });
   }, []);
 
   const activateNavigationShortcut = useCallback(
-    (direction: NavigationShortcutDirection) => {
+    () => {
       setNavigationPanelState((current) => ({
         open: true,
-        activeShortcut: direction,
         autoOpened:
           !navigationPanelOpenMemory && (current.autoOpened || !current.open),
         shortcutSequence: current.shortcutSequence + 1,
@@ -229,7 +236,6 @@ export function RegistryDemoShell({
 
     setNavigationPanelState((current) => ({
       open: true,
-      activeShortcut: shortcut,
       autoOpened:
         !navigationPanelOpenMemory && (current.autoOpened || !current.open),
       shortcutSequence: current.shortcutSequence + 1,
@@ -237,7 +243,7 @@ export function RegistryDemoShell({
   }, [item.name]);
 
   useEffect(() => {
-    if (!navigationPanelState.activeShortcut) {
+    if (!navigationPanelState.autoOpened) {
       return;
     }
 
@@ -245,16 +251,12 @@ export function RegistryDemoShell({
       setNavigationPanelState((current) => ({
         ...current,
         open: current.autoOpened ? false : current.open,
-        activeShortcut: null,
         autoOpened: false,
       }));
     }, 1800);
 
     return () => window.clearTimeout(timeout);
-  }, [
-    navigationPanelState.activeShortcut,
-    navigationPanelState.shortcutSequence,
-  ]);
+  }, [navigationPanelState.autoOpened, navigationPanelState.shortcutSequence]);
 
   useEffect(() => {
     for (const href of prefetchHrefs) {
@@ -351,16 +353,59 @@ export function RegistryDemoShell({
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
-      <NavigationContextPanel
-        item={item}
-        currentItemCategory={navigationSelection.category}
-        currentItemName={navigationSelection.name}
-        groups={navigationGroups}
-        itemPageLabel={itemPageLabel}
+      <FloatingContextMap
+        className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
+        groups={contextMapGroups}
+        currentItemId={navigationSelection.name}
         open={navigationPanelState.open}
-        activeShortcut={navigationPanelState.activeShortcut}
-        onItemSelect={selectNavigationItem}
+        actions={contextMapActions}
+        shortcutGroups={contextMapShortcutGroups}
+        initialScrollTop={navigationPanelScrollTopMemory}
+        closeOnEscape={false}
+        openLabel="Open navigation map"
+        closeLabel="Collapse navigation map"
+        actionsLabel="Fullscreen preview actions"
         onOpenChange={setNavigationPanelOpen}
+        onScrollTopChange={(scrollTop) => {
+          navigationPanelScrollTopMemory = scrollTop;
+        }}
+        onItemSelect={(contextItem) => {
+          const nextItem = findNavigationItem(
+            navigationPanelSourceGroups,
+            contextItem.id,
+          );
+
+          if (!nextItem) {
+            return;
+          }
+
+          selectNavigationItem(nextItem);
+        }}
+        renderItem={({ item: contextItem, children, itemProps }) => {
+          const nextItem = findNavigationItem(
+            navigationPanelSourceGroups,
+            contextItem.id,
+          );
+
+          if (!nextItem) {
+            return (
+              <button type="button" {...itemProps}>
+                {children}
+              </button>
+            );
+          }
+
+          return (
+            <Link
+              href={nextItem.viewHref}
+              replace
+              scroll={false}
+              {...itemProps}
+            >
+              {children}
+            </Link>
+          );
+        }}
       />
 
       <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
@@ -381,508 +426,6 @@ export function RegistryDemoShell({
   );
 }
 
-function NavigationContextPanel({
-  item,
-  currentItemCategory,
-  currentItemName,
-  groups,
-  itemPageLabel,
-  open,
-  activeShortcut,
-  onItemSelect,
-  onOpenChange,
-}: {
-  item: RegistryDisplayItem;
-  currentItemCategory: string;
-  currentItemName: string;
-  groups: RegistryDemoNavigationGroup[];
-  itemPageLabel: string;
-  open: boolean;
-  activeShortcut: NavigationShortcutDirection | null;
-  onItemSelect: (item: RegistryDemoNavigationItem) => void;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const panelId = useId();
-  const shortcutPanelId = useId();
-  const treeScrollRef = useRef<HTMLDivElement>(null);
-  const lastScrolledItemNameRef = useRef<string | null>(
-    activeShortcut ? null : currentItemName,
-  );
-  const [shortcutsExpanded, setShortcutsExpanded] = useState(false);
-  const currentGroup =
-    groups.find((group) => group.category === currentItemCategory) ??
-    getFallbackNavigationGroup(item);
-  const currentGroupIndex = groups.findIndex(
-    (group) => group.category === currentGroup.category,
-  );
-  const shouldReduceMotion = useReducedMotion();
-  const panelTransition = shouldReduceMotion
-    ? navigationPanelReducedMotionTransition
-    : navigationPanelTransition;
-  const contentTransition = shouldReduceMotion
-    ? navigationPanelReducedMotionTransition
-    : navigationPanelContentTransition;
-  const listTransition = shouldReduceMotion
-    ? navigationPanelReducedMotionTransition
-    : navigationPanelListTransition;
-
-  useIsomorphicLayoutEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const selectedItemChanged =
-      lastScrolledItemNameRef.current !== currentItemName;
-
-    if (activeShortcut && !selectedItemChanged) {
-      return;
-    }
-
-    const scrollContainer = treeScrollRef.current;
-    const currentItem = scrollContainer?.querySelector<HTMLElement>(
-      "[data-navigation-current='true']",
-    );
-
-    if (!scrollContainer || !currentItem) {
-      return;
-    }
-
-    scrollNavigationItemIntoView({
-      container: scrollContainer,
-      item: currentItem,
-      smooth: selectedItemChanged && !shouldReduceMotion,
-    });
-    lastScrolledItemNameRef.current = currentItemName;
-  }, [activeShortcut, currentItemName, open, shouldReduceMotion]);
-
-  return (
-    <aside
-      aria-label="Preview position"
-      className="fixed right-3 top-3 z-30 flex max-w-[calc(100vw-1.5rem)] justify-end sm:right-4 sm:top-4"
-    >
-      <div className="relative flex justify-end">
-        <motion.div
-          initial={false}
-          animate={open ? { height: "auto" } : { height: "2rem" }}
-          transition={panelTransition}
-          style={{ transformOrigin: "top right" }}
-          className={cn(
-            "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-xl transition-[width] duration-220 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] supports-backdrop-filter:bg-popover/8 motion-reduce:transition-none dark:shadow-black/20",
-            open ? "w-[min(17rem,calc(100vw-1.5rem))]" : "size-8 sm:size-8",
-          )}
-        >
-          <AnimatePresence initial={false}>
-            {open ? (
-              <motion.div
-                key="navigation-panel-content"
-                id={panelId}
-                initial={
-                  shouldReduceMotion
-                    ? false
-                    : { opacity: 0, scale: 0.99, filter: "blur(1.5px)" }
-                }
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={
-                  shouldReduceMotion
-                    ? { opacity: 0 }
-                    : { opacity: 0.82, scale: 0.992, filter: "blur(1.25px)" }
-                }
-                transition={contentTransition}
-                style={{ transformOrigin: "top right" }}
-                className="will-change-[filter,transform,opacity]"
-              >
-                <motion.div
-                  data-navigation-list=""
-                  initial={
-                    shouldReduceMotion
-                      ? false
-                      : { opacity: 0.94, filter: "blur(1.5px)", y: -1 }
-                  }
-                  animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                  exit={
-                    shouldReduceMotion
-                      ? { opacity: 0 }
-                      : { opacity: 1, filter: "blur(2.5px)", y: -1.5 }
-                  }
-                  transition={listTransition}
-                  className="group/navigation-list relative will-change-[filter,transform,opacity]"
-                >
-                  <div
-                    ref={treeScrollRef}
-                    onScroll={(event) => {
-                      navigationPanelScrollTopMemory =
-                        event.currentTarget.scrollTop;
-                    }}
-                    className="no-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
-                  >
-                    <div className="flex flex-col gap-1.5">
-                      {groups.map((group, groupIndex) => (
-                        <NavigationGroupTree
-                          key={group.category}
-                          group={group}
-                          groupIndex={groupIndex}
-                          currentGroupIndex={currentGroupIndex}
-                          currentItemName={currentItemName}
-                          onItemSelect={onItemSelect}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <NavigationListShortcutHint />
-                </motion.div>
-                <NavigationShortcutBar
-                  expanded={shortcutsExpanded}
-                  itemHref={item.href}
-                  itemPageLabel={itemPageLabel}
-                  panelId={shortcutPanelId}
-                  onExpandedChange={setShortcutsExpanded}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </motion.div>
-
-        <button
-          type="button"
-          aria-controls={panelId}
-          aria-expanded={open}
-          aria-label={open ? "Collapse navigation map" : "Open navigation map"}
-          onClick={() => {
-            if (open) {
-              setShortcutsExpanded(false);
-            }
-
-            onOpenChange(!open);
-          }}
-          className={cn(
-            "extend-touch-target absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
-            open && "text-foreground",
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-transparent text-current"
-          >
-            <ListTree className="size-3.5" />
-          </span>
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-function NavigationGroupTree({
-  group,
-  groupIndex,
-  currentGroupIndex,
-  currentItemName,
-  onItemSelect,
-}: {
-  group: RegistryDemoNavigationGroup;
-  groupIndex: number;
-  currentGroupIndex: number;
-  currentItemName: string;
-  onItemSelect: (item: RegistryDemoNavigationItem) => void;
-}) {
-  const isCurrentGroup = groupIndex === currentGroupIndex;
-
-  return (
-    <section className="flex min-w-0 flex-col gap-0.5">
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-semibold leading-4",
-          isCurrentGroup ? "text-primary" : "text-foreground/70",
-        )}
-      >
-        <span className="truncate">{group.label}</span>
-      </div>
-      <div className="flex min-w-0 flex-col gap-0.5">
-        {group.items.map((groupItem) => {
-          const isCurrentItem = groupItem.name === currentItemName;
-
-          return (
-            <Link
-              key={groupItem.name}
-              href={groupItem.viewHref}
-              replace
-              scroll={false}
-              onClick={(event) => {
-                if (
-                  event.defaultPrevented ||
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.altKey ||
-                  event.shiftKey ||
-                  event.button !== 0
-                ) {
-                  return;
-                }
-
-                onItemSelect(groupItem);
-              }}
-              aria-current={isCurrentItem ? "page" : undefined}
-              data-navigation-current={isCurrentItem ? "true" : undefined}
-              className={cn(
-                "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isCurrentItem
-                  ? "bg-muted/55 font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <span className="truncate">{groupItem.title}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function NavigationShortcutBar({
-  expanded,
-  itemPageLabel,
-  itemHref,
-  panelId,
-  onExpandedChange,
-}: {
-  expanded: boolean;
-  itemPageLabel: string;
-  itemHref: string;
-  panelId: string;
-  onExpandedChange: (expanded: boolean) => void;
-}) {
-  const shouldReduceMotion = useReducedMotion();
-  const transition = shouldReduceMotion
-    ? navigationPanelReducedMotionTransition
-    : navigationShortcutFooterTransition;
-
-  return (
-    <div
-      className={cn(
-        "overflow-hidden border-t border-border/55 bg-popover/80 text-xs",
-        expanded && "bg-muted/20",
-      )}
-    >
-      <button
-        type="button"
-        aria-controls={panelId}
-        aria-expanded={expanded}
-        aria-label={
-          expanded ? "Collapse keyboard shortcuts" : "Expand keyboard shortcuts"
-        }
-        onClick={() => onExpandedChange(!expanded)}
-        className={cn(
-          "flex h-4 w-full items-center justify-center rounded-none text-muted-foreground outline-none transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
-          expanded ? "bg-transparent" : "bg-muted/20",
-        )}
-      >
-        <ChevronUp
-          aria-hidden="true"
-          className={cn(
-            "size-3 transition-transform duration-150 ease-out motion-reduce:transition-none",
-            expanded && "rotate-180",
-          )}
-        />
-      </button>
-
-      <AnimatePresence initial={false}>
-        {expanded ? (
-          <motion.div
-            key="shortcut-footer-controls"
-            id={panelId}
-            initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={transition}
-            className="overflow-hidden border-t border-border/55"
-          >
-            <div
-              role="group"
-              aria-label="Fullscreen preview actions"
-              className="grid grid-cols-2 divide-x divide-border/55 text-xs"
-            >
-              <ThemeShortcutAction />
-              <ShortcutActionLink
-                href={itemHref}
-                ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
-                title="Exit fullscreen"
-                shortcut="Esc"
-                label="Exit"
-              />
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function NavigationListShortcutHint() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute bottom-2 right-2 z-10 flex translate-y-1 items-center gap-1 rounded-md bg-popover/95 px-1.5 py-1 text-[0.65rem] leading-none text-muted-foreground opacity-0 shadow-sm ring-1 ring-border/60 backdrop-blur-md transition-[opacity,transform] duration-150 ease-out group-hover/navigation-list:translate-y-0 group-hover/navigation-list:opacity-100 group-focus-within/navigation-list:translate-y-0 group-focus-within/navigation-list:opacity-100 motion-reduce:transition-none"
-    >
-      <NavigationListShortcutHintGroup
-        cues={[navigationCues[0], navigationCues[1]]}
-        label="Item"
-      />
-      <span className="h-3 w-px bg-border/70" />
-      <NavigationListShortcutHintGroup
-        cues={[navigationCues[2], navigationCues[3]]}
-        label="Group"
-      />
-    </div>
-  );
-}
-
-function NavigationListShortcutHintGroup({
-  cues,
-  label,
-}: {
-  cues: [NavigationCueConfig, NavigationCueConfig];
-  label: string;
-}) {
-  return (
-    <span className="flex items-center gap-1">
-      <span className="flex items-center gap-0.5">
-        {cues.map((cue) => (
-          <NavigationHintKey key={cue.direction} cue={cue} />
-        ))}
-      </span>
-      <span>{label}</span>
-    </span>
-  );
-}
-
-function NavigationHintKey({ cue }: { cue: NavigationCueConfig }) {
-  const Icon = cue.icon;
-
-  return (
-    <ShortcutKey className={shortcutIconKeyCompactClassName}>
-      <Icon aria-hidden="true" className="size-3" />
-    </ShortcutKey>
-  );
-}
-
-function ThemeShortcutAction() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
-  return (
-    <ShortcutActionButton
-      ariaLabel="Toggle theme"
-      title="Toggle theme"
-      shortcut="D"
-      label="Theme"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-    />
-  );
-}
-
-function ShortcutActionLink({
-  href,
-  ariaLabel,
-  title,
-  shortcut,
-  label,
-}: {
-  href: string;
-  ariaLabel: string;
-  title: string;
-  shortcut: string;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-label={ariaLabel}
-      title={title}
-      className={shortcutActionClassName}
-    >
-      <ShortcutKey className={shortcutTextKeyCompactClassName}>
-        {shortcut}
-      </ShortcutKey>
-      <ShortcutActionLabel>{label}</ShortcutActionLabel>
-    </Link>
-  );
-}
-
-function ShortcutActionButton({
-  ariaLabel,
-  title,
-  shortcut,
-  label,
-  onClick,
-}: {
-  ariaLabel: string;
-  title: string;
-  shortcut: string;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      aria-label={ariaLabel}
-      title={title}
-      onClick={onClick}
-      className={shortcutActionButtonClassName}
-    >
-      <ShortcutKey className={shortcutTextKeyCompactClassName}>
-        {shortcut}
-      </ShortcutKey>
-      <ShortcutActionLabel>{label}</ShortcutActionLabel>
-    </Button>
-  );
-}
-
-function ShortcutKey({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <Kbd
-      className={cn(
-        "shrink-0 rounded-md font-mono text-[0.68rem] leading-none text-foreground shadow-[inset_0_-1px_0_var(--border)]",
-        className,
-      )}
-    >
-      {children}
-    </Kbd>
-  );
-}
-
-function ShortcutActionLabel({ children }: { children: ReactNode }) {
-  return (
-    <span className="whitespace-nowrap text-xs leading-none">{children}</span>
-  );
-}
-
-const shortcutActionSurfaceClassName =
-  "flex min-w-0 items-center justify-center gap-1 bg-popover/80 px-1.5 py-1.5 text-muted-foreground transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring";
-
-const shortcutActionClassName = cn(
-  shortcutActionSurfaceClassName,
-  "rounded-none",
-);
-
-const shortcutIconKeyCompactClassName =
-  "grid size-4 min-w-4 place-items-center rounded-[3px] p-0 px-0 text-center font-mono text-[0.6rem] leading-none text-muted-foreground shadow-none";
-
-const shortcutTextKeyCompactClassName =
-  "h-4 min-w-4 rounded-[3px] px-1 py-0 text-center font-mono text-[0.6rem] leading-none text-muted-foreground shadow-none";
-
-const shortcutActionButtonClassName = cn(
-  shortcutActionClassName,
-  "h-auto border-0 shadow-none aria-expanded:bg-muted/35 dark:hover:bg-muted/35",
-);
-
 function findNavigationItem(
   groups: RegistryDemoNavigationGroup[],
   itemName: string,
@@ -896,6 +439,54 @@ function findNavigationItem(
   }
 
   return null;
+}
+
+function getNavigationGroupsWithFallback(
+  groups: RegistryDemoNavigationGroup[],
+  item: RegistryDisplayItem,
+) {
+  if (findNavigationItem(groups, item.name)) {
+    return groups;
+  }
+
+  return [...groups, getFallbackNavigationGroup(item)];
+}
+
+function toFloatingContextMapGroups(
+  groups: RegistryDemoNavigationGroup[],
+): FloatingContextMapGroup[] {
+  return groups.map((group) => ({
+    id: group.category,
+    label: group.label,
+    items: group.items.map((item) => ({
+      id: item.name,
+      label: item.title,
+    })),
+  }));
+}
+
+function toFloatingContextMapShortcutGroups(): FloatingContextMapShortcutGroup[] {
+  return [
+    {
+      id: "item",
+      label: "Item",
+      keys: navigationCues.slice(0, 2).map(toFloatingContextMapShortcutKey),
+    },
+    {
+      id: "group",
+      label: "Group",
+      keys: navigationCues.slice(2, 4).map(toFloatingContextMapShortcutKey),
+    },
+  ];
+}
+
+function toFloatingContextMapShortcutKey(cue: NavigationCueConfig) {
+  const Icon = cue.icon;
+
+  return {
+    id: cue.direction,
+    icon: <Icon aria-hidden="true" className="size-3" />,
+  };
 }
 
 function replaceNavigationItem(
@@ -919,132 +510,12 @@ function replaceNavigationItem(
   router.replace(item.viewHref, { scroll: false });
 }
 
-function scrollNavigationItemIntoView({
-  container,
-  item,
-  smooth,
-}: {
-  container: HTMLDivElement;
-  item: HTMLElement;
-  smooth: boolean;
-}) {
-  const maxScrollTop = Math.max(
-    container.scrollHeight - container.clientHeight,
-    0,
-  );
-
-  if (smooth) {
-    const rememberedScrollTop = clamp(
-      navigationPanelScrollTopMemory,
-      0,
-      maxScrollTop,
-    );
-
-    if (Math.abs(container.scrollTop - rememberedScrollTop) > 1) {
-      setNavigationContainerScrollTop(container, rememberedScrollTop);
-    }
-  }
-
-  const containerRect = container.getBoundingClientRect();
-  const itemRect = item.getBoundingClientRect();
-  const itemCenter =
-    itemRect.top -
-    containerRect.top +
-    container.scrollTop +
-    itemRect.height / 2;
-  const scrollTop = clamp(
-    itemCenter - container.clientHeight * navigationItemScrollAnchorRatio,
-    0,
-    maxScrollTop,
-  );
-  const distance = scrollTop - container.scrollTop;
-
-  cancelNavigationScroll(container);
-
-  if (!smooth || Math.abs(distance) < 1) {
-    setNavigationContainerScrollTop(container, scrollTop);
-    return;
-  }
-
-  animateNavigationScroll(container, scrollTop);
-}
-
-function animateNavigationScroll(
-  container: HTMLDivElement,
-  targetScrollTop: number,
-) {
-  const startScrollTop = container.scrollTop;
-  const distance = targetScrollTop - startScrollTop;
-  const duration = clamp(
-    navigationScrollMinDuration +
-      Math.abs(distance) * navigationScrollDistanceDurationRatio,
-    navigationScrollMinDuration,
-    navigationScrollMaxDuration,
-  );
-  const startedAt = performance.now();
-
-  function frame(now: number) {
-    const progress = clamp((now - startedAt) / duration, 0, 1);
-    const easedProgress = easeOutQuart(progress);
-
-    setNavigationContainerScrollTop(
-      container,
-      startScrollTop + distance * easedProgress,
-    );
-
-    if (progress < 1) {
-      navigationScrollAnimations.set(
-        container,
-        window.requestAnimationFrame(frame),
-      );
-      return;
-    }
-
-    setNavigationContainerScrollTop(container, targetScrollTop);
-    navigationScrollAnimations.delete(container);
-  }
-
-  navigationScrollAnimations.set(container, window.requestAnimationFrame(frame));
-}
-
-function setNavigationContainerScrollTop(
-  container: HTMLDivElement,
-  scrollTop: number,
-) {
-  container.scrollTop = scrollTop;
-  navigationPanelScrollTopMemory = scrollTop;
-}
-
-function cancelNavigationScroll(container: HTMLDivElement) {
-  const frame = navigationScrollAnimations.get(container);
-
-  if (frame === undefined) {
-    return;
-  }
-
-  window.cancelAnimationFrame(frame);
-  navigationScrollAnimations.delete(container);
-}
-
-function easeOutQuart(progress: number) {
-  return 1 - (1 - progress) ** 4;
-}
-
-function clamp(value: number, min: number, max: number) {
-  if (max <= min) {
-    return min;
-  }
-
-  return Math.min(Math.max(value, min), max);
-}
-
 function createInitialNavigationPanelState(): NavigationPanelState {
   const shortcut = consumeRecentNavigationShortcut();
   const open = navigationPanelOpenMemory || Boolean(shortcut);
 
   return {
     open,
-    activeShortcut: shortcut,
     autoOpened: Boolean(shortcut) && !navigationPanelOpenMemory,
     shortcutSequence: shortcut ? 1 : 0,
   };

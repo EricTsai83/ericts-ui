@@ -292,6 +292,31 @@
       ]
     },
     {
+      "name": "floating-context-map",
+      "type": "registry:ui",
+      "title": "Floating Context Map",
+      "description": "A compact floating map for immersive screens, with grouped items, current-position scroll anchoring, shortcut hints, and collapsible actions.",
+      "categories": ["navigation", "overlay"],
+      "meta": {
+        "tags": [
+          "context-map",
+          "floating-panel",
+          "fullscreen",
+          "shortcut-hints",
+          "current-position"
+        ],
+        "effects": ["morph", "blur", "scroll-anchor", "collapsible-actions"]
+      },
+      "dependencies": ["lucide-react", "motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/floating-context-map.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/floating-context-map.tsx"
+        }
+      ]
+    },
+    {
       "name": "navigation-menu",
       "type": "registry:ui",
       "title": "Navigation Menu",

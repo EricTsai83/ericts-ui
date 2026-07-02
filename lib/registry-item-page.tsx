@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Maximize2 } from "lucide-react";
 
 import { ComponentShowcase } from "@/components/component-showcase";
-import { buttonVariants } from "@/components/ui/button";
 import {
   getRegistryCodeModel,
   getRegistryMotionApiSnippets,
@@ -88,15 +85,6 @@ export async function RegistryItemPage({
             </div>
           ) : null}
         </div>
-        {displayItem ? (
-          <Link
-            href={displayItem.viewHref}
-            className={buttonVariants({ variant: "outline", size: "lg" })}
-          >
-            Open fullscreen demo
-            <Maximize2 data-icon="inline-end" aria-hidden="true" />
-          </Link>
-        ) : null}
       </header>
 
       <ComponentShowcase
