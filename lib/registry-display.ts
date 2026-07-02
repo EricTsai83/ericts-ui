@@ -291,17 +291,16 @@ export function getRegistryDisplayNavigation(name: string) {
     return undefined;
   }
 
-  const categoryItems = getRegistryDisplayItemsByCategory(
-    item.kind,
-    item.category,
+  const navigationItems = getRegistryDisplayItems(item.kind).filter(
+    (displayItem) => displayItem.browsable !== false,
   );
   const previousCategory = getRelativeCategoryFirstItem(item, -1);
   const nextCategory = getRelativeCategoryFirstItem(item, 1);
 
   return {
     item,
-    previous: getRelativeItem(categoryItems, name, -1),
-    next: getRelativeItem(categoryItems, name, 1),
+    previous: getRelativeItem(navigationItems, name, -1),
+    next: getRelativeItem(navigationItems, name, 1),
     previousCategory,
     nextCategory,
   };
@@ -366,7 +365,9 @@ function getFirstItemInCategory(
     return undefined;
   }
 
-  return getRegistryDisplayItemsByCategory(kind, category)[0];
+  return getRegistryDisplayItemsByCategory(kind, category).find(
+    (item) => item.browsable !== false,
+  );
 }
 
 function getRelativeCategoryFirstItem(
@@ -395,7 +396,10 @@ function getRelativeCategoryFirstItem(
 
 function getPopulatedRegistryDisplayCategories(kind: RegistryDisplayKind) {
   return getRegistryDisplayCategories(kind).filter(
-    (category) => getRegistryDisplayItemsByCategory(kind, category).length > 0,
+    (category) =>
+      getRegistryDisplayItemsByCategory(kind, category).some(
+        (item) => item.browsable !== false,
+      ),
   );
 }
 

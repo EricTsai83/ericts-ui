@@ -8,6 +8,7 @@ import {
   ListTree,
   type LucideIcon,
 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "fumadocs-ui/provider/base";
@@ -91,6 +92,20 @@ const navigationCues: NavigationCueConfig[] = [
 ];
 
 const navigationShortcutStorageKey = "ericts-ui:registry-demo-shortcut";
+const navigationPanelTransition = {
+  type: "spring",
+  duration: 0.24,
+  bounce: 0,
+} as const;
+const navigationPanelContentTransition = {
+  duration: 0.16,
+  ease: [0.23, 1, 0.32, 1],
+} as const;
+const navigationShortcutFooterTransition = {
+  duration: 0.18,
+  ease: [0.23, 1, 0.32, 1],
+} as const;
+const navigationPanelReducedMotionTransition = { duration: 0 } as const;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -346,84 +361,143 @@ function NavigationContextPanel({
   onOpenChange: (open: boolean) => void;
 }) {
   const panelId = useId();
+  const shortcutPanelId = useId();
   const treeScrollRef = useRef<HTMLDivElement>(null);
+  const lastScrolledItemNameRef = useRef<string | null>(
+    activeShortcut ? null : item.name,
+  );
+  const [shortcutsExpanded, setShortcutsExpanded] = useState(false);
   const currentGroup =
     groups.find((group) => group.category === item.category) ??
     getFallbackNavigationGroup(item);
   const currentGroupIndex = groups.findIndex(
     (group) => group.category === currentGroup.category,
   );
+  const shouldReduceMotion = useReducedMotion();
+  const panelTransition = shouldReduceMotion
+    ? navigationPanelReducedMotionTransition
+    : navigationPanelTransition;
+  const contentTransition = shouldReduceMotion
+    ? navigationPanelReducedMotionTransition
+    : navigationPanelContentTransition;
 
   useIsomorphicLayoutEffect(() => {
     if (!open) {
       return;
     }
 
-    const currentItem = treeScrollRef.current?.querySelector(
+    if (activeShortcut && lastScrolledItemNameRef.current === item.name) {
+      return;
+    }
+
+    const scrollContainer = treeScrollRef.current;
+    const currentItem = scrollContainer?.querySelector<HTMLElement>(
       "[data-navigation-current='true']",
     );
 
-    currentItem?.scrollIntoView({ block: "nearest" });
-  }, [item.name, open]);
+    if (!scrollContainer || !currentItem) {
+      return;
+    }
+
+    scrollNavigationItemIntoView({
+      container: scrollContainer,
+      item: currentItem,
+      direction: activeShortcut,
+      smooth: Boolean(activeShortcut) && !shouldReduceMotion,
+    });
+    lastScrolledItemNameRef.current = item.name;
+  }, [activeShortcut, item.name, open, shouldReduceMotion]);
 
   return (
     <aside
       aria-label="Preview position"
       className="fixed right-3 top-3 z-30 flex max-w-[calc(100vw-1.5rem)] justify-end sm:right-4 sm:top-4"
     >
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-lg border bg-popover/95 text-popover-foreground shadow-sm backdrop-blur-md transition-[width] duration-150 ease-out supports-[backdrop-filter]:bg-popover/85",
-          open
-            ? "w-[min(19rem,calc(100vw-1.5rem))]"
-            : "size-8 sm:size-8",
-        )}
-      >
+      <div className="relative flex justify-end">
+        <motion.div
+          initial={false}
+          animate={open ? { height: "auto" } : { height: "2rem" }}
+          transition={panelTransition}
+          style={{ transformOrigin: "top right" }}
+          className={cn(
+            "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-xl transition-[width] duration-[220ms] ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] supports-[backdrop-filter]:bg-popover/80 motion-reduce:transition-none dark:shadow-black/20",
+            open
+              ? "w-[min(18.25rem,calc(100vw-1.5rem))]"
+              : "size-8 sm:size-8",
+          )}
+        >
+          <AnimatePresence initial={false}>
+            {open ? (
+              <motion.div
+                key="navigation-panel-content"
+                id={panelId}
+                initial={
+                  shouldReduceMotion ? false : { opacity: 0, scale: 0.985 }
+                }
+                animate={{ opacity: 1, scale: 1 }}
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.985 }
+                }
+                transition={contentTransition}
+                style={{ transformOrigin: "top right" }}
+                className="will-change-[transform,opacity]"
+              >
+                <div
+                  ref={treeScrollRef}
+                  className="registry-navigation-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
+                >
+                  <div className="flex flex-col gap-1.5">
+                    {groups.map((group, groupIndex) => (
+                      <NavigationGroupTree
+                        key={group.category}
+                        group={group}
+                        groupIndex={groupIndex}
+                        currentGroupIndex={currentGroupIndex}
+                        currentItemName={item.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <NavigationShortcutBar
+                  expanded={shortcutsExpanded}
+                  activeShortcut={activeShortcut}
+                  navigation={navigation}
+                  itemHref={item.href}
+                  itemPageLabel={itemPageLabel}
+                  panelId={shortcutPanelId}
+                  onExpandedChange={setShortcutsExpanded}
+                />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </motion.div>
+
         <button
           type="button"
           aria-controls={panelId}
           aria-expanded={open}
           aria-label={open ? "Collapse navigation map" : "Open navigation map"}
-          onClick={() => onOpenChange(!open)}
+          onClick={() => {
+            if (open) {
+              setShortcutsExpanded(false);
+            }
+
+            onOpenChange(!open);
+          }}
           className={cn(
-            "extend-touch-target flex size-8 items-center justify-center outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-            open && "absolute right-0 top-0 z-10 bg-popover/95",
+            "extend-touch-target absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
+            open && "text-foreground",
           )}
         >
           <span
             aria-hidden="true"
-            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-transparent text-muted-foreground"
+            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-transparent text-current"
           >
             <ListTree className="size-3.5" />
           </span>
         </button>
-
-        {open ? (
-          <div id={panelId}>
-            <div
-              ref={treeScrollRef}
-              className="max-h-[min(26rem,calc(100dvh-8rem))] overflow-y-auto py-1.5 pl-1.5 pr-9"
-            >
-              <div className="flex flex-col gap-1.5">
-                {groups.map((group, groupIndex) => (
-                  <NavigationGroupTree
-                    key={group.category}
-                    group={group}
-                    groupIndex={groupIndex}
-                    currentGroupIndex={currentGroupIndex}
-                    currentItemName={item.name}
-                  />
-                ))}
-              </div>
-            </div>
-            <NavigationShortcutBar
-              activeShortcut={activeShortcut}
-              navigation={navigation}
-              itemHref={item.href}
-              itemPageLabel={itemPageLabel}
-            />
-          </div>
-        ) : null}
       </div>
     </aside>
   );
@@ -446,23 +520,13 @@ function NavigationGroupTree({
     <section className="flex min-w-0 flex-col gap-0.5">
       <div
         className={cn(
-          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-medium leading-4",
-          isCurrentGroup ? "text-foreground" : "text-muted-foreground",
+          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-semibold leading-4",
+          isCurrentGroup ? "text-primary" : "text-foreground/70",
         )}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "size-1.5 shrink-0 rounded-full",
-            isCurrentGroup ? "bg-primary" : "bg-border",
-          )}
-        />
         <span className="truncate">{group.label}</span>
-        <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">
-          {group.items.length}
-        </span>
       </div>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-col gap-0.5">
         {group.items.map((groupItem) => {
           const isCurrentItem = groupItem.name === currentItemName;
 
@@ -474,21 +538,12 @@ function NavigationGroupTree({
               aria-current={isCurrentItem ? "page" : undefined}
               data-navigation-current={isCurrentItem ? "true" : undefined}
               className={cn(
-                "group/navigation-map-item grid h-7 min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-center gap-1.5 rounded-md px-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isCurrentItem
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "bg-muted/55 font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "mx-auto size-1 rounded-full transition-colors",
-                  isCurrentItem
-                    ? "bg-primary"
-                    : "bg-border group-hover/navigation-map-item:bg-muted-foreground/40",
-                )}
-              />
               <span className="truncate">{groupItem.title}</span>
             </Link>
           );
@@ -499,83 +554,197 @@ function NavigationGroupTree({
 }
 
 function NavigationShortcutBar({
+  expanded,
   activeShortcut,
   navigation,
   itemPageLabel,
   itemHref,
+  panelId,
+  onExpandedChange,
 }: {
+  expanded: boolean;
   activeShortcut: NavigationShortcutDirection | null;
   navigation: RegistryDemoNavigation;
   itemPageLabel: string;
   itemHref: string;
+  panelId: string;
+  onExpandedChange: (expanded: boolean) => void;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  const transition = shouldReduceMotion
+    ? navigationPanelReducedMotionTransition
+    : navigationShortcutFooterTransition;
+
   return (
-    <div className="grid grid-cols-2 gap-px border-t bg-border text-xs">
-      <NavigationShortcutGroup
-        label="Prev / Next item"
-        previousCue={navigationCues[0]}
-        previousItem={navigation.previous}
-        nextCue={navigationCues[1]}
-        nextItem={navigation.next}
-        activeShortcut={activeShortcut}
-      />
-      <NavigationShortcutGroup
-        label="Prev / Next group"
-        previousCue={navigationCues[2]}
-        previousItem={navigation.previousCategory}
-        nextCue={navigationCues[3]}
-        nextItem={navigation.nextCategory}
-        activeShortcut={activeShortcut}
-      />
-      <ThemeShortcutAction />
-      <ShortcutActionLink
-        href={itemHref}
-        ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
-        title="Exit fullscreen"
-        shortcut="Esc"
-        label="Exit"
-      />
+    <div
+      className={cn(
+        "text-xs",
+        expanded
+          ? "mx-1 mb-1 overflow-hidden rounded-md bg-muted/20 p-1 ring-1 ring-border/50"
+          : "px-1 pb-1",
+      )}
+    >
+      <button
+        type="button"
+        aria-controls={panelId}
+        aria-expanded={expanded}
+        aria-label={
+          expanded ? "Collapse keyboard shortcuts" : "Expand keyboard shortcuts"
+        }
+        onClick={() => onExpandedChange(!expanded)}
+        className={cn(
+          "flex items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
+          expanded
+            ? "h-4 w-full bg-transparent"
+            : "h-4 w-full bg-muted/30 ring-1 ring-border/40",
+        )}
+      >
+        <ChevronUp
+          aria-hidden="true"
+          className={cn(
+            "size-3 transition-transform duration-150 ease-out motion-reduce:transition-none",
+            expanded && "rotate-180",
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            key="shortcut-footer-controls"
+            id={panelId}
+            initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={transition}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-2 gap-1 pt-1 text-xs">
+              <NavigationShortcutGroup
+                label="Prev/next item"
+                secondaryLabel="Prev/next group"
+                ariaLabel="Left and right navigate items. Up and down navigate groups."
+                previousCue={navigationCues[0]}
+                previousItem={navigation.previous}
+                nextCue={navigationCues[1]}
+                nextItem={navigation.next}
+                secondaryPreviousCue={navigationCues[2]}
+                secondaryPreviousItem={navigation.previousCategory}
+                secondaryNextCue={navigationCues[3]}
+                secondaryNextItem={navigation.nextCategory}
+                activeShortcut={activeShortcut}
+              />
+              <ThemeShortcutAction />
+              <ShortcutActionLink
+                href={itemHref}
+                ariaLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
+                title="Exit fullscreen"
+                shortcut="Esc"
+                label="Exit"
+              />
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
 
 function NavigationShortcutGroup({
   label,
+  secondaryLabel,
+  ariaLabel,
   previousCue,
   previousItem,
   nextCue,
   nextItem,
+  secondaryPreviousCue,
+  secondaryPreviousItem,
+  secondaryNextCue,
+  secondaryNextItem,
   activeShortcut,
 }: {
   label: string;
+  secondaryLabel?: string;
+  ariaLabel: string;
   previousCue: NavigationCueConfig;
   previousItem?: RegistryDemoNavigationItem;
   nextCue: NavigationCueConfig;
   nextItem?: RegistryDemoNavigationItem;
+  secondaryPreviousCue?: NavigationCueConfig;
+  secondaryPreviousItem?: RegistryDemoNavigationItem;
+  secondaryNextCue?: NavigationCueConfig;
+  secondaryNextItem?: RegistryDemoNavigationItem;
   activeShortcut: NavigationShortcutDirection | null;
 }) {
   return (
     <div
-      aria-label={label}
-      className={cn(shortcutActionSurfaceClassName, "justify-start gap-1.5")}
+      aria-label={ariaLabel}
+      className={cn(
+        shortcutActionSurfaceClassName,
+        "col-span-2 flex-wrap justify-center gap-x-2 gap-y-1 text-center",
+      )}
     >
-      <div className="flex shrink-0 items-center gap-0.5">
-        <NavigationShortcutKey
-          cue={previousCue}
-          item={previousItem}
-          active={activeShortcut === previousCue.direction}
-          dimmed={Boolean(
-            activeShortcut && activeShortcut !== previousCue.direction,
-          )}
-        />
-        <NavigationShortcutKey
-          cue={nextCue}
-          item={nextItem}
-          active={activeShortcut === nextCue.direction}
-          dimmed={Boolean(activeShortcut && activeShortcut !== nextCue.direction)}
-        />
-      </div>
-      <ShortcutActionLabel>{label}</ShortcutActionLabel>
+      <span className="flex min-w-0 items-center gap-1">
+        <span className="flex shrink-0 items-center gap-0.5">
+          <NavigationShortcutKey
+            cue={previousCue}
+            item={previousItem}
+            active={activeShortcut === previousCue.direction}
+            dimmed={Boolean(
+              activeShortcut && activeShortcut !== previousCue.direction,
+            )}
+          />
+          <NavigationShortcutKey
+            cue={nextCue}
+            item={nextItem}
+            active={activeShortcut === nextCue.direction}
+            dimmed={Boolean(
+              activeShortcut && activeShortcut !== nextCue.direction,
+            )}
+          />
+        </span>
+        <ShortcutActionLabel>{label}</ShortcutActionLabel>
+      </span>
+
+      {secondaryPreviousCue && secondaryNextCue && secondaryLabel ? (
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="flex shrink-0 items-center gap-0.5">
+            <NavigationShortcutKey
+              cue={secondaryPreviousCue}
+              item={secondaryPreviousItem}
+              active={activeShortcut === secondaryPreviousCue.direction}
+              dimmed={Boolean(
+                activeShortcut &&
+                  activeShortcut !== secondaryPreviousCue.direction,
+              )}
+            />
+            <NavigationShortcutKey
+              cue={secondaryNextCue}
+              item={secondaryNextItem}
+              active={activeShortcut === secondaryNextCue.direction}
+              dimmed={Boolean(
+                activeShortcut && activeShortcut !== secondaryNextCue.direction,
+              )}
+            />
+          </span>
+          <ShortcutActionLabel>{secondaryLabel}</ShortcutActionLabel>
+        </span>
+      ) : null}
+      {secondaryPreviousCue && !secondaryNextCue && secondaryLabel ? (
+        <span className="flex min-w-0 items-center gap-1">
+          <NavigationShortcutKey
+            cue={secondaryPreviousCue}
+            item={secondaryPreviousItem}
+            active={activeShortcut === secondaryPreviousCue.direction}
+            dimmed={Boolean(
+              activeShortcut &&
+                activeShortcut !== secondaryPreviousCue.direction,
+            )}
+          />
+          <ShortcutActionLabel>{secondaryLabel}</ShortcutActionLabel>
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -724,19 +893,17 @@ function ShortcutKey({
 
 function ShortcutActionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="whitespace-nowrap text-xs leading-none text-muted-foreground">
-      {children}
-    </span>
+    <span className="whitespace-nowrap text-xs leading-none">{children}</span>
   );
 }
 
 const shortcutActionSurfaceClassName =
-  "flex min-w-0 items-center justify-center gap-1 bg-popover px-1.5 py-1.5";
+  "flex min-w-0 items-center justify-center gap-1 bg-transparent px-1.5 py-1.5 text-muted-foreground";
 
 const shortcutActionClassName = cn(
   shortcutActionSurfaceClassName,
-  "transition-colors",
-  "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+  "rounded-md bg-transparent ring-1 ring-border/60 transition-colors",
+  "hover:bg-transparent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
 );
 
 const shortcutKeyCompactClassName =
@@ -744,7 +911,7 @@ const shortcutKeyCompactClassName =
 
 const shortcutActionButtonClassName = cn(
   shortcutActionClassName,
-  "h-auto rounded-none border-0 text-popover-foreground shadow-none hover:text-popover-foreground",
+  "h-auto border-0 shadow-none aria-expanded:bg-transparent hover:bg-transparent dark:hover:bg-transparent",
 );
 
 function replaceNavigationItem(
@@ -763,6 +930,51 @@ function replaceNavigationItem(
   }
 
   router.replace(item.viewHref);
+}
+
+function scrollNavigationItemIntoView({
+  container,
+  item,
+  direction,
+  smooth,
+}: {
+  container: HTMLDivElement;
+  item: HTMLElement;
+  direction: NavigationShortcutDirection | null;
+  smooth: boolean;
+}) {
+  if (!direction) {
+    item.scrollIntoView({ block: "nearest" });
+    return;
+  }
+
+  const containerRect = container.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  const itemCenter =
+    itemRect.top - containerRect.top + container.scrollTop + itemRect.height / 2;
+  const alignRatio = isPreviousNavigationDirection(direction) ? 0.35 : 0.65;
+  const scrollTop = clamp(
+    itemCenter - container.clientHeight * alignRatio,
+    0,
+    container.scrollHeight - container.clientHeight,
+  );
+
+  container.scrollTo({
+    top: scrollTop,
+    behavior: smooth ? "smooth" : "auto",
+  });
+}
+
+function isPreviousNavigationDirection(direction: NavigationShortcutDirection) {
+  return direction === "previous" || direction === "previousCategory";
+}
+
+function clamp(value: number, min: number, max: number) {
+  if (max <= min) {
+    return min;
+  }
+
+  return Math.min(Math.max(value, min), max);
 }
 
 function createInitialNavigationPanelState(): NavigationPanelState {
