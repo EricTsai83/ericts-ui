@@ -292,27 +292,26 @@
       ]
     },
     {
-      "name": "floating-context-map",
+      "name": "expanding-button",
       "type": "registry:ui",
-      "title": "Floating Context Map",
-      "description": "A compact floating map for immersive screens, with grouped items, current-position scroll anchoring, shortcut hints, and collapsible actions.",
-      "categories": ["navigation", "overlay"],
+      "title": "Expanding Button",
+      "description": "A compact icon button that morphs — growing in width and height from its corner — into a floating panel holding arbitrary content. The transformation is the point; it stays content-agnostic.",
+      "categories": ["overlay"],
       "meta": {
         "tags": [
-          "context-map",
+          "expanding-button",
           "floating-panel",
-          "fullscreen",
-          "shortcut-hints",
-          "current-position"
+          "disclosure",
+          "content-agnostic"
         ],
-        "effects": ["morph", "blur", "scroll-anchor", "collapsible-actions"]
+        "effects": ["morph", "expand", "blur"]
       },
       "dependencies": ["lucide-react", "motion"],
       "files": [
         {
-          "path": "registry/base/ui/floating-context-map.tsx",
+          "path": "registry/base/ui/expanding-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/floating-context-map.tsx"
+          "target": "components/ui/expanding-button.tsx"
         }
       ]
     },
@@ -540,6 +539,29 @@
           "path": "registry/base/hooks/use-element-size-map.ts",
           "type": "registry:hook",
           "target": "@hooks/use-element-size-map.ts"
+        }
+      ]
+    },
+    {
+      "name": "use-scroll-anchor",
+      "type": "registry:hook",
+      "title": "useScrollAnchor",
+      "description": "A client-safe React hook that parks a selected item at a fixed anchor point in a scroll container, with a distance-proportional eased scroll — the click-to-scroll behavior for navigation panels, command palettes, and step lists.",
+      "categories": ["motion"],
+      "meta": {
+        "tags": [
+          "scroll-anchor",
+          "scroll-into-view",
+          "active-item",
+          "eased-scroll"
+        ],
+        "effects": ["scroll-anchor", "eased-scroll"]
+      },
+      "files": [
+        {
+          "path": "registry/base/hooks/use-scroll-anchor.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-scroll-anchor.ts"
         }
       ]
     }

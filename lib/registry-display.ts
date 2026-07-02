@@ -209,9 +209,9 @@ const registryDisplayItemConfigs = [
     viewport: "wide",
   },
   {
-    name: "floating-context-map",
+    name: "expanding-button",
     kind: "component",
-    category: "navigation",
+    category: "overlay",
     viewport: "wide",
   },
   {
@@ -231,6 +231,7 @@ const registryDisplayItemConfigs = [
     category: "measurement",
     viewport: "wide",
   },
+  { name: "use-scroll-anchor", kind: "hook", category: "motion" },
 ] as const satisfies readonly RegistryDisplayItemConfig[];
 
 const registryDisplayItems = registryDisplayItemConfigs

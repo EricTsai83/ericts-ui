@@ -1,19 +1,24 @@
 "use client";
 
+import { ListTree, Moon, Sun, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type MouseEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
-import {
-  FloatingContextMap,
-  type FloatingContextMapAction,
-  type FloatingContextMapGroup,
-} from "@/registry/base/ui/floating-context-map";
+import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
+import { ExpandingButton } from "@/registry/base/ui/expanding-button";
 
 export type RegistryDemoNavigationItem = Pick<
   RegistryDisplayItem,
@@ -34,7 +39,6 @@ export type RegistryDemoNavigationGroup = {
 };
 
 let navigationPanelOpenMemory = false;
-let navigationPanelScrollTopMemory = 0;
 
 export function RegistryDemoShell({
   item,
@@ -85,31 +89,14 @@ export function RegistryDemoShell({
       item,
     [item, navigationPanelSourceGroups, navigationSelectionName],
   );
-  const contextMapGroups = useMemo(
-    () => toFloatingContextMapGroups(navigationPanelSourceGroups),
-    [navigationPanelSourceGroups],
-  );
-  const contextMapActions = useMemo<FloatingContextMapAction[]>(
-    () => [
-      {
-        id: "theme",
-        label: "Theme",
-        shortcut: "D",
-        "aria-label": "Toggle theme",
-        title: "Toggle theme",
-        onSelect: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
-      },
-      {
-        id: "exit",
-        label: "Exit",
-        shortcut: "Esc",
-        "aria-label": `Exit fullscreen to ${itemPageLabel.toLowerCase()}`,
-        title: "Exit fullscreen",
-        onSelect: () => router.push(item.href),
-      },
-    ],
-    [item.href, itemPageLabel, resolvedTheme, router, setTheme],
-  );
+  // Park the active item in the upper third of the panel — instantly on open,
+  // gliding when the selection changes while it stays open.
+  const { containerRef: treeScrollRef } = useScrollAnchor<HTMLDivElement>({
+    activeKey: navigationSelection.name,
+    enabled: panelOpen,
+    getTarget: (container) =>
+      container.querySelector<HTMLElement>("[aria-current='page']"),
+  });
 
   const selectNavigationItem = useCallback(
     (nextItem: RegistryDemoNavigationItem) => {
@@ -220,59 +207,43 @@ export function RegistryDemoShell({
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
-      <FloatingContextMap
+      <ExpandingButton
         className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
-        groups={contextMapGroups}
-        currentItemId={navigationSelection.name}
         open={panelOpen}
-        actions={contextMapActions}
-        initialScrollTop={navigationPanelScrollTopMemory}
-        closeOnEscape={false}
+        triggerIcon={<ListTree className="size-3.5" />}
         openLabel="Open navigation map"
         closeLabel="Collapse navigation map"
-        actionsLabel="Fullscreen preview actions"
+        closeOnEscape={false}
         onOpenChange={setNavigationPanelOpen}
-        onScrollTopChange={(scrollTop) => {
-          navigationPanelScrollTopMemory = scrollTop;
-        }}
-        onItemSelect={(contextItem) => {
-          const nextItem = findNavigationItem(
-            navigationPanelSourceGroups,
-            contextItem.id,
-          );
+        aria-label="Component navigation"
+      >
+        <div className="flex max-h-[var(--expanding-button-max-height,min(15.5rem,calc(100dvh-8rem)))] flex-col">
+          <div
+            ref={treeScrollRef}
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto py-2.5 pl-1.5 pr-8"
+          >
+            <div className="flex flex-col gap-1.5">
+              {navigationPanelSourceGroups.map((group) => (
+                <NavigationMapGroup
+                  key={group.category}
+                  group={group}
+                  currentItemName={navigationSelection.name}
+                  onSelect={selectNavigationItem}
+                />
+              ))}
+            </div>
+          </div>
 
-          if (!nextItem) {
-            return;
-          }
-
-          selectNavigationItem(nextItem);
-        }}
-        renderItem={({ item: contextItem, children, itemProps }) => {
-          const nextItem = findNavigationItem(
-            navigationPanelSourceGroups,
-            contextItem.id,
-          );
-
-          if (!nextItem) {
-            return (
-              <button type="button" {...itemProps}>
-                {children}
-              </button>
-            );
-          }
-
-          return (
-            <Link
-              href={nextItem.viewHref}
-              replace
-              scroll={false}
-              {...itemProps}
-            >
-              {children}
-            </Link>
-          );
-        }}
-      />
+          <PreviewActions
+            isDark={resolvedTheme === "dark"}
+            exitLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
+            onToggleTheme={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+            onExit={() => router.push(item.href)}
+          />
+        </div>
+      </ExpandingButton>
 
       <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
         <div
@@ -289,6 +260,134 @@ export function RegistryDemoShell({
         </div>
       </section>
     </main>
+  );
+}
+
+function NavigationMapGroup({
+  group,
+  currentItemName,
+  onSelect,
+}: {
+  group: RegistryDemoNavigationGroup;
+  currentItemName: string;
+  onSelect: (item: RegistryDemoNavigationItem) => void;
+}) {
+  const isCurrentGroup = group.items.some(
+    (groupItem) => groupItem.name === currentItemName,
+  );
+
+  return (
+    <section className="flex min-w-0 flex-col gap-0.5">
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-semibold leading-4",
+          isCurrentGroup ? "text-primary" : "text-foreground/70",
+        )}
+      >
+        <span className="truncate">{group.label}</span>
+      </div>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        {group.items.map((groupItem) => {
+          const selected = groupItem.name === currentItemName;
+
+          return (
+            <Link
+              key={groupItem.name}
+              href={groupItem.viewHref}
+              replace
+              scroll={false}
+              aria-current={selected ? "page" : undefined}
+              onClick={(event) => {
+                if (shouldIgnoreModifiedClick(event)) {
+                  return;
+                }
+
+                onSelect(groupItem);
+              }}
+              className={cn(
+                "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selected
+                  ? "bg-muted/55 font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <span className="truncate">{groupItem.title}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function PreviewActions({
+  isDark,
+  exitLabel,
+  onToggleTheme,
+  onExit,
+}: {
+  isDark: boolean;
+  exitLabel: string;
+  onToggleTheme: () => void;
+  onExit: () => void;
+}) {
+  return (
+    <div className="grid shrink-0 grid-cols-2 divide-x divide-border/55 border-t border-border/55 bg-popover/80 text-xs">
+      <PreviewActionButton
+        shortcut="D"
+        icon={
+          isDark ? (
+            <Sun className="size-3.5" aria-hidden />
+          ) : (
+            <Moon className="size-3.5" aria-hidden />
+          )
+        }
+        label="Theme"
+        title="Toggle theme"
+        ariaLabel="Toggle theme"
+        onClick={onToggleTheme}
+      />
+      <PreviewActionButton
+        shortcut="Esc"
+        icon={<X className="size-3.5" aria-hidden />}
+        label="Exit"
+        title="Exit fullscreen"
+        ariaLabel={exitLabel}
+        onClick={onExit}
+      />
+    </div>
+  );
+}
+
+function PreviewActionButton({
+  shortcut,
+  icon,
+  label,
+  title,
+  ariaLabel,
+  onClick,
+}: {
+  shortcut: string;
+  icon: ReactNode;
+  label: string;
+  title: string;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={ariaLabel}
+      onClick={onClick}
+      className="flex min-w-0 items-center justify-center gap-1.5 bg-popover/80 px-1.5 py-2 text-muted-foreground transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
+    >
+      <kbd className="shrink-0 rounded-[3px] bg-muted px-1 font-mono text-[0.6rem] leading-none text-muted-foreground shadow-[inset_0_-1px_0_var(--border)]">
+        {shortcut}
+      </kbd>
+      <span className="grid size-4 shrink-0 place-items-center">{icon}</span>
+      <span className="whitespace-nowrap leading-none">{label}</span>
+    </button>
   );
 }
 
@@ -318,19 +417,6 @@ function getNavigationGroupsWithFallback(
   return [...groups, getFallbackNavigationGroup(item)];
 }
 
-function toFloatingContextMapGroups(
-  groups: RegistryDemoNavigationGroup[],
-): FloatingContextMapGroup[] {
-  return groups.map((group) => ({
-    id: group.category,
-    label: group.label,
-    items: group.items.map((item) => ({
-      id: item.name,
-      label: item.title,
-    })),
-  }));
-}
-
 function replaceNavigationItem(
   router: ReturnType<typeof useRouter>,
   item: RegistryDemoNavigationItem | undefined,
@@ -351,6 +437,17 @@ function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
   } catch {
     // Prefetch is opportunistic; navigation still works without it.
   }
+}
+
+function shouldIgnoreModifiedClick(event: MouseEvent<HTMLElement>) {
+  return (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.shiftKey ||
+    event.button !== 0
+  );
 }
 
 function shouldIgnoreShortcut(event: KeyboardEvent) {

@@ -36,6 +36,7 @@ import {
   useElementSizeMap,
   type ElementSize,
 } from "@/registry/base/hooks/use-element-size-map";
+import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import { CheckAnimation } from "@/registry/base/ui/check-animation";
 import {
@@ -64,10 +65,7 @@ import {
   ExpandableTabs,
   type ExpandableTabItem,
 } from "@/registry/base/ui/expandable-tabs";
-import {
-  FloatingContextMap,
-  type FloatingContextMapGroup,
-} from "@/registry/base/ui/floating-context-map";
+import { ExpandingButton } from "@/registry/base/ui/expanding-button";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
   ContextCursor,
@@ -102,7 +100,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "otp-input": () => <OTPInputPreview />,
   "highlight-tabs": () => <HighlightTabsPreview />,
   "expandable-tabs": () => <ExpandableTabsPreview />,
-  "floating-context-map": () => <FloatingContextMapPreview />,
+  "expanding-button": () => <ExpandingButtonPreview />,
   "navigation-menu": () => <NavigationMenuPreview />,
   "text-morph": () => <TextMorphPreview />,
   "expandable-modal": () => <ExpandableModalPreview />,
@@ -114,6 +112,7 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "use-reduced-motion": () => <UseReducedMotionPreview />,
   "use-element-height": () => <UseElementHeightPreview />,
   "use-element-size-map": () => <UseElementSizeMapPreview />,
+  "use-scroll-anchor": () => <UseScrollAnchorPreview />,
 };
 
 export function RegistryPreview({
@@ -877,76 +876,29 @@ function ExpandableTabsPreview() {
   );
 }
 
-const floatingContextMapGroups: FloatingContextMapGroup[] = [
+const expandingButtonPreviewGroups = [
   {
-    id: "compose",
     label: "Compose",
-    items: [
-      {
-        id: "brief",
-        label: "Brief",
-        description: "Project requirements",
-      },
-      {
-        id: "outline",
-        label: "Outline",
-        description: "Page structure",
-      },
-      {
-        id: "copy",
-        label: "Copy",
-        description: "Draft messaging",
-      },
-    ],
+    active: false,
+    items: [{ label: "Brief" }, { label: "Outline" }, { label: "Copy" }],
   },
   {
-    id: "preview",
     label: "Preview",
+    active: true,
     items: [
-      {
-        id: "desktop",
-        label: "Desktop",
-        description: "Wide viewport",
-      },
-      {
-        id: "tablet",
-        label: "Tablet",
-        description: "Medium viewport",
-      },
-      {
-        id: "mobile",
-        label: "Mobile",
-        description: "Narrow viewport",
-      },
+      { label: "Desktop", active: true },
+      { label: "Tablet" },
+      { label: "Mobile" },
     ],
   },
   {
-    id: "publish",
     label: "Publish",
-    items: [
-      {
-        id: "checks",
-        label: "Checks",
-        description: "Lint and types",
-      },
-      {
-        id: "release",
-        label: "Release",
-        description: "Ship workflow",
-      },
-    ],
+    active: false,
+    items: [{ label: "Checks" }, { label: "Release" }],
   },
 ];
 
-function FloatingContextMapPreview() {
-  const [currentItemId, setCurrentItemId] = useState("desktop");
-  const currentGroup = floatingContextMapGroups.find((group) =>
-    group.items.some((item) => item.id === currentItemId),
-  );
-  const currentItem =
-    currentGroup?.items.find((item) => item.id === currentItemId) ??
-    floatingContextMapGroups[0].items[0];
-
+function ExpandingButtonPreview() {
   return (
     <div className="relative mx-auto h-80 w-full max-w-xl overflow-hidden rounded-lg border bg-background text-foreground">
       <div
@@ -956,44 +908,134 @@ function FloatingContextMapPreview() {
 
       <div className="absolute left-5 top-5 flex items-center gap-2 text-xs text-muted-foreground">
         <span className="size-2 rounded-full bg-primary" aria-hidden />
-        Workspace map
+        Expanding button
       </div>
 
       <div className="relative flex h-full items-center justify-center px-6 text-center">
         <div className="flex max-w-xs flex-col items-center gap-2">
-          <p className="text-xs font-medium text-muted-foreground">
-            {currentGroup?.label ?? "Context"}
-          </p>
-          <p className="text-lg font-semibold leading-6">{currentItem.label}</p>
+          <p className="text-lg font-semibold leading-6">A button that grows</p>
           <p className="text-sm leading-5 text-muted-foreground">
-            {currentItem.description}
+            One surface morphs from a small button into a floating panel — the
+            transition is the point, not what it holds.
           </p>
         </div>
       </div>
 
-      <FloatingContextMap
+      <ExpandingButton
         className="absolute right-3 top-3 z-20"
-        groups={floatingContextMapGroups}
-        currentItemId={currentItemId}
         defaultOpen
         closeOnOutsideClick={false}
-        actions={[
-          {
-            id: "theme",
-            label: "Theme",
-            shortcut: "D",
-            "aria-label": "Toggle theme",
-          },
-          {
-            id: "close",
-            label: "Exit",
-            shortcut: "Esc",
-            "aria-label": "Exit preview",
-          },
-        ]}
-        actionsLabel="Preview actions"
-        onItemSelect={(item) => setCurrentItemId(item.id)}
-      />
+        openLabel="Expand panel"
+        closeLabel="Collapse panel"
+      >
+        <div className="py-2.5 pl-2 pr-8">
+          <div className="flex flex-col gap-1.5">
+            {expandingButtonPreviewGroups.map((group) => (
+              <section
+                key={group.label}
+                className="flex min-w-0 flex-col gap-0.5"
+              >
+                <div
+                  className={cn(
+                    "px-2 py-1 text-xs font-semibold leading-4",
+                    group.active ? "text-primary" : "text-foreground/70",
+                  )}
+                >
+                  {group.label}
+                </div>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  {group.items.map((entry) => (
+                    <div
+                      key={entry.label}
+                      aria-current={
+                        "active" in entry && entry.active ? "true" : undefined
+                      }
+                      className={cn(
+                        "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs",
+                        "active" in entry && entry.active
+                          ? "bg-muted/55 font-medium text-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      <span className="truncate">{entry.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      </ExpandingButton>
+    </div>
+  );
+}
+
+const scrollAnchorSections = [
+  "Overview",
+  "Installation",
+  "Quick start",
+  "Theming",
+  "Design tokens",
+  "Layout",
+  "Navigation",
+  "Overlays",
+  "Forms",
+  "Feedback",
+  "Motion",
+  "Data display",
+  "Accessibility",
+  "Keyboard",
+  "Performance",
+  "Testing",
+  "Deployment",
+  "Migration",
+  "Changelog",
+].map((label, index) => ({
+  id: `section-${index}`,
+  label,
+  meta: `§${index + 1}`,
+}));
+
+function UseScrollAnchorPreview() {
+  const [activeId, setActiveId] = useState(scrollAnchorSections[0].id);
+  const { containerRef } = useScrollAnchor<HTMLDivElement>({
+    activeKey: activeId,
+  });
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col gap-3">
+      <p className="text-center text-sm text-muted-foreground">
+        Pick a section — the selection glides to the upper third of the list.
+      </p>
+      <div
+        ref={containerRef}
+        className="no-scrollbar h-64 overflow-y-auto rounded-lg border bg-background p-1.5"
+      >
+        <div className="flex flex-col gap-1">
+          {scrollAnchorSections.map((section) => {
+            const active = section.id === activeId;
+
+            return (
+              <button
+                key={section.id}
+                type="button"
+                data-scroll-anchor={active ? "" : undefined}
+                aria-pressed={active}
+                onClick={() => setActiveId(section.id)}
+                className={cn(
+                  "flex items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <span className="truncate">{section.label}</span>
+                <span className="text-xs opacity-70">{section.meta}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
