@@ -3,10 +3,6 @@
 import {
   ArrowUpRight,
   Bell,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
   Check,
   ChevronsLeft,
   ChevronsRight,
@@ -71,7 +67,6 @@ import {
 import {
   FloatingContextMap,
   type FloatingContextMapGroup,
-  type FloatingContextMapShortcutGroup,
 } from "@/registry/base/ui/floating-context-map";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
@@ -943,37 +938,6 @@ const floatingContextMapGroups: FloatingContextMapGroup[] = [
   },
 ];
 
-const floatingContextMapShortcuts: FloatingContextMapShortcutGroup[] = [
-  {
-    id: "item",
-    label: "Item",
-    keys: [
-      {
-        id: "previous",
-        icon: <ChevronLeft aria-hidden className="size-3" />,
-      },
-      {
-        id: "next",
-        icon: <ChevronRight aria-hidden className="size-3" />,
-      },
-    ],
-  },
-  {
-    id: "group",
-    label: "Group",
-    keys: [
-      {
-        id: "previous-group",
-        icon: <ChevronUp aria-hidden className="size-3" />,
-      },
-      {
-        id: "next-group",
-        icon: <ChevronDown aria-hidden className="size-3" />,
-      },
-    ],
-  },
-];
-
 function FloatingContextMapPreview() {
   const [currentItemId, setCurrentItemId] = useState("desktop");
   const currentGroup = floatingContextMapGroups.find((group) =>
@@ -1012,7 +976,7 @@ function FloatingContextMapPreview() {
         groups={floatingContextMapGroups}
         currentItemId={currentItemId}
         defaultOpen
-        shortcutGroups={floatingContextMapShortcuts}
+        closeOnOutsideClick={false}
         actions={[
           {
             id: "theme",

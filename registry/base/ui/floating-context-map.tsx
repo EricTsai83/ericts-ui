@@ -131,6 +131,7 @@ export type FloatingContextMapProps = Omit<
   onScrollTopChange?: (scrollTop: number) => void;
   scrollAnchorRatio?: number;
   closeOnEscape?: boolean;
+  closeOnOutsideClick?: boolean;
   classNames?: FloatingContextMapClassNames;
 };
 
@@ -156,6 +157,7 @@ export function FloatingContextMap({
   onScrollTopChange,
   scrollAnchorRatio = DEFAULT_SCROLL_ANCHOR_RATIO,
   closeOnEscape = true,
+  closeOnOutsideClick = true,
   className,
   classNames,
   "aria-label": ariaLabel = "Context map",
@@ -165,6 +167,7 @@ export function FloatingContextMap({
   const generatedId = React.useId();
   const panelId = `${generatedId}-panel`;
   const actionsId = `${generatedId}-actions`;
+  const rootRef = React.useRef<HTMLElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const treeScrollRef = React.useRef<HTMLDivElement>(null);
   const rememberedScrollTopRef = React.useRef(initialScrollTop);
@@ -261,6 +264,31 @@ export function FloatingContextMap({
     updateScrollTop,
   ]);
 
+  React.useEffect(() => {
+    if (!isOpen || !closeOnOutsideClick) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const root = rootRef.current;
+
+      if (
+        !root ||
+        !(event.target instanceof Node) ||
+        root.contains(event.target)
+      ) {
+        return;
+      }
+
+      setOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+
+    return () =>
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+  }, [closeOnOutsideClick, isOpen, setOpen]);
+
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
       onKeyDown?.(event);
@@ -283,6 +311,7 @@ export function FloatingContextMap({
 
   return (
     <aside
+      ref={rootRef}
       aria-label={ariaLabel}
       data-slot="floating-context-map"
       data-state={isOpen ? "open" : "closed"}

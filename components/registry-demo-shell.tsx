@@ -1,23 +1,10 @@
 "use client";
 
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  type LucideIcon,
-} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
@@ -26,7 +13,6 @@ import {
   FloatingContextMap,
   type FloatingContextMapAction,
   type FloatingContextMapGroup,
-  type FloatingContextMapShortcutGroup,
 } from "@/registry/base/ui/floating-context-map";
 
 export type RegistryDemoNavigationItem = Pick<
@@ -47,57 +33,8 @@ export type RegistryDemoNavigationGroup = {
   items: RegistryDemoNavigationItem[];
 };
 
-const navigationShortcutDirections = [
-  "previous",
-  "next",
-  "previousCategory",
-  "nextCategory",
-] as const;
-
-type NavigationShortcutDirection =
-  (typeof navigationShortcutDirections)[number];
-
-type NavigationShortcutMemory = {
-  direction: NavigationShortcutDirection;
-  at: number;
-};
-
-type NavigationCueConfig = {
-  direction: NavigationShortcutDirection;
-  icon: LucideIcon;
-};
-
-const navigationCues: NavigationCueConfig[] = [
-  {
-    direction: "previous",
-    icon: ChevronLeft,
-  },
-  {
-    direction: "next",
-    icon: ChevronRight,
-  },
-  {
-    direction: "previousCategory",
-    icon: ChevronUp,
-  },
-  {
-    direction: "nextCategory",
-    icon: ChevronDown,
-  },
-];
-
-const navigationShortcutStorageKey = "ericts-ui:registry-demo-shortcut";
-const useIsomorphicLayoutEffect =
-  typeof window === "undefined" ? useEffect : useLayoutEffect;
-
 let navigationPanelOpenMemory = false;
 let navigationPanelScrollTopMemory = 0;
-
-type NavigationPanelState = {
-  open: boolean;
-  autoOpened: boolean;
-  shortcutSequence: number;
-};
 
 export function RegistryDemoShell({
   item,
@@ -112,9 +49,7 @@ export function RegistryDemoShell({
 }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
-  const [navigationPanelState, setNavigationPanelState] = useState(
-    createInitialNavigationPanelState,
-  );
+  const [panelOpen, setPanelOpen] = useState(() => navigationPanelOpenMemory);
   const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
     sourceItemName: string;
     selectedItemName: string;
@@ -154,10 +89,6 @@ export function RegistryDemoShell({
     () => toFloatingContextMapGroups(navigationPanelSourceGroups),
     [navigationPanelSourceGroups],
   );
-  const contextMapShortcutGroups = useMemo(
-    () => toFloatingContextMapShortcutGroups(),
-    [],
-  );
   const contextMapActions = useMemo<FloatingContextMapAction[]>(
     () => [
       {
@@ -194,69 +125,18 @@ export function RegistryDemoShell({
 
   const setNavigationPanelOpen = useCallback((open: boolean) => {
     navigationPanelOpenMemory = open;
-    setNavigationPanelState((current) => ({
-      ...current,
-      open,
-      autoOpened: false,
-    }));
+    setPanelOpen(open);
   }, []);
 
   const toggleNavigationPanelOpen = useCallback(() => {
-    setNavigationPanelState((current) => {
-      const open = !current.open;
+    setPanelOpen((current) => {
+      const open = !current;
 
       navigationPanelOpenMemory = open;
 
-      return {
-        ...current,
-        open,
-        autoOpened: false,
-      };
+      return open;
     });
   }, []);
-
-  const activateNavigationShortcut = useCallback(
-    () => {
-      setNavigationPanelState((current) => ({
-        open: true,
-        autoOpened:
-          !navigationPanelOpenMemory && (current.autoOpened || !current.open),
-        shortcutSequence: current.shortcutSequence + 1,
-      }));
-    },
-    [],
-  );
-
-  useIsomorphicLayoutEffect(() => {
-    const shortcut = consumeRecentNavigationShortcut();
-
-    if (!shortcut) {
-      return;
-    }
-
-    setNavigationPanelState((current) => ({
-      open: true,
-      autoOpened:
-        !navigationPanelOpenMemory && (current.autoOpened || !current.open),
-      shortcutSequence: current.shortcutSequence + 1,
-    }));
-  }, [item.name]);
-
-  useEffect(() => {
-    if (!navigationPanelState.autoOpened) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      setNavigationPanelState((current) => ({
-        ...current,
-        open: current.autoOpened ? false : current.open,
-        autoOpened: false,
-      }));
-    }, 1800);
-
-    return () => window.clearTimeout(timeout);
-  }, [navigationPanelState.autoOpened, navigationPanelState.shortcutSequence]);
 
   useEffect(() => {
     for (const href of prefetchHrefs) {
@@ -282,13 +162,7 @@ export function RegistryDemoShell({
 
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        replaceNavigationItem(
-          router,
-          navigation.next,
-          "next",
-          activateNavigationShortcut,
-          selectNavigationItem,
-        );
+        replaceNavigationItem(router, navigation.next, selectNavigationItem);
         return;
       }
 
@@ -297,8 +171,6 @@ export function RegistryDemoShell({
         replaceNavigationItem(
           router,
           navigation.previous,
-          "previous",
-          activateNavigationShortcut,
           selectNavigationItem,
         );
         return;
@@ -309,8 +181,6 @@ export function RegistryDemoShell({
         replaceNavigationItem(
           router,
           navigation.nextCategory,
-          "nextCategory",
-          activateNavigationShortcut,
           selectNavigationItem,
         );
         return;
@@ -321,8 +191,6 @@ export function RegistryDemoShell({
         replaceNavigationItem(
           router,
           navigation.previousCategory,
-          "previousCategory",
-          activateNavigationShortcut,
           selectNavigationItem,
         );
         return;
@@ -338,7 +206,6 @@ export function RegistryDemoShell({
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    activateNavigationShortcut,
     item.href,
     navigation.next,
     navigation.nextCategory,
@@ -357,9 +224,8 @@ export function RegistryDemoShell({
         className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
         groups={contextMapGroups}
         currentItemId={navigationSelection.name}
-        open={navigationPanelState.open}
+        open={panelOpen}
         actions={contextMapActions}
-        shortcutGroups={contextMapShortcutGroups}
         initialScrollTop={navigationPanelScrollTopMemory}
         closeOnEscape={false}
         openLabel="Open navigation map"
@@ -465,129 +331,18 @@ function toFloatingContextMapGroups(
   }));
 }
 
-function toFloatingContextMapShortcutGroups(): FloatingContextMapShortcutGroup[] {
-  return [
-    {
-      id: "item",
-      label: "Item",
-      keys: navigationCues.slice(0, 2).map(toFloatingContextMapShortcutKey),
-    },
-    {
-      id: "group",
-      label: "Group",
-      keys: navigationCues.slice(2, 4).map(toFloatingContextMapShortcutKey),
-    },
-  ];
-}
-
-function toFloatingContextMapShortcutKey(cue: NavigationCueConfig) {
-  const Icon = cue.icon;
-
-  return {
-    id: cue.direction,
-    icon: <Icon aria-hidden="true" className="size-3" />,
-  };
-}
-
 function replaceNavigationItem(
   router: ReturnType<typeof useRouter>,
-  item?: RegistryDemoNavigationItem,
-  direction?: NavigationShortcutDirection,
-  onShortcut?: (direction: NavigationShortcutDirection) => void,
-  onItemSelect?: (item: RegistryDemoNavigationItem) => void,
+  item: RegistryDemoNavigationItem | undefined,
+  onItemSelect: (item: RegistryDemoNavigationItem) => void,
 ) {
   if (!item) {
     return;
   }
 
-  onItemSelect?.(item);
-
-  if (direction) {
-    onShortcut?.(direction);
-    rememberNavigationShortcut(direction);
-  }
+  onItemSelect(item);
 
   router.replace(item.viewHref, { scroll: false });
-}
-
-function createInitialNavigationPanelState(): NavigationPanelState {
-  const shortcut = consumeRecentNavigationShortcut();
-  const open = navigationPanelOpenMemory || Boolean(shortcut);
-
-  return {
-    open,
-    autoOpened: Boolean(shortcut) && !navigationPanelOpenMemory,
-    shortcutSequence: shortcut ? 1 : 0,
-  };
-}
-
-function rememberNavigationShortcut(direction: NavigationShortcutDirection) {
-  try {
-    window.sessionStorage.setItem(
-      navigationShortcutStorageKey,
-      JSON.stringify({
-        direction,
-        at: Date.now(),
-      } satisfies NavigationShortcutMemory),
-    );
-  } catch {
-    // The navigation works even when storage is unavailable.
-  }
-}
-
-function consumeRecentNavigationShortcut(): NavigationShortcutDirection | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    const rawValue = window.sessionStorage.getItem(
-      navigationShortcutStorageKey,
-    );
-    window.sessionStorage.removeItem(navigationShortcutStorageKey);
-
-    if (!rawValue) {
-      return null;
-    }
-
-    const parsedValue: unknown = JSON.parse(rawValue);
-
-    if (!isNavigationShortcutMemory(parsedValue)) {
-      return null;
-    }
-
-    if (Date.now() - parsedValue.at > 1500) {
-      return null;
-    }
-
-    return parsedValue.direction;
-  } catch {
-    return null;
-  }
-}
-
-function isNavigationShortcutMemory(
-  value: unknown,
-): value is NavigationShortcutMemory {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const record = value as Record<string, unknown>;
-
-  return (
-    isNavigationShortcutDirection(record.direction) &&
-    typeof record.at === "number"
-  );
-}
-
-function isNavigationShortcutDirection(
-  value: unknown,
-): value is NavigationShortcutDirection {
-  return (
-    typeof value === "string" &&
-    navigationShortcutDirections.includes(value as NavigationShortcutDirection)
-  );
 }
 
 function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
