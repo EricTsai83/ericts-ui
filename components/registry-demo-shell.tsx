@@ -65,29 +65,24 @@ type NavigationShortcutMemory = {
 type NavigationCueConfig = {
   direction: NavigationShortcutDirection;
   icon: LucideIcon;
-  label: string;
 };
 
 const navigationCues: NavigationCueConfig[] = [
   {
     direction: "previous",
     icon: ChevronLeft,
-    label: "Prev item",
   },
   {
     direction: "next",
     icon: ChevronRight,
-    label: "Next item",
   },
   {
     direction: "previousCategory",
     icon: ChevronUp,
-    label: "Prev group",
   },
   {
     direction: "nextCategory",
     icon: ChevronDown,
-    label: "Next group",
   },
 ];
 
@@ -106,6 +101,7 @@ const navigationShortcutFooterTransition = {
   ease: [0.23, 1, 0.32, 1],
 } as const;
 const navigationPanelReducedMotionTransition = { duration: 0 } as const;
+const navigationItemScrollAnchorRatio = 1 / 3;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -317,7 +313,6 @@ export function RegistryDemoShell({
 
       <NavigationContextPanel
         item={item}
-        navigation={navigation}
         groups={navigationGroups}
         itemPageLabel={itemPageLabel}
         open={navigationPanelState.open}
@@ -328,7 +323,7 @@ export function RegistryDemoShell({
       <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:56px_56px] opacity-30 [mask-image:radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[56px_56px] opacity-30 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
         />
         <div
           className={cn(
@@ -345,7 +340,6 @@ export function RegistryDemoShell({
 
 function NavigationContextPanel({
   item,
-  navigation,
   groups,
   itemPageLabel,
   open,
@@ -353,7 +347,6 @@ function NavigationContextPanel({
   onOpenChange,
 }: {
   item: RegistryDisplayItem;
-  navigation: RegistryDemoNavigation;
   groups: RegistryDemoNavigationGroup[];
   itemPageLabel: string;
   open: boolean;
@@ -386,7 +379,9 @@ function NavigationContextPanel({
       return;
     }
 
-    if (activeShortcut && lastScrolledItemNameRef.current === item.name) {
+    const selectedItemChanged = lastScrolledItemNameRef.current !== item.name;
+
+    if (activeShortcut && !selectedItemChanged) {
       return;
     }
 
@@ -402,8 +397,7 @@ function NavigationContextPanel({
     scrollNavigationItemIntoView({
       container: scrollContainer,
       item: currentItem,
-      direction: activeShortcut,
-      smooth: Boolean(activeShortcut) && !shouldReduceMotion,
+      smooth: selectedItemChanged && !shouldReduceMotion,
     });
     lastScrolledItemNameRef.current = item.name;
   }, [activeShortcut, item.name, open, shouldReduceMotion]);
@@ -420,10 +414,8 @@ function NavigationContextPanel({
           transition={panelTransition}
           style={{ transformOrigin: "top right" }}
           className={cn(
-            "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-xl transition-[width] duration-[220ms] ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] supports-[backdrop-filter]:bg-popover/80 motion-reduce:transition-none dark:shadow-black/20",
-            open
-              ? "w-[min(18.25rem,calc(100vw-1.5rem))]"
-              : "size-8 sm:size-8",
+            "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-xl transition-[width] duration-220 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] supports-backdrop-filter:bg-popover/8 motion-reduce:transition-none dark:shadow-black/20",
+            open ? "w-[min(17rem,calc(100vw-1.5rem))]" : "size-8 sm:size-8",
           )}
         >
           <AnimatePresence initial={false}>
@@ -444,26 +436,27 @@ function NavigationContextPanel({
                 style={{ transformOrigin: "top right" }}
                 className="will-change-[transform,opacity]"
               >
-                <div
-                  ref={treeScrollRef}
-                  className="registry-navigation-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
-                >
-                  <div className="flex flex-col gap-1.5">
-                    {groups.map((group, groupIndex) => (
-                      <NavigationGroupTree
-                        key={group.category}
-                        group={group}
-                        groupIndex={groupIndex}
-                        currentGroupIndex={currentGroupIndex}
-                        currentItemName={item.name}
-                      />
-                    ))}
+                <div className="group/navigation-list relative">
+                  <div
+                    ref={treeScrollRef}
+                    className="registry-navigation-scrollbar max-h-[min(15.5rem,calc(100dvh-8rem))] overflow-y-auto py-2.5 pl-1.5 pr-8"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      {groups.map((group, groupIndex) => (
+                        <NavigationGroupTree
+                          key={group.category}
+                          group={group}
+                          groupIndex={groupIndex}
+                          currentGroupIndex={currentGroupIndex}
+                          currentItemName={item.name}
+                        />
+                      ))}
+                    </div>
                   </div>
+                  <NavigationListShortcutHint />
                 </div>
                 <NavigationShortcutBar
                   expanded={shortcutsExpanded}
-                  activeShortcut={activeShortcut}
-                  navigation={navigation}
                   itemHref={item.href}
                   itemPageLabel={itemPageLabel}
                   panelId={shortcutPanelId}
@@ -535,6 +528,7 @@ function NavigationGroupTree({
               key={groupItem.name}
               href={groupItem.viewHref}
               replace
+              scroll={false}
               aria-current={isCurrentItem ? "page" : undefined}
               data-navigation-current={isCurrentItem ? "true" : undefined}
               className={cn(
@@ -555,16 +549,12 @@ function NavigationGroupTree({
 
 function NavigationShortcutBar({
   expanded,
-  activeShortcut,
-  navigation,
   itemPageLabel,
   itemHref,
   panelId,
   onExpandedChange,
 }: {
   expanded: boolean;
-  activeShortcut: NavigationShortcutDirection | null;
-  navigation: RegistryDemoNavigation;
   itemPageLabel: string;
   itemHref: string;
   panelId: string;
@@ -620,20 +610,6 @@ function NavigationShortcutBar({
             className="overflow-hidden"
           >
             <div className="grid grid-cols-2 gap-1 pt-1 text-xs">
-              <NavigationShortcutGroup
-                label="Prev/next item"
-                secondaryLabel="Prev/next group"
-                ariaLabel="Left and right navigate items. Up and down navigate groups."
-                previousCue={navigationCues[0]}
-                previousItem={navigation.previous}
-                nextCue={navigationCues[1]}
-                nextItem={navigation.next}
-                secondaryPreviousCue={navigationCues[2]}
-                secondaryPreviousItem={navigation.previousCategory}
-                secondaryNextCue={navigationCues[3]}
-                secondaryNextItem={navigation.nextCategory}
-                activeShortcut={activeShortcut}
-              />
               <ThemeShortcutAction />
               <ShortcutActionLink
                 href={itemHref}
@@ -650,151 +626,51 @@ function NavigationShortcutBar({
   );
 }
 
-function NavigationShortcutGroup({
-  label,
-  secondaryLabel,
-  ariaLabel,
-  previousCue,
-  previousItem,
-  nextCue,
-  nextItem,
-  secondaryPreviousCue,
-  secondaryPreviousItem,
-  secondaryNextCue,
-  secondaryNextItem,
-  activeShortcut,
-}: {
-  label: string;
-  secondaryLabel?: string;
-  ariaLabel: string;
-  previousCue: NavigationCueConfig;
-  previousItem?: RegistryDemoNavigationItem;
-  nextCue: NavigationCueConfig;
-  nextItem?: RegistryDemoNavigationItem;
-  secondaryPreviousCue?: NavigationCueConfig;
-  secondaryPreviousItem?: RegistryDemoNavigationItem;
-  secondaryNextCue?: NavigationCueConfig;
-  secondaryNextItem?: RegistryDemoNavigationItem;
-  activeShortcut: NavigationShortcutDirection | null;
-}) {
+function NavigationListShortcutHint() {
   return (
     <div
-      aria-label={ariaLabel}
-      className={cn(
-        shortcutActionSurfaceClassName,
-        "col-span-2 flex-wrap justify-center gap-x-2 gap-y-1 text-center",
-      )}
+      aria-hidden="true"
+      className="pointer-events-none absolute bottom-2 right-2 z-10 flex translate-y-1 items-center gap-1 rounded-md bg-popover/95 px-1.5 py-1 text-[0.65rem] leading-none text-muted-foreground opacity-0 shadow-sm ring-1 ring-border/60 backdrop-blur-md transition-[opacity,transform] duration-150 ease-out group-hover/navigation-list:translate-y-0 group-hover/navigation-list:opacity-100 group-focus-within/navigation-list:translate-y-0 group-focus-within/navigation-list:opacity-100 motion-reduce:transition-none"
     >
-      <span className="flex min-w-0 items-center gap-1">
-        <span className="flex shrink-0 items-center gap-0.5">
-          <NavigationShortcutKey
-            cue={previousCue}
-            item={previousItem}
-            active={activeShortcut === previousCue.direction}
-            dimmed={Boolean(
-              activeShortcut && activeShortcut !== previousCue.direction,
-            )}
-          />
-          <NavigationShortcutKey
-            cue={nextCue}
-            item={nextItem}
-            active={activeShortcut === nextCue.direction}
-            dimmed={Boolean(
-              activeShortcut && activeShortcut !== nextCue.direction,
-            )}
-          />
-        </span>
-        <ShortcutActionLabel>{label}</ShortcutActionLabel>
-      </span>
-
-      {secondaryPreviousCue && secondaryNextCue && secondaryLabel ? (
-        <span className="flex min-w-0 items-center gap-1">
-          <span className="flex shrink-0 items-center gap-0.5">
-            <NavigationShortcutKey
-              cue={secondaryPreviousCue}
-              item={secondaryPreviousItem}
-              active={activeShortcut === secondaryPreviousCue.direction}
-              dimmed={Boolean(
-                activeShortcut &&
-                  activeShortcut !== secondaryPreviousCue.direction,
-              )}
-            />
-            <NavigationShortcutKey
-              cue={secondaryNextCue}
-              item={secondaryNextItem}
-              active={activeShortcut === secondaryNextCue.direction}
-              dimmed={Boolean(
-                activeShortcut && activeShortcut !== secondaryNextCue.direction,
-              )}
-            />
-          </span>
-          <ShortcutActionLabel>{secondaryLabel}</ShortcutActionLabel>
-        </span>
-      ) : null}
-      {secondaryPreviousCue && !secondaryNextCue && secondaryLabel ? (
-        <span className="flex min-w-0 items-center gap-1">
-          <NavigationShortcutKey
-            cue={secondaryPreviousCue}
-            item={secondaryPreviousItem}
-            active={activeShortcut === secondaryPreviousCue.direction}
-            dimmed={Boolean(
-              activeShortcut &&
-                activeShortcut !== secondaryPreviousCue.direction,
-            )}
-          />
-          <ShortcutActionLabel>{secondaryLabel}</ShortcutActionLabel>
-        </span>
-      ) : null}
+      <NavigationListShortcutHintGroup
+        cues={[navigationCues[0], navigationCues[1]]}
+        label="Item"
+      />
+      <span className="h-3 w-px bg-border/70" />
+      <NavigationListShortcutHintGroup
+        cues={[navigationCues[2], navigationCues[3]]}
+        label="Group"
+      />
     </div>
   );
 }
 
-function NavigationShortcutKey({
-  cue,
-  item,
-  active,
-  dimmed,
+function NavigationListShortcutHintGroup({
+  cues,
+  label,
 }: {
-  cue: NavigationCueConfig;
-  item?: RegistryDemoNavigationItem;
-  active: boolean;
-  dimmed: boolean;
+  cues: [NavigationCueConfig, NavigationCueConfig];
+  label: string;
 }) {
-  const Icon = cue.icon;
-  const content = (
-    <ShortcutKey
-      className={cn(
-        shortcutKeyCompactClassName,
-        active && "text-foreground",
-      )}
-    >
-      <Icon aria-hidden="true" className="size-3" />
-    </ShortcutKey>
-  );
-  const className = cn(
-    "rounded-[3px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-ring",
-    dimmed && "opacity-50",
-    !item && "pointer-events-none opacity-35",
-  );
-
-  if (!item) {
-    return (
-      <span aria-disabled="true" title={cue.label} className={className}>
-        {content}
+  return (
+    <span className="flex items-center gap-1">
+      <span className="flex items-center gap-0.5">
+        {cues.map((cue) => (
+          <NavigationHintKey key={cue.direction} cue={cue} />
+        ))}
       </span>
-    );
-  }
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function NavigationHintKey({ cue }: { cue: NavigationCueConfig }) {
+  const Icon = cue.icon;
 
   return (
-    <Link
-      href={item.viewHref}
-      replace
-      aria-label={`${cue.label}: ${item.title}`}
-      title={`${cue.label}: ${item.title}`}
-      className={className}
-    >
-      {content}
-    </Link>
+    <ShortcutKey className={shortcutIconKeyCompactClassName}>
+      <Icon aria-hidden="true" className="size-3" />
+    </ShortcutKey>
   );
 }
 
@@ -833,7 +709,7 @@ function ShortcutActionLink({
       title={title}
       className={shortcutActionClassName}
     >
-      <ShortcutKey className={shortcutKeyCompactClassName}>
+      <ShortcutKey className={shortcutTextKeyCompactClassName}>
         {shortcut}
       </ShortcutKey>
       <ShortcutActionLabel>{label}</ShortcutActionLabel>
@@ -864,7 +740,7 @@ function ShortcutActionButton({
       onClick={onClick}
       className={shortcutActionButtonClassName}
     >
-      <ShortcutKey className={shortcutKeyCompactClassName}>
+      <ShortcutKey className={shortcutTextKeyCompactClassName}>
         {shortcut}
       </ShortcutKey>
       <ShortcutActionLabel>{label}</ShortcutActionLabel>
@@ -902,16 +778,19 @@ const shortcutActionSurfaceClassName =
 
 const shortcutActionClassName = cn(
   shortcutActionSurfaceClassName,
-  "rounded-md bg-transparent ring-1 ring-border/60 transition-colors",
-  "hover:bg-transparent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+  "rounded-md bg-popover/80 ring-1 ring-border/60 transition-colors",
+  "hover:bg-popover/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
 );
 
-const shortcutKeyCompactClassName =
+const shortcutIconKeyCompactClassName =
   "grid size-4 min-w-4 place-items-center rounded-[3px] p-0 px-0 text-center font-mono text-[0.6rem] leading-none text-muted-foreground shadow-none";
+
+const shortcutTextKeyCompactClassName =
+  "h-4 min-w-4 rounded-[3px] px-1 py-0 text-center font-mono text-[0.6rem] leading-none text-muted-foreground shadow-none";
 
 const shortcutActionButtonClassName = cn(
   shortcutActionClassName,
-  "h-auto border-0 shadow-none aria-expanded:bg-transparent hover:bg-transparent dark:hover:bg-transparent",
+  "h-auto border-0 shadow-none aria-expanded:bg-popover/80 hover:bg-popover/80 dark:hover:bg-popover/80",
 );
 
 function replaceNavigationItem(
@@ -929,32 +808,27 @@ function replaceNavigationItem(
     rememberNavigationShortcut(direction);
   }
 
-  router.replace(item.viewHref);
+  router.replace(item.viewHref, { scroll: false });
 }
 
 function scrollNavigationItemIntoView({
   container,
   item,
-  direction,
   smooth,
 }: {
   container: HTMLDivElement;
   item: HTMLElement;
-  direction: NavigationShortcutDirection | null;
   smooth: boolean;
 }) {
-  if (!direction) {
-    item.scrollIntoView({ block: "nearest" });
-    return;
-  }
-
   const containerRect = container.getBoundingClientRect();
   const itemRect = item.getBoundingClientRect();
   const itemCenter =
-    itemRect.top - containerRect.top + container.scrollTop + itemRect.height / 2;
-  const alignRatio = isPreviousNavigationDirection(direction) ? 0.35 : 0.65;
+    itemRect.top -
+    containerRect.top +
+    container.scrollTop +
+    itemRect.height / 2;
   const scrollTop = clamp(
-    itemCenter - container.clientHeight * alignRatio,
+    itemCenter - container.clientHeight * navigationItemScrollAnchorRatio,
     0,
     container.scrollHeight - container.clientHeight,
   );
@@ -963,10 +837,6 @@ function scrollNavigationItemIntoView({
     top: scrollTop,
     behavior: smooth ? "smooth" : "auto",
   });
-}
-
-function isPreviousNavigationDirection(direction: NavigationShortcutDirection) {
-  return direction === "previous" || direction === "previousCategory";
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -1009,7 +879,9 @@ function consumeRecentNavigationShortcut(): NavigationShortcutDirection | null {
   }
 
   try {
-    const rawValue = window.sessionStorage.getItem(navigationShortcutStorageKey);
+    const rawValue = window.sessionStorage.getItem(
+      navigationShortcutStorageKey,
+    );
     window.sessionStorage.removeItem(navigationShortcutStorageKey);
 
     if (!rawValue) {
@@ -1065,7 +937,12 @@ function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
 }
 
 function shouldIgnoreShortcut(event: KeyboardEvent) {
-  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey
+  ) {
     return true;
   }
 
@@ -1094,7 +971,12 @@ function shouldIgnoreShortcut(event: KeyboardEvent) {
 }
 
 function shouldIgnoreEscapeShortcut(event: KeyboardEvent) {
-  if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey
+  ) {
     return true;
   }
 
