@@ -16,6 +16,10 @@ const CONTENT_TRANSITION = {
   ease: [0.16, 1, 0.3, 1],
 } as const;
 const REDUCED_TRANSITION = { duration: 0 } as const;
+// Single source of truth for the panel's height cap. Applied to the content
+// region so consumers can add a scroll area / pinned footer without knowing it.
+const CONTENT_MAX_HEIGHT =
+  "var(--expanding-button-max-height, min(15.5rem, calc(100dvh - 8rem)))";
 
 type ExpandingButtonContextValue = {
   open: boolean;
@@ -70,7 +74,13 @@ export type ExpandingButtonProps = Omit<
  *
  * The panel is bounded by `--expanding-button-width` and
  * `--expanding-button-max-height` and clips overflow, so the morph never runs
- * off-screen. Tall content should bring its own scroll region.
+ * off-screen. The content region is a flex column capped at that height, so
+ * tall content can add a `flex-1` scroll area (and, e.g., a `shrink-0` pinned
+ * footer) without re-declaring the cap.
+ *
+ * The trigger overlays the top-right corner; content that reaches it should
+ * clear it with `pr-[var(--expanding-button-trigger-inset)]` (defaults to the
+ * 2rem trigger size).
  */
 export function ExpandingButton({
   open,
@@ -187,7 +197,7 @@ export function ExpandingButton({
             transition={panelTransition}
             style={{ transformOrigin: "top right" }}
             className={cn(
-              "relative max-h-[var(--expanding-button-max-height,min(15.5rem,calc(100dvh-8rem)))] overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-lg transition-[width] duration-240 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] motion-reduce:transition-none dark:shadow-black/20",
+              "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-lg transition-[width] duration-240 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] motion-reduce:transition-none dark:shadow-black/20",
               isOpen
                 ? "w-[min(var(--expanding-button-width,17rem),calc(100vw-1.5rem))]"
                 : "size-8",
@@ -207,12 +217,15 @@ export function ExpandingButton({
                   exit={
                     shouldReduceMotion
                       ? { opacity: 0 }
-                      : { opacity: 0.82, scale: 0.992, filter: "blur(1.25px)" }
+                      : { opacity: 0, scale: 0.98 }
                   }
                   transition={contentTransition}
-                  style={{ transformOrigin: "top right" }}
+                  style={{
+                    transformOrigin: "top right",
+                    maxHeight: CONTENT_MAX_HEIGHT,
+                  }}
                   className={cn(
-                    "will-change-[filter,transform,opacity]",
+                    "flex flex-col [--expanding-button-trigger-inset:2rem] will-change-[filter,transform,opacity]",
                     classNames?.content,
                   )}
                 >

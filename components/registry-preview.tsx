@@ -928,7 +928,7 @@ function ExpandingButtonPreview() {
         openLabel="Expand panel"
         closeLabel="Collapse panel"
       >
-        <div className="py-2.5 pl-2 pr-8">
+        <div className="py-2.5 pl-2 pr-(--expanding-button-trigger-inset)">
           <div className="flex flex-col gap-1.5">
             {expandingButtonPreviewGroups.map((group) => (
               <section

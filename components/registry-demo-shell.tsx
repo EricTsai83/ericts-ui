@@ -1,13 +1,11 @@
 "use client";
 
-import { ListTree, Moon, Sun, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
 import {
   type MouseEvent,
-  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -210,17 +208,16 @@ export function RegistryDemoShell({
       <ExpandingButton
         className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
         open={panelOpen}
-        triggerIcon={<ListTree className="size-3.5" />}
         openLabel="Open navigation map"
         closeLabel="Collapse navigation map"
         closeOnEscape={false}
         onOpenChange={setNavigationPanelOpen}
         aria-label="Component navigation"
       >
-        <div className="flex max-h-[var(--expanding-button-max-height,min(15.5rem,calc(100dvh-8rem)))] flex-col">
+        <div className="flex min-h-0 flex-1 flex-col pt-2.5">
           <div
             ref={treeScrollRef}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto py-2.5 pl-1.5 pr-8"
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-2.5 pl-1.5 pr-[var(--expanding-button-trigger-inset)]"
           >
             <div className="flex flex-col gap-1.5">
               {navigationPanelSourceGroups.map((group) => (
@@ -233,16 +230,15 @@ export function RegistryDemoShell({
               ))}
             </div>
           </div>
-
-          <PreviewActions
-            isDark={resolvedTheme === "dark"}
-            exitLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
-            onToggleTheme={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-            onExit={() => router.push(item.href)}
-          />
         </div>
+
+        <PreviewActions
+          exitLabel={`Exit fullscreen to ${itemPageLabel.toLowerCase()}`}
+          onToggleTheme={() =>
+            setTheme(resolvedTheme === "dark" ? "light" : "dark")
+          }
+          onExit={() => router.push(item.href)}
+        />
       </ExpandingButton>
 
       <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
@@ -321,12 +317,10 @@ function NavigationMapGroup({
 }
 
 function PreviewActions({
-  isDark,
   exitLabel,
   onToggleTheme,
   onExit,
 }: {
-  isDark: boolean;
   exitLabel: string;
   onToggleTheme: () => void;
   onExit: () => void;
@@ -335,13 +329,6 @@ function PreviewActions({
     <div className="grid shrink-0 grid-cols-2 divide-x divide-border/55 border-t border-border/55 bg-popover/80 text-xs">
       <PreviewActionButton
         shortcut="D"
-        icon={
-          isDark ? (
-            <Sun className="size-3.5" aria-hidden />
-          ) : (
-            <Moon className="size-3.5" aria-hidden />
-          )
-        }
         label="Theme"
         title="Toggle theme"
         ariaLabel="Toggle theme"
@@ -349,7 +336,6 @@ function PreviewActions({
       />
       <PreviewActionButton
         shortcut="Esc"
-        icon={<X className="size-3.5" aria-hidden />}
         label="Exit"
         title="Exit fullscreen"
         ariaLabel={exitLabel}
@@ -361,14 +347,12 @@ function PreviewActions({
 
 function PreviewActionButton({
   shortcut,
-  icon,
   label,
   title,
   ariaLabel,
   onClick,
 }: {
   shortcut: string;
-  icon: ReactNode;
   label: string;
   title: string;
   ariaLabel: string;
@@ -385,7 +369,6 @@ function PreviewActionButton({
       <kbd className="shrink-0 rounded-[3px] bg-muted px-1 font-mono text-[0.6rem] leading-none text-muted-foreground shadow-[inset_0_-1px_0_var(--border)]">
         {shortcut}
       </kbd>
-      <span className="grid size-4 shrink-0 place-items-center">{icon}</span>
       <span className="whitespace-nowrap leading-none">{label}</span>
     </button>
   );
