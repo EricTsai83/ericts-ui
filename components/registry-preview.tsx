@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import {
+  createContext,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -133,23 +135,50 @@ export function getRegistryPreviewNames() {
   return Object.keys(previews);
 }
 
+/**
+ * Where a preview's own corner controls (e.g. the replay button) should sit, as
+ * Tailwind top/right classes. Surrounding chrome that pins its own control to
+ * the preview's top-right corner — the fullscreen link on a component page, the
+ * navigation toggle in fullscreen — provides a slot to the left of it so the two
+ * sit side by side instead of stacking. Defaults to the corner itself.
+ */
+const PreviewCornerSlotContext = createContext("right-3 top-3");
+
+export function PreviewCornerSlotProvider({
+  className,
+  children,
+}: {
+  className: string;
+  children: ReactNode;
+}) {
+  return (
+    <PreviewCornerSlotContext.Provider value={className}>
+      {children}
+    </PreviewCornerSlotContext.Provider>
+  );
+}
+
 function ReplayablePreview({
   children,
 }: {
   children: (replayKey: number) => ReactNode;
 }) {
   const [replayKey, setReplayKey] = useState(0);
+  const cornerSlot = useContext(PreviewCornerSlotContext);
 
   return (
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="outline"
         size="icon"
         aria-label="Replay preview"
         title="Replay preview"
         onClick={() => setReplayKey((key) => key + 1)}
-        className="absolute right-3 top-3 z-10"
+        className={cn(
+          "absolute z-10 bg-background/80 backdrop-blur-sm",
+          cornerSlot,
+        )}
       >
         <RotateCcw aria-hidden />
       </Button>
@@ -928,41 +957,43 @@ function ExpandingButtonPreview() {
         openLabel="Expand panel"
         closeLabel="Collapse panel"
       >
-        <div className="py-2.5 pl-2 pr-(--expanding-button-trigger-inset)">
-          <div className="flex flex-col gap-1.5">
-            {expandingButtonPreviewGroups.map((group) => (
-              <section
-                key={group.label}
-                className="flex min-w-0 flex-col gap-0.5"
-              >
-                <div
-                  className={cn(
-                    "px-2 py-1 text-xs font-semibold leading-4",
-                    group.active ? "text-primary" : "text-foreground/70",
-                  )}
+        <div className="flex min-h-0 flex-1 flex-col py-2.5">
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-2 pr-(--expanding-button-trigger-inset)">
+            <div className="flex flex-col gap-1.5">
+              {expandingButtonPreviewGroups.map((group) => (
+                <section
+                  key={group.label}
+                  className="flex min-w-0 flex-col gap-0.5"
                 >
-                  {group.label}
-                </div>
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  {group.items.map((entry) => (
-                    <div
-                      key={entry.label}
-                      aria-current={
-                        "active" in entry && entry.active ? "true" : undefined
-                      }
-                      className={cn(
-                        "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs",
-                        "active" in entry && entry.active
-                          ? "bg-muted/55 font-medium text-foreground"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      <span className="truncate">{entry.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
+                  <div
+                    className={cn(
+                      "px-2 py-1 text-xs font-semibold leading-4",
+                      group.active ? "text-primary" : "text-foreground/70",
+                    )}
+                  >
+                    {group.label}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    {group.items.map((entry) => (
+                      <div
+                        key={entry.label}
+                        aria-current={
+                          "active" in entry && entry.active ? "true" : undefined
+                        }
+                        className={cn(
+                          "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs",
+                          "active" in entry && entry.active
+                            ? "bg-muted/55 font-medium text-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        <span className="truncate">{entry.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
           </div>
         </div>
       </ExpandingButton>

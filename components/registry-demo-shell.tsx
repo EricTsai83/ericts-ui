@@ -12,7 +12,10 @@ import {
   useState,
 } from "react";
 
-import { RegistryPreview } from "@/components/registry-preview";
+import {
+  PreviewCornerSlotProvider,
+  RegistryPreview,
+} from "@/components/registry-preview";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
@@ -214,10 +217,10 @@ export function RegistryDemoShell({
         onOpenChange={setNavigationPanelOpen}
         aria-label="Component navigation"
       >
-        <div className="flex min-h-0 flex-1 flex-col pt-2.5">
+        <div className="flex min-h-0 flex-1 flex-col py-2.5">
           <div
             ref={treeScrollRef}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-2.5 pl-1.5 pr-[var(--expanding-button-trigger-inset)]"
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-[var(--expanding-button-trigger-inset)]"
           >
             <div className="flex flex-col gap-1.5">
               {navigationPanelSourceGroups.map((group) => (
@@ -252,7 +255,11 @@ export function RegistryDemoShell({
             getViewportClassName(item.viewport),
           )}
         >
-          <RegistryPreview name={item.name} variant={variant} />
+          {/* Sit replay/other preview controls to the left of the fixed
+              navigation toggle so they line up side by side. */}
+          <PreviewCornerSlotProvider className="right-13 top-3 sm:right-14 sm:top-4">
+            <RegistryPreview name={item.name} variant={variant} />
+          </PreviewCornerSlotProvider>
         </div>
       </section>
     </main>

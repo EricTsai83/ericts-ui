@@ -13,7 +13,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { CopyButton } from "@/registry/base/ui/copy-button";
-import { RegistryPreview } from "@/components/registry-preview";
+import {
+  PreviewCornerSlotProvider,
+  RegistryPreview,
+} from "@/components/registry-preview";
 import { cn } from "@/lib/utils";
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
@@ -129,21 +132,29 @@ function HookPreview({
           </TabsList>
           {demoVariants.map((variant) => (
             <TabsContent key={variant.value} value={variant.value}>
-              <div className="overflow-hidden rounded-xl border bg-background">
+              <div className="relative overflow-hidden rounded-xl border bg-background">
                 <div className="p-6">
-                  <RegistryPreview name={name} variant={variant.value} />
+                  <PreviewCornerSlotProvider
+                    className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+                  >
+                    <RegistryPreview name={name} variant={variant.value} />
+                  </PreviewCornerSlotProvider>
                 </div>
-                <PreviewFullscreenActionBar href={fullscreenHref} />
+                <PreviewFullscreenAction href={fullscreenHref} />
               </div>
             </TabsContent>
           ))}
         </Tabs>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-background">
+        <div className="relative overflow-hidden rounded-xl border bg-background">
           <div className="p-6">
-            <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
+            <PreviewCornerSlotProvider
+              className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+            >
+              <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
+            </PreviewCornerSlotProvider>
           </div>
-          <PreviewFullscreenActionBar href={fullscreenHref} />
+          <PreviewFullscreenAction href={fullscreenHref} />
         </div>
       )}
       {codeVariants.length > 0 ? (
@@ -298,7 +309,6 @@ function ComponentPreviewCard({
           },
         ];
   const hasMultipleVariants = variants.length > 1;
-  const hasPreviewToolbar = hasMultipleVariants || Boolean(fullscreenHref);
 
   return (
     <section
@@ -306,51 +316,48 @@ function ComponentPreviewCard({
       className="group relative min-w-0 max-w-full overflow-hidden rounded-xl border bg-background"
     >
       <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
-        {hasPreviewToolbar ? (
-          <div
-            className={cn(
-              "flex min-h-12 flex-col gap-3 border-b bg-muted/30 px-3 py-3 sm:flex-row sm:items-center",
-              hasMultipleVariants ? "sm:justify-between" : "sm:justify-end",
-            )}
-          >
-            {hasMultipleVariants ? (
-              <TabsList
-                aria-label="Implementation"
-                className="max-w-full overflow-x-auto shadow-none sm:w-fit"
-              >
-                {variants.map((variant) => (
-                  <TabsTrigger
-                    key={variant.value}
-                    value={variant.value}
-                    className="px-3"
-                  >
-                    {variant.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            ) : null}
-            <PreviewFullscreenAction href={fullscreenHref} />
+        {hasMultipleVariants ? (
+          <div className="flex min-h-12 items-center border-b bg-muted/30 px-3 py-3">
+            <TabsList
+              aria-label="Implementation"
+              className="max-w-full overflow-x-auto shadow-none sm:w-fit"
+            >
+              {variants.map((variant) => (
+                <TabsTrigger
+                  key={variant.value}
+                  value={variant.value}
+                  className="px-3"
+                >
+                  {variant.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </div>
         ) : null}
-        <div className="flex min-h-[288px] items-center justify-center p-10">
-          {hasMultipleVariants ? (
-            variants.map((variant) => (
+        <div className="relative flex min-h-[288px] items-center justify-center p-10">
+          <PreviewCornerSlotProvider
+            className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+          >
+            {hasMultipleVariants ? (
+              variants.map((variant) => (
+                <TabsContent
+                  key={variant.value}
+                  value={variant.value}
+                  className="flex w-full items-center justify-center"
+                >
+                  <RegistryPreview name={name} variant={variant.value} />
+                </TabsContent>
+              ))
+            ) : (
               <TabsContent
-                key={variant.value}
-                value={variant.value}
+                value={variants[0].value}
                 className="flex w-full items-center justify-center"
               >
-                <RegistryPreview name={name} variant={variant.value} />
+                <RegistryPreview name={name} variant={variants[0].value} />
               </TabsContent>
-            ))
-          ) : (
-            <TabsContent
-              value={variants[0].value}
-              className="flex w-full items-center justify-center"
-            >
-              <RegistryPreview name={name} variant={variants[0].value} />
-            </TabsContent>
-          )}
+            )}
+          </PreviewCornerSlotProvider>
+          <PreviewFullscreenAction href={fullscreenHref} />
         </div>
         <div
           data-slot="code"
@@ -371,18 +378,6 @@ function ComponentPreviewCard({
   );
 }
 
-function PreviewFullscreenActionBar({ href }: { href?: string }) {
-  if (!href) {
-    return null;
-  }
-
-  return (
-    <div className="flex justify-end border-t bg-muted/30 px-3 py-3 sm:px-4">
-      <PreviewFullscreenAction href={href} />
-    </div>
-  );
-}
-
 function PreviewFullscreenAction({ href }: { href?: string }) {
   if (!href) {
     return null;
@@ -391,13 +386,14 @@ function PreviewFullscreenAction({ href }: { href?: string }) {
   return (
     <Link
       href={href}
+      title="Open fullscreen demo"
+      aria-label="Open fullscreen demo"
       className={cn(
-        buttonVariants({ variant: "default", size: "sm" }),
-        "w-full sm:w-auto",
+        buttonVariants({ variant: "outline", size: "icon" }),
+        "absolute right-3 top-3 z-10 bg-background/80 backdrop-blur-sm",
       )}
     >
-      Open fullscreen demo
-      <Maximize2 data-icon="inline-end" aria-hidden="true" />
+      <Maximize2 aria-hidden="true" />
     </Link>
   );
 }
