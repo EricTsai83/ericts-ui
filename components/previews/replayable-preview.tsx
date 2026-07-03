@@ -29,17 +29,13 @@ export function PreviewCornerSlotProvider({
   );
 }
 
-export function usePreviewCornerSlot() {
-  return useContext(PreviewCornerSlotContext);
-}
-
 export function ReplayablePreview({
   children,
 }: {
   children: (replayKey: number) => ReactNode;
 }) {
   const [replayKey, setReplayKey] = useState(0);
-  const cornerSlot = usePreviewCornerSlot();
+  const cornerSlot = useContext(PreviewCornerSlotContext);
 
   return (
     <>
