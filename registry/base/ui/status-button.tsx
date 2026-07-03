@@ -46,9 +46,12 @@ export function StatusButton({
   const [buttonState, setButtonState] = React.useState<ButtonState>("idle");
   const shouldReduceMotion = useReducedMotion();
   const timers = React.useRef<ReturnType<typeof setTimeout>[]>([]);
+  const isMountedRef = React.useRef(true);
 
   React.useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       timers.current.forEach(clearTimeout);
     };
   }, []);
@@ -68,9 +71,12 @@ export function StatusButton({
       try {
         await onClick?.(event);
       } catch {
+        if (!isMountedRef.current) return;
         setButtonState("idle");
         return;
       }
+
+      if (!isMountedRef.current) return;
 
       timers.current = [
         setTimeout(() => {
