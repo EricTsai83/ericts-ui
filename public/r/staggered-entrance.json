@@ -28,8 +28,7 @@
       "stagger",
       "fade",
       "slide"
-    ],
-    "cssOnly": true
+    ]
   },
   "categories": [
     "list"

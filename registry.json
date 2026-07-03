@@ -466,8 +466,7 @@
       "categories": ["list"],
       "meta": {
         "tags": ["stagger", "entrance", "css-only", "list-animation"],
-        "effects": ["stagger", "fade", "slide"],
-        "cssOnly": true
+        "effects": ["stagger", "fade", "slide"]
       },
       "files": [
         {
