@@ -116,6 +116,10 @@ export function RegistryDemoShell({
     setPanelOpen(open);
   }, []);
 
+  const exitFullscreen = useCallback(() => {
+    router.replace(item.href, { scroll: false });
+  }, [item.href, router]);
+
   const toggleNavigationPanelOpen = useCallback(() => {
     setPanelOpen((current) => {
       const open = !current;
@@ -140,7 +144,7 @@ export function RegistryDemoShell({
         }
 
         event.preventDefault();
-        router.push(item.href);
+        exitFullscreen();
         return;
       }
 
@@ -194,7 +198,7 @@ export function RegistryDemoShell({
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    item.href,
+    exitFullscreen,
     navigation.next,
     navigation.nextCategory,
     navigation.previous,
@@ -240,7 +244,7 @@ export function RegistryDemoShell({
           onToggleTheme={() =>
             setTheme(resolvedTheme === "dark" ? "light" : "dark")
           }
-          onExit={() => router.push(item.href)}
+          onExit={exitFullscreen}
         />
       </ExpandingButton>
 
@@ -450,7 +454,7 @@ function shouldIgnoreShortcut(event: KeyboardEvent) {
     return true;
   }
 
-  if (targetIsInsideOpenOverlay()) {
+  if (targetIsInsideOpenOverlay(event.target)) {
     return true;
   }
 
@@ -484,7 +488,7 @@ function shouldIgnoreEscapeShortcut(event: KeyboardEvent) {
     return true;
   }
 
-  if (targetIsInsideOpenOverlay()) {
+  if (targetIsInsideOpenOverlay(event.target)) {
     return true;
   }
 
@@ -508,16 +512,28 @@ function shouldIgnoreEscapeShortcut(event: KeyboardEvent) {
   );
 }
 
-function targetIsInsideOpenOverlay() {
+function targetIsInsideOpenOverlay(target: EventTarget | null) {
+  if (target instanceof Element) {
+    const overlay = target.closest(
+      "[data-slot='popover-content'], [role='dialog']",
+    );
+
+    return Boolean(
+      overlay && !overlay.closest("[data-slot='expanding-button']"),
+    );
+  }
+
   const activeElement = document.activeElement;
 
   if (!(activeElement instanceof Element)) {
     return false;
   }
 
-  return Boolean(
-    activeElement.closest("[data-slot='popover-content'], [role='dialog']"),
+  const overlay = activeElement.closest(
+    "[data-slot='popover-content'], [role='dialog']",
   );
+
+  return Boolean(overlay && !overlay.closest("[data-slot='expanding-button']"));
 }
 
 function getViewportClassName(viewport = "centered") {
