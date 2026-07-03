@@ -7,6 +7,10 @@ fully before starting, honor its STOP conditions, and update your row when done.
 > Selection note: this audit ran non-interactively, so per the skill's default
 > the top 5 findings by leverage were planned. Deferred findings below are
 > vetted and real — they were not selected this run, not rejected.
+>
+> **Last reconciled: 2026-07-03 at `eae4e5a`.** All five plans verified DONE on
+> current HEAD (done-criteria spot-checks passed). All deferred findings
+> re-checked and still alive; none fixed in passing, none retired.
 
 ## Execution order & status
 
