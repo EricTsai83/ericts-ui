@@ -1,18 +1,7 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  Eye,
-  GripHorizontal,
-  Sparkles,
-} from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  useEffect,
-  useId,
-  useState,
-  type ReactNode,
-} from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,35 +19,23 @@ import OTPInputPreview from "@/components/previews/otp-input";
 import HighlightTabsPreview from "@/components/previews/highlight-tabs";
 import ExpandableTabsPreview from "@/components/previews/expandable-tabs";
 import ExpandingButtonPreview from "@/components/previews/expanding-button";
+import NavigationMenuPreview from "@/components/previews/navigation-menu";
+import TextMorphPreview from "@/components/previews/text-morph";
+import ExpandableModalPreview from "@/components/previews/expandable-modal";
+import ContextCursorPreview from "@/components/previews/context-cursor";
+import FeedbackPopoverPreview from "@/components/previews/feedback-popover";
+import MultiStepPreview from "@/components/previews/multi-step";
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 import {
   useElementSizeMap,
   type ElementSize,
 } from "@/registry/base/hooks/use-element-size-map";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
-import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
-import { TextMorph } from "@/registry/base/ui/text-morph";
-import { MultiStep } from "@/registry/base/ui/multi-step";
 import {
   AdaptiveDrawer,
   type AdaptiveDrawerPanel,
 } from "@/registry/base/ui/adaptive-drawer";
 import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
-import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
-import {
-  ContextCursor,
-  ContextCursorTarget,
-  type ContextCursorTargetAnimation,
-} from "@/registry/base/ui/context-cursor";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/registry/base/ui/navigation-menu";
 
 // Live previews for registry items, keyed by registry name. Each entry receives
 // the active showcase variant so the preview can render the matching source.
@@ -87,12 +64,16 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   "expanding-button": (variant) => (
     <ExpandingButtonPreview variant={variant} />
   ),
-  "navigation-menu": () => <NavigationMenuPreview />,
-  "text-morph": () => <TextMorphPreview />,
-  "expandable-modal": () => <ExpandableModalPreview />,
-  "context-cursor": () => <ContextCursorPreview />,
-  "feedback-popover": () => <FeedbackPopoverPreview />,
-  "multi-step": () => <MultiStepPreview />,
+  "navigation-menu": (variant) => <NavigationMenuPreview variant={variant} />,
+  "text-morph": (variant) => <TextMorphPreview variant={variant} />,
+  "expandable-modal": (variant) => (
+    <ExpandableModalPreview variant={variant} />
+  ),
+  "context-cursor": (variant) => <ContextCursorPreview variant={variant} />,
+  "feedback-popover": (variant) => (
+    <FeedbackPopoverPreview variant={variant} />
+  ),
+  "multi-step": (variant) => <MultiStepPreview variant={variant} />,
   "adaptive-drawer": () => <AdaptiveDrawerPreview />,
   "staggered-entrance": () => <StaggeredEntrancePreview />,
   "use-reduced-motion": () => <UseReducedMotionPreview />,
@@ -681,323 +662,6 @@ function UseScrollAnchorPreview() {
   );
 }
 
-const componentItems = [
-  {
-    title: "Interactive primitives",
-    description: "Menus, dialogs, drawers, tabs, and form controls.",
-  },
-  {
-    title: "Motion patterns",
-    description: "Feedback, layout changes, and state transitions.",
-  },
-  {
-    title: "Client hooks",
-    description: "Small utilities for preferences and browser behavior.",
-  },
-];
-
-const resourceItems = [
-  {
-    title: "Installation",
-    description: "Add registry items with your package runner.",
-  },
-  {
-    title: "API reference",
-    description: "Review props, slots, and composition details.",
-  },
-  {
-    title: "Examples",
-    description: "Preview behavior before copying code.",
-  },
-  {
-    title: "Changelog",
-    description: "Track updates before pulling a component again.",
-  },
-  {
-    title: "Design notes",
-    description: "Understand interaction and accessibility decisions.",
-  },
-  {
-    title: "Support",
-    description: "Find setup, theming, and troubleshooting docs.",
-  },
-];
-
-function NavigationMenuPreview() {
-  return (
-    <div className="flex min-h-96 w-full items-start justify-center pt-4">
-      <NavigationMenu>
-        <NavigationMenuList className="rounded-lg border bg-background p-1 shadow-sm">
-          <NavigationMenuItem value="components">
-            <NavigationMenuTrigger>Components</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[min(31rem,calc(100vw-2rem))] gap-2 p-3 sm:grid-cols-[0.8fr_1fr]">
-                <li className="sm:row-span-3">
-                  <NavigationMenuLink
-                    href="#"
-                    className="flex h-full min-h-44 flex-col justify-end rounded-md bg-primary p-5 text-primary-foreground hover:bg-primary/90 focus-visible:bg-primary/90"
-                  >
-                    <span
-                      className="mb-auto flex size-9 items-center justify-center rounded-md bg-primary-foreground/10"
-                      aria-hidden="true"
-                    >
-                      <Sparkles className="size-4" />
-                    </span>
-                    <div className="mt-6 text-base font-semibold">
-                      Registry components
-                    </div>
-                    <p className="mt-1 text-sm leading-5 text-primary-foreground/75">
-                      Install copy-ready UI primitives through the shadcn CLI.
-                    </p>
-                  </NavigationMenuLink>
-                </li>
-
-                {componentItems.map((item) => (
-                  <NavigationMenuPreviewItem
-                    key={item.title}
-                    title={item.title}
-                  >
-                    {item.description}
-                  </NavigationMenuPreviewItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem value="resources">
-            <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[min(35rem,calc(100vw-2rem))] gap-2 p-3 sm:grid-cols-2">
-                {resourceItems.map((item) => (
-                  <NavigationMenuPreviewItem
-                    key={item.title}
-                    title={item.title}
-                  >
-                    {item.description}
-                  </NavigationMenuPreviewItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              href="#"
-              className={cn(navigationMenuTriggerStyle(), "p-0 px-3 py-0")}
-            >
-              Docs
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
-    </div>
-  );
-}
-
-function NavigationMenuPreviewItem({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <li>
-      <NavigationMenuLink href="#" className="p-3">
-        <div className="text-sm font-medium leading-5">{title}</div>
-        <p className="mt-1 text-sm leading-5 text-muted-foreground">
-          {children}
-        </p>
-      </NavigationMenuLink>
-    </li>
-  );
-}
-
-const textMorphWords = ["Typescript", "Next.js", "React", "Convex", "Vercel"];
-
-function TextMorphPreview() {
-  const [index, setIndex] = useState(0);
-  const activeWord = textMorphWords[index];
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setIndex((value) => (value + 1) % textMorphWords.length);
-    }, 2500);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 text-center">
-      <div className="rounded-lg border bg-background px-5 py-4 shadow-sm">
-        <p className="text-sm text-muted-foreground">Ship with motion</p>
-        <p className="mt-1 font-mono text-4xl font-semibold tracking-normal">
-          <TextMorph>{activeWord}</TextMorph>
-        </p>
-      </div>
-      <div className="flex gap-1" aria-hidden="true">
-        {textMorphWords.map((word, wordIndex) => (
-          <span
-            key={word}
-            className={cn(
-              "size-1.5 rounded-full transition-colors",
-              wordIndex === index ? "bg-foreground" : "bg-muted-foreground/25",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ExpandableModalPreview() {
-  return (
-    <div className="flex min-h-112 w-full items-center justify-center">
-      <ExpandableModal className="min-h-112" />
-    </div>
-  );
-}
-
-function ContextCursorPreview() {
-  const largeTargetAnimation = {
-    edgeFadeDistance: 40,
-    opacity: { hidden: 0, visible: 1 },
-    scale: { hidden: 0.4, visible: 1 },
-    hideDelay: 150,
-  } satisfies ContextCursorTargetAnimation;
-  const compactTargetAnimation = {
-    edgeFadeDistance: 26,
-    opacity: { hidden: 0, visible: 1 },
-    scale: { hidden: 0.4, visible: 1 },
-    hideDelay: 140,
-  } satisfies ContextCursorTargetAnimation;
-
-  return (
-    <ContextCursor className="w-full max-w-xl rounded-lg border bg-background p-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <ContextCursorTarget
-          label="Open"
-          variant="open"
-          icon={<ArrowUpRight className="size-3.5" aria-hidden />}
-          animation={largeTargetAnimation}
-          className="rounded-md border bg-muted/40 p-4 transition-colors hover:bg-muted/70"
-        >
-          <div className="flex min-h-40 flex-col justify-between gap-8">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Quarterly report</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Revenue, retention, and activation summary.
-                </p>
-              </div>
-              <span className="rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground">
-                PDF
-              </span>
-            </div>
-            <div className="grid grid-cols-5 items-end gap-1.5" aria-hidden>
-              {[42, 58, 51, 72, 64].map((height, index) => (
-                <span
-                  key={index}
-                  className="rounded-sm bg-foreground/80"
-                  style={{ height }}
-                />
-              ))}
-            </div>
-          </div>
-        </ContextCursorTarget>
-
-        <div className="flex flex-col gap-3">
-          <ContextCursorTarget
-            label="Drag"
-            variant="drag"
-            icon={<GripHorizontal className="size-3.5" aria-hidden />}
-            animation={compactTargetAnimation}
-            className="flex-1 rounded-md border bg-background p-4 transition-colors hover:bg-muted/50"
-          >
-            <div className="flex h-full items-center gap-3">
-              <span
-                className="flex size-11 items-center justify-center rounded-md bg-muted text-muted-foreground"
-                aria-hidden
-              >
-                <GripHorizontal className="size-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-base font-medium">Backlog column</p>
-                <p className="text-sm text-muted-foreground">
-                  Reorder workspace lanes
-                </p>
-              </div>
-            </div>
-          </ContextCursorTarget>
-
-          <ContextCursorTarget
-            label="Preview"
-            variant="preview"
-            icon={<Eye className="size-3.5" aria-hidden />}
-            animation={compactTargetAnimation}
-            className="flex-1 rounded-md border bg-background p-4 transition-colors hover:bg-muted/50"
-          >
-            <div className="flex h-full items-center gap-3">
-              <div className="flex size-11 items-center justify-center rounded-md border bg-muted/40">
-                <Eye className="size-5 text-muted-foreground" aria-hidden />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-base font-medium">Design brief</p>
-                <p className="text-sm text-muted-foreground">
-                  Show a quick file preview
-                </p>
-              </div>
-            </div>
-          </ContextCursorTarget>
-        </div>
-      </div>
-    </ContextCursor>
-  );
-}
-
-function FeedbackPopoverPreview() {
-  return (
-    <div className="flex min-h-72 w-full items-center justify-center">
-      <FeedbackPopover className="w-full justify-center [--feedback-popover-width:min(22rem,100%)]" />
-    </div>
-  );
-}
-
-function MultiStepPreview() {
-  return (
-    <div className="w-full max-w-md">
-      <MultiStep
-        steps={[
-          {
-            id: "intro",
-            content: (
-              <StepContent
-                title="This is step one"
-                lines={[256, 192, 320, 384]}
-              />
-            ),
-          },
-          {
-            id: "details",
-            content: (
-              <StepContent title="This is step two" lines={[256, 192, 384]} />
-            ),
-          },
-          {
-            id: "finish",
-            content: (
-              <StepContent
-                title="This is step three"
-                lines={[256, 192, 128, 224, 384]}
-              />
-            ),
-          },
-        ]}
-      />
-    </div>
-  );
-}
-
 function AdaptiveDrawerPreview() {
   return (
     <AdaptiveDrawer
@@ -1147,28 +811,5 @@ function StaggeredEntrancePreview() {
         />
       )}
     </ReplayablePreview>
-  );
-}
-
-function StepContent({ title, lines }: { title: string; lines: number[] }) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-sm leading-6 text-muted-foreground">
-          Usually in this step we would explain why this thing exists and what
-          it does. Also, we would show a button to go to the next step.
-        </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        {lines.map((width, index) => (
-          <div
-            key={`${width}-${index}`}
-            className="h-3 max-w-full rounded-full bg-muted"
-            style={{ width }}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
