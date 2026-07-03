@@ -2,25 +2,14 @@
 
 import {
   ArrowUpRight,
-  Bell,
-  ChevronsLeft,
-  ChevronsRight,
   Eye,
-  FilePlus2,
-  FolderPlus,
   GripHorizontal,
-  Mail,
-  Plus,
-  Settings,
   Sparkles,
-  Sun,
-  UserPlus,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   useEffect,
   useId,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -35,6 +24,12 @@ import JitterAnimationPreview from "@/components/previews/jitter-animation";
 import SqueezeAnimationPreview from "@/components/previews/squeeze-animation";
 import StatusBadgePreview from "@/components/previews/status-badge";
 import StatusButtonPreview from "@/components/previews/status-button";
+import FloatingSelectPreview from "@/components/previews/floating-select";
+import ExpandableToolbarPreview from "@/components/previews/expandable-toolbar";
+import OTPInputPreview from "@/components/previews/otp-input";
+import HighlightTabsPreview from "@/components/previews/highlight-tabs";
+import ExpandableTabsPreview from "@/components/previews/expandable-tabs";
+import ExpandingButtonPreview from "@/components/previews/expanding-button";
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 import {
   useElementSizeMap,
@@ -42,7 +37,6 @@ import {
 } from "@/registry/base/hooks/use-element-size-map";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
 import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
-import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { TextMorph } from "@/registry/base/ui/text-morph";
 import { MultiStep } from "@/registry/base/ui/multi-step";
 import {
@@ -50,14 +44,6 @@ import {
   type AdaptiveDrawerPanel,
 } from "@/registry/base/ui/adaptive-drawer";
 import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
-import { FloatingSelect } from "@/registry/base/ui/floating-select";
-import { ExpandableToolbar } from "@/registry/base/ui/expandable-toolbar";
-import { OTPInput, type OTPStatus } from "@/registry/base/ui/otp-input";
-import {
-  ExpandableTabs,
-  type ExpandableTabItem,
-} from "@/registry/base/ui/expandable-tabs";
-import { ExpandingButton } from "@/registry/base/ui/expanding-button";
 import { ExpandableModal } from "@/registry/base/ui/expandable-modal";
 import {
   ContextCursor,
@@ -89,12 +75,18 @@ const previews: Record<string, (variant: string) => ReactNode> = {
   ),
   "status-badge": (variant) => <StatusBadgePreview variant={variant} />,
   "status-button": (variant) => <StatusButtonPreview variant={variant} />,
-  "floating-select": () => <FloatingSelectPreview />,
-  "expandable-toolbar": () => <ExpandableToolbarPreview />,
-  "otp-input": () => <OTPInputPreview />,
-  "highlight-tabs": () => <HighlightTabsPreview />,
-  "expandable-tabs": () => <ExpandableTabsPreview />,
-  "expanding-button": () => <ExpandingButtonPreview />,
+  "floating-select": (variant) => <FloatingSelectPreview variant={variant} />,
+  "expandable-toolbar": (variant) => (
+    <ExpandableToolbarPreview variant={variant} />
+  ),
+  "otp-input": (variant) => <OTPInputPreview variant={variant} />,
+  "highlight-tabs": (variant) => <HighlightTabsPreview variant={variant} />,
+  "expandable-tabs": (variant) => (
+    <ExpandableTabsPreview variant={variant} />
+  ),
+  "expanding-button": (variant) => (
+    <ExpandingButtonPreview variant={variant} />
+  ),
   "navigation-menu": () => <NavigationMenuPreview />,
   "text-morph": () => <TextMorphPreview />,
   "expandable-modal": () => <ExpandableModalPreview />,
@@ -619,255 +611,6 @@ const sidebarItems = ["overview", "activity", "settings", "members"];
 const sidebarWidth = 144;
 const easeOutCubicTuple = [0.215, 0.61, 0.355, 1] as const;
 
-const highlightTabItems = [
-  { value: "overview", label: "Overview" },
-  { value: "activity", label: "Activity" },
-  { value: "settings", label: "Settings" },
-];
-
-function HighlightTabsPreview() {
-  const [activeTab, setActiveTab] = useState(highlightTabItems[0].value);
-  const activeLabel =
-    highlightTabItems.find((tab) => tab.value === activeTab)?.label ??
-    "Overview";
-
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <HighlightTabs
-        tabs={highlightTabItems}
-        value={activeTab}
-        onValueChange={setActiveTab}
-        aria-label="Workspace sections"
-      />
-      <div className="min-w-64 rounded-lg border bg-background px-4 py-3 text-center">
-        <p className="text-sm font-medium">{activeLabel}</p>
-        <p className="mt-1 text-xs text-muted-foreground">3 recent changes</p>
-      </div>
-    </div>
-  );
-}
-
-function ExpandableTabsPreview() {
-  const [theme, setTheme] = useState("System");
-
-  const items: ExpandableTabItem[] = [
-    {
-      id: "create",
-      label: "Create",
-      icon: <Plus className="size-4" />,
-      items: [
-        {
-          id: "file",
-          label: "New file",
-          description: "Blank document",
-          icon: <FilePlus2 className="size-4" />,
-          shortcut: "⌘N",
-        },
-        {
-          id: "folder",
-          label: "New folder",
-          icon: <FolderPlus className="size-4" />,
-        },
-        {
-          id: "invite",
-          label: "Invite teammate",
-          icon: <UserPlus className="size-4" />,
-        },
-      ],
-    },
-    {
-      id: "inbox",
-      label: "Inbox",
-      icon: <Bell className="size-4" />,
-      items: [
-        {
-          id: "mentions",
-          label: "Mentions",
-          description: "2 new since yesterday",
-        },
-        {
-          id: "assigned",
-          label: "Assigned to you",
-          description: "Triage queue",
-        },
-      ],
-    },
-    {
-      id: "appearance",
-      label: "Appearance",
-      icon: <Sun className="size-4" />,
-      content: (
-        <div className="flex w-56 flex-col gap-2 p-1">
-          <p className="px-1 text-xs font-medium text-muted-foreground">
-            Theme
-          </p>
-          <div className="grid grid-cols-3 gap-1.5">
-            {["System", "Light", "Dark"].map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setTheme(option)}
-                aria-pressed={theme === option}
-                className={cn(
-                  "rounded-lg border px-2 py-2 text-xs font-medium transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  theme === option
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-foreground hover:bg-foreground/5",
-                )}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: <Settings className="size-4" />,
-      items: [
-        {
-          id: "account",
-          label: "Account",
-          description: "Profile and security",
-        },
-        {
-          id: "notifications",
-          label: "Notifications",
-          description: "Email and push",
-        },
-        {
-          id: "shortcuts",
-          label: "Keyboard shortcuts",
-          shortcut: "?",
-        },
-      ],
-    },
-  ];
-
-  return (
-    <div className="flex min-h-80 w-full flex-col items-center justify-end pb-2">
-      <ExpandableTabs items={items} aria-label="Workspace quick actions" />
-    </div>
-  );
-}
-
-const expandingButtonPreviewGroups = [
-  {
-    label: "Compose",
-    active: false,
-    items: [{ label: "Brief" }, { label: "Outline" }, { label: "Copy" }],
-  },
-  {
-    label: "Preview",
-    active: true,
-    items: [
-      { label: "Desktop", active: true },
-      { label: "Tablet" },
-      { label: "Mobile" },
-    ],
-  },
-  {
-    label: "Publish",
-    active: false,
-    items: [{ label: "Checks" }, { label: "Release" }],
-  },
-];
-
-function ExpandingButtonPreview() {
-  return (
-    <div className="relative mx-auto h-80 w-full max-w-xl overflow-hidden rounded-lg border bg-background text-foreground">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[44px_44px] opacity-35 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
-      />
-
-      <div className="absolute left-5 top-5 flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="size-2 rounded-full bg-primary" aria-hidden />
-        Expanding button
-      </div>
-
-      <div className="pointer-events-none absolute right-5 top-12 z-10 flex items-end gap-2 text-xs font-medium italic leading-4 text-foreground/65">
-        <span className="mb-1 whitespace-nowrap">Open menu</span>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 64 86"
-          className="h-22 w-16 overflow-visible text-foreground/60"
-          fill="none"
-        >
-          <path
-            d="M8 82C42 74 42 30 50 8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M39 13 51.5 5 55 19"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-
-      <div className="relative flex h-full items-center justify-center px-6 text-center">
-        <div className="flex max-w-xs flex-col items-center gap-2">
-          <p className="text-lg font-semibold leading-6">A button that grows</p>
-        </div>
-      </div>
-
-      <ExpandingButton
-        className="absolute right-3 top-3 z-20"
-        openLabel="Expand panel"
-        closeLabel="Collapse panel"
-      >
-        <div className="flex min-h-0 flex-1 flex-col py-2.5">
-          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-2 pr-(--expanding-button-trigger-inset)">
-            <div className="flex flex-col gap-1.5">
-              {expandingButtonPreviewGroups.map((group) => (
-                <section
-                  key={group.label}
-                  className="flex min-w-0 flex-col gap-0.5"
-                >
-                  <div
-                    className={cn(
-                      "px-2 py-1 text-xs font-semibold leading-4",
-                      group.active ? "text-primary" : "text-foreground/70",
-                    )}
-                  >
-                    {group.label}
-                  </div>
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    {group.items.map((entry) => (
-                      <div
-                        key={entry.label}
-                        aria-current={
-                          "active" in entry && entry.active ? "true" : undefined
-                        }
-                        className={cn(
-                          "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs",
-                          "active" in entry && entry.active
-                            ? "bg-muted/55 font-medium text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        <span className="truncate">{entry.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          </div>
-        </div>
-      </ExpandingButton>
-    </div>
-  );
-}
-
 const scrollAnchorSections = [
   "Overview",
   "Installation",
@@ -1209,212 +952,6 @@ function ContextCursorPreview() {
         </div>
       </div>
     </ContextCursor>
-  );
-}
-
-const demoValidOtp = "248917";
-const demoExpiredOtp = "123456";
-const maxOtpAttempts = 3;
-
-function OTPInputPreview() {
-  const [value, setValue] = useState("");
-  const [status, setStatus] = useState<OTPStatus>("idle");
-  const [attemptsLeft, setAttemptsLeft] = useState(maxOtpAttempts);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const verificationTimer = useRef<number | null>(null);
-  const isLocked = attemptsLeft === 0;
-
-  useEffect(() => {
-    return () => {
-      if (verificationTimer.current) {
-        window.clearTimeout(verificationTimer.current);
-      }
-    };
-  }, []);
-
-  const clearVerificationTimer = () => {
-    if (!verificationTimer.current) return;
-
-    window.clearTimeout(verificationTimer.current);
-    verificationTimer.current = null;
-  };
-
-  const verify = (code: string) => {
-    if (isVerifying || isLocked || status === "success") return;
-
-    clearVerificationTimer();
-    setIsVerifying(true);
-    setStatus("idle");
-
-    verificationTimer.current = window.setTimeout(() => {
-      verificationTimer.current = null;
-      setIsVerifying(false);
-
-      if (code === demoValidOtp) {
-        setStatus("success");
-        return;
-      }
-
-      setValue("");
-      setAttemptsLeft((current) => Math.max(current - 1, 0));
-      setStatus("error");
-    }, 650);
-  };
-
-  const pasteCode = (code: string) => {
-    if (isVerifying || isLocked || status === "success") return;
-
-    setValue(code);
-    verify(code);
-  };
-
-  const reset = () => {
-    clearVerificationTimer();
-    setValue("");
-    setStatus("idle");
-    setAttemptsLeft(maxOtpAttempts);
-    setIsVerifying(false);
-  };
-
-  const attemptsMessage =
-    attemptsLeft === 1
-      ? "1 attempt remaining."
-      : `${attemptsLeft} attempts remaining.`;
-  const errorMessage =
-    attemptsLeft > 0
-      ? `Code expired. ${attemptsMessage}`
-      : "Code expired. No attempts remaining.";
-
-  return (
-    <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4">
-      <OTPInput
-        label="Security code"
-        value={value}
-        onChange={(nextValue) => {
-          setValue(nextValue);
-          if (status === "error") {
-            setStatus("idle");
-          }
-        }}
-        onComplete={verify}
-        status={status}
-        disabled={isVerifying || isLocked}
-        errorMessage={errorMessage}
-      />
-
-      <div
-        role="group"
-        aria-label="OTP demo actions"
-        className="flex flex-wrap justify-center gap-2"
-      >
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isVerifying || isLocked || status === "success"}
-          onClick={() => pasteCode(demoValidOtp)}
-        >
-          Paste valid code
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isVerifying || isLocked || status === "success"}
-          onClick={() => pasteCode(demoExpiredOtp)}
-        >
-          Paste expired code
-        </Button>
-        {status === "success" || isLocked ? (
-          <Button type="button" variant="ghost" size="sm" onClick={reset}>
-            Reset
-          </Button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-const floatingSelectOptions = [
-  {
-    value: "command",
-    label: "Command",
-  },
-  {
-    value: "design",
-    label: "Design",
-  },
-  {
-    value: "review",
-    label: "Review",
-  },
-];
-
-function FloatingSelectPreview() {
-  const [value, setValue] = useState(floatingSelectOptions[0].value);
-
-  return (
-    <div className="flex min-h-48 w-full items-center justify-center">
-      <FloatingSelect
-        placement="inline"
-        label="Mode"
-        value={value}
-        onValueChange={setValue}
-        options={floatingSelectOptions}
-      />
-    </div>
-  );
-}
-
-function ExpandableToolbarPreview() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="flex min-h-32 w-full items-center justify-center">
-      <ExpandableToolbar
-        open={open}
-        onOpenChange={setOpen}
-        side="start"
-        anchor="trigger"
-        expandIcon={<ChevronsLeft aria-hidden />}
-        collapseIcon={<ChevronsRight aria-hidden />}
-        expandLabel="Show quick actions"
-        collapseLabel="Hide quick actions"
-      >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="New file"
-        >
-          <FilePlus2 aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="New folder"
-        >
-          <FolderPlus aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Invite teammate"
-        >
-          <UserPlus aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Send invite"
-        >
-          <Mail aria-hidden />
-        </Button>
-      </ExpandableToolbar>
-    </div>
   );
 }
 
