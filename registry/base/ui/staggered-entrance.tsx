@@ -6,9 +6,7 @@ import "./staggered-entrance.css";
 
 type CssVariableStyle = React.CSSProperties & Record<`--${string}`, string>;
 type StaggeredEntranceAxis = "x" | "y";
-type StaggeredEntranceKey<TItem> =
-  | React.Key
-  | ((item: TItem, index: number) => React.Key);
+type StaggeredEntranceKey<TItem> = (item: TItem, index: number) => React.Key;
 type StaggeredEntranceClassName<TItem> =
   | string
   | ((item: TItem, index: number) => string | undefined);
@@ -106,10 +104,9 @@ export function StaggeredEntrance<TItem = React.ReactNode>({
     >
       {entries.map(({ item, content }, index) => {
         const resolvedIndex = reverse ? count - index - 1 : index;
-        const key =
-          typeof getItemKey === "function"
-            ? getItemKey(item, index)
-            : getItemKey ?? getFallbackKey(content, index);
+        const key = getItemKey
+          ? getItemKey(item, index)
+          : getFallbackKey(content, index);
 
         return (
           <StaggeredEntranceItem
