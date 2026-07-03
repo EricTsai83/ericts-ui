@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   useCallback,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -18,6 +19,9 @@ import { cn } from "@/lib/utils";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const DEFAULT_CONTENT_MAX_WIDTH = "min(32rem, calc(100vw - 2rem))";
+
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 const TOOLBAR_TRANSITION = {
   width: { duration: 0.2, ease: EASE_OUT },
@@ -384,7 +388,7 @@ function useMeasuredWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(0);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const element = ref.current;
 
     if (!element) return;
