@@ -15,7 +15,8 @@
     "display:check": "node scripts/validate-registry-display.mjs",
     "lint": "eslint .",
     "typecheck": "fumadocs-mdx source.config.ts .source && tsc --noEmit",
-    "registry:build": "shadcn build"
+    "registry:build": "shadcn build",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -45,7 +46,8 @@
     "eslint-config-next": "16.2.9",
     "shadcn": "^4.12.0",
     "tailwindcss": "^4.3.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620"
 }
