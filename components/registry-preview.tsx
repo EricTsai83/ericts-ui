@@ -49,12 +49,4 @@ export function RegistryPreview({
   return Preview ? <Preview variant={variant} /> : null;
 }
 
-export function hasRegistryPreview(name: string) {
-  return name in previews;
-}
-
-export function getRegistryPreviewNames() {
-  return Object.keys(previews);
-}
-
 export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";
