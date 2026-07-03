@@ -21,7 +21,7 @@ const staggeredEntranceItems = [
   },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (

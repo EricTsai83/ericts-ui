@@ -21,7 +21,7 @@ const previewRows = ["a", "b", "c", "d"];
 const sidebarItems = ["overview", "activity", "settings", "members"];
 const sidebarWidth = 144;
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [preference, setPreference] =
     useState<ReducedMotionDemoPreference>("no-preference");
   const shouldReduceMotion = preference === "reduce";

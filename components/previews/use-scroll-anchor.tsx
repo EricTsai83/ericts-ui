@@ -31,7 +31,7 @@ const scrollAnchorSections = [
   meta: `§${index + 1}`,
 }));
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [activeId, setActiveId] = useState(scrollAnchorSections[0].id);
   const { containerRef } = useScrollAnchor<HTMLDivElement>({
     activeKey: activeId,

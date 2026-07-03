@@ -8,7 +8,7 @@ import {
   type ContextCursorTargetAnimation,
 } from "@/registry/base/ui/context-cursor";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const largeTargetAnimation = {
     edgeFadeDistance: 40,
     opacity: { hidden: 0, visible: 1 },

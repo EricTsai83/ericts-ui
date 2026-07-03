@@ -25,7 +25,7 @@ const expandingButtonPreviewGroups = [
   },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <div className="relative mx-auto h-80 w-full max-w-xl overflow-hidden rounded-lg border bg-background text-foreground">
       <div

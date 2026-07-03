@@ -6,7 +6,7 @@ import {
   type AdaptiveDrawerPanel,
 } from "@/registry/base/ui/adaptive-drawer";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <AdaptiveDrawer
       title="Adaptive drawer"

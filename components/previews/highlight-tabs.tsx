@@ -10,7 +10,7 @@ const highlightTabItems = [
   { value: "settings", label: "Settings" },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [activeTab, setActiveTab] = useState(highlightTabItems[0].value);
   const activeLabel =
     highlightTabItems.find((tab) => tab.value === activeTab)?.label ??

@@ -3,7 +3,7 @@
 import { ReplayablePreview } from "@/components/previews/replayable-preview";
 import { CheckAnimation } from "@/registry/base/ui/check-animation";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (

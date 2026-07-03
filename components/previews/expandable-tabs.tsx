@@ -17,7 +17,7 @@ import {
   type ExpandableTabItem,
 } from "@/registry/base/ui/expandable-tabs";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [theme, setTheme] = useState("System");
 
   const items: ExpandableTabItem[] = [

@@ -18,7 +18,7 @@ const jitterAxisOptions: {
   { label: "Both", value: "both" },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [axis, setAxis] = useState<JitterAnimationAxis>("horizontal");
 
   return (

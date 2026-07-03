@@ -7,7 +7,7 @@ import { TextMorph } from "@/registry/base/ui/text-morph";
 
 const textMorphWords = ["Typescript", "Next.js", "React", "Convex", "Vercel"];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [index, setIndex] = useState(0);
   const activeWord = textMorphWords[index];
 

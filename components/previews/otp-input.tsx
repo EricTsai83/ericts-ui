@@ -9,7 +9,7 @@ const demoValidOtp = "248917";
 const demoExpiredOtp = "123456";
 const maxOtpAttempts = 3;
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [value, setValue] = useState("");
   const [status, setStatus] = useState<OTPStatus>("idle");
   const [attemptsLeft, setAttemptsLeft] = useState(maxOtpAttempts);

@@ -3,7 +3,7 @@
 import { ReplayablePreview } from "@/components/previews/replayable-preview";
 import { SqueezeAnimation } from "@/registry/base/ui/squeeze-animation";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (

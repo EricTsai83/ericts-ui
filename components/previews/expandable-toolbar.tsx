@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExpandableToolbar } from "@/registry/base/ui/expandable-toolbar";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [open, setOpen] = useState(false);
 
   return (

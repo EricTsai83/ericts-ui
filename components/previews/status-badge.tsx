@@ -46,7 +46,7 @@ const statusBadgeFlow: {
   },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [statusIndex, setStatusIndex] = useState(0);
   const activeStep = statusBadgeFlow[statusIndex];
 

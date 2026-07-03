@@ -2,7 +2,7 @@
 
 import { MultiStep } from "@/registry/base/ui/multi-step";
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <div className="w-full max-w-md">
       <MultiStep

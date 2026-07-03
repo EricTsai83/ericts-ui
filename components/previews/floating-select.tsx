@@ -19,7 +19,7 @@ const floatingSelectOptions = [
   },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [value, setValue] = useState(floatingSelectOptions[0].value);
 
   return (

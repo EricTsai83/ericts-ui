@@ -56,7 +56,7 @@ const resourceItems = [
   },
 ];
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   return (
     <div className="flex min-h-96 w-full items-start justify-center pt-4">
       <NavigationMenu>

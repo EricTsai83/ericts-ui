@@ -76,7 +76,7 @@ const elementSizeMapFallbackSize = {
   height: 168,
 } satisfies ElementSize;
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [activeId, setActiveId] = useState<string>(elementSizeMapPanels[0].id);
   const { setMeasureRef, sizes } = useElementSizeMap<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();

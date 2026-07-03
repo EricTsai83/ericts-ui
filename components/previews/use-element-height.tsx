@@ -53,7 +53,7 @@ const elementHeightPanels = [
   },
 ] as const;
 
-export default function Preview({ variant }: { variant: string }) {
+export default function Preview() {
   const [activeId, setActiveId] = useState<string>(elementHeightPanels[0].id);
   const [measureRef, height] = useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
