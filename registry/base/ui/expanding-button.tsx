@@ -243,8 +243,7 @@ export function ExpandingButton({
             aria-label={isOpen ? closeLabel : openLabel}
             onClick={() => setOpen(!isOpen)}
             className={cn(
-              "extend-touch-target absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
-              isOpen && "text-foreground",
+              "extend-touch-target absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
               classNames?.trigger,
             )}
           >

@@ -940,20 +940,39 @@ function ExpandingButtonPreview() {
         Expanding button
       </div>
 
+      <div className="pointer-events-none absolute right-5 top-12 z-10 flex items-end gap-2 text-xs font-medium italic leading-4 text-foreground/65">
+        <span className="mb-1 whitespace-nowrap">Open menu</span>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 64 86"
+          className="h-22 w-16 overflow-visible text-foreground/60"
+          fill="none"
+        >
+          <path
+            d="M8 82C42 74 42 30 50 8"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M39 13 51.5 5 55 19"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
       <div className="relative flex h-full items-center justify-center px-6 text-center">
         <div className="flex max-w-xs flex-col items-center gap-2">
           <p className="text-lg font-semibold leading-6">A button that grows</p>
-          <p className="text-sm leading-5 text-muted-foreground">
-            One surface morphs from a small button into a floating panel — the
-            transition is the point, not what it holds.
-          </p>
         </div>
       </div>
 
       <ExpandingButton
         className="absolute right-3 top-3 z-20"
-        defaultOpen
-        closeOnOutsideClick={false}
         openLabel="Expand panel"
         closeLabel="Collapse panel"
       >
