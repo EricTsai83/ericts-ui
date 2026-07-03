@@ -30,6 +30,7 @@ function generateKeys(text: string) {
 }
 
 export function TextMorph({ children, className, ...props }: TextMorphProps) {
+  const uid = React.useId();
   const shouldReduceMotion = useReducedMotion();
   const text = getText(children);
   const textToDisplay = React.useMemo(() => generateKeys(text), [text]);
@@ -52,7 +53,7 @@ export function TextMorph({ children, className, ...props }: TextMorphProps) {
         {textToDisplay.map(({ char, key }) => (
           <motion.span
             key={key}
-            layoutId={shouldReduceMotion ? undefined : key}
+            layoutId={shouldReduceMotion ? undefined : `${uid}-${key}`}
             aria-hidden="true"
             className="inline-block text-inherit"
             initial={shouldReduceMotion ? false : { opacity: 0 }}
