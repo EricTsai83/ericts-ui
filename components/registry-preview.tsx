@@ -3,7 +3,6 @@
 import {
   ArrowUpRight,
   Bell,
-  Check,
   ChevronsLeft,
   ChevronsRight,
   Eye,
@@ -16,7 +15,6 @@ import {
   Sparkles,
   Sun,
   UserPlus,
-  X,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import {
@@ -24,26 +22,25 @@ import {
   useId,
   useRef,
   useState,
-  type ComponentType,
   type ReactNode,
 } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReplayablePreview } from "@/components/previews/replayable-preview";
+import SmoothHeightPreview from "@/components/previews/smooth-height";
+import CopyButtonPreview from "@/components/previews/copy-button";
+import CheckAnimationPreview from "@/components/previews/check-animation";
+import JitterAnimationPreview from "@/components/previews/jitter-animation";
+import SqueezeAnimationPreview from "@/components/previews/squeeze-animation";
+import StatusBadgePreview from "@/components/previews/status-badge";
+import StatusButtonPreview from "@/components/previews/status-button";
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 import {
   useElementSizeMap,
   type ElementSize,
 } from "@/registry/base/hooks/use-element-size-map";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
-import { CopyButton } from "@/registry/base/ui/copy-button";
-import { CheckAnimation } from "@/registry/base/ui/check-animation";
-import {
-  JitterAnimation,
-  type JitterAnimationAxis,
-} from "@/registry/base/ui/jitter-animation";
-import { SqueezeAnimation } from "@/registry/base/ui/squeeze-animation";
 import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { TextMorph } from "@/registry/base/ui/text-morph";
@@ -53,11 +50,6 @@ import {
   type AdaptiveDrawerPanel,
 } from "@/registry/base/ui/adaptive-drawer";
 import { StaggeredEntrance } from "@/registry/base/ui/staggered-entrance";
-import {
-  StatusBadge,
-  type StatusBadgeStatus,
-} from "@/registry/base/ui/status-badge";
-import { StatusButton } from "@/registry/base/ui/status-button";
 import { FloatingSelect } from "@/registry/base/ui/floating-select";
 import { ExpandableToolbar } from "@/registry/base/ui/expandable-toolbar";
 import { OTPInput, type OTPStatus } from "@/registry/base/ui/otp-input";
@@ -81,20 +73,22 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/registry/base/ui/navigation-menu";
-import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
-import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
 // Live previews for registry items, keyed by registry name. Each entry receives
 // the active showcase variant so the preview can render the matching source.
 // Items without an entry render nothing (the card still shows their metadata).
 const previews: Record<string, (variant: string) => ReactNode> = {
   "smooth-height": (variant) => <SmoothHeightPreview variant={variant} />,
-  "copy-button": () => <CopyButtonPreview />,
-  "check-animation": () => <CheckAnimationPreview />,
-  "jitter-animation": () => <JitterAnimationPreview />,
-  "squeeze-animation": () => <SqueezeAnimationPreview />,
-  "status-badge": () => <StatusBadgePreview />,
-  "status-button": () => <StatusButtonPreview />,
+  "copy-button": (variant) => <CopyButtonPreview variant={variant} />,
+  "check-animation": (variant) => <CheckAnimationPreview variant={variant} />,
+  "jitter-animation": (variant) => (
+    <JitterAnimationPreview variant={variant} />
+  ),
+  "squeeze-animation": (variant) => (
+    <SqueezeAnimationPreview variant={variant} />
+  ),
+  "status-badge": (variant) => <StatusBadgePreview variant={variant} />,
+  "status-button": (variant) => <StatusButtonPreview variant={variant} />,
   "floating-select": () => <FloatingSelectPreview />,
   "expandable-toolbar": () => <ExpandableToolbarPreview />,
   "otp-input": () => <OTPInputPreview />,
@@ -134,100 +128,6 @@ export function getRegistryPreviewNames() {
 }
 
 export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";
-
-function CopyButtonPreview() {
-  return (
-    <div className="flex items-center justify-center">
-      <CopyButton
-        value="outline"
-        variant="outline"
-        aria-label="Copy outline variant"
-      />
-    </div>
-  );
-}
-
-function CheckAnimationPreview() {
-  return (
-    <ReplayablePreview>
-      {(replayKey) => (
-        <div
-          key={replayKey}
-          className="mx-auto flex w-full max-w-xs items-center justify-center gap-8"
-        >
-          <CheckAnimation
-            variant="square"
-            size="lg"
-            label="Checked"
-            className="text-foreground"
-          />
-          <CheckAnimation
-            variant="circle"
-            size="lg"
-            label="Verified"
-            className="text-primary"
-          />
-        </div>
-      )}
-    </ReplayablePreview>
-  );
-}
-
-function JitterAnimationPreview() {
-  const [axis, setAxis] = useState<JitterAnimationAxis>("horizontal");
-
-  return (
-    <ReplayablePreview>
-      {(replayKey) => (
-        <div
-          key={`${replayKey}-${axis}`}
-          className="mx-auto flex w-full max-w-xs flex-col items-center gap-10"
-        >
-          <div
-            role="radiogroup"
-            aria-label="Jitter axis"
-            className="inline-flex rounded-lg border bg-muted/50 p-1"
-          >
-            {jitterAxisOptions.map((option) => (
-              <Button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={axis === option.value}
-                variant={axis === option.value ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setAxis(option.value)}
-                className="min-w-20"
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          <JitterAnimation axis={axis} className="w-full max-w-24" />
-        </div>
-      )}
-    </ReplayablePreview>
-  );
-}
-
-const jitterAxisOptions: {
-  label: string;
-  value: JitterAnimationAxis;
-}[] = [
-  { label: "Horizontal", value: "horizontal" },
-  { label: "Vertical", value: "vertical" },
-  { label: "Both", value: "both" },
-];
-
-function SqueezeAnimationPreview() {
-  return (
-    <ReplayablePreview>
-      {(replayKey) => (
-        <SqueezeAnimation key={replayKey} className="w-full max-w-36" />
-      )}
-    </ReplayablePreview>
-  );
-}
 
 function UseReducedMotionPreview() {
   const [preference, setPreference] =
@@ -1312,289 +1212,6 @@ function ContextCursorPreview() {
   );
 }
 
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    tagline: "For solo builders",
-    perks: ["1 workspace", "Community support"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    tagline: "For growing teams",
-    perks: ["Unlimited workspaces", "Priority support", "Private registry"],
-  },
-  {
-    id: "team",
-    name: "Team",
-    tagline: "For whole organizations",
-    perks: [
-      "Everything in Pro",
-      "SSO & SCIM provisioning",
-      "Audit logs",
-      "Dedicated success manager",
-    ],
-  },
-];
-
-const seedTeammate = "ava@example.com";
-const teammatePool = [
-  "noah@example.com",
-  "mia@example.com",
-  "liam@example.com",
-  "zoe@example.com",
-];
-
-const steps = [
-  {
-    title: "Choose your plan",
-    description: "Pick a tier — the summary expands inline as you decide.",
-  },
-  {
-    title: "Invite your team",
-    description: "Add a few teammates. The dialog grows to fit every invite.",
-  },
-  {
-    title: "You're all set",
-    description: "A short final step, so the panel collapses back down.",
-  },
-];
-
-type SmoothHeightComponent = ComponentType<{
-  children: ReactNode;
-  id?: string;
-  innerClassName?: string;
-  className?: string;
-}>;
-
-function SmoothHeightPreview({ variant }: { variant: string }) {
-  const SmoothHeight: SmoothHeightComponent =
-    variant === "css-only" ? CssOnlySmoothHeight : MotionSmoothHeight;
-  const panelId = useId();
-  const [stepIndex, setStepIndex] = useState(0);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [teammates, setTeammates] = useState<string[]>([seedTeammate]);
-
-  const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
-  const remainingPool = teammatePool.filter(
-    (email) => !teammates.includes(email),
-  );
-  const isFirstStep = stepIndex === 0;
-  const isLastStep = stepIndex === steps.length - 1;
-  const canContinue = isFirstStep ? selectedPlan !== null : true;
-  const currentStep = steps[stepIndex];
-
-  return (
-    <div
-      role="dialog"
-      aria-labelledby={`${panelId}-title`}
-      aria-describedby={`${panelId}-description`}
-      className="w-full max-w-md overflow-hidden rounded-lg border bg-background"
-    >
-      <div className="border-b px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h3
-              id={`${panelId}-title`}
-              className="truncate text-sm font-semibold"
-            >
-              Set up your workspace
-            </h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Step {stepIndex + 1} of {steps.length}
-            </p>
-          </div>
-          <div className="flex gap-1" aria-hidden>
-            {steps.map((step, index) => (
-              <span
-                key={step.title}
-                className={cn(
-                  "h-1.5 w-5 rounded-full transition-colors",
-                  index <= stepIndex ? "bg-foreground" : "bg-muted",
-                )}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <SmoothHeight id={panelId} innerClassName="p-4">
-        <div className="flex flex-col gap-4">
-          <div>
-            <p className="text-base font-semibold">{currentStep.title}</p>
-            <p
-              id={`${panelId}-description`}
-              className="mt-1 text-sm leading-5 text-muted-foreground"
-            >
-              {currentStep.description}
-            </p>
-          </div>
-
-          {stepIndex === 0 ? (
-            <div className="flex flex-col gap-2">
-              {plans.map((plan) => {
-                const selected = plan.id === selectedPlan;
-
-                return (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    onClick={() => setSelectedPlan(plan.id)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "flex flex-col gap-0.5 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected
-                        ? "border-foreground bg-muted/50"
-                        : "bg-background hover:bg-muted/40",
-                    )}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium">{plan.name}</span>
-                      <span
-                        className={cn(
-                          "flex size-4 items-center justify-center rounded-full border transition-colors",
-                          selected &&
-                            "border-foreground bg-foreground text-background",
-                        )}
-                        aria-hidden
-                      >
-                        {selected ? <Check className="size-3" /> : null}
-                      </span>
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {plan.tagline}
-                    </span>
-                  </button>
-                );
-              })}
-
-              {selectedPlanData ? (
-                <div className="rounded-md border bg-muted/40 p-3">
-                  <p className="flex items-center gap-1.5 text-xs font-medium">
-                    <Sparkles className="size-3.5" aria-hidden />
-                    Included in {selectedPlanData.name}
-                  </p>
-                  <ul className="mt-2 grid gap-1.5">
-                    {selectedPlanData.perks.map((perk) => (
-                      <li
-                        key={perk}
-                        className="flex items-center gap-2 text-xs text-muted-foreground"
-                      >
-                        <Check
-                          className="size-3.5 shrink-0 text-foreground"
-                          aria-hidden
-                        />
-                        {perk}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {stepIndex === 1 ? (
-            <div className="flex flex-col gap-2">
-              {teammates.map((email) => (
-                <div
-                  key={email}
-                  className="flex items-center gap-2 rounded-md border bg-background px-3 py-2"
-                >
-                  <Mail
-                    className="size-4 shrink-0 text-muted-foreground"
-                    aria-hidden
-                  />
-                  <span className="min-w-0 flex-1 truncate text-sm">
-                    {email}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setTeammates((current) =>
-                        current.length > 1
-                          ? current.filter((value) => value !== email)
-                          : current,
-                      )
-                    }
-                    disabled={teammates.length === 1}
-                    aria-label={`Remove ${email}`}
-                    className="text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-                  >
-                    <X className="size-4" aria-hidden />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setTeammates((current) =>
-                    remainingPool[0] ? [...current, remainingPool[0]] : current,
-                  )
-                }
-                disabled={remainingPool.length === 0}
-                className="flex items-center justify-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Plus className="size-4" aria-hidden />
-                {remainingPool.length === 0
-                  ? "Everyone's invited"
-                  : "Add another teammate"}
-              </button>
-            </div>
-          ) : null}
-
-          {stepIndex === 2 ? (
-            <div className="flex flex-col items-center gap-2 py-2 text-center">
-              <span
-                className="flex size-10 items-center justify-center rounded-full bg-foreground text-background"
-                aria-hidden
-              >
-                <Check className="size-5" />
-              </span>
-              <p className="text-sm font-medium">Workspace ready</p>
-              <p className="text-xs leading-5 text-muted-foreground">
-                {teammates.length} teammate{teammates.length === 1 ? "" : "s"}{" "}
-                invited to your {selectedPlanData?.name ?? "new"} workspace.
-              </p>
-            </div>
-          ) : null}
-        </div>
-      </SmoothHeight>
-
-      <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isFirstStep}
-          onClick={() => setStepIndex((value) => Math.max(value - 1, 0))}
-        >
-          Back
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!canContinue}
-          onClick={() => {
-            if (isLastStep) return;
-            setStepIndex((value) => Math.min(value + 1, steps.length - 1));
-          }}
-        >
-          {isLastStep ? "Confirm" : "Continue"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function StatusButtonPreview() {
-  return (
-    <div className="flex items-center justify-center">
-      <StatusButton />
-    </div>
-  );
-}
-
 const demoValidOtp = "248917";
 const demoExpiredOtp = "123456";
 const maxOtpAttempts = 3;
@@ -1714,80 +1331,6 @@ function OTPInputPreview() {
           </Button>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-const statusBadgeFlow: {
-  label: string;
-  detail: string;
-  status: StatusBadgeStatus;
-}[] = [
-  {
-    label: "Draft",
-    detail: "Release notes are being prepared.",
-    status: "neutral",
-  },
-  {
-    label: "Queued",
-    detail: "The release is waiting for a deploy window.",
-    status: "info",
-  },
-  {
-    label: "Reviewing",
-    detail: "Changes are waiting for approval.",
-    status: "warning",
-  },
-  {
-    label: "Deploying",
-    detail: "The release is rolling out.",
-    status: "loading",
-  },
-  {
-    label: "Failed",
-    detail: "A health check failed during rollout.",
-    status: "danger",
-  },
-  {
-    label: "Published",
-    detail: "The release is live in production.",
-    status: "success",
-  },
-];
-
-function StatusBadgePreview() {
-  const [statusIndex, setStatusIndex] = useState(0);
-  const activeStep = statusBadgeFlow[statusIndex];
-
-  return (
-    <div className="flex w-full flex-col items-center justify-center gap-4 text-center">
-      <div className="flex min-h-32 w-full max-w-sm flex-col items-center justify-center gap-3 rounded-lg border bg-background px-5 py-5 shadow-sm">
-        <StatusBadge status={activeStep.status}>{activeStep.label}</StatusBadge>
-        <div className="flex min-h-5 items-center justify-center">
-          <p className="text-sm text-muted-foreground">{activeStep.detail}</p>
-        </div>
-        <div className="flex items-center gap-1.5" aria-hidden="true">
-          {statusBadgeFlow.map((step, index) => (
-            <span
-              key={step.label}
-              className={cn(
-                "size-1.5 rounded-full transition-colors",
-                index <= statusIndex ? "bg-primary" : "bg-muted-foreground/25",
-              )}
-            />
-          ))}
-        </div>
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() =>
-          setStatusIndex((index) => (index + 1) % statusBadgeFlow.length)
-        }
-      >
-        Advance release
-      </Button>
     </div>
   );
 }
