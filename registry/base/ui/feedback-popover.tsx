@@ -73,6 +73,7 @@ export function FeedbackPopover({
   const descriptionId = `${reactId}-description`;
   const popoverRef = React.useRef<HTMLDivElement>(null);
   const timers = React.useRef<number[]>([]);
+  const isMountedRef = React.useRef(true);
   const shouldReduceMotion = useReducedMotion();
   const isControlled = open !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
@@ -118,9 +119,12 @@ export function FeedbackPopover({
     try {
       await Promise.all([onSubmit?.(trimmedFeedback), wait(loadingDuration)]);
     } catch {
+      if (!isMountedRef.current) return;
       setFormState("idle");
       return;
     }
+
+    if (!isMountedRef.current) return;
 
     setFormState("success");
     timers.current = [
@@ -139,7 +143,9 @@ export function FeedbackPopover({
   ]);
 
   React.useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       clearTimers();
     };
   }, [clearTimers]);
