@@ -19,4 +19,5 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm display:check
       - run: pnpm registry:build
+      - run: git diff --exit-code -- public/r
       - run: pnpm test
