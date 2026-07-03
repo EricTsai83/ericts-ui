@@ -12,7 +12,6 @@ import {
   GripHorizontal,
   Mail,
   Plus,
-  RotateCcw,
   Settings,
   Sparkles,
   Sun,
@@ -21,8 +20,6 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import {
-  createContext,
-  useContext,
   useEffect,
   useId,
   useRef,
@@ -33,6 +30,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ReplayablePreview } from "@/components/previews/replayable-preview";
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 import {
   useElementSizeMap,
@@ -135,57 +133,7 @@ export function getRegistryPreviewNames() {
   return Object.keys(previews);
 }
 
-/**
- * Where a preview's own corner controls (e.g. the replay button) should sit, as
- * Tailwind top/right classes. Surrounding chrome that pins its own control to
- * the preview's top-right corner — the fullscreen link on a component page, the
- * navigation toggle in fullscreen — provides a slot to the left of it so the two
- * sit side by side instead of stacking. Defaults to the corner itself.
- */
-const PreviewCornerSlotContext = createContext("right-3 top-3");
-
-export function PreviewCornerSlotProvider({
-  className,
-  children,
-}: {
-  className: string;
-  children: ReactNode;
-}) {
-  return (
-    <PreviewCornerSlotContext.Provider value={className}>
-      {children}
-    </PreviewCornerSlotContext.Provider>
-  );
-}
-
-function ReplayablePreview({
-  children,
-}: {
-  children: (replayKey: number) => ReactNode;
-}) {
-  const [replayKey, setReplayKey] = useState(0);
-  const cornerSlot = useContext(PreviewCornerSlotContext);
-
-  return (
-    <>
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        aria-label="Replay preview"
-        title="Replay preview"
-        onClick={() => setReplayKey((key) => key + 1)}
-        className={cn(
-          "absolute z-10 bg-background/80 backdrop-blur-sm",
-          cornerSlot,
-        )}
-      >
-        <RotateCcw aria-hidden />
-      </Button>
-      {children(replayKey)}
-    </>
-  );
-}
+export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";
 
 function CopyButtonPreview() {
   return (
