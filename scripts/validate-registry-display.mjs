@@ -30,6 +30,7 @@ validateKindCategories();
 validateBrowsablePreviews();
 validateRegistryFilesExist();
 validateCssOnlyVariants();
+validatePublishedOutput();
 
 if (errors.length > 0) {
   console.error("Registry display validation failed:");
@@ -212,6 +213,35 @@ function validateCssOnlyVariants() {
     if (!fs.existsSync(cssPath) || !fs.existsSync(tsxPath)) {
       errors.push(
         `Registry item "${item.name}" sets meta.cssOnly but registry/base/css-only/${item.name}.{css,tsx} is missing.`,
+      );
+    }
+  }
+}
+
+function validatePublishedOutput() {
+  const publicRDir = path.join(root, "public/r");
+  const registryNames = new Set(registry.items.map((item) => item.name));
+
+  for (const name of registryNames) {
+    const publishedPath = path.join(publicRDir, `${name}.json`);
+
+    if (!fs.existsSync(publishedPath)) {
+      errors.push(
+        `Registry item "${name}" has no published payload in public/r — run pnpm registry:build.`,
+      );
+    }
+  }
+
+  for (const file of fs.readdirSync(publicRDir)) {
+    if (!file.endsWith(".json") || file === "registry.json") {
+      continue;
+    }
+
+    const name = file.slice(0, -".json".length);
+
+    if (!registryNames.has(name)) {
+      errors.push(
+        `public/r/${file} does not match any registry item — stale artifact from a rename?`,
       );
     }
   }
