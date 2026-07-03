@@ -29,6 +29,7 @@ validateDisplayKindsMatchRegistry();
 validateKindCategories();
 validateBrowsablePreviews();
 validateRegistryFilesExist();
+validateCssOnlyVariants();
 
 if (errors.length > 0) {
   console.error("Registry display validation failed:");
@@ -195,6 +196,23 @@ function validateRegistryFilesExist() {
       if (!fs.existsSync(path.join(root, file.path))) {
         errors.push(`Registry item "${item.name}" declares missing file: ${file.path}`);
       }
+    }
+  }
+}
+
+function validateCssOnlyVariants() {
+  for (const item of registry.items) {
+    if (item.meta?.cssOnly !== true) {
+      continue;
+    }
+
+    const cssPath = path.join(root, "registry/base/css-only", `${item.name}.css`);
+    const tsxPath = path.join(root, "registry/base/css-only", `${item.name}.tsx`);
+
+    if (!fs.existsSync(cssPath) || !fs.existsSync(tsxPath)) {
+      errors.push(
+        `Registry item "${item.name}" sets meta.cssOnly but registry/base/css-only/${item.name}.{css,tsx} is missing.`,
+      );
     }
   }
 }
