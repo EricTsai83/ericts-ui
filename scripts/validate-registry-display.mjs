@@ -28,6 +28,7 @@ validateDisplayItemsExist();
 validateDisplayKindsMatchRegistry();
 validateKindCategories();
 validateBrowsablePreviews();
+validateRegistryFilesExist();
 
 if (errors.length > 0) {
   console.error("Registry display validation failed:");
@@ -180,6 +181,20 @@ function validateBrowsablePreviews() {
 
     if (typeof config.name === "string" && !previewNames.has(config.name)) {
       errors.push(`Browsable display item is missing RegistryPreview: ${config.name}`);
+    }
+  }
+}
+
+function validateRegistryFilesExist() {
+  for (const item of registry.items) {
+    for (const file of item.files ?? []) {
+      if (typeof file.path !== "string") {
+        continue;
+      }
+
+      if (!fs.existsSync(path.join(root, file.path))) {
+        errors.push(`Registry item "${item.name}" declares missing file: ${file.path}`);
+      }
     }
   }
 }
