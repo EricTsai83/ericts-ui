@@ -239,7 +239,7 @@ export function FeedbackPopover({
               }
               transition={layoutTransition}
               style={{ borderRadius: 12 }}
-              className="absolute left-1/2 top-1/2 z-50 h-48 w-[var(--feedback-popover-width)] -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
+              className="absolute left-1/2 top-1/2 z-50 h-48 w-(--feedback-popover-width) -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
             >
               <motion.span
                 id={titleId}

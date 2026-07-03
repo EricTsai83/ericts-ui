@@ -199,7 +199,7 @@ export function StatusBadge({
               initial={shouldReduceMotion ? false : "initial"}
               animate={shouldReduceMotion ? { opacity: 1 } : "animate"}
               exit={shouldReduceMotion ? undefined : "exit"}
-              className="inline-flex [transform-origin:50%_65%] [transform-style:preserve-3d] will-change-transform"
+              className="inline-flex origin-[50%_65%] transform-3d will-change-transform"
             >
               {status === "loading" && !shouldReduceMotion && !icon ? (
                 <motion.span
@@ -230,7 +230,7 @@ export function StatusBadge({
               initial={shouldReduceMotion ? false : "initial"}
               animate={shouldReduceMotion ? { opacity: 1 } : "animate"}
               exit={shouldReduceMotion ? undefined : "exit"}
-              className="inline-block [transform-origin:50%_65%] [transform-style:preserve-3d] will-change-transform"
+              className="inline-block origin-[50%_65%] transform-3d will-change-transform"
             >
               {children}
             </motion.span>

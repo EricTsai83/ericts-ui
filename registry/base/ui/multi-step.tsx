@@ -23,7 +23,12 @@ export type MultiStepItem = {
 
 export type MultiStepProps = Omit<
   HTMLMotionProps<"div">,
-  "animate" | "children" | "defaultValue" | "initial" | "onChange" | "transition"
+  | "animate"
+  | "children"
+  | "defaultValue"
+  | "initial"
+  | "onChange"
+  | "transition"
 > & {
   steps: MultiStepItem[];
   currentStep?: number;
@@ -64,10 +69,7 @@ export function MultiStep({
   const [innerRef, height] = useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
 
-  const selectedStep = clampStep(
-    currentStep ?? uncontrolledStep,
-    steps.length
-  );
+  const selectedStep = clampStep(currentStep ?? uncontrolledStep, steps.length);
   const isControlled = currentStep !== undefined;
   const isFirstStep = selectedStep === 0;
   const isLastStep = selectedStep === steps.length - 1;
@@ -85,12 +87,12 @@ export function MultiStep({
 
       onStepChange?.(resolvedStep);
     },
-    [isControlled, onStepChange, steps.length]
+    [isControlled, onStepChange, steps.length],
   );
 
   const resolvedTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
-    : transition ?? { type: "spring", duration: 0.5, bounce: 0 };
+    : (transition ?? { type: "spring", duration: 0.5, bounce: 0 });
   const contentVariants = shouldReduceMotion
     ? reducedMotionStepVariants
     : stepVariants;
@@ -115,8 +117,8 @@ export function MultiStep({
           shouldReduceMotion ? { height: "auto" } : { height: height ?? "auto" }
         }
         className={cn(
-          "overflow-hidden rounded-lg border bg-background [contain:layout]",
-          className
+          "overflow-hidden rounded-lg border bg-background contain-[layout]",
+          className,
         )}
       >
         <div
@@ -153,7 +155,7 @@ export function MultiStep({
               data-slot="multi-step-actions"
               className={cn(
                 "flex items-center justify-between gap-3 border-t p-4",
-                actionsClassName
+                actionsClassName,
               )}
             >
               <Button
