@@ -131,7 +131,7 @@ function sortRegistrySearchEntries(
   );
 }
 
-function getRegistryItemScore({
+export function getRegistryItemScore({
   query,
   title,
   name,
@@ -169,10 +169,6 @@ function getRegistryItemScore({
     return 60;
   }
 
-  if (normalizedCategory.includes(query)) {
-    return 40;
-  }
-
   if (normalizedSearchTerms.some((term) => term === query)) {
     return 55;
   }
@@ -183,6 +179,10 @@ function getRegistryItemScore({
 
   if (normalizedSearchTerms.some((term) => term.includes(query))) {
     return 45;
+  }
+
+  if (normalizedCategory.includes(query)) {
+    return 40;
   }
 
   if (query.split(" ").every((term) => searchableText.includes(term))) {
