@@ -9,6 +9,7 @@ const renamedRegistryItems = [
 ] as const;
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   async redirects() {
     return [
       {

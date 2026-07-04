@@ -164,7 +164,7 @@ export default function Home() {
             >
               Manu Arora
             </Link>
-            ,{" "}
+            , and{" "}
             <Link
               href="https://x.com/saurra3h"
               target="_blank"
@@ -173,7 +173,8 @@ export default function Home() {
             >
               Saurabh
             </Link>
-            , and the open-source UI work that shaped this site.
+            , whose open-source work and component design references shaped this
+            site.
           </div>
         </div>
 
