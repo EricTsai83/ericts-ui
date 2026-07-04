@@ -1,8 +1,8 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
+import { LogoIcon } from "@/components/icons";
 import { ReplayablePreview } from "@/components/previews/replayable-preview";
 import { Button } from "@/components/ui/button";
 import { MagneticShadow } from "@/registry/base/ui/magnetic-shadow-animation";
@@ -22,14 +22,13 @@ function MagneticShadowPreview() {
     <div className="flex w-full flex-col items-center gap-7">
       <MagneticShadow
         active={active}
-        aria-label="Magnetic shadow sparkles"
+        aria-label="Magnetic shadow heart"
         className="size-28 text-foreground"
-        projectedShadowClassName="text-foreground/20 dark:text-muted/50"
-        contactShadowClassName="text-foreground/30 dark:text-muted/60"
+        projectedShadowClassName="inset-[12%] text-foreground/20 dark:text-muted/50"
+        contactShadowClassName="inset-[12%] text-foreground/30 dark:text-muted/60"
+        targetClassName="absolute inset-[12%] text-foreground/90"
       >
-        <span className="flex size-full items-center justify-center rounded-2xl border border-current/15 bg-current/[0.045]">
-          <Sparkles aria-hidden="true" className="size-12" />
-        </span>
+        <LogoIcon aria-hidden="true" className="pointer-events-none size-full" />
       </MagneticShadow>
 
       <Button
