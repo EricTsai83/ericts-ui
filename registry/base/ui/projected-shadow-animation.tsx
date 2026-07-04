@@ -2,18 +2,18 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-import "./magnetic-shadow-animation.css";
+import "./projected-shadow-animation.css";
 
-type MagneticShadowTimingValue = number | string;
+type ProjectedShadowTimingValue = number | string;
 type CssVariableStyle = React.CSSProperties & Record<`--${string}`, string>;
 
-export type MagneticShadowProps = React.ComponentPropsWithoutRef<"span"> & {
+export type ProjectedShadowProps = React.ComponentPropsWithoutRef<"span"> & {
   /** Keep the gathered state active without requiring hover. */
   active?: boolean;
   /** Animation duration for release. Numeric values are converted to ms. */
-  duration?: MagneticShadowTimingValue;
+  duration?: ProjectedShadowTimingValue;
   /** Animation duration for gather. Numeric values are converted to ms. */
-  activeDuration?: MagneticShadowTimingValue;
+  activeDuration?: ProjectedShadowTimingValue;
   /** CSS easing used by the transform and opacity transitions. */
   ease?: string;
   /** Optional decorative content for the shadow layers. Defaults to children. */
@@ -30,7 +30,7 @@ export type MagneticShadowProps = React.ComponentPropsWithoutRef<"span"> & {
   showContactShadow?: boolean;
 };
 
-export function MagneticShadow({
+export function ProjectedShadow({
   active,
   activeDuration,
   children,
@@ -45,26 +45,26 @@ export function MagneticShadow({
   style,
   targetClassName,
   ...props
-}: MagneticShadowProps) {
+}: ProjectedShadowProps) {
   const shadowContent = shadow ?? children;
 
   return (
     <span
-      data-slot="magnetic-shadow"
+      data-slot="projected-shadow"
       data-active={active ? "true" : undefined}
       className={cn(
-        "magnetic-shadow relative inline-flex items-center justify-center",
+        "projected-shadow relative inline-flex items-center justify-center",
         className,
       )}
-      style={getMagneticShadowStyle({ activeDuration, duration, ease }, style)}
+      style={getProjectedShadowStyle({ activeDuration, duration, ease }, style)}
       {...props}
     >
       {showProjectedShadow ? (
         <span
           aria-hidden="true"
-          data-slot="magnetic-shadow-projected"
+          data-slot="projected-shadow-projected"
           className={cn(
-            "magnetic-shadow-layer magnetic-shadow-projected pointer-events-none absolute inset-0 z-0 inline-flex text-current blur-[6px]",
+            "projected-shadow-layer projected-shadow-projected pointer-events-none absolute inset-0 z-0 inline-flex text-current blur-[6px]",
             projectedShadowClassName,
           )}
         >
@@ -75,9 +75,9 @@ export function MagneticShadow({
       {showContactShadow ? (
         <span
           aria-hidden="true"
-          data-slot="magnetic-shadow-contact"
+          data-slot="projected-shadow-contact"
           className={cn(
-            "magnetic-shadow-layer magnetic-shadow-contact pointer-events-none absolute inset-0 z-0 inline-flex text-current",
+            "projected-shadow-layer projected-shadow-contact pointer-events-none absolute inset-0 z-0 inline-flex text-current",
             contactShadowClassName,
           )}
         >
@@ -86,9 +86,9 @@ export function MagneticShadow({
       ) : null}
 
       <span
-        data-slot="magnetic-shadow-target"
+        data-slot="projected-shadow-target"
         className={cn(
-          "magnetic-shadow-layer magnetic-shadow-target relative z-10 inline-flex text-current",
+          "projected-shadow-layer projected-shadow-target relative z-10 inline-flex text-current",
           targetClassName,
         )}
       >
@@ -98,12 +98,12 @@ export function MagneticShadow({
   );
 }
 
-function getMagneticShadowStyle(
+function getProjectedShadowStyle(
   {
     activeDuration,
     duration,
     ease,
-  }: Pick<MagneticShadowProps, "activeDuration" | "duration" | "ease">,
+  }: Pick<ProjectedShadowProps, "activeDuration" | "duration" | "ease">,
   style: React.CSSProperties | undefined,
 ) {
   if (activeDuration === undefined && duration === undefined && ease === undefined) {
@@ -113,15 +113,15 @@ function getMagneticShadowStyle(
   return {
     ...style,
     ...(activeDuration !== undefined
-      ? { "--magnetic-shadow-active-duration": toCssTime(activeDuration) }
+      ? { "--projected-shadow-active-duration": toCssTime(activeDuration) }
       : {}),
     ...(duration !== undefined
-      ? { "--magnetic-shadow-duration": toCssTime(duration) }
+      ? { "--projected-shadow-duration": toCssTime(duration) }
       : {}),
-    ...(ease !== undefined ? { "--magnetic-shadow-ease": ease } : {}),
+    ...(ease !== undefined ? { "--projected-shadow-ease": ease } : {}),
   } as CssVariableStyle;
 }
 
-function toCssTime(value: MagneticShadowTimingValue) {
+function toCssTime(value: ProjectedShadowTimingValue) {
   return typeof value === "number" ? `${value}ms` : value;
 }
