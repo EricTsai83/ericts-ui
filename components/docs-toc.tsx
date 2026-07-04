@@ -53,6 +53,7 @@ export function DocsTableOfContents({
     return (
       <div
         id="nd-toc-placeholder"
+        aria-hidden="true"
         className="hidden xl:layout:[--fd-toc-width:var(--fd-sidebar-width)]"
       />
     );

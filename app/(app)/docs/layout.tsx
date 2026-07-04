@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       tree={source.pageTree}
       containerProps={{
         className:
-          "md:[--fd-layout-width:1280px] md:[--fd-sidebar-width:268px]",
+          "md:[--fd-layout-width:1280px] lg:[--fd-sidebar-width:268px]",
       }}
       slots={{
         sidebar: {

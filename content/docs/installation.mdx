@@ -3,6 +3,11 @@ title: Installation
 description: Install ericts/ui registry entries with the shadcn CLI.
 ---
 
+If you are starting a new project, first create a shadcn Design System Framework
+project by following the official [shadcn/ui installation
+guide](https://ui.shadcn.com/docs/installation). Once the project is ready, come
+back here to add components, hooks, or blocks from ericts/ui.
+
 ## Install an item
 
 Use the shadcn CLI with the public registry JSON endpoint.
@@ -10,22 +15,3 @@ Use the shadcn CLI with the public registry JSON endpoint.
 <RegistryInstallCommand name="copy-button" />
 
 Replace `copy-button` with any item name from the components, hooks, or blocks pages.
-
-## Registry namespace
-
-ericts/ui is prepared for the shadcn Registry Directory under `@ericts`.
-
-Once the directory entry is accepted, items can also be installed with:
-
-<RegistryInstallCommand name="copy-button" mode="namespace" />
-
-The direct URL remains the stable fallback.
-
-## Local development
-
-Build the registry output after changing `registry.json` or files under
-`registry/base`.
-
-```bash
-pnpm registry:build
-```
