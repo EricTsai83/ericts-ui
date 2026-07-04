@@ -7,9 +7,7 @@ description: Install ericts/ui registry entries with the shadcn CLI.
 
 Use the shadcn CLI with the public registry JSON endpoint.
 
-```bash
-pnpm dlx shadcn@latest add https://ui.ericts.com/r/copy-button.json
-```
+<RegistryInstallCommand name="copy-button" />
 
 Replace `copy-button` with any item name from the components, hooks, or blocks pages.
 
@@ -19,9 +17,7 @@ ericts/ui is prepared for the shadcn Registry Directory under `@ericts`.
 
 Once the directory entry is accepted, items can also be installed with:
 
-```bash
-pnpm dlx shadcn@latest add @ericts/copy-button
-```
+<RegistryInstallCommand name="copy-button" mode="namespace" />
 
 The direct URL remains the stable fallback.
 

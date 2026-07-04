@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import { buttonVariants } from "@/components/ui/button";
+import { getRegistryInstallCommand } from "@/lib/registry-install-command";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
@@ -31,7 +32,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
     [activeName, items],
   );
   const installCommand = activeItem
-    ? `npx shadcn@latest add ${activeItem.installTarget}`
+    ? getRegistryInstallCommand(activeItem.installTarget)
     : "";
   const activeTabId = activeItem
     ? `component-preview-${activeItem.name}-tab`

@@ -93,6 +93,7 @@ export async function RegistryItemPage({
         codeVariants={codeModel.variants}
         targetPath={codeModel.targetPath}
         dependencies={codeModel.dependencies}
+        registryDependencies={item.registryDependencies}
         motionApiSnippets={motionApiSnippets}
         fullscreenHref={displayItem?.viewHref}
       />

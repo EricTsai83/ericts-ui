@@ -19,6 +19,7 @@ import {
   getRegistryKindFromCategory,
   getRegistryKindLabel,
 } from "@/lib/registry-kind";
+import { getRegistryInstallCommand } from "@/lib/registry-install-command";
 import { getRegistryInstallTarget } from "@/lib/registry-install";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
@@ -73,9 +74,9 @@ const builtOn = [
 ] as const;
 
 export default function Home() {
-  const installCommand = `npx shadcn@latest add ${getRegistryInstallTarget(
-    "copy-button",
-  )}`;
+  const installCommand = getRegistryInstallCommand(
+    getRegistryInstallTarget("copy-button"),
+  );
   const homeRegistryItems = homeRegistryItemNames
     .map((name) => getRegistryItem(name))
     .filter((item): item is RegistryItem => item !== undefined);

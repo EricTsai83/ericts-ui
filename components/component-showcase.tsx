@@ -17,6 +17,10 @@ import {
   PreviewCornerSlotProvider,
   RegistryPreview,
 } from "@/components/registry-preview";
+import {
+  getPackageInstallCommand,
+  getRegistryInstallCommand,
+} from "@/lib/registry-install-command";
 import { cn } from "@/lib/utils";
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
@@ -40,6 +44,7 @@ type ComponentShowcaseProps = {
   codeVariants: ComponentCodeVariant[];
   targetPath: string;
   dependencies?: string[];
+  registryDependencies?: string[];
   motionApiSnippets?: ComponentCodeFile[];
   fullscreenHref?: string;
 };
@@ -50,6 +55,7 @@ export function ComponentShowcase({
   codeVariants,
   targetPath,
   dependencies = [],
+  registryDependencies = [],
   motionApiSnippets = [],
   fullscreenHref,
 }: ComponentShowcaseProps) {
@@ -65,6 +71,7 @@ export function ComponentShowcase({
           name={name}
           targetPath={targetPath}
           dependencies={dependencies}
+          registryDependencies={registryDependencies}
           hasCssOnlyVariant={false}
           motionApiSnippets={motionApiSnippets}
         />
@@ -83,6 +90,7 @@ export function ComponentShowcase({
         name={name}
         targetPath={targetPath}
         dependencies={dependencies}
+        registryDependencies={registryDependencies}
         hasCssOnlyVariant={codeVariants.some(
           (variant) => variant.value === "css-only",
         )}
@@ -559,12 +567,14 @@ function InstallationPanel({
   name,
   targetPath,
   dependencies,
+  registryDependencies,
   hasCssOnlyVariant,
   motionApiSnippets,
 }: {
   name: string;
   targetPath: string;
   dependencies: string[];
+  registryDependencies: string[];
   hasCssOnlyVariant: boolean;
   motionApiSnippets: ComponentCodeFile[];
 }) {
@@ -597,7 +607,11 @@ function InstallationPanel({
           <RegistryInstallCommand name={name} />
         </TabsContent>
         <TabsContent value="manual" className="min-w-0">
-          <ManualInstall targetPath={targetPath} dependencies={dependencies} />
+          <ManualInstall
+            targetPath={targetPath}
+            dependencies={dependencies}
+            registryDependencies={registryDependencies}
+          />
         </TabsContent>
       </Tabs>
       {name === "use-reduced-motion" ? (
@@ -663,13 +677,31 @@ function CodeSnippet({ snippet }: { snippet: ComponentCodeFile }) {
 function ManualInstall({
   targetPath,
   dependencies,
+  registryDependencies,
 }: {
   targetPath: string;
   dependencies: string[];
+  registryDependencies: string[];
 }) {
   return (
     <div className="rounded-xl border bg-background p-4 text-sm">
       <div className="flex flex-col gap-3">
+        {registryDependencies.length > 0 ? (
+          <div>
+            <div className="font-medium">Install registry dependencies</div>
+            <p className="mt-1 break-all font-mono text-muted-foreground">
+              {getRegistryInstallCommand(registryDependencies.join(" "))}
+            </p>
+          </div>
+        ) : null}
+        {dependencies.length > 0 ? (
+          <div>
+            <div className="font-medium">Install package dependencies</div>
+            <p className="mt-1 break-all font-mono text-muted-foreground">
+              {getPackageInstallCommand(dependencies)}
+            </p>
+          </div>
+        ) : null}
         <div>
           <div className="font-medium">Copy the component file</div>
           <p className="mt-1 text-muted-foreground">
@@ -677,14 +709,6 @@ function ManualInstall({
             <code className="font-mono">{targetPath}</code>.
           </p>
         </div>
-        {dependencies.length > 0 ? (
-          <div>
-            <div className="font-medium">Install dependencies</div>
-            <p className="mt-1 font-mono text-muted-foreground">
-              {dependencies.join(" ")}
-            </p>
-          </div>
-        ) : null}
       </div>
     </div>
   );
