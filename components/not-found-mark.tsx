@@ -24,7 +24,7 @@ export function NotFoundMark({ className }: { className?: string }) {
 
       <Heartbeat
         className="mx-[0.06em] size-[0.74em]"
-        shadowClassName="text-foreground dark:text-muted"
+        shadowClassName="text-foreground"
         targetClassName="text-foreground"
       >
         <LogoIcon className="size-full" />

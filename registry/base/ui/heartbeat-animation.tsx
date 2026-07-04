@@ -5,8 +5,10 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const heartbeatScale = [1, 1.16, 0.97, 1.09, 1, 1, 1];
-const heartbeatTimes = [0, 0.1, 0.2, 0.32, 0.46, 0.75, 1];
+const heartbeatScale = [1, 1.24, 0.93, 1.19, 0.96, 1, 1];
+const heartbeatLift = ["0%", "-4.2%", "1.1%", "-3.2%", "0.7%", "0%", "0%"];
+const heartbeatRotate = [0, -1.15, 0.62, -0.85, 0.34, 0, 0];
+const heartbeatTimes = [0, 0.055, 0.13, 0.23, 0.34, 0.5, 1];
 const maxHeartbeatLift = Math.max(...heartbeatScale) - 1;
 const heartbeatProjection = heartbeatScale.map((scale) =>
   Math.max(scale - 1, 0) / maxHeartbeatLift,
@@ -16,21 +18,24 @@ const heartbeatShadowScale = heartbeatScale.map(
 );
 
 const heartbeatAnimation = {
+  rotate: heartbeatRotate,
   scale: heartbeatScale,
+  y: heartbeatLift,
 };
 
 const heartbeatShadowAnimation = {
-  opacity: heartbeatProjection.map((distance) => 0.12 - distance * 0.035),
+  opacity: heartbeatProjection.map((distance) => 0.13 - distance * 0.04),
   scale: heartbeatShadowScale,
-  x: heartbeatProjection.map((distance) => `${distance * -18}%`),
+  x: heartbeatProjection.map((distance) => `${distance * -20}%`),
+  y: heartbeatProjection.map((distance) => `${distance * -5}%`),
 };
 
 const heartbeatTransition = {
-  duration: 2,
+  duration: 1.18,
   times: heartbeatTimes,
-  ease: "easeInOut" as const,
+  ease: "easeOut" as const,
   repeat: Infinity,
-  repeatDelay: 0.3,
+  repeatDelay: 0.9,
 };
 
 type HeartbeatTransition = NonNullable<HTMLMotionProps<"span">["transition"]>;
@@ -75,7 +80,7 @@ export function Heartbeat({
             "pointer-events-none absolute inset-0 z-0 text-current blur-[5px]",
             shadowClassName,
           )}
-          style={{ transformOrigin: "center" }}
+          style={{ transformOrigin: "center 62%" }}
           animate={reduceMotion ? undefined : heartbeatShadowAnimation}
           transition={resolvedTransition}
         >
@@ -86,7 +91,7 @@ export function Heartbeat({
       <motion.span
         data-slot="heartbeat-target"
         className={cn("relative z-10 inline-flex text-current", targetClassName)}
-        style={{ transformOrigin: "center" }}
+        style={{ transformOrigin: "center 62%" }}
         animate={reduceMotion ? undefined : heartbeatAnimation}
         transition={resolvedTransition}
       >

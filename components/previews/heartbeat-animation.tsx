@@ -11,8 +11,8 @@ export default function Preview() {
         <Heartbeat
           key={replayKey}
           aria-label="Beating heart"
-          className="size-32 text-foreground"
-          shadowClassName="text-foreground/70 dark:text-muted"
+          className="size-24 text-foreground"
+          shadowClassName="text-foreground/70"
         >
           <LogoIcon className="size-full" />
         </Heartbeat>
