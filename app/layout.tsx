@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { DocsSearchDialog } from "@/components/docs-search";
 import { primaryNavItems } from "@/lib/navigation";
+import { siteConfig, siteOgImage } from "@/lib/site-config";
 import { source } from "@/lib/source";
 import { ThemeShortcut } from "@/components/theme-shortcut";
 
@@ -20,9 +21,39 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ericts/ui Registry",
-  description:
-    "An ericts/ui components, hooks, and blocks registry documentation and preview site.",
+  title: {
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
+  },
+  metadataBase: new URL(siteConfig.url),
+  description: siteConfig.description,
+  authors: [{ name: "Eric Tsai", url: siteConfig.url }],
+  creator: "Eric Tsai",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    images: [
+      {
+        url: siteOgImage.path,
+        width: siteOgImage.width,
+        height: siteOgImage.height,
+        alt: siteOgImage.alt,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteOgImage.path],
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 const searchLinks = getSearchLinks();
