@@ -1,0 +1,35 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "heartbeat-animation",
+  "title": "Heartbeat Animation",
+  "description": "A Motion-powered heartbeat primitive with a projected shadow layer and reduced-motion support.",
+  "dependencies": [
+    "motion"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/heartbeat-animation.tsx",
+      "content": "\"use client\";\n\nimport { motion, useReducedMotion, type HTMLMotionProps } from \"motion/react\";\nimport * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nconst heartbeatScale = [1, 1.16, 0.97, 1.09, 1, 1, 1];\nconst heartbeatTimes = [0, 0.1, 0.2, 0.32, 0.46, 0.75, 1];\nconst maxHeartbeatLift = Math.max(...heartbeatScale) - 1;\nconst heartbeatProjection = heartbeatScale.map((scale) =>\n  Math.max(scale - 1, 0) / maxHeartbeatLift,\n);\nconst heartbeatShadowScale = heartbeatScale.map(\n  (scale, index) => scale + heartbeatProjection[index] * 0.055,\n);\n\nconst heartbeatAnimation = {\n  scale: heartbeatScale,\n};\n\nconst heartbeatShadowAnimation = {\n  opacity: heartbeatProjection.map((distance) => 0.12 - distance * 0.035),\n  scale: heartbeatShadowScale,\n  x: heartbeatProjection.map((distance) => `${distance * -18}%`),\n};\n\nconst heartbeatTransition = {\n  duration: 2,\n  times: heartbeatTimes,\n  ease: \"easeInOut\" as const,\n  repeat: Infinity,\n  repeatDelay: 0.3,\n};\n\ntype HeartbeatTransition = NonNullable<HTMLMotionProps<\"span\">[\"transition\"]>;\n\nexport type HeartbeatProps = React.ComponentPropsWithoutRef<\"span\"> & {\n  /** Classes applied to the visible animated child wrapper. */\n  targetClassName?: string;\n  /** Classes applied to the projected shadow layer. */\n  shadowClassName?: string;\n  /** Hide the projected shadow layer. */\n  showShadow?: boolean;\n  /** Override the default double-thump transition. */\n  transition?: HeartbeatTransition;\n};\n\nexport function Heartbeat({\n  className,\n  children,\n  shadowClassName,\n  showShadow = true,\n  targetClassName,\n  transition = heartbeatTransition,\n  ...props\n}: HeartbeatProps) {\n  const reduceMotion = useReducedMotion();\n  const resolvedTransition = reduceMotion ? { duration: 0 } : transition;\n\n  return (\n    <span\n      data-slot=\"heartbeat\"\n      className={cn(\n        \"relative inline-flex items-center justify-center\",\n        className,\n      )}\n      {...props}\n    >\n      {showShadow ? (\n        <motion.span\n          aria-hidden=\"true\"\n          data-slot=\"heartbeat-shadow\"\n          className={cn(\n            \"pointer-events-none absolute inset-0 z-0 text-current blur-[5px]\",\n            shadowClassName,\n          )}\n          style={{ transformOrigin: \"center\" }}\n          animate={reduceMotion ? undefined : heartbeatShadowAnimation}\n          transition={resolvedTransition}\n        >\n          {children}\n        </motion.span>\n      ) : null}\n\n      <motion.span\n        data-slot=\"heartbeat-target\"\n        className={cn(\"relative z-10 inline-flex text-current\", targetClassName)}\n        style={{ transformOrigin: \"center\" }}\n        animate={reduceMotion ? undefined : heartbeatAnimation}\n        transition={resolvedTransition}\n      >\n        {children}\n      </motion.span>\n    </span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/heartbeat-animation.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "heartbeat",
+      "pulse",
+      "double-thump",
+      "primitive"
+    ],
+    "effects": [
+      "scale",
+      "pulse",
+      "projected-shadow",
+      "reduced-motion"
+    ]
+  },
+  "categories": [
+    "animation"
+  ],
+  "type": "registry:ui"
+}

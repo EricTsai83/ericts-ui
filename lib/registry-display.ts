@@ -181,6 +181,7 @@ const registryDisplayItemConfigs = [
   { name: "check-animation", kind: "component", category: "animation" },
   { name: "jitter-animation", kind: "component", category: "animation" },
   { name: "squeeze-animation", kind: "component", category: "animation" },
+  { name: "heartbeat-animation", kind: "component", category: "animation" },
   { name: "text-morph", kind: "component", category: "animation" },
   { name: "staggered-entrance", kind: "component", category: "animation" },
   {

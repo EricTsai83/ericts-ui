@@ -3,19 +3,44 @@ title: ericts/ui Registry
 description: Documentation for the ericts/ui custom shadcn registry.
 ---
 
-## Overview
+## Introduction
 
-ericts/ui is a custom shadcn registry for installable components, hooks, and blocks.
+ericts/ui is a custom shadcn registry for installable components, hooks, and
+blocks.
 
-The registry JSON is published from `/r/:name.json`, and every item has a
-preview route under `/view/base/:name`.
+Use these docs to find registry items, preview their behavior, and copy the
+install command for your project.
 
-## Public routes
+Key routes:
 
 - `/docs`
-- `/components`
-- `/hooks`
-- `/blocks`
+- [Components](/components)
+- [Hooks](/hooks)
+- [Blocks](/blocks)
 - `/view/base/:name`
 - `/api/search`
 - `/r/:name.json`
+
+## Installation
+
+Install an item with the shadcn CLI and the public registry JSON endpoint.
+
+```bash
+pnpm dlx shadcn@latest add https://ui.ericts.com/r/copy-button.json
+```
+
+Replace `copy-button` with any item name from the components, hooks, or blocks
+pages. See [Installation](/docs/installation) for namespace details and local
+registry build notes.
+
+## Changelog
+
+Registry updates are published through the generated `/r/:name.json` payloads
+and the item pages.
+
+Before copying an item into an app, check the current preview and install target
+from the relevant index:
+
+- [Components](/components)
+- [Hooks](/hooks)
+- [Blocks](/blocks)

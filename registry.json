@@ -222,6 +222,25 @@
       ]
     },
     {
+      "name": "heartbeat-animation",
+      "type": "registry:ui",
+      "title": "Heartbeat Animation",
+      "description": "A Motion-powered heartbeat primitive with a projected shadow layer and reduced-motion support.",
+      "categories": ["animation"],
+      "meta": {
+        "tags": ["heartbeat", "pulse", "double-thump", "primitive"],
+        "effects": ["scale", "pulse", "projected-shadow", "reduced-motion"]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/heartbeat-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/heartbeat-animation.tsx"
+        }
+      ]
+    },
+    {
       "name": "otp-input",
       "type": "registry:ui",
       "title": "OTP Input",

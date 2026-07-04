@@ -1,41 +1,10 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
 import { useSyncExternalStore } from "react";
 
 import { LogoIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
-
-// A double-thump "lub-dub" heartbeat with a rest, so the mark feels like it
-// keeps skipping back to life. Matches the registry's motion ethos.
-const HEARTBEAT_SCALE = [1, 1.16, 0.97, 1.09, 1, 1, 1];
-const MAX_HEARTBEAT_LIFT = Math.max(...HEARTBEAT_SCALE) - 1;
-const HEARTBEAT_PROJECTION = HEARTBEAT_SCALE.map((scale) =>
-  Math.max(scale - 1, 0) / MAX_HEARTBEAT_LIFT,
-);
-const HEARTBEAT_TIMES = [0, 0.1, 0.2, 0.32, 0.46, 0.75, 1];
-
-const HEARTBEAT = {
-  scale: HEARTBEAT_SCALE,
-};
-
-const HEARTBEAT_SHADOW_SCALE = HEARTBEAT_SCALE.map(
-  (scale, index) => scale + HEARTBEAT_PROJECTION[index] * 0.055,
-);
-
-const HEARTBEAT_SHADOW = {
-  opacity: HEARTBEAT_PROJECTION.map((distance) => 0.12 - distance * 0.035),
-  scale: HEARTBEAT_SHADOW_SCALE,
-  x: HEARTBEAT_PROJECTION.map((distance) => `${distance * -18}%`),
-};
-
-const HEARTBEAT_TRANSITION = {
-  duration: 2,
-  times: HEARTBEAT_TIMES,
-  ease: "easeInOut" as const,
-  repeat: Infinity,
-  repeatDelay: 0.3,
-};
+import { Heartbeat } from "@/registry/base/ui/heartbeat-animation";
 
 /**
  * The "404" display, with the brand heart standing in for the middle zero.
@@ -43,8 +12,6 @@ const HEARTBEAT_TRANSITION = {
  * the page wandered off mid-motion.
  */
 export function NotFoundMark({ className }: { className?: string }) {
-  const reduceMotion = useReducedMotion();
-
   return (
     <div
       aria-hidden="true"
@@ -55,27 +22,13 @@ export function NotFoundMark({ className }: { className?: string }) {
     >
       <span>4</span>
 
-      <span className="relative mx-[0.06em] inline-flex size-[0.74em] items-center justify-center">
-        {/* Projected shadow: a right-side light casts the high beat to the left. */}
-        <motion.span
-          className="pointer-events-none absolute inset-0 z-0 text-foreground dark:text-muted"
-          style={{ transformOrigin: "center" }}
-          animate={reduceMotion ? undefined : HEARTBEAT_SHADOW}
-          transition={HEARTBEAT_TRANSITION}
-        >
-          <LogoIcon className="size-full blur-[5px]" />
-        </motion.span>
-
-        {/* The beating heart. */}
-        <motion.span
-          className="relative z-10 text-foreground"
-          style={{ transformOrigin: "center" }}
-          animate={reduceMotion ? undefined : HEARTBEAT}
-          transition={HEARTBEAT_TRANSITION}
-        >
-          <LogoIcon className="size-full" />
-        </motion.span>
-      </span>
+      <Heartbeat
+        className="mx-[0.06em] size-[0.74em]"
+        shadowClassName="text-foreground dark:text-muted"
+        targetClassName="text-foreground"
+      >
+        <LogoIcon className="size-full" />
+      </Heartbeat>
 
       <span>4</span>
     </div>
