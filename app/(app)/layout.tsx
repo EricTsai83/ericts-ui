@@ -10,7 +10,7 @@ import { source } from "@/lib/source";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 h-14 border-b bg-background/95 text-foreground shadow-none backdrop-blur supports-[backdrop-filter]:bg-background/80 dark:shadow-sm">
+      <header className="sticky top-0 z-40 h-14 border-b bg-background/95 text-foreground shadow-none backdrop-blur supports-backdrop-filter:bg-background/80 dark:shadow-sm">
         <div className="relative flex h-full w-full items-center px-4 sm:px-6">
           <MobileHeaderMenu tree={source.pageTree} items={primaryNavItems} />
           <Link

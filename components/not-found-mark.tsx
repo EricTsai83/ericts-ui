@@ -8,13 +8,26 @@ import { cn } from "@/lib/utils";
 
 // A double-thump "lub-dub" heartbeat with a rest, so the mark feels like it
 // keeps skipping back to life. Matches the registry's motion ethos.
+const HEARTBEAT_SCALE = [1, 1.16, 0.97, 1.09, 1, 1, 1];
+const MAX_HEARTBEAT_LIFT = Math.max(...HEARTBEAT_SCALE) - 1;
+const HEARTBEAT_PROJECTION = HEARTBEAT_SCALE.map((scale) =>
+  Math.max(scale - 1, 0) / MAX_HEARTBEAT_LIFT,
+);
+const HEARTBEAT_TIMES = [0, 0.1, 0.2, 0.32, 0.46, 0.75, 1];
+
 const HEARTBEAT = {
-  scale: [1, 1.16, 0.97, 1.09, 1, 1, 1],
+  scale: HEARTBEAT_SCALE,
+};
+
+const HEARTBEAT_SHADOW = {
+  opacity: HEARTBEAT_PROJECTION.map((distance) => 0.14 - distance * 0.045),
+  scale: HEARTBEAT_SCALE,
+  x: HEARTBEAT_PROJECTION.map((distance) => `${distance * -18}%`),
 };
 
 const HEARTBEAT_TRANSITION = {
   duration: 2,
-  times: [0, 0.1, 0.2, 0.32, 0.46, 0.75, 1],
+  times: HEARTBEAT_TIMES,
   ease: "easeInOut" as const,
   repeat: Infinity,
   repeatDelay: 0.3,
@@ -39,36 +52,19 @@ export function NotFoundMark({ className }: { className?: string }) {
       <span>4</span>
 
       <span className="relative mx-[0.06em] inline-flex size-[0.74em] items-center justify-center">
-        {/* Drifting ghost layers — depth + a touch of "lost in motion". */}
-        {[
-          {
-            className: "text-foreground/[0.06] dark:text-muted/40 blur-[2px]",
-            drift: { x: ["-6%", "2%", "-6%"], y: ["4%", "-3%", "4%"] },
-            duration: 6.5,
-          },
-          {
-            className: "text-foreground/10 dark:text-muted/55",
-            drift: { x: ["3%", "-4%", "3%"], y: ["-3%", "3%", "-3%"] },
-            duration: 5,
-          },
-        ].map((layer, index) => (
-          <motion.span
-            key={index}
-            className={cn("absolute inset-0", layer.className)}
-            animate={reduceMotion ? undefined : layer.drift}
-            transition={{
-              duration: layer.duration,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
-          >
-            <LogoIcon className="size-full" />
-          </motion.span>
-        ))}
+        {/* Projected shadow: a right-side light casts the high beat to the left. */}
+        <motion.span
+          className="pointer-events-none absolute inset-0 z-0 text-foreground dark:text-muted"
+          style={{ transformOrigin: "center" }}
+          animate={reduceMotion ? undefined : HEARTBEAT_SHADOW}
+          transition={HEARTBEAT_TRANSITION}
+        >
+          <LogoIcon className="size-full blur-[2px]" />
+        </motion.span>
 
         {/* The beating heart. */}
         <motion.span
-          className="relative text-foreground/90"
+          className="relative z-10 text-foreground"
           style={{ transformOrigin: "center" }}
           animate={reduceMotion ? undefined : HEARTBEAT}
           transition={HEARTBEAT_TRANSITION}
