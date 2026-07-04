@@ -19,9 +19,13 @@ const HEARTBEAT = {
   scale: HEARTBEAT_SCALE,
 };
 
+const HEARTBEAT_SHADOW_SCALE = HEARTBEAT_SCALE.map(
+  (scale, index) => scale + HEARTBEAT_PROJECTION[index] * 0.055,
+);
+
 const HEARTBEAT_SHADOW = {
-  opacity: HEARTBEAT_PROJECTION.map((distance) => 0.14 - distance * 0.045),
-  scale: HEARTBEAT_SCALE,
+  opacity: HEARTBEAT_PROJECTION.map((distance) => 0.12 - distance * 0.035),
+  scale: HEARTBEAT_SHADOW_SCALE,
   x: HEARTBEAT_PROJECTION.map((distance) => `${distance * -18}%`),
 };
 
@@ -59,7 +63,7 @@ export function NotFoundMark({ className }: { className?: string }) {
           animate={reduceMotion ? undefined : HEARTBEAT_SHADOW}
           transition={HEARTBEAT_TRANSITION}
         >
-          <LogoIcon className="size-full blur-[2px]" />
+          <LogoIcon className="size-full blur-[5px]" />
         </motion.span>
 
         {/* The beating heart. */}
