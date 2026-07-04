@@ -33,6 +33,8 @@ type RegistryItemsBrowserProps = {
   emptyTitle: string;
   emptyDescription: string;
   noItemsLabel: string;
+  fullscreenHref?: string;
+  fullscreenLabel?: string;
 };
 
 function getDisplayName(item: RegistryListItem) {
@@ -102,6 +104,8 @@ export function RegistryItemsBrowser({
   emptyTitle,
   emptyDescription,
   noItemsLabel,
+  fullscreenHref,
+  fullscreenLabel = `Browse ${itemLabelPlural} fullscreen`,
 }: RegistryItemsBrowserProps) {
   const [query, setQuery] = useState("");
   const trimmedQuery = query.trim();
@@ -136,6 +140,14 @@ export function RegistryItemsBrowser({
           <p className="text-base leading-7 text-muted-foreground sm:text-lg">
             {description}
           </p>
+          {fullscreenHref ? (
+            <Link
+              href={fullscreenHref}
+              className="self-start rounded-sm text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-muted-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {fullscreenLabel}
+            </Link>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-2">

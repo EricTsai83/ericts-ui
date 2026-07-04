@@ -241,6 +241,42 @@
       ]
     },
     {
+      "name": "magnetic-shadow-animation",
+      "type": "registry:ui",
+      "title": "Magnetic Shadow Animation",
+      "description": "A CSS-powered shadow projection primitive that gathers an element and its shadow layers on hover or controlled active state.",
+      "categories": ["animation", "interaction"],
+      "meta": {
+        "tags": [
+          "hover",
+          "shadow",
+          "projection",
+          "magnetic",
+          "layered-shadow",
+          "primitive"
+        ],
+        "effects": [
+          "projected-shadow",
+          "hover-gather",
+          "scale",
+          "rotate",
+          "reduced-motion"
+        ]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/magnetic-shadow-animation.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/magnetic-shadow-animation.tsx"
+        },
+        {
+          "path": "registry/base/ui/magnetic-shadow-animation.css",
+          "type": "registry:file",
+          "target": "components/ui/magnetic-shadow-animation.css"
+        }
+      ]
+    },
+    {
       "name": "otp-input",
       "type": "registry:ui",
       "title": "OTP Input",

@@ -22,59 +22,6 @@
   }
 }
 
-.home-hero-mark {
-  --home-hero-ease: cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.home-hero-mark__layer {
-  transform-origin: center;
-  transition-property: opacity, transform;
-  transition-duration: 280ms;
-  transition-timing-function: var(--home-hero-ease);
-  will-change: transform, opacity;
-}
-
-.home-hero-mark__projected-shadow {
-  opacity: 1;
-  transform: translateX(-14%) translateY(-18%) scale(1.08) rotate(-8deg);
-}
-
-.home-hero-mark__contact-shadow {
-  opacity: 0;
-  transform: translateX(-4%) translateY(-5%) scale(0.92) rotate(-2deg);
-}
-
-.home-hero-mark__heart {
-  transform: translateX(8%) translateY(-6%) scale(1.06) rotate(10deg);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .home-hero-mark:hover .home-hero-mark__layer {
-    transition-duration: 360ms;
-  }
-
-  .home-hero-mark:hover .home-hero-mark__projected-shadow {
-    opacity: 0;
-    transform: translateX(-4%) translateY(-5%) scale(0.94) rotate(-3deg);
-  }
-
-  .home-hero-mark:hover .home-hero-mark__contact-shadow {
-    opacity: 0.72;
-    transform: translateX(0) translateY(0) scale(0.89) rotate(0deg);
-  }
-
-  .home-hero-mark:hover .home-hero-mark__heart {
-    transform: translateX(0) translateY(0) scale(0.86) rotate(0deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-hero-mark__layer {
-    transition-duration: 0ms;
-    will-change: auto;
-  }
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

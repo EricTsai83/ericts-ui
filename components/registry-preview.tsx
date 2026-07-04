@@ -17,6 +17,7 @@ const previews: Record<string, PreviewComponent> = {
   "jitter-animation": dynamic(() => import("@/components/previews/jitter-animation")),
   "squeeze-animation": dynamic(() => import("@/components/previews/squeeze-animation")),
   "heartbeat-animation": dynamic(() => import("@/components/previews/heartbeat-animation")),
+  "magnetic-shadow-animation": dynamic(() => import("@/components/previews/magnetic-shadow-animation")),
   "status-badge": dynamic(() => import("@/components/previews/status-badge")),
   "status-button": dynamic(() => import("@/components/previews/status-button")),
   "floating-select": dynamic(() => import("@/components/previews/floating-select")),
