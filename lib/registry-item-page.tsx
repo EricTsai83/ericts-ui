@@ -91,7 +91,6 @@ export async function RegistryItemPage({
         name={item.name}
         type={item.type}
         codeVariants={codeModel.variants}
-        installTarget={codeModel.installTarget}
         targetPath={codeModel.targetPath}
         dependencies={codeModel.dependencies}
         motionApiSnippets={motionApiSnippets}

@@ -14,7 +14,7 @@ export type ComponentPreviewBrowserItem = {
   title: string;
   description?: string;
   href: string;
-  installUrl: string;
+  installTarget: string;
   badges: string[];
 };
 
@@ -31,7 +31,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
     [activeName, items],
   );
   const installCommand = activeItem
-    ? `npx shadcn@latest add ${activeItem.installUrl}`
+    ? `npx shadcn@latest add ${activeItem.installTarget}`
     : "";
   const activeTabId = activeItem
     ? `component-preview-${activeItem.name}-tab`

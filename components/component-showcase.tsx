@@ -38,7 +38,6 @@ type ComponentShowcaseProps = {
   name: string;
   type?: string;
   codeVariants: ComponentCodeVariant[];
-  installTarget: string;
   targetPath: string;
   dependencies?: string[];
   motionApiSnippets?: ComponentCodeFile[];
@@ -49,7 +48,6 @@ export function ComponentShowcase({
   name,
   type,
   codeVariants,
-  installTarget,
   targetPath,
   dependencies = [],
   motionApiSnippets = [],
@@ -65,7 +63,6 @@ export function ComponentShowcase({
         />
         <InstallationPanel
           name={name}
-          installTarget={installTarget}
           targetPath={targetPath}
           dependencies={dependencies}
           hasCssOnlyVariant={false}
@@ -84,7 +81,6 @@ export function ComponentShowcase({
       />
       <InstallationPanel
         name={name}
-        installTarget={installTarget}
         targetPath={targetPath}
         dependencies={dependencies}
         hasCssOnlyVariant={codeVariants.some(
@@ -561,14 +557,12 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
 
 function InstallationPanel({
   name,
-  installTarget,
   targetPath,
   dependencies,
   hasCssOnlyVariant,
   motionApiSnippets,
 }: {
   name: string;
-  installTarget: string;
   targetPath: string;
   dependencies: string[];
   hasCssOnlyVariant: boolean;
@@ -600,7 +594,7 @@ function InstallationPanel({
           </TabsTrigger>
         </TabsList>
         <TabsContent value="command" className="min-w-0">
-          <RegistryInstallCommand installTarget={installTarget} />
+          <RegistryInstallCommand name={name} />
         </TabsContent>
         <TabsContent value="manual" className="min-w-0">
           <ManualInstall targetPath={targetPath} dependencies={dependencies} />

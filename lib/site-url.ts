@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://ericts-ui.vercel.app";
+const DEFAULT_SITE_URL = "https://ui.ericts.com";
 
 export function getSiteUrl() {
   const siteUrl =

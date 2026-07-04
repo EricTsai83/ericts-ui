@@ -3,6 +3,7 @@
 import { Terminal } from "lucide-react";
 import { useState } from "react";
 
+import { getRegistryInstallTarget } from "@/lib/registry-install";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
@@ -25,13 +26,14 @@ export function getRegistryInstallCommand(
 }
 
 export function RegistryInstallCommand({
-  installTarget,
+  name,
   className,
 }: {
-  installTarget: string;
+  name: string;
   className?: string;
 }) {
   const [packageManager, setPackageManager] = useState<PackageManager>("pnpm");
+  const installTarget = getRegistryInstallTarget(name);
   const command = getRegistryInstallCommand(installTarget, packageManager);
 
   return (

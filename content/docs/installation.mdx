@@ -1,17 +1,29 @@
 ---
 title: Installation
-description: Install registry entries from the generated shadcn registry JSON.
+description: Install ericts/ui registry entries with the shadcn CLI.
 ---
 
 ## Install an item
 
-Use the generated registry JSON endpoint for the item you want to install.
+Use the shadcn CLI with the public registry JSON endpoint.
 
 ```bash
-npx shadcn@latest add https://ericts-ui.vercel.app/r/copy-button.json
+pnpm dlx shadcn@latest add https://ui.ericts.com/r/copy-button.json
 ```
 
 Replace `copy-button` with any item name from the components, hooks, or blocks pages.
+
+## Registry namespace
+
+ericts/ui is prepared for the shadcn Registry Directory under `@ericts`.
+
+Once the directory entry is accepted, items can also be installed with:
+
+```bash
+pnpm dlx shadcn@latest add @ericts/copy-button
+```
+
+The direct URL remains the stable fallback.
 
 ## Local development
 

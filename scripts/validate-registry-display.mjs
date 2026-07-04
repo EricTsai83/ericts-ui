@@ -4,11 +4,16 @@ import process from "node:process";
 import ts from "typescript";
 
 const root = process.cwd();
+const canonicalRegistryUrl = "https://ui.ericts.com";
+const canonicalRegistryItemUrlPrefix = `${canonicalRegistryUrl}/r/`;
+const legacyVercelRegistryUrl = "https://ericts-ui.vercel.app";
 const registryPath = path.join(root, "registry.json");
+const publishedRegistryPath = path.join(root, "public/r/registry.json");
 const displayPath = path.join(root, "lib/registry-display.ts");
 const previewPath = path.join(root, "components/registry-preview.tsx");
 
 const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+const publishedRegistry = JSON.parse(fs.readFileSync(publishedRegistryPath, "utf8"));
 const displaySource = readSourceFile(displayPath);
 const previewSource = readSourceFile(previewPath);
 const displayConfigs = readObjectArray(displaySource, "registryDisplayItemConfigs");
@@ -31,6 +36,7 @@ validateBrowsablePreviews();
 validateRegistryFilesExist();
 validateCssOnlyVariants();
 validatePublishedOutput();
+validateCanonicalRegistryUrls();
 
 if (errors.length > 0) {
   console.error("Registry display validation failed:");
@@ -245,6 +251,143 @@ function validatePublishedOutput() {
       );
     }
   }
+}
+
+function validateCanonicalRegistryUrls() {
+  if (registry.homepage !== canonicalRegistryUrl) {
+    errors.push(`registry.json homepage must be ${canonicalRegistryUrl}.`);
+  }
+
+  if (publishedRegistry.homepage !== canonicalRegistryUrl) {
+    errors.push(
+      `public/r/registry.json homepage must be ${canonicalRegistryUrl} - run pnpm registry:build.`,
+    );
+  }
+
+  validateRegistryDependencyUrls(registry.items ?? []);
+  validateRegistryDependencyUrls(publishedRegistry.items ?? []);
+  validatePublishedRegistryDependencyUrls();
+  validateLegacyVercelUrls();
+}
+
+function validateRegistryDependencyUrls(items) {
+  for (const item of items) {
+    for (const dependency of item.registryDependencies ?? []) {
+      if (typeof dependency !== "string") {
+        continue;
+      }
+
+      if (
+        isRegistryAbsoluteUrl(dependency) &&
+        !dependency.startsWith(canonicalRegistryItemUrlPrefix)
+      ) {
+        errors.push(
+          `Registry dependency for "${item.name}" must use ${canonicalRegistryUrl}/r/.`,
+        );
+      }
+    }
+  }
+}
+
+function validatePublishedRegistryDependencyUrls() {
+  const publicRDir = path.join(root, "public/r");
+
+  for (const file of fs.readdirSync(publicRDir)) {
+    if (!file.endsWith(".json") || file === "registry.json") {
+      continue;
+    }
+
+    const payload = JSON.parse(
+      fs.readFileSync(path.join(publicRDir, file), "utf8"),
+    );
+
+    validateRegistryDependencyUrls([payload]);
+  }
+}
+
+function isRegistryAbsoluteUrl(value) {
+  if (!value.startsWith("http://") && !value.startsWith("https://")) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+
+    return (
+      url.hostname === "ui.ericts.com" ||
+      url.hostname === "ericts-ui.vercel.app"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function validateLegacyVercelUrls() {
+  for (const filePath of getSourceFilesToScan()) {
+    const content = fs.readFileSync(filePath, "utf8");
+
+    if (content.includes(legacyVercelRegistryUrl)) {
+      errors.push(
+        `Found legacy Vercel registry URL in ${path.relative(root, filePath)}: use ${canonicalRegistryUrl}.`,
+      );
+    }
+  }
+}
+
+function getSourceFilesToScan() {
+  const pathsToScan = ["README.md", "content", "app", "components", "lib", "registry.json"];
+  const allowedExtensions = new Set([
+    ".css",
+    ".js",
+    ".json",
+    ".md",
+    ".mdx",
+    ".ts",
+    ".tsx",
+  ]);
+  const files = [];
+
+  for (const relativePath of pathsToScan) {
+    const absolutePath = path.join(root, relativePath);
+
+    if (!fs.existsSync(absolutePath)) {
+      continue;
+    }
+
+    const stats = fs.statSync(absolutePath);
+
+    if (stats.isFile()) {
+      files.push(absolutePath);
+      continue;
+    }
+
+    for (const nestedPath of walkDirectory(absolutePath)) {
+      if (allowedExtensions.has(path.extname(nestedPath))) {
+        files.push(nestedPath);
+      }
+    }
+  }
+
+  return files;
+}
+
+function walkDirectory(directory) {
+  const files = [];
+
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...walkDirectory(entryPath));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
 }
 
 function readSourceFile(filePath) {

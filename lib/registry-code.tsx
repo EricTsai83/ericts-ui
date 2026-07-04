@@ -8,7 +8,7 @@ import type {
   ComponentCodeVariant,
 } from "@/components/component-showcase";
 import type { RegistryItem } from "@/lib/registry";
-import { getRegistryItemUrl } from "@/lib/site-url";
+import { getRegistryInstallTarget } from "@/lib/registry-install";
 
 export type RegistryCodeModel = {
   variants: ComponentCodeVariant[];
@@ -52,7 +52,7 @@ export async function getRegistryCodeModel(
 
   return {
     variants,
-    installTarget: getRegistryItemUrl(item.name),
+    installTarget: getRegistryInstallTarget(item.name),
     targetPath: getRegistryItemTargetPath(item),
     dependencies: item.dependencies ?? [],
     hasCssOnlyVariant: cssOnlyFiles.length > 0,

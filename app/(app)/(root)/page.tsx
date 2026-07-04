@@ -19,7 +19,7 @@ import {
   getRegistryKindFromCategory,
   getRegistryKindLabel,
 } from "@/lib/registry-kind";
-import { getRegistryItemUrl } from "@/lib/site-url";
+import { getRegistryInstallTarget } from "@/lib/registry-install";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 
 const homeRegistryItemNames = [
@@ -73,7 +73,7 @@ const builtOn = [
 ] as const;
 
 export default function Home() {
-  const installCommand = `npx shadcn@latest add ${getRegistryItemUrl(
+  const installCommand = `npx shadcn@latest add ${getRegistryInstallTarget(
     "copy-button",
   )}`;
   const homeRegistryItems = homeRegistryItemNames
@@ -91,7 +91,7 @@ export default function Home() {
       title: item.title ?? item.name,
       description: item.description,
       href: item.href,
-      installUrl: getRegistryItemUrl(item.name),
+      installTarget: getRegistryInstallTarget(item.name),
       badges: getRegistryItemBadges(item, 2).visible,
     }));
 
