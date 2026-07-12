@@ -3,20 +3,30 @@ title: Installation
 description: Install ericts/ui registry entries with the shadcn CLI.
 ---
 
-If you are starting a new project, first create a shadcn Design System Framework
-project by following the official [shadcn/ui installation
-guide](https://ui.shadcn.com/docs/installation). Once the project is ready, come
-back here to add components, hooks, or blocks from ericts/ui.
+ericts/ui ships registry items that are added to an existing shadcn/ui project.
+Set up shadcn/ui first, then install the component, hook, or block you want from
+this registry.
 
-## Install an item
+## Prepare Your Project
 
-Use the shadcn CLI with the registered ericts/ui namespace.
+If you are starting a new app, follow the official [shadcn/ui installation
+guide](https://ui.shadcn.com/docs/installation) for your framework. The ericts/ui
+items assume your project already has Tailwind CSS, import aliases, and a
+`components.json` file configured.
+
+## Install With the Namespace
+
+Use the shadcn CLI with the registered ericts/ui namespace:
 
 <RegistryInstallCommand name="copy-button" />
 
-Replace `copy-button` with any item name from the components, hooks, or blocks pages.
+Replace `copy-button` with any item name from the components, hooks, or blocks
+pages. The CLI will copy the source into your project and install the item
+dependencies declared by the registry.
 
-If the namespace is not available in your CLI yet, use the public registry JSON
-endpoint as a fallback.
+## Registry URL Fallback
+
+If your CLI does not resolve the namespace yet, install the same item from its
+public registry JSON endpoint:
 
 <RegistryInstallCommand name="copy-button" mode="url" />

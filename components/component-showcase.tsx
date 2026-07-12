@@ -6,22 +6,26 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { RegistryInstallCommand } from "@/components/registry-install-command";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import {
   PreviewCornerSlotProvider,
   RegistryPreview,
 } from "@/components/registry-preview";
 import {
+  DEFAULT_PACKAGE_MANAGER,
   getPackageInstallCommand,
   getRegistryInstallCommand,
+  packageManagers,
+  type PackageManager,
 } from "@/lib/registry-install-command";
 import { cn } from "@/lib/utils";
+
+const packageManagerValues = new Set<string>(packageManagers);
+
+function isPackageManager(value: string): value is PackageManager {
+  return packageManagerValues.has(value);
+}
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
 
@@ -139,7 +143,9 @@ function HookPreview({
               <div className="relative overflow-hidden rounded-xl border bg-background">
                 <div className="p-6">
                   <PreviewCornerSlotProvider
-                    className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+                    className={
+                      fullscreenHref ? "right-13 top-3" : "right-3 top-3"
+                    }
                   >
                     <RegistryPreview name={name} variant={variant.value} />
                   </PreviewCornerSlotProvider>
@@ -155,7 +161,10 @@ function HookPreview({
             <PreviewCornerSlotProvider
               className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
             >
-              <RegistryPreview name={name} variant={defaultDemoVariant?.value} />
+              <RegistryPreview
+                name={name}
+                variant={defaultDemoVariant?.value}
+              />
             </PreviewCornerSlotProvider>
           </div>
           <PreviewFullscreenAction href={fullscreenHref} />
@@ -232,9 +241,7 @@ function HookCodeVariantContent({
   return <CodeFileTabs files={variant.files} />;
 }
 
-const hookDemoVariants = [
-  { value: "usage", label: "Usage" },
-] as const;
+const hookDemoVariants = [{ value: "usage", label: "Usage" }] as const;
 
 type HookPreviewConfig = {
   title: string;
@@ -242,16 +249,13 @@ type HookPreviewConfig = {
   demoVariants?: typeof hookDemoVariants;
 };
 
-const hookPreviewConfigs: Partial<Record<
-  string,
-  HookPreviewConfig
->> = {
+const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
   "use-reduced-motion": {
     title: "Why this hook matters",
     description: (
       <>
-        <code className="font-mono text-foreground">useReducedMotion</code>{" "}
-        lets a component respect the user&apos;s{" "}
+        <code className="font-mono text-foreground">useReducedMotion</code> lets
+        a component respect the user&apos;s{" "}
         <a
           href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion"
           target="_blank"
@@ -540,7 +544,7 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
       <div
         className={cn(
           "min-w-0 max-w-full",
-          !isCodeVisible && "max-h-32 overflow-hidden"
+          !isCodeVisible && "max-h-32 overflow-hidden",
         )}
       >
         {file.highlighted}
@@ -634,7 +638,9 @@ function UseReducedMotionInstallationNotes({
         <h3 className="text-base font-semibold">Choose the right trade-off</h3>
         <p className="text-sm leading-6 text-muted-foreground">
           The local hook does one job: it reads{" "}
-          <code className="font-mono text-foreground">prefers-reduced-motion</code>{" "}
+          <code className="font-mono text-foreground">
+            prefers-reduced-motion
+          </code>{" "}
           with <code className="font-mono text-foreground">matchMedia</code>,
           syncs the current value after mount, and removes its change listener
           during cleanup. That gives components the same reduced-motion branch
@@ -644,7 +650,9 @@ function UseReducedMotionInstallationNotes({
         </p>
       </div>
       <article className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground">
-        <h4 className="text-base font-semibold text-foreground">Using Motion</h4>
+        <h4 className="text-base font-semibold text-foreground">
+          Using Motion
+        </h4>
         <p>
           If Motion already drives the component&apos;s animations, use
           Motion&apos;s{" "}
@@ -683,33 +691,166 @@ function ManualInstall({
   dependencies: string[];
   registryDependencies: string[];
 }) {
+  const [packageManager, setPackageManager] = useState<PackageManager>(
+    DEFAULT_PACKAGE_MANAGER,
+  );
+
   return (
-    <div className="rounded-xl border bg-background p-4 text-sm">
-      <div className="flex flex-col gap-3">
-        {registryDependencies.length > 0 ? (
-          <div>
-            <div className="font-medium">Install registry dependencies</div>
-            <p className="mt-1 break-all font-mono text-muted-foreground">
-              {getRegistryInstallCommand(registryDependencies.join(" "))}
-            </p>
-          </div>
-        ) : null}
-        {dependencies.length > 0 ? (
-          <div>
-            <div className="font-medium">Install package dependencies</div>
-            <p className="mt-1 break-all font-mono text-muted-foreground">
-              {getPackageInstallCommand(dependencies)}
-            </p>
-          </div>
-        ) : null}
-        <div>
-          <div className="font-medium">Copy the component file</div>
-          <p className="mt-1 text-muted-foreground">
-            Place the registry source at{" "}
-            <code className="font-mono">{targetPath}</code>.
-          </p>
-        </div>
+    <div className="flex max-w-3xl flex-col gap-6 text-sm">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">Manual installation</h3>
+        <p className="leading-6 text-muted-foreground">
+          Use this path when you want to review the source before adding it, or
+          when the registry command is not available in your environment.
+        </p>
       </div>
+      <Tabs
+        value={packageManager}
+        onValueChange={(value) => {
+          if (isPackageManager(value)) {
+            setPackageManager(value);
+          }
+        }}
+        className="gap-3"
+      >
+        <TabsList aria-label="Manual install package manager" className="w-fit">
+          {packageManagers.map((item) => (
+            <TabsTrigger
+              key={item}
+              value={item}
+              onClick={() => setPackageManager(item)}
+              className="px-3"
+            >
+              {item}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {packageManagers.map((item) => (
+          <TabsContent key={item} value={item} className="mt-0">
+            <ManualInstallSteps
+              targetPath={targetPath}
+              dependencies={dependencies}
+              registryDependencies={registryDependencies}
+              packageManager={item}
+            />
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
+  );
+}
+
+function ManualInstallSteps({
+  targetPath,
+  dependencies,
+  registryDependencies,
+  packageManager,
+}: {
+  targetPath: string;
+  dependencies: string[];
+  registryDependencies: string[];
+  packageManager: PackageManager;
+}) {
+  const registryDependencyCommand =
+    registryDependencies.length > 0
+      ? getRegistryInstallCommand(
+          registryDependencies.join(" "),
+          packageManager,
+        )
+      : undefined;
+  const packageDependencyCommand =
+    dependencies.length > 0
+      ? getPackageInstallCommand(dependencies, packageManager)
+      : undefined;
+
+  return (
+    <ol className="flex flex-col gap-0 border-t">
+      <ManualInstallStep
+        number={1}
+        title="Install shadcn/ui dependencies"
+        description={
+          registryDependencyCommand
+            ? "Add the shadcn/ui primitives this item imports."
+            : "This item does not require any shadcn/ui primitives."
+        }
+        command={registryDependencyCommand}
+      />
+      <ManualInstallStep
+        number={2}
+        title="Install package dependencies"
+        description={
+          packageDependencyCommand
+            ? "Add the runtime packages imported by the source."
+            : "This item does not require extra runtime packages."
+        }
+        command={packageDependencyCommand}
+      />
+      <ManualInstallStep
+        number={3}
+        title="Copy the source file"
+        description={
+          <>
+            Create{" "}
+            <code className="font-mono text-foreground">{targetPath}</code>{" "}
+            and paste in the source from the code panel above. Keep the
+            destination aligned with your project&apos;s{" "}
+            <code className="font-mono text-foreground">components.json</code>{" "}
+            aliases.
+          </>
+        }
+      />
+    </ol>
+  );
+}
+
+function ManualInstallStep({
+  number,
+  title,
+  description,
+  command,
+}: {
+  number: number;
+  title: string;
+  description: ReactNode;
+  command?: string;
+}) {
+  return (
+    <li className="grid gap-3 border-b py-5 sm:grid-cols-[2rem_minmax(0,1fr)]">
+      <span
+        aria-hidden="true"
+        className="flex size-7 items-center justify-center rounded-full border bg-background font-mono text-xs font-medium text-muted-foreground"
+      >
+        {number}
+      </span>
+      <div className="min-w-0">
+        <div className="font-medium">{title}</div>
+        <p className="mt-1 leading-6 text-muted-foreground">{description}</p>
+        {command ? <ManualInstallCommand command={command} /> : null}
+      </div>
+    </li>
+  );
+}
+
+function ManualInstallCommand({ command }: { command: string }) {
+  return (
+    <div className="relative mt-3 min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50">
+      <div className="no-scrollbar overflow-x-auto px-4 py-3.5 pr-12">
+        <pre>
+          <code
+            className="relative border-0 bg-transparent p-0 font-mono text-sm leading-none"
+            data-language="bash"
+          >
+            {command}
+          </code>
+        </pre>
+      </div>
+      <CopyButton
+        value={command}
+        variant="ghost"
+        className="absolute right-2 top-2 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
+        aria-label="Copy manual installation command"
+        title="Copy command"
+      />
     </div>
   );
 }
