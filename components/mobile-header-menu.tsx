@@ -147,7 +147,7 @@ function MobileLink({
       aria-current={active ? "page" : undefined}
       onClick={() => onOpenChange(false)}
       className={cn(
-        "flex min-w-0 max-w-full items-center gap-2 break-words text-2xl font-medium leading-tight text-foreground transition-colors [overflow-wrap:anywhere] hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "flex min-w-0 max-w-full items-center gap-2 wrap-break-word text-2xl font-medium leading-tight text-foreground transition-colors  hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active && "text-foreground",
         className,
       )}

@@ -86,8 +86,10 @@ export function RegistryDemoShell({
       : item.name;
   const navigationSelection = useMemo(
     () =>
-      findNavigationItem(navigationPanelSourceGroups, navigationSelectionName) ??
-      item,
+      findNavigationItem(
+        navigationPanelSourceGroups,
+        navigationSelectionName,
+      ) ?? item,
     [item, navigationPanelSourceGroups, navigationSelectionName],
   );
   // Park the active item in the upper third of the panel — instantly on open,
@@ -224,7 +226,7 @@ export function RegistryDemoShell({
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
           <div
             ref={treeScrollRef}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-[var(--expanding-button-trigger-inset)]"
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-(--expanding-button-trigger-inset)"
           >
             <div className="flex flex-col gap-1.5">
               {navigationPanelSourceGroups.map((group) => (

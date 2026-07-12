@@ -551,7 +551,7 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
       </div>
       {!isCodeVisible ? (
         <div className="absolute inset-0 flex items-center justify-center pb-4">
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/80 to-transparent" />
           <Button
             type="button"
             variant="outline"
@@ -764,7 +764,7 @@ function ManualInstallSteps({
       : undefined;
 
   return (
-    <ol className="flex flex-col gap-0 border-t">
+    <ol className="relative flex flex-col gap-0 before:absolute before:left-3.5 before:top-8 before:bottom-8 before:w-px before:bg-border">
       <ManualInstallStep
         number={1}
         title="Install shadcn/ui dependencies"
@@ -791,9 +791,9 @@ function ManualInstallSteps({
         description={
           <>
             Create{" "}
-            <code className="font-mono text-foreground">{targetPath}</code>{" "}
-            and paste in the source from the code panel above. Keep the
-            destination aligned with your project&apos;s{" "}
+            <code className="font-mono text-foreground">{targetPath}</code> and
+            paste in the source from the code panel above. Keep the destination
+            aligned with your project&apos;s{" "}
             <code className="font-mono text-foreground">components.json</code>{" "}
             aliases.
           </>
@@ -815,10 +815,10 @@ function ManualInstallStep({
   command?: string;
 }) {
   return (
-    <li className="grid gap-3 border-b py-5 sm:grid-cols-[2rem_minmax(0,1fr)]">
+    <li className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-5">
       <span
         aria-hidden="true"
-        className="flex size-7 items-center justify-center rounded-full border bg-background font-mono text-xs font-medium text-muted-foreground"
+        className="relative z-10 flex size-7 items-center justify-center rounded-full border bg-background font-mono text-xs font-medium text-muted-foreground"
       >
         {number}
       </span>
