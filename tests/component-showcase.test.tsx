@@ -108,10 +108,13 @@ describe("ComponentShowcase manual installation", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Manual" }));
 
     expect(screen.getByText("Copy the source files")).toBeTruthy();
-    expect(screen.getByText("components/ui/example-item.tsx")).toBeTruthy();
+    expect(screen.getAllByText("components/ui/example-item.tsx")).toHaveLength(
+      2,
+    );
+    expect(screen.getByText("components/ui/example-item.css")).toBeTruthy();
     expect(
       screen.getByText(
-        "For CSS-only, select the CSS only variant above, then copy both the TSX and CSS files.",
+        "For CSS-only, select the CSS only variant above, then create both files.",
       ),
     ).toBeTruthy();
     expect(

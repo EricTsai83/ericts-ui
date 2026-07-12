@@ -812,7 +812,9 @@ function ManualInstallSteps({
       </ManualInstallStep>
       <ManualInstallStep
         number={3}
-        title={hasCssOnlyVariant ? "Copy the source files" : "Copy the source file"}
+        title={
+          hasCssOnlyVariant ? "Copy the source files" : "Copy the source file"
+        }
         description={
           <SourceCopyDescription
             targetPath={targetPath}
@@ -863,6 +865,8 @@ function SourceCopyDescription({
   targetPath: string;
   hasCssOnlyVariant: boolean;
 }) {
+  const cssOnlyTargetPath = getCssOnlyTargetPath(targetPath);
+
   return (
     <div className="flex flex-col gap-2">
       <span>
@@ -876,12 +880,24 @@ function SourceCopyDescription({
       {hasCssOnlyVariant ? (
         <>
           <span>
-            For CSS-only, select the CSS only variant above, then copy both the
-            TSX and CSS files.
+            For CSS-only, select the CSS only variant above, then create both
+            files.
           </span>
+          <ul className="flex flex-col gap-1">
+            <li>
+              <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                {targetPath}
+              </code>
+            </li>
+            <li>
+              <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                {cssOnlyTargetPath}
+              </code>
+            </li>
+          </ul>
           <span>
-            Keep the local CSS import, or move that CSS into your global
-            stylesheet.
+            Keep the local CSS import if the files stay together. If you move
+            the CSS into your global stylesheet, remove or update that import.
           </span>
         </>
       ) : null}
@@ -890,6 +906,12 @@ function SourceCopyDescription({
       </span>
     </div>
   );
+}
+
+function getCssOnlyTargetPath(targetPath: string) {
+  return targetPath.includes(".")
+    ? targetPath.replace(/\.[^/.]+$/, ".css")
+    : `${targetPath}.css`;
 }
 
 function ManualInstallStep({
