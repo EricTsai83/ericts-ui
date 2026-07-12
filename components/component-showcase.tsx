@@ -610,13 +610,17 @@ function InstallationPanel({
           </TabsTrigger>
         </TabsList>
         <TabsContent value="command" className="min-w-0">
-          <RegistryInstallCommand name={name} />
+          <div className="flex min-w-0 flex-col gap-3">
+            <RegistryInstallCommand name={name} />
+            {hasCssOnlyVariant ? <CssOnlyCommandNote /> : null}
+          </div>
         </TabsContent>
         <TabsContent value="manual" className="min-w-0">
           <ManualInstall
             targetPath={targetPath}
             dependencies={dependencies}
             registryDependencies={registryDependencies}
+            hasCssOnlyVariant={hasCssOnlyVariant}
           />
         </TabsContent>
       </Tabs>
@@ -624,6 +628,17 @@ function InstallationPanel({
         <UseReducedMotionInstallationNotes snippets={motionApiSnippets} />
       ) : null}
     </section>
+  );
+}
+
+function CssOnlyCommandNote() {
+  return (
+    <div className="max-w-3xl text-sm leading-6 text-muted-foreground">
+      <p>
+        This command installs the Motion version. For CSS-only, use Manual and
+        select the CSS only code variant.
+      </p>
+    </div>
   );
 }
 
@@ -688,10 +703,12 @@ function ManualInstall({
   targetPath,
   dependencies,
   registryDependencies,
+  hasCssOnlyVariant,
 }: {
   targetPath: string;
   dependencies: string[];
   registryDependencies: string[];
+  hasCssOnlyVariant: boolean;
 }) {
   const [packageManager, setPackageManager] = useState<PackageManager>(
     DEFAULT_PACKAGE_MANAGER,
@@ -705,11 +722,18 @@ function ManualInstall({
           Use this path when you want to review the source before adding it, or
           when the registry command is not available in your environment.
         </p>
+        {hasCssOnlyVariant ? (
+          <p className="leading-6 text-muted-foreground">
+            For CSS-only, select the CSS only code variant above before copying
+            files.
+          </p>
+        ) : null}
       </div>
       <ManualInstallSteps
         targetPath={targetPath}
         dependencies={dependencies}
         registryDependencies={registryDependencies}
+        hasCssOnlyVariant={hasCssOnlyVariant}
         packageManager={packageManager}
         onPackageManagerChange={setPackageManager}
       />
@@ -721,12 +745,14 @@ function ManualInstallSteps({
   targetPath,
   dependencies,
   registryDependencies,
+  hasCssOnlyVariant,
   packageManager,
   onPackageManagerChange,
 }: {
   targetPath: string;
   dependencies: string[];
   registryDependencies: string[];
+  hasCssOnlyVariant: boolean;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
 }) {
@@ -738,6 +764,14 @@ function ManualInstallSteps({
   const packageDependencyCommand =
     dependencies.length > 0
       ? (item: PackageManager) => getPackageInstallCommand(dependencies, item)
+      : undefined;
+  const cssOnlyDependencies = hasCssOnlyVariant
+    ? dependencies.filter((dependency) => dependency !== "motion")
+    : [];
+  const cssOnlyPackageDependencyCommand =
+    cssOnlyDependencies.length > 0
+      ? (item: PackageManager) =>
+          getPackageInstallCommand(cssOnlyDependencies, item)
       : undefined;
 
   return (
@@ -758,31 +792,103 @@ function ManualInstallSteps({
         number={2}
         title="Install package dependencies"
         description={
-          packageDependencyCommand
-            ? "Add the runtime packages imported by the source."
-            : "This item does not require extra runtime packages."
+          packageDependencyCommand && hasCssOnlyVariant
+            ? "The command below matches the Motion source. For CSS-only, skip motion and install only the remaining package imports."
+            : packageDependencyCommand
+              ? "Add the runtime packages imported by the source."
+              : "This item does not require extra runtime packages."
         }
         command={packageDependencyCommand}
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
-      />
+      >
+        {hasCssOnlyVariant ? (
+          <CssOnlyPackageDependencyNote
+            command={cssOnlyPackageDependencyCommand}
+            packageManager={packageManager}
+            onPackageManagerChange={onPackageManagerChange}
+          />
+        ) : null}
+      </ManualInstallStep>
       <ManualInstallStep
         number={3}
-        title="Copy the source file"
+        title={hasCssOnlyVariant ? "Copy the source files" : "Copy the source file"}
         description={
-          <>
-            Create{" "}
-            <code className="font-mono text-foreground">{targetPath}</code> and
-            paste in the source from the code panel above. Keep the destination
-            aligned with your project&apos;s{" "}
-            <code className="font-mono text-foreground">components.json</code>{" "}
-            aliases.
-          </>
+          <SourceCopyDescription
+            targetPath={targetPath}
+            hasCssOnlyVariant={hasCssOnlyVariant}
+          />
         }
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
       />
     </ol>
+  );
+}
+
+function CssOnlyPackageDependencyNote({
+  command,
+  packageManager,
+  onPackageManagerChange,
+}: {
+  command?: ManualInstallCommandFactory;
+  packageManager: PackageManager;
+  onPackageManagerChange: (packageManager: PackageManager) => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-col gap-2">
+      <div className="text-sm font-medium text-foreground">
+        CSS-only package dependencies
+      </div>
+      {command ? (
+        <ManualInstallCommand
+          command={command}
+          packageManager={packageManager}
+          onPackageManagerChange={onPackageManagerChange}
+        />
+      ) : (
+        <p className="leading-6 text-muted-foreground">
+          No package command is needed for the CSS-only source after the
+          shadcn/ui dependencies are installed.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SourceCopyDescription({
+  targetPath,
+  hasCssOnlyVariant,
+}: {
+  targetPath: string;
+  hasCssOnlyVariant: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span>
+        {hasCssOnlyVariant
+          ? "For the Motion version, create this file and paste in the Motion source from the code panel."
+          : "Create this file and paste in the source from the code panel."}
+      </span>
+      <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+        {targetPath}
+      </code>
+      {hasCssOnlyVariant ? (
+        <>
+          <span>
+            For CSS-only, select the CSS only variant above, then copy both the
+            TSX and CSS files.
+          </span>
+          <span>
+            Keep the local CSS import, or move that CSS into your global
+            stylesheet.
+          </span>
+        </>
+      ) : null}
+      <span>
+        Keep destinations aligned with the aliases in components.json.
+      </span>
+    </div>
   );
 }
 
@@ -793,6 +899,7 @@ function ManualInstallStep({
   command,
   packageManager,
   onPackageManagerChange,
+  children,
 }: {
   number: number;
   title: string;
@@ -800,6 +907,7 @@ function ManualInstallStep({
   command?: ManualInstallCommandFactory;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
+  children?: ReactNode;
 }) {
   return (
     <li className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-5">
@@ -811,7 +919,9 @@ function ManualInstallStep({
       </span>
       <div className="min-w-0">
         <div className="font-medium">{title}</div>
-        <p className="mt-1 leading-6 text-muted-foreground">{description}</p>
+        <div className="mt-1 leading-6 text-muted-foreground">
+          {description}
+        </div>
         {command ? (
           <ManualInstallCommand
             command={command}
@@ -819,6 +929,7 @@ function ManualInstallStep({
             onPackageManagerChange={onPackageManagerChange}
           />
         ) : null}
+        {children}
       </div>
     </li>
   );
