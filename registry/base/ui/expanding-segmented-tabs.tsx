@@ -10,7 +10,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-export type MorphingSegmentedControlItem = {
+export type ExpandingSegmentedTabsItem = {
   value: string;
   label: React.ReactNode;
   icon: React.ReactNode;
@@ -18,24 +18,24 @@ export type MorphingSegmentedControlItem = {
   ariaLabel?: string;
 };
 
-export type MorphingSegmentedControlProps = Omit<
+export type ExpandingSegmentedTabsProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "defaultValue" | "onChange"
 > & {
-  items: MorphingSegmentedControlItem[];
+  items: ExpandingSegmentedTabsItem[];
   value?: string;
   defaultValue?: string;
   onValueChange?: (
     value: string,
-    item: MorphingSegmentedControlItem,
+    item: ExpandingSegmentedTabsItem,
   ) => void;
   onValueIntent?: (
     value: string,
-    item: MorphingSegmentedControlItem,
+    item: ExpandingSegmentedTabsItem,
   ) => void;
   /**
    * Preserves the last selected value across unmount/remount for this key, so
-   * route-driven mode switches can still animate from the previous segment.
+   * route-driven mode switches can still animate from the previous tab.
    */
   transitionKey?: string | null;
   listClassName?: string;
@@ -53,7 +53,7 @@ type FlexTarget = {
   flexBasis: string;
 };
 
-const MORPH_TRANSITION: Transition = {
+const EXPAND_TRANSITION: Transition = {
   duration: 0.28,
   ease: [0.77, 0, 0.175, 1],
 };
@@ -72,12 +72,12 @@ const INACTIVE_FLEX: FlexTarget = {
 
 const selectedValueByTransitionKey = new Map<string, string>();
 
-function getEnabledItems(items: MorphingSegmentedControlItem[]) {
+function getEnabledItems(items: ExpandingSegmentedTabsItem[]) {
   return items.filter((item) => !item.disabled);
 }
 
 function getSelectableValue(
-  items: MorphingSegmentedControlItem[],
+  items: ExpandingSegmentedTabsItem[],
   value: string | undefined,
 ) {
   const enabledItems = getEnabledItems(items);
@@ -88,13 +88,13 @@ function getSelectableValue(
 }
 
 function getItemByValue(
-  items: MorphingSegmentedControlItem[],
+  items: ExpandingSegmentedTabsItem[],
   value: string,
 ) {
   return items.find((item) => item.value === value);
 }
 
-export function MorphingSegmentedControl({
+export function ExpandingSegmentedTabs({
   items,
   value,
   defaultValue,
@@ -110,7 +110,7 @@ export function MorphingSegmentedControl({
   indicatorClassName,
   "aria-label": ariaLabel = "Options",
   ...props
-}: MorphingSegmentedControlProps) {
+}: ExpandingSegmentedTabsProps) {
   const shouldReduceMotion = useReducedMotion();
   const isControlled = value !== undefined;
   const itemRefs = React.useRef(new Map<string, HTMLButtonElement>());
@@ -165,7 +165,7 @@ export function MorphingSegmentedControl({
   }, []);
 
   const handleIntent = React.useCallback(
-    (item: MorphingSegmentedControlItem) => {
+    (item: ExpandingSegmentedTabsItem) => {
       if (item.disabled || item.value === selectedValue) return;
 
       onValueIntent?.(item.value, item);
@@ -215,18 +215,18 @@ export function MorphingSegmentedControl({
     transitionFromValue !== null && !exitIndicatorDone && !shouldReduceMotion;
   const transition = shouldReduceMotion
     ? { duration: 0 }
-    : MORPH_TRANSITION;
+    : EXPAND_TRANSITION;
 
   return (
     <div
-      data-slot="morphing-segmented-control"
+      data-slot="expanding-segmented-tabs"
       className={cn("flex w-full max-w-sm", className)}
       {...props}
     >
       <div
-        role="radiogroup"
+        role="tablist"
         aria-label={ariaLabel}
-        data-slot="morphing-segmented-control-list"
+        data-slot="expanding-segmented-tabs-list"
         className={cn(
           "flex h-10 w-full items-center gap-1 rounded-xl border bg-muted/70 p-1",
           listClassName,
@@ -257,12 +257,12 @@ export function MorphingSegmentedControl({
                 }
               }}
               type="button"
-              role="radio"
-              aria-checked={isActive}
+              role="tab"
+              aria-selected={isActive}
               aria-label={item.ariaLabel}
               disabled={item.disabled}
               tabIndex={isActive ? 0 : -1}
-              data-slot="morphing-segmented-control-item"
+              data-slot="expanding-segmented-tabs-item"
               data-active={isActive ? "" : undefined}
               initial={initialStyles}
               animate={animateStyles}

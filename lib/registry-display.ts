@@ -205,7 +205,7 @@ const registryDisplayItemConfigs = [
   { name: "floating-select", kind: "component", category: "form" },
   { name: "highlight-tabs", kind: "component", category: "navigation" },
   {
-    name: "morphing-segmented-control",
+    name: "expanding-segmented-tabs",
     kind: "component",
     category: "navigation",
   },

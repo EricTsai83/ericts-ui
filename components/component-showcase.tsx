@@ -1,6 +1,6 @@
 "use client";
 
-import { Atom, Maximize2 } from "lucide-react";
+import { Atom, Maximize2, Terminal } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
@@ -41,6 +41,8 @@ export type ComponentCodeVariant = {
   label: string;
   files: ComponentCodeFile[];
 };
+
+type ManualInstallCommandFactory = (packageManager: PackageManager) => string;
 
 type ComponentShowcaseProps = {
   name: string;
@@ -704,38 +706,13 @@ function ManualInstall({
           when the registry command is not available in your environment.
         </p>
       </div>
-      <Tabs
-        value={packageManager}
-        onValueChange={(value) => {
-          if (isPackageManager(value)) {
-            setPackageManager(value);
-          }
-        }}
-        className="gap-3"
-      >
-        <TabsList aria-label="Manual install package manager" className="w-fit">
-          {packageManagers.map((item) => (
-            <TabsTrigger
-              key={item}
-              value={item}
-              onClick={() => setPackageManager(item)}
-              className="px-3"
-            >
-              {item}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {packageManagers.map((item) => (
-          <TabsContent key={item} value={item} className="mt-0">
-            <ManualInstallSteps
-              targetPath={targetPath}
-              dependencies={dependencies}
-              registryDependencies={registryDependencies}
-              packageManager={item}
-            />
-          </TabsContent>
-        ))}
-      </Tabs>
+      <ManualInstallSteps
+        targetPath={targetPath}
+        dependencies={dependencies}
+        registryDependencies={registryDependencies}
+        packageManager={packageManager}
+        onPackageManagerChange={setPackageManager}
+      />
     </div>
   );
 }
@@ -745,22 +722,22 @@ function ManualInstallSteps({
   dependencies,
   registryDependencies,
   packageManager,
+  onPackageManagerChange,
 }: {
   targetPath: string;
   dependencies: string[];
   registryDependencies: string[];
   packageManager: PackageManager;
+  onPackageManagerChange: (packageManager: PackageManager) => void;
 }) {
   const registryDependencyCommand =
     registryDependencies.length > 0
-      ? getRegistryInstallCommand(
-          registryDependencies.join(" "),
-          packageManager,
-        )
+      ? (item: PackageManager) =>
+          getRegistryInstallCommand(registryDependencies.join(" "), item)
       : undefined;
   const packageDependencyCommand =
     dependencies.length > 0
-      ? getPackageInstallCommand(dependencies, packageManager)
+      ? (item: PackageManager) => getPackageInstallCommand(dependencies, item)
       : undefined;
 
   return (
@@ -774,6 +751,8 @@ function ManualInstallSteps({
             : "This item does not require any shadcn/ui primitives."
         }
         command={registryDependencyCommand}
+        packageManager={packageManager}
+        onPackageManagerChange={onPackageManagerChange}
       />
       <ManualInstallStep
         number={2}
@@ -784,6 +763,8 @@ function ManualInstallSteps({
             : "This item does not require extra runtime packages."
         }
         command={packageDependencyCommand}
+        packageManager={packageManager}
+        onPackageManagerChange={onPackageManagerChange}
       />
       <ManualInstallStep
         number={3}
@@ -798,6 +779,8 @@ function ManualInstallSteps({
             aliases.
           </>
         }
+        packageManager={packageManager}
+        onPackageManagerChange={onPackageManagerChange}
       />
     </ol>
   );
@@ -808,11 +791,15 @@ function ManualInstallStep({
   title,
   description,
   command,
+  packageManager,
+  onPackageManagerChange,
 }: {
   number: number;
   title: string;
   description: ReactNode;
-  command?: string;
+  command?: ManualInstallCommandFactory;
+  packageManager: PackageManager;
+  onPackageManagerChange: (packageManager: PackageManager) => void;
 }) {
   return (
     <li className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-3 py-5">
@@ -825,29 +812,83 @@ function ManualInstallStep({
       <div className="min-w-0">
         <div className="font-medium">{title}</div>
         <p className="mt-1 leading-6 text-muted-foreground">{description}</p>
-        {command ? <ManualInstallCommand command={command} /> : null}
+        {command ? (
+          <ManualInstallCommand
+            command={command}
+            packageManager={packageManager}
+            onPackageManagerChange={onPackageManagerChange}
+          />
+        ) : null}
       </div>
     </li>
   );
 }
 
-function ManualInstallCommand({ command }: { command: string }) {
+function ManualInstallCommand({
+  command,
+  packageManager,
+  onPackageManagerChange,
+}: {
+  command: ManualInstallCommandFactory;
+  packageManager: PackageManager;
+  onPackageManagerChange: (packageManager: PackageManager) => void;
+}) {
+  const selectedCommand = command(packageManager);
+
   return (
     <div className="relative mt-3 min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50">
-      <div className="no-scrollbar overflow-x-auto px-4 py-3.5 pr-12">
-        <pre>
-          <code
-            className="relative border-0 bg-transparent p-0 font-mono text-sm leading-none"
-            data-language="bash"
+      <Tabs
+        value={packageManager}
+        className="gap-0"
+        onValueChange={(value) => {
+          if (isPackageManager(value)) {
+            onPackageManagerChange(value);
+          }
+        }}
+      >
+        <div className="flex items-center gap-2 border-b border-border/50 px-3 py-1 pr-11">
+          <span className="flex size-4 shrink-0 items-center justify-center rounded-[1px] bg-foreground opacity-70">
+            <Terminal className="size-3 text-background" aria-hidden="true" />
+          </span>
+          <TabsList
+            aria-label="Manual install package manager"
+            className="rounded-none bg-transparent p-0"
           >
-            {command}
-          </code>
-        </pre>
-      </div>
+            {packageManagers.map((item) => (
+              <TabsTrigger
+                key={item}
+                value={item}
+                onClick={() => onPackageManagerChange(item)}
+                className="h-7 border border-transparent px-2.5 pt-0.5 shadow-none! data-active:border-input data-active:bg-background!"
+              >
+                {item}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        <div className="no-scrollbar overflow-x-auto">
+          {packageManagers.map((item) => (
+            <TabsContent
+              key={item}
+              value={item}
+              className="mt-0 min-w-max px-4 py-3.5 pr-12"
+            >
+              <pre>
+                <code
+                  className="relative border-0 bg-transparent p-0 font-mono text-sm leading-none"
+                  data-language="bash"
+                >
+                  {command(item)}
+                </code>
+              </pre>
+            </TabsContent>
+          ))}
+        </div>
+      </Tabs>
       <CopyButton
-        value={command}
+        value={selectedCommand}
         variant="ghost"
-        className="absolute right-2 top-2 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
+        className="absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
         aria-label="Copy manual installation command"
         title="Copy command"
       />

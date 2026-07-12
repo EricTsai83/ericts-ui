@@ -318,21 +318,21 @@
       ]
     },
     {
-      "name": "morphing-segmented-control",
+      "name": "expanding-segmented-tabs",
       "type": "registry:ui",
-      "title": "Morphing Segmented Control",
-      "description": "A Motion-powered segmented control whose active option expands from icon-only into a labeled segment.",
-      "categories": ["navigation", "segmented-control"],
+      "title": "Expanding Segmented Tabs",
+      "description": "A Motion-powered segmented tab list for switching modes or views, with an active tab that expands from icon-only into a label.",
+      "categories": ["navigation", "tabs"],
       "meta": {
-        "tags": ["segmented-control", "mode-switcher", "roving-focus", "arrow-keys"],
-        "effects": ["flex-morph", "active-pill", "tap-feedback", "reduced-motion"]
+        "tags": ["segmented-tabs", "mode-switcher", "roving-focus", "arrow-keys"],
+        "effects": ["active-expand", "active-pill", "tap-feedback", "reduced-motion"]
       },
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/morphing-segmented-control.tsx",
+          "path": "registry/base/ui/expanding-segmented-tabs.tsx",
           "type": "registry:ui",
-          "target": "components/ui/morphing-segmented-control.tsx"
+          "target": "components/ui/expanding-segmented-tabs.tsx"
         }
       ]
     },

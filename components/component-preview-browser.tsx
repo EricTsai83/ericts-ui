@@ -23,7 +23,9 @@ type ComponentPreviewBrowserProps = {
   items: ComponentPreviewBrowserItem[];
 };
 
-export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps) {
+export function ComponentPreviewBrowser({
+  items,
+}: ComponentPreviewBrowserProps) {
   const tabListRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const [activeName, setActiveName] = useState(() => items[0]?.name ?? "");
@@ -125,7 +127,7 @@ export function ComponentPreviewBrowser({ items }: ComponentPreviewBrowserProps)
           >
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:48px_48px] opacity-35 [mask-image:linear-gradient(to_bottom,transparent,black_16%,black_86%,transparent)] dark:opacity-20"
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[48px_48px] opacity-35 mask-[linear-gradient(to_bottom,transparent,black_16%,black_86%,transparent)] dark:opacity-20"
             />
             <div className="relative z-10 flex w-full min-w-0 items-center justify-center">
               <RegistryPreview name={activeItem.name} />

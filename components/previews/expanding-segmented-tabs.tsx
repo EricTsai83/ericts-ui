@@ -4,11 +4,11 @@ import { BookOpen, MessageSquareText, Rows3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
-  MorphingSegmentedControl,
-  type MorphingSegmentedControlItem,
-} from "@/registry/base/ui/morphing-segmented-control";
+  ExpandingSegmentedTabs,
+  type ExpandingSegmentedTabsItem,
+} from "@/registry/base/ui/expanding-segmented-tabs";
 
-const items: MorphingSegmentedControlItem[] = [
+const items: ExpandingSegmentedTabsItem[] = [
   {
     value: "discuss",
     label: "Discuss",
@@ -41,7 +41,7 @@ export default function Preview() {
 
   return (
     <div className="flex w-full max-w-72 flex-col items-center gap-4">
-      <MorphingSegmentedControl
+      <ExpandingSegmentedTabs
         items={items}
         value={value}
         onValueChange={setValue}

@@ -3,11 +3,11 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  MorphingSegmentedControl,
-  type MorphingSegmentedControlItem,
-} from "@/registry/base/ui/morphing-segmented-control";
+  ExpandingSegmentedTabs,
+  type ExpandingSegmentedTabsItem,
+} from "@/registry/base/ui/expanding-segmented-tabs";
 
-const items: MorphingSegmentedControlItem[] = [
+const items: ExpandingSegmentedTabsItem[] = [
   { value: "discuss", label: "Discuss", icon: <span>D</span> },
   { value: "library", label: "Library", icon: <span>L</span>, disabled: true },
   { value: "queue", label: "Queue", icon: <span>Q</span> },
@@ -15,22 +15,22 @@ const items: MorphingSegmentedControlItem[] = [
 
 afterEach(cleanup);
 
-describe("MorphingSegmentedControl", () => {
+describe("ExpandingSegmentedTabs", () => {
   it("selects values in uncontrolled mode", () => {
     const onValueChange = vi.fn();
 
     render(
-      <MorphingSegmentedControl
+      <ExpandingSegmentedTabs
         items={items}
         defaultValue="discuss"
         onValueChange={onValueChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole("radio", { name: "Queue" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Queue" }));
 
     expect(
-      screen.getByRole("radio", { name: "Queue" }).getAttribute("aria-checked"),
+      screen.getByRole("tab", { name: "Queue" }).getAttribute("aria-selected"),
     ).toBe("true");
     expect(onValueChange).toHaveBeenCalledWith(
       "queue",
@@ -42,19 +42,19 @@ describe("MorphingSegmentedControl", () => {
     const onValueChange = vi.fn();
 
     render(
-      <MorphingSegmentedControl
+      <ExpandingSegmentedTabs
         items={items}
         value="discuss"
         onValueChange={onValueChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole("radio", { name: "Queue" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Queue" }));
 
     expect(
       screen
-        .getByRole("radio", { name: "Discuss" })
-        .getAttribute("aria-checked"),
+        .getByRole("tab", { name: "Discuss" })
+        .getAttribute("aria-selected"),
     ).toBe("true");
     expect(onValueChange).toHaveBeenCalledWith(
       "queue",
@@ -66,20 +66,20 @@ describe("MorphingSegmentedControl", () => {
     const onValueChange = vi.fn();
 
     render(
-      <MorphingSegmentedControl
+      <ExpandingSegmentedTabs
         items={items}
         defaultValue="discuss"
         onValueChange={onValueChange}
       />,
     );
 
-    fireEvent.keyDown(screen.getByRole("radio", { name: "Discuss" }), {
+    fireEvent.keyDown(screen.getByRole("tab", { name: "Discuss" }), {
       key: "ArrowRight",
     });
 
-    const queueItem = screen.getByRole("radio", { name: "Queue" });
+    const queueItem = screen.getByRole("tab", { name: "Queue" });
 
-    expect(queueItem.getAttribute("aria-checked")).toBe("true");
+    expect(queueItem.getAttribute("aria-selected")).toBe("true");
     expect(document.activeElement).toBe(queueItem);
     expect(onValueChange).toHaveBeenCalledWith(
       "queue",
@@ -91,15 +91,15 @@ describe("MorphingSegmentedControl", () => {
     const onValueIntent = vi.fn();
 
     render(
-      <MorphingSegmentedControl
+      <ExpandingSegmentedTabs
         items={items}
         defaultValue="discuss"
         onValueIntent={onValueIntent}
       />,
     );
 
-    fireEvent.pointerEnter(screen.getByRole("radio", { name: "Queue" }));
-    fireEvent.focus(screen.getByRole("radio", { name: "Library" }));
+    fireEvent.pointerEnter(screen.getByRole("tab", { name: "Queue" }));
+    fireEvent.focus(screen.getByRole("tab", { name: "Library" }));
 
     expect(onValueIntent).toHaveBeenCalledTimes(1);
     expect(onValueIntent).toHaveBeenCalledWith(
