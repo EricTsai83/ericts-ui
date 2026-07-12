@@ -10,8 +10,13 @@ back here to add components, hooks, or blocks from ericts/ui.
 
 ## Install an item
 
-Use the shadcn CLI with the public registry JSON endpoint.
+Use the shadcn CLI with the registered ericts/ui namespace.
 
 <RegistryInstallCommand name="copy-button" />
 
 Replace `copy-button` with any item name from the components, hooks, or blocks pages.
+
+If the namespace is not available in your CLI yet, use the public registry JSON
+endpoint as a fallback.
+
+<RegistryInstallCommand name="copy-button" mode="url" />

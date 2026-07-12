@@ -10,7 +10,7 @@ import {
   type HTMLMotionProps,
 } from "motion/react";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -241,8 +241,8 @@ export function AdaptiveDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        {trigger ?? <Button type="button">{triggerLabel}</Button>}
+      <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
+        {trigger ?? triggerLabel}
       </DrawerTrigger>
       <DrawerContent
         onPointerDown={(event) => {
@@ -287,16 +287,15 @@ export function AdaptiveDrawer({
                       </DrawerDescription>
                     ) : null}
                   </div>
-                  <DrawerClose asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={closeLabel}
-                      className="rounded-full"
-                    >
-                      <X aria-hidden />
-                    </Button>
+                  <DrawerClose
+                    aria-label={closeLabel}
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "icon",
+                      className: "rounded-full",
+                    })}
+                  >
+                    <X aria-hidden />
                   </DrawerClose>
                 </div>
 

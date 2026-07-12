@@ -14,7 +14,7 @@ export function getRegistryUrlTarget(name: string) {
 
 export function getRegistryInstallTarget(
   name: string,
-  mode: RegistryInstallMode = "url",
+  mode: RegistryInstallMode = "namespace",
 ) {
   return mode === "namespace"
     ? getRegistryNamespaceTarget(name)

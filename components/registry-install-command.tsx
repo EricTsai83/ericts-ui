@@ -31,7 +31,7 @@ function isPackageManager(value: string): value is PackageManager {
 export function RegistryInstallCommand({
   name,
   className,
-  mode = "url",
+  mode = "namespace",
   defaultPackageManager = DEFAULT_PACKAGE_MANAGER,
 }: {
   name: string;

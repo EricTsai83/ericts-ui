@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
 import { ChevronDown } from "lucide-react";
 import { cva } from "class-variance-authority";

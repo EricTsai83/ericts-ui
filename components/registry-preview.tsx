@@ -24,6 +24,7 @@ const previews: Record<string, PreviewComponent> = {
   "expandable-toolbar": dynamic(() => import("@/components/previews/expandable-toolbar")),
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
   "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
+  "morphing-segmented-control": dynamic(() => import("@/components/previews/morphing-segmented-control")),
   "expandable-tabs": dynamic(() => import("@/components/previews/expandable-tabs")),
   "expanding-button": dynamic(() => import("@/components/previews/expanding-button")),
   "navigation-menu": dynamic(() => import("@/components/previews/navigation-menu")),
