@@ -34,7 +34,9 @@ export type ElementSize = {
  */
 export function useElementSizeMap<T extends HTMLElement>(threshold = 0.5) {
   const [sizes, setSizes] = useState<Record<string, ElementSize>>({});
-  const observers = useRef(new Map<string, ResizeObserver>());
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const elements = useRef(new Map<string, T>());
+  const idsByElement = useRef(new WeakMap<Element, string>());
   const callbacks = useRef(new Map<string, (node: T | null) => void>());
   const thresholdRef = useRef(threshold);
 
@@ -43,34 +45,87 @@ export function useElementSizeMap<T extends HTMLElement>(threshold = 0.5) {
   }, [threshold]);
 
   useEffect(() => {
-    const activeObservers = observers.current;
+    const activeElements = elements.current;
 
     return () => {
-      activeObservers.forEach((observer) => observer.disconnect());
-      activeObservers.clear();
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      activeElements.clear();
+      idsByElement.current = new WeakMap();
     };
   }, []);
 
-  const updateSize = useCallback((id: string, nextSize: ElementSize) => {
-    setSizes((current) => {
-      const currentSize = current[id];
+  const updateSizes = useCallback(
+    (updates: ReadonlyArray<readonly [string, ElementSize]>) => {
+      setSizes((current) => {
+        let next = current;
 
-      if (
-        currentSize &&
-        Math.abs(currentSize.width - nextSize.width) <= thresholdRef.current &&
-        Math.abs(currentSize.height - nextSize.height) <= thresholdRef.current
-      ) {
-        return current;
-      }
+        for (const [id, nextSize] of updates) {
+          const currentSize = current[id];
 
-      return { ...current, [id]: nextSize };
-    });
-  }, []);
+          if (
+            currentSize &&
+            Math.abs(currentSize.width - nextSize.width) <=
+              thresholdRef.current &&
+            Math.abs(currentSize.height - nextSize.height) <=
+              thresholdRef.current
+          ) {
+            continue;
+          }
+
+          if (next === current) {
+            next = { ...current };
+          }
+
+          next[id] = nextSize;
+        }
+
+        return next;
+      });
+    },
+    [],
+  );
+
+  const getObserver = useCallback(() => {
+    if (typeof ResizeObserver === "undefined") return null;
+
+    if (!observerRef.current) {
+      observerRef.current = new ResizeObserver((entries) => {
+        const updates: Array<readonly [string, ElementSize]> = [];
+
+        for (const entry of entries) {
+          const id = idsByElement.current.get(entry.target);
+
+          if (id === undefined) continue;
+
+          updates.push([id, readElementSize(entry.target, entry)]);
+        }
+
+        if (updates.length > 0) {
+          updateSizes(updates);
+        }
+      });
+    }
+
+    return observerRef.current;
+  }, [updateSizes]);
 
   const disconnect = useCallback((id: string) => {
-    observers.current.get(id)?.disconnect();
-    observers.current.delete(id);
+    const element = elements.current.get(id);
+
+    if (!element) return;
+
+    observerRef.current?.unobserve(element);
+    idsByElement.current.delete(element);
+    elements.current.delete(id);
   }, []);
+
+  const updateSize = useCallback(
+    (id: string, nextSize: ElementSize) => {
+      updateSizes([[id, nextSize]]);
+    },
+    [updateSizes],
+  );
 
   const setMeasureRef = useCallback(
     (id: string) => {
@@ -89,25 +144,20 @@ export function useElementSizeMap<T extends HTMLElement>(threshold = 0.5) {
 
         updateSize(id, readElementSize(node));
 
-        if (typeof ResizeObserver === "undefined") return;
+        const observer = getObserver();
 
-        const observer = new ResizeObserver((entries) => {
-          const entry = entries[0];
-
-          if (!entry) return;
-
-          updateSize(id, readElementSize(entry.target, entry));
-        });
-
-        observer.observe(node);
-        observers.current.set(id, observer);
+        if (observer) {
+          elements.current.set(id, node);
+          idsByElement.current.set(node, id);
+          observer.observe(node);
+        }
       };
 
       callbacks.current.set(id, ref);
 
       return ref;
     },
-    [disconnect, updateSize],
+    [disconnect, getObserver, updateSize],
   );
 
   return { setMeasureRef, sizes } as const;

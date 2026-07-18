@@ -144,6 +144,8 @@ export function FloatingSelect({
   );
 
   React.useEffect(() => {
+    if (!open) return;
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
@@ -153,7 +155,7 @@ export function FloatingSelect({
     window.addEventListener("keydown", onKeyDown);
 
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [open]);
 
   React.useEffect(() => {
     if (!open) return;
