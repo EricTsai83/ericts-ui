@@ -5,7 +5,10 @@ import {
   type RegistryListItem,
 } from "@/components/registry-items-browser";
 import { getRegistryItemsByCategory } from "@/lib/registry";
-import { getRegistryDisplayItems } from "@/lib/registry-display";
+import {
+  getRegistryDisplayCategoryDetails,
+  getRegistryDisplayItems,
+} from "@/lib/registry-display";
 
 export const metadata: Metadata = {
   title: "Components",
@@ -13,21 +16,39 @@ export const metadata: Metadata = {
 };
 
 export default function ComponentsPage() {
+  const displayItems = getRegistryDisplayItems("component");
+  const displayItemsByName = new Map(
+    displayItems.map((item) => [item.name, item]),
+  );
+  const displayCategoryLabels = new Map(
+    getRegistryDisplayCategoryDetails("component").map((category) => [
+      category.slug,
+      category.label,
+    ]),
+  );
   const registryComponents = getRegistryItemsByCategory("ui").sort((a, b) =>
     (a.title ?? a.name).localeCompare(b.title ?? b.name),
   );
-  const components: RegistryListItem[] = registryComponents.map((component) => ({
-    name: component.name,
-    title: component.title,
-    description: component.description,
-    category: component.category,
-    categories: component.categories,
-    meta: component.meta,
-    hasCssOnly: component.hasCssOnly,
-    searchTerms: component.searchTerms,
-    href: component.href,
-  }));
-  const firstFullscreenHref = getRegistryDisplayItems("component").find(
+  const components: RegistryListItem[] = registryComponents.map((component) => {
+    const displayItem = displayItemsByName.get(component.name);
+
+    return {
+      name: component.name,
+      title: component.title,
+      description: component.description,
+      category: component.category,
+      categories: component.categories,
+      groupCategory: displayItem?.category,
+      groupLabel: displayItem
+        ? displayCategoryLabels.get(displayItem.category)
+        : undefined,
+      meta: component.meta,
+      hasCssOnly: component.hasCssOnly,
+      searchTerms: component.searchTerms,
+      href: component.href,
+    };
+  });
+  const firstFullscreenHref = displayItems.find(
     (component) => component.browsable !== false,
   )?.viewHref;
 
@@ -45,6 +66,7 @@ export default function ComponentsPage() {
         emptyTitle="No components found"
         emptyDescription="Try a different name, category, or effect."
         noItemsLabel="No components yet."
+        enableArrangement
         fullscreenHref={firstFullscreenHref}
         fullscreenLabel="Browse Full Screen"
       />

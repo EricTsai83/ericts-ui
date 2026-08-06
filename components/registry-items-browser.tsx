@@ -4,6 +4,10 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SearchInput } from "@/components/ui/search-input";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group";
 
 export type RegistryListItem = {
   name: string;
@@ -11,6 +15,8 @@ export type RegistryListItem = {
   description?: string;
   category: string;
   categories?: string[];
+  groupCategory?: string;
+  groupLabel?: string;
   meta?: {
     tags?: string[];
     effects?: string[];
@@ -33,12 +39,60 @@ type RegistryItemsBrowserProps = {
   emptyTitle: string;
   emptyDescription: string;
   noItemsLabel: string;
+  enableArrangement?: boolean;
   fullscreenHref?: string;
   fullscreenLabel?: string;
 };
 
+type BrowseMode = "alphabetical" | "category";
+
+type RegistryItemGroup = {
+  category: string;
+  label: string;
+  items: RegistryListItem[];
+};
+
 function getDisplayName(item: RegistryListItem) {
   return item.title ?? item.name;
+}
+
+function compareItems(a: RegistryListItem, b: RegistryListItem) {
+  return getDisplayName(a).localeCompare(getDisplayName(b));
+}
+
+function formatCategoryLabel(category: string) {
+  return category
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(" ");
+}
+
+function groupItemsByPrimaryCategory(
+  items: RegistryListItem[],
+): RegistryItemGroup[] {
+  const groups = new Map<
+    string,
+    { label: string; items: RegistryListItem[] }
+  >();
+
+  for (const item of items) {
+    const category =
+      item.groupCategory?.trim() || item.categories?.[0]?.trim() || "other";
+    const group = groups.get(category) ?? {
+      label: item.groupLabel?.trim() || formatCategoryLabel(category),
+      items: [],
+    };
+
+    group.items.push(item);
+    groups.set(category, group);
+  }
+
+  return Array.from(groups, ([category, group]) => ({
+    category,
+    label: group.label,
+    items: group.items.sort(compareItems),
+  })).sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function getCountLabel(
@@ -104,10 +158,12 @@ export function RegistryItemsBrowser({
   emptyTitle,
   emptyDescription,
   noItemsLabel,
+  enableArrangement = false,
   fullscreenHref,
   fullscreenLabel = `Browse ${itemLabelPlural} fullscreen`,
 }: RegistryItemsBrowserProps) {
   const [query, setQuery] = useState("");
+  const [browseMode, setBrowseMode] = useState<BrowseMode>("alphabetical");
   const trimmedQuery = query.trim();
   const normalizedQuery = normalizeSearchText(trimmedQuery);
 
@@ -121,6 +177,11 @@ export function RegistryItemsBrowser({
     });
   }, [items, normalizedQuery]);
 
+  const groupedItems = useMemo(
+    () => groupItemsByPrimaryCategory(filteredItems),
+    [filteredItems],
+  );
+
   const resultLabel =
     filteredItems.length === items.length
       ? getCountLabel(items.length, itemLabel, itemLabelPlural)
@@ -131,6 +192,14 @@ export function RegistryItemsBrowser({
         )}`;
 
   const clearSearch = () => setQuery("");
+
+  const handleBrowseModeChange = (values: string[]) => {
+    const nextMode = values[0];
+
+    if (nextMode === "alphabetical" || nextMode === "category") {
+      setBrowseMode(nextMode);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -172,29 +241,80 @@ export function RegistryItemsBrowser({
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-medium text-muted-foreground">
             {resultLabel}
           </h2>
-          {trimmedQuery ? (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <X className="size-3.5" aria-hidden="true" />
-              Clear
-            </button>
-          ) : null}
+
+          <div className="flex items-center gap-2">
+            {trimmedQuery ? (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+                Clear
+              </button>
+            ) : null}
+            {enableArrangement && items.length > 0 ? (
+              <ToggleGroup
+                value={[browseMode]}
+                onValueChange={handleBrowseModeChange}
+                variant="outline"
+                size="sm"
+                spacing={0}
+                aria-label="Arrange items"
+              >
+                <ToggleGroupItem
+                  value="alphabetical"
+                  aria-label="Arrange alphabetically"
+                >
+                  A–Z
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="category"
+                  aria-label="Arrange by category"
+                >
+                  Category
+                </ToggleGroupItem>
+              </ToggleGroup>
+            ) : null}
+          </div>
         </div>
 
         {items.length > 0 ? (
           filteredItems.length > 0 ? (
-            <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredItems.map((item) => (
-                <RegistryItemLink key={item.name} item={item} />
-              ))}
-            </div>
+            browseMode === "category" ? (
+              <div className="flex flex-col gap-8">
+                {groupedItems.map((group) => (
+                  <section
+                    key={group.category}
+                    className="flex flex-col gap-4"
+                  >
+                    <div className="flex items-baseline justify-between gap-4 border-b pb-2">
+                      <h3 className="text-base font-semibold">
+                        {group.label}
+                      </h3>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {group.items.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {group.items.map((item) => (
+                        <RegistryItemLink key={item.name} item={item} />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredItems.map((item) => (
+                  <RegistryItemLink key={item.name} item={item} />
+                ))}
+              </div>
+            )
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed px-6 py-12 text-center">
               <div className="flex max-w-sm flex-col gap-1">
