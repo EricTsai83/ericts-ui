@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <HeaderActions />
         </div>
       </header>
-      <div className="flex-1">{children}</div>
+      <div className="surface-grain flex-1 bg-background">{children}</div>
     </div>
   );
 }

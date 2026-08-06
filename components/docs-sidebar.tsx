@@ -40,7 +40,7 @@ export function CustomDocsSidebar() {
 function DesktopSidebar({ groups }: { groups: DocsNavGroup[] }) {
   return (
     <aside
-      className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-(--fd-sidebar-width) shrink-0 justify-self-end overflow-hidden bg-background text-foreground [grid-area:sidebar] lg:block"
+      className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-(--fd-sidebar-width) shrink-0 justify-self-end overflow-hidden text-foreground [grid-area:sidebar] lg:block"
       aria-label="Documentation sidebar"
     >
       <nav className="flex h-full min-h-0 flex-col gap-9 overflow-y-auto px-4 py-10 text-sm">

@@ -97,7 +97,7 @@ export default function Home() {
     }));
 
   return (
-    <main className="isolate min-h-[calc(100vh-3.5rem)] bg-background text-foreground">
+    <main className="isolate min-h-[calc(100vh-3.5rem)] text-foreground">
       <section className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(340px,42vw)_minmax(0,1fr)] lg:items-start">
         <div className="relative flex min-h-[560px] flex-col justify-between overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
           <div
