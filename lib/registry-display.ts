@@ -194,6 +194,11 @@ const registryDisplayItemConfigs = [
   { name: "copy-button", kind: "component", category: "button" },
   { name: "status-button", kind: "component", category: "button" },
   {
+    name: "expanding-toggle-button",
+    kind: "component",
+    category: "button",
+  },
+  {
     name: "expandable-toolbar",
     kind: "component",
     category: "button",
@@ -216,7 +221,7 @@ const registryDisplayItemConfigs = [
     viewport: "wide",
   },
   {
-    name: "expanding-button",
+    name: "expanding-panel",
     kind: "component",
     category: "overlay",
     viewport: "wide",

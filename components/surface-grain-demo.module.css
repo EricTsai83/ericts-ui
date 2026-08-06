@@ -43,6 +43,11 @@
   gap: 0.375rem;
 }
 
+.headerActions .status {
+  min-width: 8.75rem;
+  text-align: end;
+}
+
 .status {
   color: currentColor;
   opacity: 0.62;

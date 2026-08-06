@@ -65,6 +65,26 @@
       ]
     },
     {
+      "name": "expanding-toggle-button",
+      "type": "registry:ui",
+      "title": "Expanding Toggle Button",
+      "description": "A shadcn toggle button that expands from an icon into an icon-and-label action while keeping the icon anchored.",
+      "categories": ["button"],
+      "meta": {
+        "tags": ["button", "toggle", "icon", "controlled", "disclosure"],
+        "effects": ["width-animation", "icon-swap", "fade", "reduced-motion"]
+      },
+      "registryDependencies": ["button"],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/expanding-toggle-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/expanding-toggle-button.tsx"
+        }
+      ]
+    },
+    {
       "name": "status-badge",
       "type": "registry:ui",
       "title": "Status Badge",
@@ -366,14 +386,14 @@
       ]
     },
     {
-      "name": "expanding-button",
+      "name": "expanding-panel",
       "type": "registry:ui",
-      "title": "Expanding Button",
-      "description": "A compact icon button that morphs — growing in width and height from its corner — into a floating panel holding arbitrary content. The transformation is the point; it stays content-agnostic.",
+      "title": "Expanding Panel",
+      "description": "A floating panel that grows from a compact icon trigger and holds arbitrary content.",
       "categories": ["overlay"],
       "meta": {
         "tags": [
-          "expanding-button",
+          "expanding-panel",
           "floating-panel",
           "disclosure",
           "content-agnostic"
@@ -383,9 +403,9 @@
       "dependencies": ["lucide-react", "motion"],
       "files": [
         {
-          "path": "registry/base/ui/expanding-button.tsx",
+          "path": "registry/base/ui/expanding-panel.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expanding-button.tsx"
+          "target": "components/ui/expanding-panel.tsx"
         }
       ]
     },

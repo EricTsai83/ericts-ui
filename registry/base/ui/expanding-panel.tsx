@@ -19,39 +19,39 @@ const REDUCED_TRANSITION = { duration: 0 } as const;
 // Single source of truth for the panel's height cap. Applied to the content
 // region so consumers can add a scroll area / pinned footer without knowing it.
 const CONTENT_MAX_HEIGHT =
-  "var(--expanding-button-max-height, min(15.5rem, calc(100dvh - 8rem)))";
+  "var(--expanding-panel-max-height, min(15.5rem, calc(100dvh - 8rem)))";
 
-type ExpandingButtonContextValue = {
+type ExpandingPanelContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
 };
 
-const ExpandingButtonContext =
-  React.createContext<ExpandingButtonContextValue | null>(null);
+const ExpandingPanelContext =
+  React.createContext<ExpandingPanelContextValue | null>(null);
 
 /**
- * Access the expanding button's open state from within its `children`, e.g. to
+ * Access the expanding panel's open state from within its `children`, e.g. to
  * collapse the panel after an action. Throws when used outside the component.
  */
-export function useExpandingButton() {
-  const context = React.useContext(ExpandingButtonContext);
+export function useExpandingPanel() {
+  const context = React.useContext(ExpandingPanelContext);
 
   if (!context) {
     throw new Error(
-      "useExpandingButton must be used within an <ExpandingButton>.",
+      "useExpandingPanel must be used within an <ExpandingPanel>.",
     );
   }
 
   return context;
 }
 
-export type ExpandingButtonClassNames = {
+export type ExpandingPanelClassNames = {
   panel?: string;
   content?: string;
   trigger?: string;
 };
 
-export type ExpandingButtonProps = Omit<
+export type ExpandingPanelProps = Omit<
   React.ComponentPropsWithoutRef<"aside">,
   "children"
 > & {
@@ -63,26 +63,25 @@ export type ExpandingButtonProps = Omit<
   closeLabel?: string;
   closeOnEscape?: boolean;
   closeOnOutsideClick?: boolean;
-  classNames?: ExpandingButtonClassNames;
+  classNames?: ExpandingPanelClassNames;
   children?: React.ReactNode;
 };
 
 /**
- * A compact icon button that morphs — growing in width and height from its
- * top-right corner — into a floating surface holding arbitrary `children`.
- * The transformation is the point; it is intentionally content-agnostic.
+ * A floating panel that grows in width and height from a compact icon trigger
+ * in its top-right corner. It is intentionally content-agnostic.
  *
- * The panel is bounded by `--expanding-button-width` and
- * `--expanding-button-max-height` and clips overflow, so the morph never runs
+ * The panel is bounded by `--expanding-panel-width` and
+ * `--expanding-panel-max-height` and clips overflow, so the morph never runs
  * off-screen. The content region is a flex column capped at that height, so
  * tall content can add a `flex-1` scroll area (and, e.g., a `shrink-0` pinned
  * footer) without re-declaring the cap.
  *
  * The trigger overlays the top-right corner; content that reaches it should
- * clear it with `pr-[var(--expanding-button-trigger-inset)]` (defaults to the
+ * clear it with `pr-[var(--expanding-panel-trigger-inset)]` (defaults to the
  * 2rem trigger size).
  */
-export function ExpandingButton({
+export function ExpandingPanel({
   open,
   defaultOpen = false,
   onOpenChange,
@@ -94,10 +93,10 @@ export function ExpandingButton({
   className,
   classNames,
   children,
-  "aria-label": ariaLabel = "Expanding button",
+  "aria-label": ariaLabel = "Expanding panel",
   onKeyDown,
   ...props
-}: ExpandingButtonProps) {
+}: ExpandingPanelProps) {
   const generatedId = React.useId();
   const panelId = `${generatedId}-panel`;
   const rootRef = React.useRef<HTMLElement>(null);
@@ -170,17 +169,17 @@ export function ExpandingButton({
     [closeOnEscape, isOpen, onKeyDown, setOpen],
   );
 
-  const contextValue = React.useMemo<ExpandingButtonContextValue>(
+  const contextValue = React.useMemo<ExpandingPanelContextValue>(
     () => ({ open: isOpen, setOpen }),
     [isOpen, setOpen],
   );
 
   return (
-    <ExpandingButtonContext.Provider value={contextValue}>
+    <ExpandingPanelContext.Provider value={contextValue}>
       <aside
         ref={rootRef}
         aria-label={ariaLabel}
-        data-slot="expanding-button"
+        data-slot="expanding-panel"
         data-state={isOpen ? "open" : "closed"}
         onKeyDown={handleKeyDown}
         className={cn(
@@ -199,7 +198,7 @@ export function ExpandingButton({
             className={cn(
               "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-lg transition-[width] duration-240 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] motion-reduce:transition-none dark:shadow-black/20",
               isOpen
-                ? "w-[min(var(--expanding-button-width,17rem),calc(100vw-1.5rem))]"
+                ? "w-[min(var(--expanding-panel-width,17rem),calc(100vw-1.5rem))]"
                 : "size-8",
               classNames?.panel,
             )}
@@ -207,7 +206,7 @@ export function ExpandingButton({
             <AnimatePresence initial={false}>
               {isOpen ? (
                 <motion.div
-                  key="expanding-button-content"
+                  key="expanding-panel-content"
                   initial={
                     shouldReduceMotion
                       ? false
@@ -225,7 +224,7 @@ export function ExpandingButton({
                     maxHeight: CONTENT_MAX_HEIGHT,
                   }}
                   className={cn(
-                    "flex flex-col [--expanding-button-trigger-inset:2rem] will-change-[filter,transform,opacity]",
+                    "flex flex-col [--expanding-panel-trigger-inset:2rem] will-change-[filter,transform,opacity]",
                     classNames?.content,
                   )}
                 >
@@ -256,6 +255,6 @@ export function ExpandingButton({
           </button>
         </div>
       </aside>
-    </ExpandingButtonContext.Provider>
+    </ExpandingPanelContext.Provider>
   );
 }

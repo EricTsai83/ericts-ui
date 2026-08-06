@@ -135,7 +135,9 @@ describe("SurfaceGrainDemo", () => {
     fireEvent.click(button);
 
     expect(preview.getAttribute("data-magnifying")).toBe("false");
-    expect(screen.queryByText("Esc")).toBeNull();
+    expect(button.getAttribute("aria-label")).toBe(
+      "Magnify surface comparison",
+    );
 
     fireEvent.click(button);
     fireEvent.keyDown(preview, { key: "Escape" });

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ExpandingButton } from "@/registry/base/ui/expanding-button";
+import { ExpandingPanel } from "@/registry/base/ui/expanding-panel";
 
 const expandingButtonPreviewGroups = [
   {
@@ -69,13 +69,13 @@ export default function Preview() {
         </div>
       </div>
 
-      <ExpandingButton
+      <ExpandingPanel
         className="absolute right-3 top-3 z-20"
         openLabel="Expand panel"
         closeLabel="Collapse panel"
       >
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
-          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-2 pr-(--expanding-button-trigger-inset)">
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-2 pr-(--expanding-panel-trigger-inset)">
             <div className="flex flex-col gap-1.5">
               {expandingButtonPreviewGroups.map((group) => (
                 <section
@@ -113,7 +113,7 @@ export default function Preview() {
             </div>
           </div>
         </div>
-      </ExpandingButton>
+      </ExpandingPanel>
     </div>
   );
 }

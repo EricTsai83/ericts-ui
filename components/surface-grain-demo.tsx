@@ -11,9 +11,9 @@ import {
 import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
 
 import styles from "@/components/surface-grain-demo.module.css";
-import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
+import { ExpandingToggleButton } from "@/registry/base/ui/expanding-toggle-button";
 
 const surfaces = [
   {
@@ -316,31 +316,30 @@ export function SurfaceGrainDemo() {
         <span className={styles.toolbarTitle}>Plain vs. Grain</span>
         <div className={styles.headerActions}>
           <span className={styles.status} aria-live="polite">
-            {isMagnifying ? "Magnifier active" : "Inspect noise at 4×"}
-          </span>
-          <Button
-            ref={magnifierButtonRef}
-            type="button"
-            size={isMagnifying ? "sm" : "icon-sm"}
-            variant={isMagnifying ? "secondary" : "ghost"}
-            aria-label={
-              isMagnifying ? "Exit magnifier" : "Magnify surface comparison"
-            }
-            aria-pressed={isMagnifying}
-            aria-keyshortcuts={isMagnifying ? "Escape" : undefined}
-            title={isMagnifying ? undefined : "Magnify surface comparison"}
-            onClick={() => setIsMagnifying((current) => !current)}
-          >
             {isMagnifying ? (
+              <span className="sr-only">Magnifier active</span>
+            ) : (
+              "Inspect noise at 4×"
+            )}
+          </span>
+          <ExpandingToggleButton
+            ref={magnifierButtonRef}
+            active={isMagnifying}
+            onActiveChange={setIsMagnifying}
+            icon={<ZoomInIcon aria-hidden />}
+            activeIcon={<ZoomOutIcon aria-hidden />}
+            inactiveLabel="Magnify surface comparison"
+            activeLabel="Exit magnifier"
+            label={
               <>
-                <ZoomOutIcon data-icon="inline-start" />
                 Exit magnifier
                 <Kbd aria-hidden="true">Esc</Kbd>
               </>
-            ) : (
-              <ZoomInIcon data-icon="inline-start" />
-            )}
-          </Button>
+            }
+            expandFrom="start"
+            aria-keyshortcuts={isMagnifying ? "Escape" : undefined}
+            title={isMagnifying ? undefined : "Magnify surface comparison"}
+          />
         </div>
       </div>
       <div

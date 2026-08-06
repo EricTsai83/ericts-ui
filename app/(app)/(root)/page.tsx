@@ -40,7 +40,7 @@ const homeRegistryItemNames = [
 // These should be UI components with strong live demos, in the order they appear.
 const componentPreviewNames = [
   "expandable-tabs",
-  "expanding-button",
+  "expanding-panel",
   "highlight-tabs",
   "smooth-height",
   "status-button",
