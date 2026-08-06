@@ -1,0 +1,299 @@
+.figure,
+.magnifierLens {
+  --demo-grain-light: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.025'/%3E%3C/svg%3E");
+  --demo-grain-dark: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+.figure {
+  margin-block: 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.toolbar,
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(127 127 127 / 24%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.toolbar {
+  min-height: 3rem;
+  padding-inline: 1rem 0.625rem;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.toolbarTitle {
+  font-weight: 650;
+}
+
+.header {
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.status {
+  color: currentColor;
+  opacity: 0.62;
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.comparison {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  outline: none;
+}
+
+.comparison[data-magnifying="true"] {
+  cursor: zoom-in;
+  touch-action: none;
+}
+
+.comparison:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
+.surface {
+  min-width: 0;
+}
+
+.surface + .surface {
+  border-block-start: 1px solid rgb(127 127 127 / 24%);
+}
+
+.light {
+  --demo-grain: var(--demo-grain-light);
+  --surface-color: oklch(0.97 0 0);
+  --background: oklch(0.97 0 0);
+  --foreground: oklch(0.21 0 0);
+  --muted: oklch(0.91 0 0);
+
+  color: var(--foreground);
+  background-color: var(--surface-color);
+}
+
+.dark {
+  --demo-grain: var(--demo-grain-dark);
+  --surface-color: oklch(0.17 0 0);
+  --background: oklch(0.17 0 0);
+  --foreground: oklch(0.96 0 0);
+  --muted: oklch(0.25 0 0);
+
+  color: var(--foreground);
+  background-color: var(--surface-color);
+}
+
+.variants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.variant {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.variant + .variant {
+  border-inline-start: 1px solid rgb(127 127 127 / 24%);
+}
+
+.grain {
+  background-image: var(--demo-grain);
+  background-repeat: repeat;
+  background-position: 0 0;
+  background-size: 256px 256px;
+}
+
+.variantHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding-inline: 0.875rem;
+  border-bottom: 1px solid rgb(127 127 127 / 20%);
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.variantHeader span:last-child {
+  overflow: hidden;
+  color: currentColor;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  opacity: 0.56;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content {
+  display: flex;
+  min-height: 11.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.description {
+  max-width: 24ch;
+  margin: 0.35rem 0 0;
+  color: currentColor;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  opacity: 0.68;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.details div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.details dt {
+  color: currentColor;
+  font-size: 0.6875rem;
+  opacity: 0.56;
+}
+
+.details dd {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.magnifierLens {
+  --surface-grain-layer-magnifier: 1;
+  --lens-x: 50%;
+  --lens-y: 50%;
+  --surface-color: oklch(0.97 0 0);
+  --foreground: oklch(0.21 0 0);
+
+  position: absolute;
+  z-index: var(--surface-grain-layer-magnifier);
+  top: var(--lens-y);
+  left: var(--lens-x);
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  background-color: var(--surface-color);
+  box-shadow:
+    0 0 0 2px var(--surface-color),
+    0 2px 8px rgb(0 0 0 / 35%);
+  transform: translate(-50%, -50%) scale(0.96);
+  transition:
+    opacity 140ms cubic-bezier(0.165, 0.84, 0.44, 1),
+    transform 140ms cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform, opacity;
+}
+
+.magnifierLens[data-theme="Dark"] {
+  --surface-color: oklch(0.17 0 0);
+  --foreground: oklch(0.96 0 0);
+}
+
+.magnifierLens[data-active="true"][data-visible="true"] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.magnifierCanvas {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.magnifierNoise {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background-repeat: repeat;
+  background-size: 1024px 1024px;
+}
+
+.magnifierNoise[data-magnifier-noise="Light"] {
+  background-image: var(--demo-grain-light);
+}
+
+.magnifierNoise[data-magnifier-noise="Dark"] {
+  background-image: var(--demo-grain-dark);
+}
+
+.magnifierCanvas .grain {
+  background-image: none;
+}
+
+.figure figcaption {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  background: var(--background);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 40rem) {
+  .content {
+    min-height: 12rem;
+    padding: 0.875rem;
+  }
+
+  .description {
+    font-size: 0.75rem;
+  }
+
+  .toolbar .status {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magnifierLens {
+    transition: none;
+  }
+}

@@ -1,0 +1,279 @@
+---
+title: Surface Grain
+description: See when subtle grain improves application surfaces, compare it in light and dark themes, and add the complete CSS recipe to a shadcn project.
+---
+
+Surface grain is a fine, repeated texture placed over a flat background. Used
+with restraint, it gives large application surfaces a little material depth
+without changing their color, layout, or information hierarchy.
+
+> **Just want the implementation?** [Skip to the complete CSS and usage
+> examples](#copy-the-recipe). Everything before that section explains why the
+> treatment works and when it is worth using.
+
+To inspect the subtle texture, select the single magnifier in the **Plain vs.
+Grain** toolbar, then move anywhere across the Light and Dark demo. The lens
+enlarges the complete interface and the noise tile at `4×`; it can cross every
+divider. When it reaches an outer edge, the part beyond the inspectable content
+is cropped instead of covering the toolbar or surrounding page. Arrow keys move
+the lens, and the toolbar changes to an explicit **Exit magnifier** button with
+an `Esc` shortcut. Either action leaves inspection mode.
+
+<SurfaceGrainDemo />
+
+The `Noise opacity 2.5%` and `Noise opacity 4%` labels describe the alpha used
+inside the SVG noise layer—not its size or the amount of the surface it covers.
+Light starts lower because dark variation becomes visible quickly on a pale
+surface; Dark starts higher so the same fine pattern does not disappear against
+a near-black background. [See the detailed rationale](#why-light-and-dark-use-different-strengths).
+The lens keeps that opacity unchanged while rendering the normal `256px` noise
+tile at `1024px`, making the grain geometry four times larger for inspection.
+
+Each pair above holds the content, layout, and surface color constant. The left
+side is plain; the right side adds only grain. The effect should remain subtle.
+If the texture attracts attention before the interface does, it is too strong.
+
+## Why Use Surface Grain?
+
+Large areas of a single digital color can feel unusually flat, especially in
+app shells, sidebars, editors, and other persistent chrome. Grain introduces
+small variations across those areas, giving the eye enough detail to read them
+as surfaces rather than empty color fields.
+
+The treatment works well because it stays below the interface hierarchy:
+
+- **It adds depth without adding another component.** Grain changes the
+  character of a surface while preserving its dimensions, spacing, and
+  interaction model.
+- **It softens near-white and near-black expanses.** Subtle variation can make
+  restrained palettes feel less sterile without introducing a new accent color.
+- **It can unify application chrome.** Repeating the same texture across the
+  body, sidebar, and raised panels gives separate regions a shared material
+  quality.
+- **It remains quiet.** A fine, low-opacity pattern does not compete with text,
+  controls, status colors, or focus states.
+
+Grain is not automatically an improvement. Its value comes from being barely
+present and consistently applied.
+
+## When It Is a Good Fit
+
+| Consider grain for | Skip grain when |
+| --- | --- |
+| Large app shells and sidebars | Small controls or dense data cells |
+| Restrained, mostly neutral themes | The surface already contains an image or pattern |
+| Editors, dashboards, and desktop-style tools | Texture would reduce text clarity |
+| Interfaces that need a subtle material quality | The visual system is already highly decorative |
+| A small number of persistent surfaces | Many independently animated elements |
+
+Treat grain as part of the surface system, not as decoration added to every
+card. Start with the body or app shell, then opt in only the panels whose own
+background color would otherwise cover it.
+
+## How the Effect Works
+
+The technique generates a `256 × 256` SVG tile with `feTurbulence`, then repeats
+that tile as a CSS background:
+
+`fractalNoise SVG → 256px seamless tile → repeated surface background`
+
+The tile uses a high `baseFrequency` for fine grain, four octaves for enough
+detail, and `stitchTiles="stitch"` to prevent visible seams. The browser paints
+one background layer; it does not create hundreds of grain elements in the DOM.
+
+Keeping `background-size` aligned with the SVG view box also makes the texture
+predictable: one generated tile always occupies exactly `256 × 256` CSS pixels.
+
+## Why Light and Dark Use Different Strengths
+
+The pattern geometry in this recipe matches the public T3 Code implementation:
+a `256 × 256` tile, `baseFrequency=".9"`, four octaves, and stitched edges. T3
+Code uses `0.035` opacity for both themes. This adaptation starts with separate
+theme values:
+
+| Theme | Starting opacity | Reason |
+| --- | ---: | --- |
+| Light | `0.025` | Dark variation becomes visible quickly on near-white surfaces and can look dirty when overdone. |
+| Dark | `0.04` | Fine variation is easier to lose on near-black surfaces, so it needs slightly more strength. |
+
+These values are visual starting points, not universal constants. If exact T3
+Code parity matters, use `0.035` in both definitions. Otherwise, tune the values
+against your actual `background`, `card`, and `sidebar` colors.
+
+## Copy the Recipe
+
+The complete implementation starts here. It has no runtime dependency and does
+not require a React component.
+
+### 1. Add the Surface Utility
+
+Add the following code to your global stylesheet. In a standard shadcn project,
+this is usually `app/globals.css`.
+
+```css title="app/globals.css"
+:root {
+  --surface-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.025'/%3E%3C/svg%3E");
+}
+
+.dark {
+  --surface-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+@layer utilities {
+  .surface-grain {
+    background-image: var(--surface-grain);
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+}
+```
+
+The `.dark` selector matches the class-based theme convention used by shadcn.
+Change it if your application stores its theme on another selector, such as
+`[data-theme="dark"]`.
+
+### 2. Apply It to a Surface
+
+Combine `surface-grain` with the semantic background color that owns the
+surface. Because the utility sets only `background-image`, it preserves
+`bg-background`, `bg-card`, and `bg-sidebar`.
+
+```tsx title="app/page.tsx"
+export default function Page() {
+  return (
+    <main className="surface-grain min-h-screen bg-background">
+      <aside className="surface-grain bg-sidebar">
+        {/* Navigation */}
+      </aside>
+
+      <section className="surface-grain rounded-xl bg-card p-6">
+        {/* Content */}
+      </section>
+    </main>
+  )
+}
+```
+
+For persistent application chrome, apply the class once at the document body:
+
+```tsx title="app/layout.tsx"
+import type { ReactNode } from "react"
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className="surface-grain bg-background text-foreground">
+        {children}
+      </body>
+    </html>
+  )
+}
+```
+
+### 3. Continue It Across Raised Surfaces
+
+A panel with its own background color covers the body's background image. Apply
+`surface-grain` to that panel when the material should continue across it:
+
+```tsx
+export function AppShell() {
+  return (
+    <div className="surface-grain bg-background">
+      <aside className="surface-grain bg-sidebar">{/* Sidebar */}</aside>
+      <main className="surface-grain bg-card">{/* Main panel */}</main>
+    </div>
+  )
+}
+```
+
+Do not add the utility automatically to every card. Use it only where a surface
+needs to participate in the shared material treatment.
+
+## Optional: Adjustable Opacity
+
+Opacity inside a data URI cannot read a CSS custom property from the parent
+document. If one isolated surface needs runtime-adjustable intensity, place the
+texture on a pseudo-element instead:
+
+```css title="app/globals.css"
+.grain-overlay {
+  --grain-opacity: 0.03;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.grain-overlay::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+.dark .grain-overlay {
+  --grain-opacity: 0.045;
+}
+```
+
+Set a one-off value through a typed style custom property:
+
+```tsx
+import type { CSSProperties } from "react"
+
+export function Preview() {
+  return (
+    <section
+      className="grain-overlay bg-card"
+      style={{ "--grain-opacity": 0.055 } as CSSProperties}
+    >
+      {/* Content */}
+    </section>
+  )
+}
+```
+
+Prefer the background utility for persistent application surfaces. A fixed,
+full-viewport overlay can force the browser to re-composite the texture over
+every animated frame. Use the adjustable variant for a small number of isolated
+surfaces.
+
+## Tuning Reference
+
+| Control | What it changes | Practical starting point |
+| --- | --- | --- |
+| `baseFrequency` | Grain size; higher values produce finer noise | `.75` to `1` |
+| `numOctaves` | Fine detail within the pattern | `3` or `4` |
+| SVG `opacity` | Overall visibility | `.02` to `.04` |
+| SVG view box | Generated tile dimensions | `256 × 256` |
+| `background-size` | Painted tile dimensions | Match the view box |
+
+Keep `stitchTiles="stitch"` to avoid seams. Do not apply this utility to an
+element that already depends on a meaningful `background-image` unless you
+intentionally compose both image layers.
+
+## Before You Ship
+
+- Compare plain and textured versions instead of judging the grain in isolation.
+- Test both themes on the real app background, card, and sidebar colors.
+- Confirm that body text, muted text, and focus indicators remain clear.
+- Check large flat areas for visible tile boundaries or repetition.
+- Avoid a fixed full-screen overlay over frequently animated content.
+- Remove the treatment if users notice the effect before they notice the UI.
+
+The texture is decorative and must never communicate state or information. It
+does not enter the accessibility tree, but excessive contrast can still make
+text less comfortable to read.
+
+## Origin of the Pattern
+
+This recipe is adapted from the public grain treatment used by
+[T3 Code](https://github.com/pingdotgg/t3code/blob/a483337a02d4ac641db0219517816c300a33be6b/apps/web/src/index.css#L1038).
+The pattern dimensions match that implementation; the separate light and dark
+strengths and adjustable variant are additions for reuse in shadcn projects.

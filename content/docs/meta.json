@@ -1,4 +1,11 @@
 {
   "title": "Documentation",
-  "pages": ["index", "installation", "change-log"]
+  "pages": [
+    "index",
+    "installation",
+    "---Recipes---",
+    "surface-grain",
+    "---Project---",
+    "change-log"
+  ]
 }
