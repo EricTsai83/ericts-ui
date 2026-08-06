@@ -205,12 +205,8 @@ export default function Home() {
               </div>
 
               <div className="overflow-hidden rounded-lg border bg-card text-card-foreground">
-                <div className="flex h-9 items-center gap-6 border-b px-4 text-sm">
-                  <span className="border-b border-foreground py-2 text-foreground">
-                    CLI
-                  </span>
-                  <span className="py-2 text-muted-foreground">JSON</span>
-                  <span className="py-2 text-muted-foreground">Preview</span>
+                <div className="flex h-9 items-center border-b px-4 text-sm font-medium">
+                  Install with CLI
                 </div>
                 <div className="flex min-w-0 items-center gap-3 px-4 py-4">
                   <Code2

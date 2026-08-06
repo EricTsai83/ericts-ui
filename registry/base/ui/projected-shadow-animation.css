@@ -3,6 +3,7 @@
   --projected-shadow-active-duration: 360ms;
   --projected-shadow-ease: cubic-bezier(0.165, 0.84, 0.44, 1);
   --projected-shadow-origin: center;
+  --projected-shadow-blur: 6px;
   --projected-shadow-projected-opacity: 1;
   --projected-shadow-projected-active-opacity: 0;
   --projected-shadow-projected-x: -14%;
@@ -43,6 +44,7 @@
 }
 
 .projected-shadow-projected {
+  filter: blur(var(--projected-shadow-blur));
   opacity: var(--projected-shadow-projected-opacity);
   transform: translate3d(
       var(--projected-shadow-projected-x),

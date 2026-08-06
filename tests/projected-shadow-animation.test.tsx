@@ -16,6 +16,8 @@ describe("ProjectedShadow", () => {
         duration={140}
         activeDuration="320ms"
         ease="ease-out"
+        projectedShadowBlur={4}
+        projectedShadowOffset={{ x: "-20%", y: -18 }}
       >
         <span>Icon</span>
       </ProjectedShadow>,
@@ -34,6 +36,13 @@ describe("ProjectedShadow", () => {
     expect(root?.style.getPropertyValue("--projected-shadow-ease")).toBe(
       "ease-out",
     );
+    expect(root?.style.getPropertyValue("--projected-shadow-blur")).toBe("4px");
+    expect(
+      root?.style.getPropertyValue("--projected-shadow-projected-x"),
+    ).toBe("-20%");
+    expect(
+      root?.style.getPropertyValue("--projected-shadow-projected-y"),
+    ).toBe("-18px");
   });
 
   it("can render only the target layer", () => {

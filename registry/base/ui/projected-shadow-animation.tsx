@@ -5,7 +5,15 @@ import { cn } from "@/lib/utils";
 import "./projected-shadow-animation.css";
 
 type ProjectedShadowTimingValue = number | string;
+type ProjectedShadowLengthValue = number | string;
 type CssVariableStyle = React.CSSProperties & Record<`--${string}`, string>;
+
+export type ProjectedShadowOffset = {
+  /** Horizontal offset. Numeric values are converted to px. */
+  x?: ProjectedShadowLengthValue;
+  /** Vertical offset. Numeric values are converted to px. */
+  y?: ProjectedShadowLengthValue;
+};
 
 export type ProjectedShadowProps = React.ComponentPropsWithoutRef<"span"> & {
   /** Keep the gathered state active without requiring hover. */
@@ -16,6 +24,10 @@ export type ProjectedShadowProps = React.ComponentPropsWithoutRef<"span"> & {
   activeDuration?: ProjectedShadowTimingValue;
   /** CSS easing used by the transform and opacity transitions. */
   ease?: string;
+  /** Blur radius for the far projected shadow. Numeric values are converted to px. */
+  projectedShadowBlur?: ProjectedShadowLengthValue;
+  /** Resting offset for the far projected shadow. */
+  projectedShadowOffset?: ProjectedShadowOffset;
   /** Optional decorative content for the shadow layers. Defaults to children. */
   shadow?: React.ReactNode;
   /** Classes applied to the visible animated child wrapper. */
@@ -39,6 +51,8 @@ export function ProjectedShadow({
   duration,
   ease,
   projectedShadowClassName,
+  projectedShadowBlur,
+  projectedShadowOffset,
   shadow,
   showContactShadow = true,
   showProjectedShadow = true,
@@ -56,7 +70,16 @@ export function ProjectedShadow({
         "projected-shadow relative inline-flex items-center justify-center",
         className,
       )}
-      style={getProjectedShadowStyle({ activeDuration, duration, ease }, style)}
+      style={getProjectedShadowStyle(
+        {
+          activeDuration,
+          duration,
+          ease,
+          projectedShadowBlur,
+          projectedShadowOffset,
+        },
+        style,
+      )}
       {...props}
     >
       {showProjectedShadow ? (
@@ -64,7 +87,7 @@ export function ProjectedShadow({
           aria-hidden="true"
           data-slot="projected-shadow-projected"
           className={cn(
-            "projected-shadow-layer projected-shadow-projected pointer-events-none absolute inset-0 z-0 inline-flex text-current blur-[6px]",
+            "projected-shadow-layer projected-shadow-projected pointer-events-none absolute inset-0 z-0 inline-flex text-current",
             projectedShadowClassName,
           )}
         >
@@ -103,10 +126,26 @@ function getProjectedShadowStyle(
     activeDuration,
     duration,
     ease,
-  }: Pick<ProjectedShadowProps, "activeDuration" | "duration" | "ease">,
+    projectedShadowBlur,
+    projectedShadowOffset,
+  }: Pick<
+    ProjectedShadowProps,
+    | "activeDuration"
+    | "duration"
+    | "ease"
+    | "projectedShadowBlur"
+    | "projectedShadowOffset"
+  >,
   style: React.CSSProperties | undefined,
 ) {
-  if (activeDuration === undefined && duration === undefined && ease === undefined) {
+  if (
+    activeDuration === undefined &&
+    duration === undefined &&
+    ease === undefined &&
+    projectedShadowBlur === undefined &&
+    projectedShadowOffset?.x === undefined &&
+    projectedShadowOffset?.y === undefined
+  ) {
     return style;
   }
 
@@ -119,9 +158,30 @@ function getProjectedShadowStyle(
       ? { "--projected-shadow-duration": toCssTime(duration) }
       : {}),
     ...(ease !== undefined ? { "--projected-shadow-ease": ease } : {}),
+    ...(projectedShadowBlur !== undefined
+      ? { "--projected-shadow-blur": toCssLength(projectedShadowBlur) }
+      : {}),
+    ...(projectedShadowOffset?.x !== undefined
+      ? {
+          "--projected-shadow-projected-x": toCssLength(
+            projectedShadowOffset.x,
+          ),
+        }
+      : {}),
+    ...(projectedShadowOffset?.y !== undefined
+      ? {
+          "--projected-shadow-projected-y": toCssLength(
+            projectedShadowOffset.y,
+          ),
+        }
+      : {}),
   } as CssVariableStyle;
 }
 
 function toCssTime(value: ProjectedShadowTimingValue) {
   return typeof value === "number" ? `${value}ms` : value;
+}
+
+function toCssLength(value: ProjectedShadowLengthValue) {
+  return typeof value === "number" ? `${value}px` : value;
 }
