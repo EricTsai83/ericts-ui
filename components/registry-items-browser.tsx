@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { SearchInput } from "@/components/ui/search-input";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+  RegistryArrangementToggle,
+  type RegistryArrangement,
+} from "@/components/registry-arrangement-toggle";
+import { SearchInput } from "@/components/ui/search-input";
+import { cn } from "@/lib/utils";
 
 export type RegistryListItem = {
   name: string;
@@ -40,11 +41,10 @@ type RegistryItemsBrowserProps = {
   emptyDescription: string;
   noItemsLabel: string;
   enableArrangement?: boolean;
+  arrangementStorageKey?: string;
   fullscreenHref?: string;
   fullscreenLabel?: string;
 };
-
-type BrowseMode = "alphabetical" | "category";
 
 type RegistryItemGroup = {
   category: string;
@@ -95,14 +95,6 @@ function groupItemsByPrimaryCategory(
   })).sort((a, b) => a.label.localeCompare(b.label));
 }
 
-function getCountLabel(
-  count: number,
-  itemLabel: string,
-  itemLabelPlural: string,
-) {
-  return `${count} ${count === 1 ? itemLabel : itemLabelPlural}`;
-}
-
 function getItemMetadata(item: RegistryListItem) {
   return uniqueStrings([
     item.categories?.[0],
@@ -146,6 +138,34 @@ function normalizeSearchText(value: string) {
     .trim();
 }
 
+function subscribeToStorage(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+
+  return () => window.removeEventListener("storage", onStoreChange);
+}
+
+type ArrangementSnapshot = RegistryArrangement | "pending";
+
+function getServerArrangement(): ArrangementSnapshot {
+  return "pending";
+}
+
+function getStoredArrangement(
+  storageKey: string | undefined,
+): RegistryArrangement {
+  if (!storageKey) {
+    return "alphabetical";
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(storageKey);
+
+    return storedValue === "category" ? "category" : "alphabetical";
+  } catch {
+    return "alphabetical";
+  }
+}
+
 export function RegistryItemsBrowser({
   items,
   title,
@@ -159,11 +179,22 @@ export function RegistryItemsBrowser({
   emptyDescription,
   noItemsLabel,
   enableArrangement = false,
+  arrangementStorageKey,
   fullscreenHref,
   fullscreenLabel = `Browse ${itemLabelPlural} fullscreen`,
 }: RegistryItemsBrowserProps) {
   const [query, setQuery] = useState("");
-  const [browseMode, setBrowseMode] = useState<BrowseMode>("alphabetical");
+  const [browseModeOverride, setBrowseModeOverride] =
+    useState<RegistryArrangement | null>(null);
+  const storedBrowseMode = useSyncExternalStore(
+    subscribeToStorage,
+    () => getStoredArrangement(arrangementStorageKey),
+    getServerArrangement,
+  );
+  const arrangementReady = storedBrowseMode !== "pending";
+  const browseMode =
+    browseModeOverride ??
+    (storedBrowseMode === "pending" ? "alphabetical" : storedBrowseMode);
   const trimmedQuery = query.trim();
   const normalizedQuery = normalizeSearchText(trimmedQuery);
 
@@ -182,22 +213,17 @@ export function RegistryItemsBrowser({
     [filteredItems],
   );
 
-  const resultLabel =
-    filteredItems.length === items.length
-      ? getCountLabel(items.length, itemLabel, itemLabelPlural)
-      : `${filteredItems.length} of ${getCountLabel(
-          items.length,
-          itemLabel,
-          itemLabelPlural,
-        )}`;
-
   const clearSearch = () => setQuery("");
 
-  const handleBrowseModeChange = (values: string[]) => {
-    const nextMode = values[0];
+  const handleBrowseModeChange = (nextMode: RegistryArrangement) => {
+    setBrowseModeOverride(nextMode);
 
-    if (nextMode === "alphabetical" || nextMode === "category") {
-      setBrowseMode(nextMode);
+    if (arrangementStorageKey) {
+      try {
+        window.localStorage.setItem(arrangementStorageKey, nextMode);
+      } catch {
+        // The view still works when storage is unavailable.
+      }
     }
   };
 
@@ -240,12 +266,11 @@ export function RegistryItemsBrowser({
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            {resultLabel}
-          </h2>
-
+      <section
+        className="flex flex-col gap-4"
+        aria-busy={enableArrangement && !arrangementReady}
+      >
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex items-center gap-2">
             {trimmedQuery ? (
               <button
@@ -258,86 +283,71 @@ export function RegistryItemsBrowser({
               </button>
             ) : null}
             {enableArrangement && items.length > 0 ? (
-              <ToggleGroup
-                value={[browseMode]}
-                onValueChange={handleBrowseModeChange}
-                variant="outline"
-                size="sm"
-                spacing={0}
-                aria-label="Arrange items"
+              <div
+                className={cn(!arrangementReady && "invisible")}
+                aria-hidden={arrangementReady ? undefined : true}
               >
-                <ToggleGroupItem
-                  value="alphabetical"
-                  aria-label="Arrange alphabetically"
-                >
-                  A–Z
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="category"
-                  aria-label="Arrange by category"
-                >
-                  Category
-                </ToggleGroupItem>
-              </ToggleGroup>
+                <RegistryArrangementToggle
+                  value={browseMode}
+                  onValueChange={handleBrowseModeChange}
+                />
+              </div>
             ) : null}
           </div>
         </div>
 
-        {items.length > 0 ? (
-          filteredItems.length > 0 ? (
-            browseMode === "category" ? (
-              <div className="flex flex-col gap-8">
-                {groupedItems.map((group) => (
-                  <section
-                    key={group.category}
-                    className="flex flex-col gap-4"
-                  >
-                    <div className="flex items-baseline justify-between gap-4 border-b pb-2">
-                      <h3 className="text-base font-semibold">
+        <div className={cn(enableArrangement && !arrangementReady && "invisible")}>
+          {items.length > 0 ? (
+            filteredItems.length > 0 ? (
+              browseMode === "category" ? (
+                <div className="flex flex-col gap-8">
+                  {groupedItems.map((group) => (
+                    <section
+                      key={group.category}
+                      className="flex flex-col gap-4"
+                    >
+                      <h3 className="border-b pb-2 text-base font-semibold">
                         {group.label}
                       </h3>
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {group.items.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {group.items.map((item) => (
-                        <RegistryItemLink key={item.name} item={item} />
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
+                      <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {group.items.map((item) => (
+                          <RegistryItemLink key={item.name} item={item} />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredItems.map((item) => (
+                    <RegistryItemLink key={item.name} item={item} />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredItems.map((item) => (
-                  <RegistryItemLink key={item.name} item={item} />
-                ))}
+              <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed px-6 py-12 text-center">
+                <div className="flex max-w-sm flex-col gap-1">
+                  <h3 className="font-medium">{emptyTitle}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {emptyDescription}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <X className="size-3.5" aria-hidden="true" />
+                  Clear search
+                </button>
               </div>
             )
           ) : (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed px-6 py-12 text-center">
-              <div className="flex max-w-sm flex-col gap-1">
-                <h3 className="font-medium">{emptyTitle}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {emptyDescription}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <X className="size-3.5" aria-hidden="true" />
-                Clear search
-              </button>
+            <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+              {noItemsLabel}
             </div>
-          )
-        ) : (
-          <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-            {noItemsLabel}
-          </div>
-        )}
+          )}
+        </div>
       </section>
     </div>
   );

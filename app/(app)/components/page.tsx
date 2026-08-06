@@ -67,6 +67,7 @@ export default function ComponentsPage() {
         emptyDescription="Try a different name, category, or effect."
         noItemsLabel="No components yet."
         enableArrangement
+        arrangementStorageKey="ericts-ui:components:arrangement"
         fullscreenHref={firstFullscreenHref}
         fullscreenLabel="Browse Full Screen"
       />

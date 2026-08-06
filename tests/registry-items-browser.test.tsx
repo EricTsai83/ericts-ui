@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { RegistryItemsBrowser } from "@/components/registry-items-browser";
@@ -34,10 +35,19 @@ const items = [
   },
 ];
 
-afterEach(cleanup);
+const arrangementStorageKey = "ericts-ui:components:arrangement";
 
-function renderBrowser(enableArrangement = true) {
-  render(
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+});
+
+function BrowserFixture({
+  enableArrangement = true,
+}: {
+  enableArrangement?: boolean;
+}) {
+  return (
     <RegistryItemsBrowser
       items={items}
       title="Components"
@@ -51,19 +61,28 @@ function renderBrowser(enableArrangement = true) {
       emptyDescription="Try another search."
       noItemsLabel="No components yet."
       enableArrangement={enableArrangement}
-    />,
+      arrangementStorageKey={arrangementStorageKey}
+    />
   );
 }
 
+function renderBrowser(enableArrangement = true) {
+  render(<BrowserFixture enableArrangement={enableArrangement} />);
+}
+
 describe("RegistryItemsBrowser arrangement", () => {
+  it("keeps server-rendered arrangement content hidden until storage is read", () => {
+    const html = renderToString(<BrowserFixture />);
+
+    expect(html).toContain('aria-busy="true"');
+    expect(html.match(/invisible/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+
   it("hides arrangement controls when the list does not opt in", () => {
     renderBrowser(false);
 
     expect(
-      screen.queryByRole("button", { name: "Arrange alphabetically" }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: "Arrange by category" }),
+      screen.queryByRole("group", { name: "Arrange items" }),
     ).toBeNull();
   });
 
@@ -97,6 +116,31 @@ describe("RegistryItemsBrowser arrangement", () => {
     ).toBe("true");
   });
 
+  it("uses the stored arrangement on the first client render", () => {
+    window.localStorage.setItem(arrangementStorageKey, "category");
+
+    renderBrowser();
+
+    expect(
+      screen
+        .getByRole("button", { name: "Arrange by category" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(screen.getByRole("heading", { name: "Animation" })).toBeTruthy();
+  });
+
+  it("saves arrangement changes to local storage", () => {
+    renderBrowser();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Arrange by category" }),
+    );
+
+    expect(window.localStorage.getItem(arrangementStorageKey)).toBe(
+      "category",
+    );
+  });
+
   it("preserves category view while filtering", () => {
     renderBrowser();
 
@@ -111,6 +155,7 @@ describe("RegistryItemsBrowser arrangement", () => {
     expect(
       screen.queryByRole("heading", { name: "Animation" }),
     ).toBeNull();
-    expect(screen.getByText("1 of 3 components")).toBeTruthy();
+    expect(screen.getByText("Zulu Button")).toBeTruthy();
+    expect(screen.queryByText("Beta Animation")).toBeNull();
   });
 });
