@@ -8,10 +8,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
+import { XIcon, ZoomInIcon } from "lucide-react";
 
 import styles from "@/components/surface-grain-demo.module.css";
-import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 import { ExpandingToggleButton } from "@/registry/base/ui/expanding-toggle-button";
 
@@ -327,15 +326,10 @@ export function SurfaceGrainDemo() {
             active={isMagnifying}
             onActiveChange={setIsMagnifying}
             icon={<ZoomInIcon aria-hidden />}
-            activeIcon={<ZoomOutIcon aria-hidden />}
+            activeIcon={<XIcon aria-hidden />}
             inactiveLabel="Magnify surface comparison"
             activeLabel="Exit magnifier"
-            label={
-              <>
-                Exit magnifier
-                <Kbd aria-hidden="true">Esc</Kbd>
-              </>
-            }
+            label="Exit magnifier"
             expandFrom="start"
             aria-keyshortcuts={isMagnifying ? "Escape" : undefined}
             title={isMagnifying ? undefined : "Magnify surface comparison"}

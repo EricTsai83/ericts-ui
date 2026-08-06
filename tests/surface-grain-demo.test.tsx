@@ -44,6 +44,9 @@ describe("SurfaceGrainDemo", () => {
     const button = screen.getByRole("button", {
       name: "Magnify surface comparison",
     });
+    expect(button.querySelector(".lucide-x")).toBeTruthy();
+    expect(button.querySelector(".lucide-zoom-out")).toBeNull();
+
     const preview = screen.getByLabelText(
       "Light and dark plain and grain inspection area",
     );
@@ -89,7 +92,7 @@ describe("SurfaceGrainDemo", () => {
     expect(button.getAttribute("aria-label")).toBe("Exit magnifier");
     expect(button.getAttribute("aria-keyshortcuts")).toBe("Escape");
     expect(screen.getByText("Exit magnifier")).toBeTruthy();
-    expect(screen.getByText("Esc")).toBeTruthy();
+    expect(screen.queryByText("Esc")).toBeNull();
     expect(preview.getAttribute("data-magnifying")).toBe("true");
 
     const lens = document.querySelector<HTMLElement>(

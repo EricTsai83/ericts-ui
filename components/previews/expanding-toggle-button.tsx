@@ -2,7 +2,6 @@
 
 import { ScanSearch, X } from "lucide-react";
 
-import { Kbd } from "@/components/ui/kbd";
 import { ExpandingToggleButton } from "@/registry/base/ui/expanding-toggle-button";
 
 export default function Preview() {
@@ -13,12 +12,7 @@ export default function Preview() {
         activeIcon={<X aria-hidden />}
         inactiveLabel="Inspect preview"
         activeLabel="Stop inspecting"
-        label={
-          <>
-            Stop inspecting
-            <Kbd aria-hidden="true">Esc</Kbd>
-          </>
-        }
+        label="Stop inspecting"
         expandFrom="start"
       />
     </div>
