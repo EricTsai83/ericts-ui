@@ -4,6 +4,14 @@ export type PackageManager = (typeof packageManagers)[number];
 
 export const DEFAULT_PACKAGE_MANAGER: PackageManager = "pnpm";
 
+const packageManagerValues = new Set<string>(packageManagers);
+
+export function isPackageManager(
+  value: string | null,
+): value is PackageManager {
+  return value !== null && packageManagerValues.has(value);
+}
+
 const commandPrefix: Record<PackageManager, string> = {
   pnpm: "pnpm dlx",
   npm: "npx",

@@ -1,7 +1,6 @@
 "use client";
 
 import { Terminal } from "lucide-react";
-import { useState } from "react";
 
 import {
   getRegistryInstallTarget,
@@ -10,9 +9,11 @@ import {
 import {
   DEFAULT_PACKAGE_MANAGER,
   getRegistryInstallCommand,
+  isPackageManager,
   packageManagers,
   type PackageManager,
 } from "@/lib/registry-install-command";
+import { usePackageManager } from "@/lib/use-package-manager";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/registry/base/ui/copy-button";
 import {
@@ -21,12 +22,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-
-const packageManagerValues = new Set<string>(packageManagers);
-
-function isPackageManager(value: string): value is PackageManager {
-  return packageManagerValues.has(value);
-}
 
 export function RegistryInstallCommand({
   name,
@@ -39,14 +34,14 @@ export function RegistryInstallCommand({
   mode?: RegistryInstallMode;
   defaultPackageManager?: PackageManager;
 }) {
-  const [packageManager, setPackageManager] = useState<PackageManager>(
-    defaultPackageManager,
-  );
+  const [packageManager, setPackageManager, isPackageManagerReady] =
+    usePackageManager(defaultPackageManager);
   const installTarget = getRegistryInstallTarget(name, mode);
   const command = getRegistryInstallCommand(installTarget, packageManager);
 
   return (
     <div
+      aria-busy={isPackageManagerReady ? undefined : true}
       className={cn(
         "relative min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50 text-sm",
         className,
@@ -54,7 +49,7 @@ export function RegistryInstallCommand({
     >
       <Tabs
         value={packageManager}
-        className="gap-0"
+        className={cn("gap-0", !isPackageManagerReady && "invisible")}
         onValueChange={(value) => {
           if (isPackageManager(value)) {
             setPackageManager(value);
@@ -76,7 +71,6 @@ export function RegistryInstallCommand({
               <TabsTrigger
                 key={item}
                 value={item}
-                onClick={() => setPackageManager(item)}
                 className="h-7 border border-transparent px-2.5 pt-0.5 shadow-none! data-active:border-input data-active:bg-background!"
               >
                 {item}
@@ -113,7 +107,10 @@ export function RegistryInstallCommand({
       <CopyButton
         value={command}
         variant="ghost"
-        className="absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
+        className={cn(
+          "absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
+          !isPackageManagerReady && "invisible",
+        )}
         aria-label="Copy installation command"
         title="Copy command"
       />

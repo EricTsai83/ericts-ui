@@ -16,16 +16,12 @@ import {
   DEFAULT_PACKAGE_MANAGER,
   getPackageInstallCommand,
   getRegistryInstallCommand,
+  isPackageManager,
   packageManagers,
   type PackageManager,
 } from "@/lib/registry-install-command";
 import { cn } from "@/lib/utils";
-
-const packageManagerValues = new Set<string>(packageManagers);
-
-function isPackageManager(value: string): value is PackageManager {
-  return packageManagerValues.has(value);
-}
+import { usePackageManager } from "@/lib/use-package-manager";
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
 
@@ -710,9 +706,8 @@ function ManualInstall({
   registryDependencies: string[];
   hasCssOnlyVariant: boolean;
 }) {
-  const [packageManager, setPackageManager] = useState<PackageManager>(
-    DEFAULT_PACKAGE_MANAGER,
-  );
+  const [packageManager, setPackageManager, isPackageManagerReady] =
+    usePackageManager(DEFAULT_PACKAGE_MANAGER);
 
   return (
     <div className="flex max-w-3xl flex-col gap-6 text-sm">
@@ -736,6 +731,7 @@ function ManualInstall({
         hasCssOnlyVariant={hasCssOnlyVariant}
         packageManager={packageManager}
         onPackageManagerChange={setPackageManager}
+        isPackageManagerReady={isPackageManagerReady}
       />
     </div>
   );
@@ -748,6 +744,7 @@ function ManualInstallSteps({
   hasCssOnlyVariant,
   packageManager,
   onPackageManagerChange,
+  isPackageManagerReady,
 }: {
   targetPath: string;
   dependencies: string[];
@@ -755,6 +752,7 @@ function ManualInstallSteps({
   hasCssOnlyVariant: boolean;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
+  isPackageManagerReady: boolean;
 }) {
   const registryDependencyCommand =
     registryDependencies.length > 0
@@ -787,6 +785,7 @@ function ManualInstallSteps({
         command={registryDependencyCommand}
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
+        isPackageManagerReady={isPackageManagerReady}
       />
       <ManualInstallStep
         number={2}
@@ -801,12 +800,14 @@ function ManualInstallSteps({
         command={packageDependencyCommand}
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
+        isPackageManagerReady={isPackageManagerReady}
       >
         {hasCssOnlyVariant ? (
           <CssOnlyPackageDependencyNote
             command={cssOnlyPackageDependencyCommand}
             packageManager={packageManager}
             onPackageManagerChange={onPackageManagerChange}
+            isPackageManagerReady={isPackageManagerReady}
           />
         ) : null}
       </ManualInstallStep>
@@ -823,6 +824,7 @@ function ManualInstallSteps({
         }
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
+        isPackageManagerReady={isPackageManagerReady}
       />
     </ol>
   );
@@ -832,10 +834,12 @@ function CssOnlyPackageDependencyNote({
   command,
   packageManager,
   onPackageManagerChange,
+  isPackageManagerReady,
 }: {
   command?: ManualInstallCommandFactory;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
+  isPackageManagerReady: boolean;
 }) {
   return (
     <div className="mt-4 flex flex-col gap-2">
@@ -847,6 +851,7 @@ function CssOnlyPackageDependencyNote({
           command={command}
           packageManager={packageManager}
           onPackageManagerChange={onPackageManagerChange}
+          isPackageManagerReady={isPackageManagerReady}
         />
       ) : (
         <p className="leading-6 text-muted-foreground">
@@ -921,6 +926,7 @@ function ManualInstallStep({
   command,
   packageManager,
   onPackageManagerChange,
+  isPackageManagerReady,
   children,
 }: {
   number: number;
@@ -929,6 +935,7 @@ function ManualInstallStep({
   command?: ManualInstallCommandFactory;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
+  isPackageManagerReady: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -949,6 +956,7 @@ function ManualInstallStep({
             command={command}
             packageManager={packageManager}
             onPackageManagerChange={onPackageManagerChange}
+            isPackageManagerReady={isPackageManagerReady}
           />
         ) : null}
         {children}
@@ -961,18 +969,23 @@ function ManualInstallCommand({
   command,
   packageManager,
   onPackageManagerChange,
+  isPackageManagerReady,
 }: {
   command: ManualInstallCommandFactory;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
+  isPackageManagerReady: boolean;
 }) {
   const selectedCommand = command(packageManager);
 
   return (
-    <div className="relative mt-3 min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50">
+    <div
+      aria-busy={isPackageManagerReady ? undefined : true}
+      className="relative mt-3 min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50"
+    >
       <Tabs
         value={packageManager}
-        className="gap-0"
+        className={cn("gap-0", !isPackageManagerReady && "invisible")}
         onValueChange={(value) => {
           if (isPackageManager(value)) {
             onPackageManagerChange(value);
@@ -991,7 +1004,6 @@ function ManualInstallCommand({
               <TabsTrigger
                 key={item}
                 value={item}
-                onClick={() => onPackageManagerChange(item)}
                 className="h-7 border border-transparent px-2.5 pt-0.5 shadow-none! data-active:border-input data-active:bg-background!"
               >
                 {item}
@@ -1021,7 +1033,10 @@ function ManualInstallCommand({
       <CopyButton
         value={selectedCommand}
         variant="ghost"
-        className="absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100"
+        className={cn(
+          "absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
+          !isPackageManagerReady && "invisible",
+        )}
         aria-label="Copy manual installation command"
         title="Copy command"
       />

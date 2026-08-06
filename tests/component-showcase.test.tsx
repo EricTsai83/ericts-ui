@@ -20,7 +20,10 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+});
 
 describe("ComponentShowcase manual installation", () => {
   it("keeps the package manager picker attached to manual command blocks", () => {
