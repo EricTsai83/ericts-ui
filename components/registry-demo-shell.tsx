@@ -264,7 +264,11 @@ export function RegistryDemoShell({
           {/* Sit replay/other preview controls to the left of the fixed
               navigation toggle so they line up side by side. */}
           <PreviewCornerSlotProvider className="right-13 top-3 sm:right-14 sm:top-4">
-            <RegistryPreview name={item.name} variant={variant} />
+            <RegistryPreview
+              name={item.name}
+              variant={variant}
+              presentation="fullscreen"
+            />
           </PreviewCornerSlotProvider>
         </div>
       </section>
@@ -540,7 +544,7 @@ function targetIsInsideOpenOverlay(target: EventTarget | null) {
 
 function getViewportClassName(viewport = "centered") {
   if (viewport === "full") {
-    return "max-w-none";
+    return "h-[calc(100dvh-2.5rem)] max-w-none self-stretch sm:h-[calc(100dvh-4rem)]";
   }
 
   if (viewport === "wide") {

@@ -3,7 +3,12 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 
-type PreviewComponent = ComponentType<{ variant: string }>;
+type PreviewPresentation = "inline" | "fullscreen";
+
+type PreviewComponent = ComponentType<{
+  variant: string;
+  presentation?: PreviewPresentation;
+}>;
 
 // Live previews for registry items, keyed by registry name. Each entry is
 // lazily loaded so a route only downloads the demos it actually renders —
@@ -40,17 +45,23 @@ const previews: Record<string, PreviewComponent> = {
   "use-element-height": dynamic(() => import("@/components/previews/use-element-height")),
   "use-element-size-map": dynamic(() => import("@/components/previews/use-element-size-map")),
   "use-scroll-anchor": dynamic(() => import("@/components/previews/use-scroll-anchor")),
+  "use-scroll-progress": dynamic(() => import("@/components/previews/use-scroll-progress")),
+  "scroll-expand": dynamic(() => import("@/components/previews/scroll-expand")),
 };
 
 export function RegistryPreview({
   name,
   variant = "motion",
+  presentation = "inline",
 }: {
   name: string;
   variant?: string;
+  presentation?: PreviewPresentation;
 }) {
   const Preview = previews[name];
-  return Preview ? <Preview variant={variant} /> : null;
+  return Preview ? (
+    <Preview variant={variant} presentation={presentation} />
+  ) : null;
 }
 
 export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";

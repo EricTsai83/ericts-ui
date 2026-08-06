@@ -8,6 +8,14 @@ export default defineConfig({
         __dirname,
         "registry/base/hooks/use-element-size-map.ts",
       ),
+      "@/hooks/use-reduced-motion": path.resolve(
+        __dirname,
+        "registry/base/hooks/use-reduced-motion.ts",
+      ),
+      "@/hooks/use-scroll-progress": path.resolve(
+        __dirname,
+        "registry/base/hooks/use-scroll-progress.ts",
+      ),
       "@": path.resolve(__dirname),
     },
   },

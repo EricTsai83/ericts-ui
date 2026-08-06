@@ -244,6 +244,13 @@ const registryDisplayItemConfigs = [
     viewport: "wide",
   },
   { name: "use-scroll-anchor", kind: "hook", category: "motion" },
+  { name: "use-scroll-progress", kind: "hook", category: "motion" },
+  {
+    name: "scroll-expand",
+    kind: "block",
+    category: "marketing",
+    viewport: "full",
+  },
 ] as const satisfies readonly RegistryDisplayItemConfig[];
 
 const registryDisplayItems = registryDisplayItemConfigs

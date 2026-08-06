@@ -214,7 +214,7 @@ function getPrimaryVariantLabel(item: RegistryItem, source: string) {
 
 function getPrimaryRegistryFile(item: RegistryItem) {
   return item.files?.find((entry) =>
-    ["registry:ui", "registry:hook"].includes(entry.type),
+    ["registry:ui", "registry:hook", "registry:block"].includes(entry.type),
   );
 }
 
@@ -223,6 +223,51 @@ function getHookUsageSnippets(name: string) {
 }
 
 const hookUsageSnippets: Record<string, ComponentCodeFile[]> = {
+  "use-scroll-progress": [
+    {
+      name: "scroll-progress-meter.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useCallback, useRef } from "react";
+
+import { useScrollProgress } from "@/hooks/use-scroll-progress";
+
+export function ScrollProgressMeter() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const meterRef = useRef<HTMLDivElement>(null);
+
+  const updateProgress = useCallback((progress: number) => {
+    meterRef.current?.style.setProperty("--progress", String(progress));
+  }, []);
+
+  useScrollProgress({
+    containerRef,
+    trackRef,
+    distance: 2,
+    smoothing: 0.08,
+    onProgress: updateProgress,
+  });
+
+  return (
+    <div ref={containerRef} className="h-80 overflow-y-auto">
+      <div ref={trackRef} className="relative h-[960px]">
+        <div className="sticky top-0 h-80 p-8">
+          <div className="h-1 overflow-hidden rounded-full bg-muted">
+            <div
+              ref={meterRef}
+              className="h-full origin-left scale-x-(--progress) bg-primary"
+              style={{ "--progress": 0 } as React.CSSProperties}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}`,
+    },
+  ],
   "use-element-height": [
     {
       name: "auto-height-panel.tsx",

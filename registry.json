@@ -576,6 +576,51 @@
       ]
     },
     {
+      "name": "scroll-expand",
+      "type": "registry:block",
+      "title": "Scroll Expand & Focus Hero",
+      "description": "An art-directed scroll hero that expands a detail into context or focuses a full-bleed scene into a discovery.",
+      "categories": ["marketing", "hero"],
+      "meta": {
+        "tags": ["scroll", "hero", "image", "video", "storytelling", "art-direction", "focus"],
+        "effects": ["clip-path", "media-zoom", "focus-origin", "scroll-progress", "content-choreography", "frame-offset", "reverse-focus", "circular-focus", "stage-content", "reduced-motion"]
+      },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json",
+        "https://ui.ericts.com/r/use-scroll-progress.json"
+      ],
+      "files": [
+        {
+          "path": "registry/base/blocks/scroll-expand.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/scroll-expand.tsx"
+        },
+        {
+          "path": "registry/base/blocks/scroll-expand.css",
+          "type": "registry:file",
+          "target": "components/blocks/scroll-expand.css"
+        }
+      ]
+    },
+    {
+      "name": "use-scroll-progress",
+      "type": "registry:hook",
+      "title": "useScrollProgress",
+      "description": "A render-free vertical scroll progress hook for window or element scrollers with optional time-based smoothing.",
+      "categories": ["motion", "scroll"],
+      "meta": {
+        "tags": ["scroll-progress", "request-animation-frame", "resize-observer", "window-scroll"],
+        "effects": ["scroll-progress", "smoothing"]
+      },
+      "files": [
+        {
+          "path": "registry/base/hooks/use-scroll-progress.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-scroll-progress.ts"
+        }
+      ]
+    },
+    {
       "name": "use-reduced-motion",
       "type": "registry:hook",
       "title": "useReducedMotion",
