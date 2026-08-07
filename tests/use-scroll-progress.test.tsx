@@ -28,8 +28,57 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   globalThis.ResizeObserver = originalResizeObserver;
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
+
+function stubPointer(coarse: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(
+      (query: string) =>
+        ({
+          matches: query === "(pointer: coarse)" ? coarse : false,
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(() => true),
+        }) as MediaQueryList,
+    ),
+  );
+}
+
+function MeasureHarness({
+  onMeasure,
+}: {
+  onMeasure: (viewportHeight: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+
+    if (node) {
+      Object.defineProperties(node, {
+        clientWidth: { configurable: true, value: 390 },
+        clientHeight: { configurable: true, value: 600 },
+      });
+    }
+  }, []);
+
+  useScrollProgress({
+    containerRef,
+    distance: 1,
+    smoothing: 0,
+    onProgress: () => {},
+    onMeasure,
+  });
+
+  return <div ref={setContainerRef} data-testid="scroller" />;
+}
 
 function ProgressHarness({ enabled = true }: { enabled?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -94,5 +143,52 @@ describe("useScrollProgress", () => {
     fireEvent.scroll(scroller);
 
     expect(screen.getByText("1.00")).toBeTruthy();
+  });
+
+  it("ignores height-only viewport resizes on touch devices", () => {
+    stubPointer(true);
+
+    const onMeasure = vi.fn();
+    render(<MeasureHarness onMeasure={onMeasure} />);
+
+    const scroller = screen.getByTestId("scroller");
+    expect(onMeasure).toHaveBeenCalledTimes(1);
+
+    // Mobile browser chrome collapsing: the height changes mid-scroll, the
+    // width does not. Re-measuring here would jump the track under the thumb.
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 540,
+    });
+    fireEvent(window, new Event("resize"));
+
+    expect(onMeasure).toHaveBeenCalledTimes(1);
+
+    // A rotation changes the width, which is a real layout change.
+    Object.defineProperties(scroller, {
+      clientWidth: { configurable: true, value: 844 },
+      clientHeight: { configurable: true, value: 390 },
+    });
+    fireEvent(window, new Event("resize"));
+
+    expect(onMeasure).toHaveBeenCalledTimes(2);
+    expect(onMeasure).toHaveBeenLastCalledWith(390);
+  });
+
+  it("still re-measures height-only resizes on pointer-precise viewports", () => {
+    stubPointer(false);
+
+    const onMeasure = vi.fn();
+    render(<MeasureHarness onMeasure={onMeasure} />);
+
+    const scroller = screen.getByTestId("scroller");
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 540,
+    });
+    fireEvent(window, new Event("resize"));
+
+    expect(onMeasure).toHaveBeenCalledTimes(2);
+    expect(onMeasure).toHaveBeenLastCalledWith(540);
   });
 });

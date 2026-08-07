@@ -21,6 +21,41 @@ export type ScrollExpandStartPosition = {
   y?: number;
 };
 
+/**
+ * The subject of the shot, as a percentage of the media's own dimensions.
+ *
+ * `startPosition` lives in stage space while the subject lives in image space,
+ * so a `cover` crop pulls them apart as soon as the stage aspect ratio changes.
+ * Naming the subject here lets the media pan itself under the frame instead.
+ */
+export type ScrollExpandFocalPoint = {
+  x?: number;
+  y?: number;
+};
+
+/**
+ * Choreography values re-tuned for a narrow, portrait stage. The frame geometry
+ * is computed in JavaScript, so a container query cannot reach it — a phone
+ * needs its own numbers rather than a scaled-down desktop composition.
+ */
+export type ScrollExpandCompactOverrides = {
+  startWidth?: number;
+  startHeight?: number;
+  startPosition?: ScrollExpandStartPosition;
+  focalPoint?: ScrollExpandFocalPoint;
+  startRadius?: number;
+  endRadius?: number;
+  mediaZoom?: number;
+  mediaPosition?: React.CSSProperties["objectPosition"];
+  mediaTransformOrigin?: React.CSSProperties["transformOrigin"];
+  scrollDistance?: number;
+  holdDistance?: number;
+  overlayScrim?: number;
+  titleAlign?: ScrollExpandAlignment;
+  contentAlign?: ScrollExpandAlignment;
+  contentPosition?: ScrollExpandContentPosition;
+};
+
 type ScrollExpandItemRegistry = {
   register: (node: HTMLDivElement) => void;
   unregister: (node: HTMLDivElement) => void;
@@ -48,6 +83,13 @@ export interface ScrollExpandProps
   startWidth?: number;
   startHeight?: number;
   startPosition?: ScrollExpandStartPosition;
+  /**
+   * Anchor the media to its subject rather than to the stage. When set, the
+   * media covers the stage and pans so this point sits under the frame center
+   * at every stage size, and `mediaPosition` / `mediaTransformOrigin` are
+   * ignored. Requires a `mediaZoom` of at least `1`.
+   */
+  focalPoint?: ScrollExpandFocalPoint;
   startRadius?: number;
   endRadius?: number;
   mediaZoom?: number;
@@ -65,8 +107,21 @@ export interface ScrollExpandProps
   contentPosition?: ScrollExpandContentPosition;
   /** Keep content clipped to the media, or place it over the whole stage. */
   contentLayer?: ScrollExpandContentLayer;
+  /** Choreography overrides applied while the stage is narrower than `compactAt`. */
+  compact?: ScrollExpandCompactOverrides;
+  /** Stage width in px below which `compact` applies. */
+  compactAt?: number;
+  /**
+   * Drive the scroll from the page instead of a nested scroller. Prefer this on
+   * touch devices, where a nested scroller traps momentum and chains awkwardly.
+   */
   useWindowScroll?: boolean;
   enabled?: boolean;
+  /**
+   * Honour `prefers-reduced-motion` by settling on the resting composition.
+   * Set to `false` only where the viewer has explicitly asked to see the motion.
+   */
+  respectReducedMotion?: boolean;
   /** Receives the same raw 0–1 progress used by the internal choreography. */
   onProgress?: (progress: number) => void;
 }
@@ -125,6 +180,7 @@ export function ScrollExpand({
   startWidth = 42,
   startHeight = 58,
   startPosition,
+  focalPoint,
   startRadius = DEFAULT_MOTION_VALUES.startRadius,
   endRadius = DEFAULT_MOTION_VALUES.endRadius,
   mediaZoom = DEFAULT_MOTION_VALUES.mediaZoom,
@@ -139,8 +195,11 @@ export function ScrollExpand({
   contentAlign = "center",
   contentPosition = "center",
   contentLayer = "frame",
+  compact,
+  compactAt = 640,
   useWindowScroll = false,
   enabled = true,
+  respectReducedMotion = true,
   onProgress,
   children,
   className,
@@ -161,16 +220,53 @@ export function ScrollExpand({
   const hintRef = React.useRef<HTMLDivElement>(null);
   const itemNodesRef = React.useRef(new Set<HTMLDivElement>());
   const stageSizeRef = React.useRef({ width: 0, height: 0 });
+  const mediaSizeRef = React.useRef({ width: 0, height: 0 });
+  const mediaBoxRef = React.useRef({
+    active: false,
+    originX: 0,
+    originY: 0,
+    boxWidth: 0,
+    boxHeight: 0,
+    offsetX: 0,
+    offsetY: 0,
+  });
   const progressRef = React.useRef(enabled ? 0 : 1);
-  const prefersReducedMotion = useReducedMotion();
+  const [isCompact, setIsCompact] = React.useState(false);
+  const systemReducedMotion = useReducedMotion();
+  const prefersReducedMotion = systemReducedMotion && respectReducedMotion;
   const motionEnabled = enabled && !prefersReducedMotion;
-  const startX = startPosition?.x ?? 50;
-  const startY = startPosition?.y ?? 50;
+
+  // Resolved one scalar at a time so an inline `compact` object literal does not
+  // invalidate the memos and callbacks below on every render.
+  const overrides = isCompact ? compact : undefined;
+  const startX = overrides?.startPosition?.x ?? startPosition?.x ?? 50;
+  const startY = overrides?.startPosition?.y ?? startPosition?.y ?? 50;
+  const resolvedFocalPoint = overrides?.focalPoint ?? focalPoint;
+  const focalX = resolvedFocalPoint
+    ? clamp(finiteNumber(resolvedFocalPoint.x ?? 50, 50), 0, 100) / 100
+    : null;
+  const focalY = resolvedFocalPoint
+    ? clamp(finiteNumber(resolvedFocalPoint.y ?? 50, 50), 0, 100) / 100
+    : null;
+  const resolvedStartWidth = overrides?.startWidth ?? startWidth;
+  const resolvedStartHeight = overrides?.startHeight ?? startHeight;
+  const resolvedStartRadius = overrides?.startRadius ?? startRadius;
+  const resolvedEndRadius = overrides?.endRadius ?? endRadius;
+  const resolvedMediaZoom = overrides?.mediaZoom ?? mediaZoom;
+  const resolvedMediaPosition = overrides?.mediaPosition ?? mediaPosition;
+  const resolvedMediaTransformOrigin =
+    overrides?.mediaTransformOrigin ?? mediaTransformOrigin;
+  const resolvedScrollDistance = overrides?.scrollDistance ?? scrollDistance;
+  const resolvedHoldDistance = overrides?.holdDistance ?? holdDistance;
+  const resolvedOverlayScrim = overrides?.overlayScrim ?? overlayScrim;
+  const resolvedTitleAlign = overrides?.titleAlign ?? titleAlign;
+  const resolvedContentAlign = overrides?.contentAlign ?? contentAlign;
+  const resolvedContentPosition = overrides?.contentPosition ?? contentPosition;
 
   const motionValues = React.useMemo<MotionValues>(
     () => {
-      const width = clamp(finiteNumber(startWidth, 42), 0, 100);
-      const height = clamp(finiteNumber(startHeight, 58), 0, 100);
+      const width = clamp(finiteNumber(resolvedStartWidth, 42), 0, 100);
+      const height = clamp(finiteNumber(resolvedStartHeight, 58), 0, 100);
       const left = clamp(
         finiteNumber(startX, 50) - width / 2,
         0,
@@ -191,19 +287,19 @@ export function ScrollExpand({
         startInsetRight: 100 - left - width,
         startInsetBottom: 100 - top - height,
         startInsetLeft: left,
-        startRadius: Math.max(0, finiteNumber(startRadius, 24)),
-        endRadius: Math.max(0, finiteNumber(endRadius, 0)),
-        mediaZoom: Math.max(0.01, finiteNumber(mediaZoom, 1.35)),
-        overlayScrim: clamp(finiteNumber(overlayScrim, 0.45), 0, 1),
+        startRadius: Math.max(0, finiteNumber(resolvedStartRadius, 24)),
+        endRadius: Math.max(0, finiteNumber(resolvedEndRadius, 0)),
+        mediaZoom: Math.max(0.01, finiteNumber(resolvedMediaZoom, 1.35)),
+        overlayScrim: clamp(finiteNumber(resolvedOverlayScrim, 0.45), 0, 1),
       };
     },
     [
-      endRadius,
-      mediaZoom,
-      overlayScrim,
-      startHeight,
-      startRadius,
-      startWidth,
+      resolvedEndRadius,
+      resolvedMediaZoom,
+      resolvedOverlayScrim,
+      resolvedStartHeight,
+      resolvedStartRadius,
+      resolvedStartWidth,
       startX,
       startY,
     ],
@@ -269,11 +365,9 @@ export function ScrollExpand({
       stageSizeRef.current,
     );
     const eased = smoothstep(0, 1, progress);
-    const frameProgress = motionEnabled
-      ? direction === "focus"
-        ? 1 - eased
-        : eased
-      : 1;
+    // Progress is pinned to 1 while motion is off, so both directions settle on
+    // their own end state: full bleed for `expand`, the detail frame for `focus`.
+    const frameProgress = direction === "focus" ? 1 - eased : eased;
     const remainingInset = 1 - frameProgress;
     const insetTop = geometry.insetTop * remainingInset;
     const insetRight = geometry.insetRight * remainingInset;
@@ -284,7 +378,20 @@ export function ScrollExpand({
       (values.endRadius - geometry.startRadius) * frameProgress;
 
     frame.style.clipPath = `inset(${insetTop}${geometry.unit} ${insetRight}${geometry.unit} ${insetBottom}${geometry.unit} ${insetLeft}${geometry.unit} round ${radius}px)`;
-    media.style.transform = `scale(${values.mediaZoom + (1 - values.mediaZoom) * frameProgress})`;
+
+    const zoom = values.mediaZoom + (1 - values.mediaZoom) * frameProgress;
+    const box = mediaBoxRef.current;
+
+    if (box.active) {
+      // The zoom pivots on the subject and the offset that parks the subject on
+      // its target is a constant, so nothing here depends on progress: the media
+      // only ever scales. `handleMeasure` sizes the box so this offset already
+      // covers the stage at the shallowest zoom, which is what removes the pan
+      // a minimal cover box would otherwise force near full bleed.
+      media.style.transform = `translate3d(${roundPixel(box.offsetX)}px, ${roundPixel(box.offsetY)}px, 0) scale(${zoom})`;
+    } else {
+      media.style.transform = `scale(${zoom})`;
+    }
 
     if (scrimRef.current) {
       const scrimProgress = smoothstep(0.38, 1, progress);
@@ -316,7 +423,7 @@ export function ScrollExpand({
     itemNodesRef.current.forEach((node) => {
       applyItemProgress(node, progress);
     });
-  }, [applyItemProgress, direction, frameShape, motionEnabled, motionValues, onProgress]);
+  }, [applyItemProgress, direction, frameShape, motionValues, onProgress]);
 
   const handleMeasure = React.useCallback(
     (viewportHeight: number) => {
@@ -327,26 +434,135 @@ export function ScrollExpand({
         return;
       }
 
-      stageSizeRef.current = {
-        width: rootRef.current?.clientWidth ?? 0,
-        height: viewportHeight,
-      };
+      const stageWidth = rootRef.current?.clientWidth ?? 0;
 
-      const expansion = Math.max(0, finiteNumber(scrollDistance, 1.2));
-      const hold = Math.max(0, finiteNumber(holdDistance, 0.35));
+      stageSizeRef.current = { width: stageWidth, height: viewportHeight };
+
+      if (stageWidth > 0) {
+        setIsCompact(stageWidth < Math.max(0, finiteNumber(compactAt, 640)));
+      }
+
+      // Focal mode grows the media to the full cover box so the crop can be
+      // chosen here, once, rather than by `object-fit` reacting to the stage
+      // aspect ratio. The box keeps the media's own ratio, so nothing stretches.
+      const media = mediaRef.current;
+      const intrinsic = mediaSizeRef.current;
+
+      if (
+        media &&
+        focalX !== null &&
+        focalY !== null &&
+        stageWidth > 0 &&
+        intrinsic.width > 0 &&
+        intrinsic.height > 0
+      ) {
+        const coverScale = Math.max(
+          stageWidth / intrinsic.width,
+          viewportHeight / intrinsic.height,
+        );
+        // Where the subject wants to sit: the centre of the resting detail
+        // frame. Fixed for the whole scroll, so the media is never chased around
+        // by the frame centre as it travels.
+        const restX =
+          ((motionValues.startInsetLeft + motionValues.startWidth / 2) / 100) *
+          stageWidth;
+        const restY =
+          ((motionValues.startInsetTop + motionValues.startHeight / 2) / 100) *
+          viewportHeight;
+        // Holding the subject on that target with a constant offset is what
+        // makes the travel a pure zoom. It only stays coverage-legal if the box
+        // is big enough to absorb the offset at the shallowest zoom the media is
+        // ever drawn at, so solve each stage edge for the box width it needs and
+        // take the largest. A minimal cover box is the floor.
+        const zoomFloor = Math.min(1, motionValues.mediaZoom);
+        const zoomCeiling = Math.max(1, motionValues.mediaZoom);
+        const scale = Math.min(
+          Math.max(
+            coverScale,
+            edgeScale(restX, focalX, intrinsic.width, zoomFloor),
+            edgeScale(stageWidth - restX, 1 - focalX, intrinsic.width, zoomFloor),
+            edgeScale(restY, focalY, intrinsic.height, zoomFloor),
+            edgeScale(
+              viewportHeight - restY,
+              1 - focalY,
+              intrinsic.height,
+              zoomFloor,
+            ),
+          ),
+          // A subject pinned against its own edge can ask for an unbounded box.
+          // Stop at the coverage the old pan reached at its widest zoom — past
+          // that the request is unsatisfiable at any size, and the clamp below
+          // keeps the stage covered instead.
+          (coverScale * zoomCeiling) / zoomFloor,
+        );
+        const boxWidth = intrinsic.width * scale;
+        const boxHeight = intrinsic.height * scale;
+        const subjectX = focalX * boxWidth;
+        const subjectY = focalY * boxHeight;
+        // Only bites for the unsatisfiable configurations above.
+        const offsetX = clamp(
+          restX - subjectX,
+          stageWidth - subjectX - zoomFloor * (boxWidth - subjectX),
+          subjectX * (zoomFloor - 1),
+        );
+        const offsetY = clamp(
+          restY - subjectY,
+          viewportHeight - subjectY - zoomFloor * (boxHeight - subjectY),
+          subjectY * (zoomFloor - 1),
+        );
+
+        mediaBoxRef.current = {
+          active: true,
+          originX: subjectX,
+          originY: subjectY,
+          boxWidth,
+          boxHeight,
+          offsetX,
+          offsetY,
+        };
+        media.style.width = `${roundPixel(boxWidth)}px`;
+        media.style.height = `${roundPixel(boxHeight)}px`;
+        media.style.transformOrigin = `${roundPixel(subjectX)}px ${roundPixel(subjectY)}px`;
+      } else {
+        mediaBoxRef.current = {
+          active: false,
+          originX: 0,
+          originY: 0,
+          boxWidth: 0,
+          boxHeight: 0,
+          offsetX: 0,
+          offsetY: 0,
+        };
+
+        if (media) {
+          media.style.width = "";
+          media.style.height = "";
+        }
+      }
+
+      const expansion = Math.max(0, finiteNumber(resolvedScrollDistance, 1.2));
+      const hold = Math.max(0, finiteNumber(resolvedHoldDistance, 0.35));
       const trackMultiplier = motionEnabled ? 1 + expansion + hold : 1;
 
       stage.style.height = `${viewportHeight}px`;
       track.style.height = `${roundPixel(viewportHeight * trackMultiplier)}px`;
     },
-    [holdDistance, motionEnabled, scrollDistance],
+    [
+      compactAt,
+      focalX,
+      focalY,
+      motionEnabled,
+      motionValues,
+      resolvedHoldDistance,
+      resolvedScrollDistance,
+    ],
   );
 
   const { measure } = useScrollProgress({
     containerRef: rootRef,
     trackRef,
     source: useWindowScroll ? "window" : "container",
-    distance: Math.max(0.01, finiteNumber(scrollDistance, 1.2)),
+    distance: Math.max(0.01, finiteNumber(resolvedScrollDistance, 1.2)),
     smoothing: Math.max(0, finiteNumber(smoothing, 0.1)),
     enabled: motionEnabled,
     disabledProgress: 1,
@@ -354,21 +570,59 @@ export function ScrollExpand({
     onMeasure: handleMeasure,
   });
 
+  const handleMediaLoad = React.useCallback(() => {
+    const media = mediaRef.current;
+
+    if (!media) {
+      return;
+    }
+
+    const width =
+      media instanceof HTMLVideoElement
+        ? media.videoWidth
+        : media instanceof HTMLImageElement
+          ? media.naturalWidth
+          : 0;
+    const height =
+      media instanceof HTMLVideoElement
+        ? media.videoHeight
+        : media instanceof HTMLImageElement
+          ? media.naturalHeight
+          : 0;
+    const current = mediaSizeRef.current;
+
+    if (
+      width <= 0 ||
+      height <= 0 ||
+      (current.width === width && current.height === height)
+    ) {
+      return;
+    }
+
+    mediaSizeRef.current = { width, height };
+    measure();
+  }, [measure]);
+
+  // Covers media that was already complete on mount, where `load` never fires.
+  React.useEffect(() => {
+    handleMediaLoad();
+  }, [handleMediaLoad, mediaType, src]);
+
   const hasChildren = Boolean(children);
 
   React.useEffect(() => {
     measure();
   }, [
-    endRadius,
     direction,
     frameShape,
     handleMeasure,
-    mediaZoom,
     measure,
-    overlayScrim,
-    startHeight,
-    startRadius,
-    startWidth,
+    resolvedEndRadius,
+    resolvedMediaZoom,
+    resolvedOverlayScrim,
+    resolvedStartHeight,
+    resolvedStartRadius,
+    resolvedStartWidth,
     startX,
     startY,
     title,
@@ -396,6 +650,18 @@ export function ScrollExpand({
   const setMediaRef = React.useCallback((node: HTMLElement | null) => {
     mediaRef.current = node;
   }, []);
+  // In focal mode the element is grown to the cover box by `handleMeasure`, so
+  // it is anchored top-left and left to overflow. `object-fit: cover` from the
+  // stylesheet stays put deliberately: the sized box already carries the media's
+  // ratio, and before the intrinsic size is known it still crops rather than
+  // stretches. The transform origin is the subject, and is written on measure.
+  const mediaStyle: React.CSSProperties =
+    focalX !== null
+      ? { right: "auto", bottom: "auto" }
+      : {
+          objectPosition: resolvedMediaPosition,
+          transformOrigin: resolvedMediaTransformOrigin,
+        };
   const nestedScroller = motionEnabled && !useWindowScroll;
   const rootStyle = {
     "--scroll-expand-progress": motionEnabled ? 0 : 1,
@@ -413,8 +679,8 @@ export function ScrollExpand({
       <div
         ref={overlayRef}
         className="scroll-expand__overlay"
-        data-align={contentAlign}
-        data-position={contentPosition}
+        data-align={resolvedContentAlign}
+        data-position={resolvedContentPosition}
         data-layer={contentLayer}
         aria-hidden="true"
         inert
@@ -431,6 +697,7 @@ export function ScrollExpand({
       data-direction={direction}
       data-frame-shape={frameShape}
       data-motion={motionEnabled ? "enabled" : "disabled"}
+      data-size={isCompact ? "compact" : "regular"}
       className={cn(
         "scroll-expand",
         nestedScroller && "scroll-expand--scroller",
@@ -462,10 +729,8 @@ export function ScrollExpand({
                   loop
                   playsInline
                   preload="metadata"
-                  style={{
-                    objectPosition: mediaPosition,
-                    transformOrigin: mediaTransformOrigin,
-                  }}
+                  onLoadedMetadata={handleMediaLoad}
+                  style={mediaStyle}
                 />
               ) : (
                 // Native media keeps the registry block framework-agnostic.
@@ -476,10 +741,8 @@ export function ScrollExpand({
                   src={src}
                   alt={alt}
                   draggable={false}
-                  style={{
-                    objectPosition: mediaPosition,
-                    transformOrigin: mediaTransformOrigin,
-                  }}
+                  onLoad={handleMediaLoad}
+                  style={mediaStyle}
                 />
               )
             ) : (
@@ -501,7 +764,7 @@ export function ScrollExpand({
             <h2
               ref={titleRef}
               className={cn("scroll-expand__title", titleClassName)}
-              data-align={titleAlign}
+              data-align={resolvedTitleAlign}
             >
               {title}
             </h2>
@@ -620,6 +883,24 @@ function resolveFrameGeometry(
     startRadius: diameter / 2,
     unit: "px",
   } as const;
+}
+
+/**
+ * Smallest box scale that still reaches `edge` from a subject sitting `share` of
+ * the way across the media, at zoom `zoom`. A subject flush against that edge
+ * (`share` of zero) can never reach it, so it contributes no constraint at all.
+ */
+function edgeScale(
+  edge: number,
+  share: number,
+  intrinsicSize: number,
+  zoom: number,
+) {
+  if (share <= 0 || intrinsicSize <= 0 || zoom <= 0) {
+    return 0;
+  }
+
+  return edge / (zoom * share * intrinsicSize);
 }
 
 function finiteNumber(value: number, fallback: number) {

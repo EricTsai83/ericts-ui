@@ -64,6 +64,14 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  /* Focal mode sizes this box in JS to something deliberately wider than the
+     stage. A CSS reset that caps media at `max-width: 100%` — Tailwind Preflight
+     among them — would silently truncate that box while the transform still
+     assumes the full size, which uncovers the stage and drags the subject off
+     its mark. The sizing here is always explicit, so the cap has nothing to
+     protect. */
+  max-width: none;
+  max-height: none;
   object-fit: cover;
   transform: scale(var(--scroll-expand-media-zoom));
   transform-origin: center;
@@ -95,6 +103,32 @@
     rgb(0 0 0 / 72%) 72%,
     rgb(0 0 0 / 22%)
   );
+}
+
+/* Default for a compact stage, which most often stacks the frame above the copy:
+   the focus scrim falls from the bottom instead of the side. A consumer that
+   keeps a side-by-side composition on a narrow stage overrides this back. */
+.scroll-expand[data-size="compact"][data-direction="focus"]
+  .scroll-expand__scrim {
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 88%),
+    rgb(0 0 0 / 60%) 44%,
+    rgb(0 0 0 / 10%)
+  );
+}
+
+.scroll-expand[data-size="compact"][data-direction="focus"]
+  .scroll-expand__overlay[data-layer="frame"] {
+  padding: clamp(1rem, 5cqw, 1.75rem);
+}
+
+.scroll-expand[data-size="compact"] .scroll-expand__overlay {
+  padding: 8% 6%;
+}
+
+.scroll-expand[data-size="compact"] .scroll-expand__title {
+  padding: 0 6%;
 }
 
 .scroll-expand__media--empty {
@@ -200,35 +234,52 @@
   will-change: opacity, transform;
 }
 
+/* Pre-hydration resting state. `[data-motion="enabled"]` is the escape hatch for
+   a viewer who asked to see the motion anyway via `respectReducedMotion`. */
 @media (prefers-reduced-motion: reduce) {
-  .scroll-expand__frame {
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__frame {
     clip-path: inset(0 round 0);
     will-change: auto;
   }
 
-  .scroll-expand__media {
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__media {
     transform: none;
     will-change: auto;
   }
 
-  .scroll-expand__scrim {
+  /* `focus` resolves the other way round: its end state is the detail frame. */
+  .scroll-expand[data-direction="focus"]:not([data-motion="enabled"])
+    .scroll-expand__frame {
+    clip-path: inset(
+      var(--scroll-expand-inset-top) var(--scroll-expand-inset-right)
+        var(--scroll-expand-inset-bottom) var(--scroll-expand-inset-left) round
+        var(--scroll-expand-start-radius)
+    );
+  }
+
+  .scroll-expand[data-direction="focus"]:not([data-motion="enabled"])
+    .scroll-expand__media {
+    transform: scale(var(--scroll-expand-media-zoom));
+  }
+
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__scrim {
     opacity: 0.45;
   }
 
-  .scroll-expand__overlay {
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__overlay {
     opacity: 1;
     transform: none;
     will-change: auto;
   }
 
-  .scroll-expand__item {
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__item {
     opacity: 1;
     transform: none;
     will-change: auto;
   }
 
-  .scroll-expand__title,
-  .scroll-expand__hint {
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__title,
+  .scroll-expand:not([data-motion="enabled"]) .scroll-expand__hint {
     display: none;
   }
 }

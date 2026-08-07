@@ -66,6 +66,7 @@ export function useScrollProgress<
   const onProgressRef = useRef(onProgress);
   const onMeasureRef = useRef(onMeasure);
   const viewportHeightRef = useRef(1);
+  const viewportWidthRef = useRef<number | null>(null);
   const initialProgress = clamp(disabledProgress, 0, 1);
   const currentRef = useRef(initialProgress);
   const targetRef = useRef(initialProgress);
@@ -121,6 +122,14 @@ export function useScrollProgress<
     onProgressRef.current(progress);
   }, [cancelFrame, readProgress]);
 
+  const readViewportWidth = useCallback(() => {
+    if (source === "window") {
+      return window.innerWidth;
+    }
+
+    return containerRef.current?.clientWidth ?? 0;
+  }, [containerRef, source]);
+
   const measure = useCallback(() => {
     const container = containerRef.current;
 
@@ -136,9 +145,26 @@ export function useScrollProgress<
     }
 
     viewportHeightRef.current = viewportHeight;
+    viewportWidthRef.current = readViewportWidth();
     onMeasureRef.current?.(viewportHeight);
     emitImmediately();
-  }, [containerRef, emitImmediately, source]);
+  }, [containerRef, emitImmediately, readViewportWidth, source]);
+
+  /**
+   * Mobile browsers resize the viewport as their chrome collapses mid-scroll.
+   * Re-measuring there retimes the track under the gesture and jumps progress,
+   * so height-only changes are ignored while the pointer is coarse.
+   */
+  const measureOnViewportChange = useCallback(() => {
+    if (
+      readViewportWidth() === viewportWidthRef.current &&
+      isCoarsePointer()
+    ) {
+      return;
+    }
+
+    measure();
+  }, [measure, readViewportWidth]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -195,11 +221,11 @@ export function useScrollProgress<
       scroller.addEventListener("scroll", handleScroll, { passive: true });
     }
 
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", measureOnViewportChange);
 
     const resizeObserver =
       source === "container" && typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(measure)
+        ? new ResizeObserver(measureOnViewportChange)
         : null;
 
     resizeObserver?.observe(container);
@@ -207,7 +233,7 @@ export function useScrollProgress<
     return () => {
       cancelFrame();
       scroller.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", measureOnViewportChange);
       resizeObserver?.disconnect();
     };
   }, [
@@ -215,12 +241,21 @@ export function useScrollProgress<
     containerRef,
     enabled,
     measure,
+    measureOnViewportChange,
     readProgress,
     smoothing,
     source,
   ]);
 
   return { measure };
+}
+
+function isCoarsePointer() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
 }
 
 function finiteNumber(value: number, fallback: number) {
