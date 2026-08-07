@@ -5,11 +5,65 @@ description: See when subtle grain improves application surfaces, compare it in 
 
 Surface grain is a fine, repeated texture placed over a flat background. Used
 with restraint, it gives large application surfaces a little material depth
-without changing their color, layout, or information hierarchy.
+without changing their color, layout, or information hierarchy. This page walks
+through the flatness it addresses, why the texture helps, how the two compare
+side by side, and the complete CSS to add it to a shadcn project.
 
 > **Just want the implementation?** [Skip to the complete CSS and usage
 > examples](#copy-the-recipe). Everything before that section explains why the
 > treatment works and when it is worth using.
+
+## The Problem With Perfectly Flat Surfaces
+
+A digital surface filled with one exact color has no variation anywhere in it.
+Every pixel of a `#0a0a0a` sidebar is identical to every other pixel. Nothing
+in the physical world looks like that, so large expanses of it tend to read as
+empty color fields rather than as material the interface sits on.
+
+That flatness shows up most in the places users stare at longest:
+
+- **App shells and sidebars.** Persistent chrome covers a large share of the
+  viewport and rarely changes, so an unbroken color field is on screen the
+  entire session.
+- **Near-white light themes.** Wide areas of near-white can feel clinical, and
+  the usual fix—adding a tint or an accent—changes the palette instead of the
+  surface.
+- **Near-black dark themes.** Deep backgrounds lose the sense of a lit surface
+  entirely and can look like a hole behind the content.
+- **Editors and dashboards.** Restrained, mostly neutral tools have little
+  imagery to break up the background, which leaves the flatness exposed.
+
+The usual responses make the interface louder: another border, another
+elevation step, a gradient, a background image. Each one adds a visual element
+that competes with the content it surrounds.
+
+## Why Grain Helps
+
+Grain is a fine, repeated texture placed over the flat background. It
+introduces small variations across the area, giving the eye enough detail to
+read it as a surface—without changing color, layout, or hierarchy.
+
+The treatment works because it stays below the interface hierarchy:
+
+- **It adds depth without adding another component.** Grain changes the
+  character of a surface while preserving its dimensions, spacing, and
+  interaction model.
+- **It softens near-white and near-black expanses.** Subtle variation can make
+  restrained palettes feel less sterile without introducing a new accent color.
+- **It can unify application chrome.** Repeating the same texture across the
+  body, sidebar, and raised panels gives separate regions a shared material
+  quality.
+- **It remains quiet.** A fine, low-opacity pattern does not compete with text,
+  controls, status colors, or focus states.
+
+Grain is not automatically an improvement. Its value comes from being barely
+present and consistently applied.
+
+## Compare the Results
+
+Each pair below holds the content, layout, and surface color constant. The left
+side is plain; the right side adds only grain. The effect should remain subtle.
+If the texture attracts attention before the interface does, it is too strong.
 
 To inspect the subtle texture, select the single magnifier in the **Plain vs.
 Grain** toolbar, then move anywhere across the Light and Dark demo. The lens
@@ -29,33 +83,6 @@ surface; Dark starts higher so the same fine pattern does not disappear against
 a near-black background. [See the detailed rationale](#why-light-and-dark-use-different-strengths).
 The lens keeps that opacity unchanged while rendering the normal `256px` noise
 tile at `1024px`, making the grain geometry four times larger for inspection.
-
-Each pair above holds the content, layout, and surface color constant. The left
-side is plain; the right side adds only grain. The effect should remain subtle.
-If the texture attracts attention before the interface does, it is too strong.
-
-## Why Use Surface Grain?
-
-Large areas of a single digital color can feel unusually flat, especially in
-app shells, sidebars, editors, and other persistent chrome. Grain introduces
-small variations across those areas, giving the eye enough detail to read them
-as surfaces rather than empty color fields.
-
-The treatment works well because it stays below the interface hierarchy:
-
-- **It adds depth without adding another component.** Grain changes the
-  character of a surface while preserving its dimensions, spacing, and
-  interaction model.
-- **It softens near-white and near-black expanses.** Subtle variation can make
-  restrained palettes feel less sterile without introducing a new accent color.
-- **It can unify application chrome.** Repeating the same texture across the
-  body, sidebar, and raised panels gives separate regions a shared material
-  quality.
-- **It remains quiet.** A fine, low-opacity pattern does not compete with text,
-  controls, status colors, or focus states.
-
-Grain is not automatically an improvement. Its value comes from being barely
-present and consistently applied.
 
 ## When It Is a Good Fit
 
@@ -87,19 +114,19 @@ predictable: one generated tile always occupies exactly `256 × 256` CSS pixels.
 
 ## Why Light and Dark Use Different Strengths
 
-The pattern geometry in this recipe matches the public T3 Code implementation:
-a `256 × 256` tile, `baseFrequency=".9"`, four octaves, and stitched edges. T3
-Code uses `0.035` opacity for both themes. This adaptation starts with separate
-theme values:
+The pattern geometry stays the same in both themes: a `256 × 256` tile,
+`baseFrequency=".9"`, four octaves, and stitched edges. Only the opacity
+changes, because the same noise reads differently against a pale surface than
+against a dark one:
 
 | Theme | Starting opacity | Reason |
 | --- | ---: | --- |
 | Light | `0.025` | Dark variation becomes visible quickly on near-white surfaces and can look dirty when overdone. |
 | Dark | `0.04` | Fine variation is easier to lose on near-black surfaces, so it needs slightly more strength. |
 
-These values are visual starting points, not universal constants. If exact T3
-Code parity matters, use `0.035` in both definitions. Otherwise, tune the values
-against your actual `background`, `card`, and `sidebar` colors.
+These values are visual starting points, not universal constants. A single
+shared value such as `0.035` also works if you prefer one definition; otherwise,
+tune each theme against your actual `background`, `card`, and `sidebar` colors.
 
 ## Copy the Recipe
 
@@ -271,10 +298,3 @@ intentionally compose both image layers.
 The texture is decorative and must never communicate state or information. It
 does not enter the accessibility tree, but excessive contrast can still make
 text less comfortable to read.
-
-## Origin of the Pattern
-
-This recipe is adapted from the public grain treatment used by
-[T3 Code](https://github.com/pingdotgg/t3code/blob/a483337a02d4ac641db0219517816c300a33be6b/apps/web/src/index.css#L1038).
-The pattern dimensions match that implementation; the separate light and dark
-strengths and adjustable variant are additions for reuse in shadcn projects.
