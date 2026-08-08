@@ -204,6 +204,7 @@ const registryDisplayItemConfigs = [
     category: "button",
     viewport: "wide",
   },
+  { name: "play-button", kind: "component", category: "button" },
   { name: "status-badge", kind: "component", category: "feedback" },
   { name: "feedback-popover", kind: "component", category: "feedback" },
   { name: "otp-input", kind: "component", category: "form" },

@@ -85,6 +85,40 @@
       ]
     },
     {
+      "name": "play-button",
+      "type": "registry:ui",
+      "title": "Play Button",
+      "description": "A circular media toggle whose glyph morphs between a play triangle and pause bars, with a ghost or frosted over-video surface.",
+      "categories": ["button"],
+      "meta": {
+        "tags": [
+          "button",
+          "toggle",
+          "play",
+          "pause",
+          "media",
+          "video",
+          "controlled"
+        ],
+        "effects": [
+          "path-morph",
+          "svg-animation",
+          "pulse",
+          "frosted-glass",
+          "press-scale",
+          "reduced-motion"
+        ]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/play-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/play-button.tsx"
+        }
+      ]
+    },
+    {
       "name": "status-badge",
       "type": "registry:ui",
       "title": "Status Badge",
