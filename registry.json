@@ -157,6 +157,32 @@
       ]
     },
     {
+      "name": "expanding-slider",
+      "type": "registry:ui",
+      "title": "Expanding Slider",
+      "description": "A composable icon button that grows into a wider button on hover, focus, or drag, revealing a draggable track inside the same surface.",
+      "categories": ["slider", "form"],
+      "meta": {
+        "tags": [
+          "slider",
+          "range",
+          "volume",
+          "hover-reveal",
+          "disclosure",
+          "controlled",
+          "composable"
+        ],
+        "effects": ["width-animation", "hover-reveal", "reduced-motion"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/expanding-slider.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/expanding-slider.tsx"
+        }
+      ]
+    },
+    {
       "name": "expandable-toolbar",
       "type": "registry:ui",
       "title": "Expandable Toolbar",

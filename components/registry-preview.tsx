@@ -28,6 +28,7 @@ const previews: Record<string, PreviewComponent> = {
   "expanding-toggle-button": dynamic(() => import("@/components/previews/expanding-toggle-button")),
   "play-button": dynamic(() => import("@/components/previews/play-button")),
   "floating-select": dynamic(() => import("@/components/previews/floating-select")),
+  "expanding-slider": dynamic(() => import("@/components/previews/expanding-slider")),
   "expandable-toolbar": dynamic(() => import("@/components/previews/expandable-toolbar")),
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
   "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
