@@ -51,9 +51,6 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [siteOgImage.path],
   },
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 const searchLinks = getSearchLinks();
