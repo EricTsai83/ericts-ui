@@ -1,14 +1,17 @@
 "use client";
 
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
 import {
   type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -16,6 +19,7 @@ import {
   PreviewCornerSlotProvider,
   RegistryPreview,
 } from "@/components/registry-preview";
+import { Button, buttonVariants } from "@/components/ui/button";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
@@ -39,7 +43,15 @@ export type RegistryDemoNavigationGroup = {
   items: RegistryDemoNavigationItem[];
 };
 
+const SWIPE_DISTANCE_THRESHOLD = 52;
+const SWIPE_VELOCITY_THRESHOLD = 0.35;
+const SWIPE_DIRECTION_LOCK_THRESHOLD = 8;
+const SWIPE_FEEDBACK_DISTANCE = 16;
+
+type PreviewNavigationDirection = "previous" | "next";
+
 let navigationPanelOpenMemory = false;
+let pressedNavigationDirectionMemory: PreviewNavigationDirection | null = null;
 
 export function RegistryDemoShell({
   item,
@@ -55,6 +67,10 @@ export function RegistryDemoShell({
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [panelOpen, setPanelOpen] = useState(() => navigationPanelOpenMemory);
+  const [pressedNavigationDirection, setPressedNavigationDirection] =
+    useState<PreviewNavigationDirection | null>(
+      () => pressedNavigationDirectionMemory,
+    );
   const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
     sourceItemName: string;
     selectedItemName: string;
@@ -118,9 +134,45 @@ export function RegistryDemoShell({
     setPanelOpen(open);
   }, []);
 
+  const navigatePrevious = useCallback(() => {
+    replaceNavigationItem(router, navigation.previous, selectNavigationItem);
+  }, [navigation.previous, router, selectNavigationItem]);
+
+  const navigateNext = useCallback(() => {
+    replaceNavigationItem(router, navigation.next, selectNavigationItem);
+  }, [navigation.next, router, selectNavigationItem]);
+
+  const clearNavigationFeedback = useCallback(() => {
+    pressedNavigationDirectionMemory = null;
+    setPressedNavigationDirection(null);
+  }, []);
+
+  const showNavigationFeedback = useCallback(
+    (direction: PreviewNavigationDirection) => {
+      pressedNavigationDirectionMemory = direction;
+      setPressedNavigationDirection(direction);
+    },
+    [],
+  );
+
+  const releaseNavigationFeedback = useCallback(
+    (direction: PreviewNavigationDirection) => {
+      if (pressedNavigationDirectionMemory !== direction) {
+        return;
+      }
+
+      pressedNavigationDirectionMemory = null;
+      setPressedNavigationDirection((currentDirection) =>
+        currentDirection === direction ? null : currentDirection,
+      );
+    },
+    [],
+  );
+
   const exitFullscreen = useCallback(() => {
+    clearNavigationFeedback();
     router.replace(item.href, { scroll: false });
-  }, [item.href, router]);
+  }, [clearNavigationFeedback, item.href, router]);
 
   const toggleNavigationPanelOpen = useCallback(() => {
     setPanelOpen((current) => {
@@ -156,17 +208,25 @@ export function RegistryDemoShell({
 
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        replaceNavigationItem(router, navigation.next, selectNavigationItem);
+        if (navigation.next) {
+          showNavigationFeedback("next");
+        }
+        if (event.repeat) {
+          return;
+        }
+        navigateNext();
         return;
       }
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        replaceNavigationItem(
-          router,
-          navigation.previous,
-          selectNavigationItem,
-        );
+        if (navigation.previous) {
+          showNavigationFeedback("previous");
+        }
+        if (event.repeat) {
+          return;
+        }
+        navigatePrevious();
         return;
       }
 
@@ -196,17 +256,36 @@ export function RegistryDemoShell({
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown);
+    function handleKeyUp(event: KeyboardEvent) {
+      if (event.key === "ArrowRight") {
+        releaseNavigationFeedback("next");
+      } else if (event.key === "ArrowLeft") {
+        releaseNavigationFeedback("previous");
+      }
+    }
 
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", clearNavigationFeedback);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", clearNavigationFeedback);
+    };
   }, [
+    clearNavigationFeedback,
     exitFullscreen,
+    navigateNext,
+    navigatePrevious,
     navigation.next,
     navigation.nextCategory,
     navigation.previous,
     navigation.previousCategory,
+    releaseNavigationFeedback,
     router,
     selectNavigationItem,
+    showNavigationFeedback,
     toggleNavigationPanelOpen,
   ]);
 
@@ -250,6 +329,15 @@ export function RegistryDemoShell({
         />
       </ExpandingPanel>
 
+      <PreviewNavigationDock
+        item={item}
+        navigation={navigation}
+        activeDirection={pressedNavigationDirection}
+        onSelect={selectNavigationItem}
+        onNavigatePrevious={navigatePrevious}
+        onNavigateNext={navigateNext}
+      />
+
       <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
         <div
           aria-hidden="true"
@@ -273,6 +361,298 @@ export function RegistryDemoShell({
         </div>
       </section>
     </main>
+  );
+}
+
+type PreviewNavigationDockSwipeState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  startedAt: number;
+  axis: "pending" | "horizontal" | "vertical";
+};
+
+function PreviewNavigationDock({
+  item,
+  navigation,
+  activeDirection,
+  onSelect,
+  onNavigatePrevious,
+  onNavigateNext,
+}: {
+  item: RegistryDisplayItem;
+  navigation: RegistryDemoNavigation;
+  activeDirection: PreviewNavigationDirection | null;
+  onSelect: (item: RegistryDemoNavigationItem) => void;
+  onNavigatePrevious: () => void;
+  onNavigateNext: () => void;
+}) {
+  const navigationRef = useRef<HTMLElement>(null);
+  const swipeStateRef = useRef<PreviewNavigationDockSwipeState | null>(null);
+  const suppressClickRef = useRef(false);
+  const resetTimeoutRef = useRef<number | null>(null);
+
+  const resetSwipePosition = useCallback(() => {
+    const element = navigationRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const reduceMotion =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
+    element.style.transition = reduceMotion
+      ? "none"
+      : "transform 140ms cubic-bezier(0.16, 1, 0.3, 1)";
+    element.style.transform = "translate3d(0, 0, 0)";
+
+    if (resetTimeoutRef.current !== null) {
+      window.clearTimeout(resetTimeoutRef.current);
+    }
+
+    resetTimeoutRef.current = window.setTimeout(() => {
+      element.style.removeProperty("transition");
+      element.style.removeProperty("transform");
+      element.style.removeProperty("will-change");
+      resetTimeoutRef.current = null;
+    }, reduceMotion ? 0 : 160);
+  }, [navigationRef]);
+
+  useEffect(
+    () => () => {
+      if (resetTimeoutRef.current !== null) {
+        window.clearTimeout(resetTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (event.pointerType !== "touch") {
+        return;
+      }
+
+      swipeStateRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startedAt: performance.now(),
+        axis: "pending",
+      };
+      event.currentTarget.style.transition = "none";
+      event.currentTarget.style.willChange = "transform";
+    },
+    [],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const state = swipeStateRef.current;
+
+      if (!state || state.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - state.startX;
+      const deltaY = event.clientY - state.startY;
+
+      if (
+        state.axis === "pending" &&
+        Math.max(Math.abs(deltaX), Math.abs(deltaY)) >=
+          SWIPE_DIRECTION_LOCK_THRESHOLD
+      ) {
+        const axis =
+          Math.abs(deltaX) > Math.abs(deltaY) * 1.25
+            ? "horizontal"
+            : "vertical";
+
+        state.axis = axis;
+
+        if (axis === "horizontal") {
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        }
+      }
+
+      if (state.axis !== "horizontal") {
+        return;
+      }
+
+      event.preventDefault();
+      const feedbackX = Math.max(
+        -SWIPE_FEEDBACK_DISTANCE,
+        Math.min(SWIPE_FEEDBACK_DISTANCE, deltaX * 0.2),
+      );
+      event.currentTarget.style.transform = `translate3d(${feedbackX}px, 0, 0)`;
+    },
+    [],
+  );
+
+  const finishPointer = useCallback(
+    (event: ReactPointerEvent<HTMLElement>, cancelled: boolean) => {
+      const state = swipeStateRef.current;
+
+      if (!state || state.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - state.startX;
+      const elapsed = Math.max(performance.now() - state.startedAt, 1);
+      const velocity = Math.abs(deltaX) / elapsed;
+      const navigates =
+        !cancelled &&
+        state.axis === "horizontal" &&
+        (Math.abs(deltaX) >= SWIPE_DISTANCE_THRESHOLD ||
+          (Math.abs(deltaX) >= SWIPE_DISTANCE_THRESHOLD / 2 &&
+            velocity >= SWIPE_VELOCITY_THRESHOLD));
+
+      suppressClickRef.current =
+        state.axis === "horizontal" &&
+        Math.abs(deltaX) >= SWIPE_DIRECTION_LOCK_THRESHOLD;
+      swipeStateRef.current = null;
+
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      resetSwipePosition();
+
+      if (navigates) {
+        if (deltaX > 0) {
+          onNavigatePrevious();
+        } else {
+          onNavigateNext();
+        }
+      }
+
+      if (suppressClickRef.current) {
+        window.setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+      }
+    },
+    [onNavigateNext, onNavigatePrevious, resetSwipePosition],
+  );
+
+  const handleClickCapture = useCallback((event: MouseEvent<HTMLElement>) => {
+    if (!suppressClickRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickRef.current = false;
+  }, []);
+
+  return (
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-30 -translate-x-1/2">
+      <nav
+        ref={navigationRef}
+        aria-label="Preview navigation"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={(event) => finishPointer(event, false)}
+        onPointerCancel={(event) => finishPointer(event, true)}
+        onClickCapture={handleClickCapture}
+        className="relative isolate flex w-[min(22rem,calc(100vw-1.5rem))] touch-pan-y overflow-hidden rounded-lg border border-foreground/10 bg-background/80 text-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 supports-backdrop-filter:bg-background/55"
+      >
+        <PreviewNavigationLink
+          item={navigation.previous}
+          direction="previous"
+          active={activeDirection === "previous"}
+          onSelect={onSelect}
+        />
+
+        <div
+          aria-live="polite"
+          className="flex h-10 min-w-0 flex-1 items-center justify-center px-3 sm:h-9"
+        >
+          <span className="truncate text-sm font-medium">{item.title}</span>
+        </div>
+
+        <PreviewNavigationLink
+          item={navigation.next}
+          direction="next"
+          active={activeDirection === "next"}
+          onSelect={onSelect}
+        />
+      </nav>
+    </div>
+  );
+}
+
+function PreviewNavigationLink({
+  item,
+  direction,
+  active,
+  onSelect,
+}: {
+  item: RegistryDemoNavigationItem | undefined;
+  direction: PreviewNavigationDirection;
+  active: boolean;
+  onSelect: (item: RegistryDemoNavigationItem) => void;
+}) {
+  const isPrevious = direction === "previous";
+  const label = isPrevious ? "Previous preview" : "Next preview";
+  const shortcut = isPrevious ? "ArrowLeft" : "ArrowRight";
+  const shortcutLabel = isPrevious ? "←" : "→";
+  const Icon = isPrevious ? ArrowLeft : ArrowRight;
+  const controlClassName = cn(
+    "relative h-10 w-11 rounded-none border-0 transition-colors duration-[130ms] ease-out active:bg-muted active:text-foreground active:duration-0 motion-reduce:transition-none motion-reduce:active:translate-y-0 data-[active]:bg-muted data-[active]:text-foreground data-[active]:duration-0 sm:h-9",
+    isPrevious
+      ? "after:pointer-events-none after:absolute after:right-0 after:top-1/2 after:h-5 after:w-px after:-translate-y-1/2 after:rounded-full after:bg-foreground/15"
+      : "before:pointer-events-none before:absolute before:left-0 before:top-1/2 before:h-5 before:w-px before:-translate-y-1/2 before:rounded-full before:bg-foreground/15",
+  );
+  const iconClassName = cn(
+    "transition-transform ease-out motion-reduce:transition-none",
+    active
+      ? cn("duration-0", isPrevious ? "-translate-x-px" : "translate-x-px")
+      : "duration-[130ms]",
+  );
+
+  if (!item) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        disabled
+        aria-label={`${label} unavailable`}
+        data-direction={direction}
+        data-active={active || undefined}
+        className={controlClassName}
+      >
+        <Icon aria-hidden="true" className={iconClassName} />
+      </Button>
+    );
+  }
+
+  return (
+    <Link
+      href={item.viewHref}
+      replace
+      scroll={false}
+      title={`${label}: ${item.title} (${shortcutLabel} key)`}
+      aria-label={`${label}: ${item.title}`}
+      aria-keyshortcuts={shortcut}
+      data-direction={direction}
+      data-active={active || undefined}
+      className={buttonVariants({
+        variant: "ghost",
+        size: "icon",
+        className: controlClassName,
+      })}
+      onClick={(event) => {
+        if (shouldIgnoreModifiedClick(event)) {
+          return;
+        }
+
+        onSelect(item);
+      }}
+    >
+      <Icon aria-hidden="true" className={iconClassName} />
+    </Link>
   );
 }
 
