@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import type { SearchLink } from "fumadocs-ui/contexts/search";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import "./globals.css";
@@ -77,6 +78,7 @@ export default function RootLayout({
           <ThemeShortcut />
           {children}
         </RootProvider>
+        <Analytics />
       </body>
     </html>
   );
