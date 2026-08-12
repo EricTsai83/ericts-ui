@@ -4,6 +4,14 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
+      "@/components/ui/sliding-list": path.resolve(
+        __dirname,
+        "registry/base/ui/sliding-list.tsx",
+      ),
+      "@/components/ui/rail-list": path.resolve(
+        __dirname,
+        "registry/base/ui/rail-list.tsx",
+      ),
       "@/hooks/use-element-size-map": path.resolve(
         __dirname,
         "registry/base/hooks/use-element-size-map.ts",

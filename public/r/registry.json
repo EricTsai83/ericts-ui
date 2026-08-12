@@ -398,6 +398,43 @@
       ]
     },
     {
+      "name": "sliding-list",
+      "type": "registry:ui",
+      "title": "Sliding List",
+      "description": "A controlled or uncontrolled vertical list with optional initial selection, mirrored alignment, and a dot, dash, or custom icon indicator.",
+      "categories": ["navigation", "list"],
+      "meta": {
+        "tags": ["selectable-list", "tab-list", "roving-focus", "alignment", "indicator", "icon", "controlled", "uncontrolled", "optional-selection"],
+        "effects": ["active-shift", "indicator-reveal", "reduced-motion"]
+      },
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/sliding-list.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/sliding-list.tsx"
+        }
+      ]
+    },
+    {
+      "name": "rail-list",
+      "type": "registry:ui",
+      "title": "Rail List",
+      "description": "A controlled or uncontrolled horizontal selector rail with centered labels, roving focus, and an edge-underline indicator on the active item.",
+      "categories": ["navigation", "list"],
+      "meta": {
+        "tags": ["selectable-list", "tab-list", "roving-focus", "horizontal", "underline", "indicator", "controlled", "uncontrolled", "optional-selection"],
+        "effects": ["indicator-reveal", "reduced-motion"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/rail-list.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/rail-list.tsx"
+        }
+      ]
+    },
+    {
       "name": "expanding-segmented-tabs",
       "type": "registry:ui",
       "title": "Expanding Segmented Tabs",
@@ -659,6 +696,60 @@
           "path": "registry/base/blocks/scroll-expand.css",
           "type": "registry:file",
           "target": "components/blocks/scroll-expand.css"
+        }
+      ]
+    },
+    {
+      "name": "ripple-scene",
+      "type": "registry:block",
+      "title": "Ripple Scene Gallery",
+      "description": "An immersive scene selector whose photo lifts into a travelling corrugated wave, swapping to the next scene at the crest before settling flat.",
+      "categories": ["marketing", "gallery"],
+      "meta": {
+        "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
+        "effects": ["ripple-wave", "strip-stagger", "crest-swap", "direction-aware", "content-stagger", "reduced-motion"]
+      },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/rail-list.json",
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ],
+      "files": [
+        {
+          "path": "registry/base/blocks/ripple-scene.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/ripple-scene.tsx"
+        },
+        {
+          "path": "registry/base/blocks/ripple-scene.css",
+          "type": "registry:file",
+          "target": "components/blocks/ripple-scene.css"
+        }
+      ]
+    },
+    {
+      "name": "vertical-scene",
+      "type": "registry:block",
+      "title": "Vertical Scene Gallery",
+      "description": "A direction-aware gallery that reveals later scenes from below and earlier scenes from above with a paired vertical image transition.",
+      "categories": ["marketing", "gallery"],
+      "meta": {
+        "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
+        "effects": ["vertical-reveal", "media-zoom", "content-transition", "direction-aware", "reduced-motion"]
+      },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/sliding-list.json"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/blocks/vertical-scene.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/vertical-scene.tsx"
+        },
+        {
+          "path": "registry/base/blocks/vertical-scene.css",
+          "type": "registry:file",
+          "target": "components/blocks/vertical-scene.css"
         }
       ]
     },

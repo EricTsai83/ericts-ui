@@ -32,6 +32,8 @@ const previews: Record<string, PreviewComponent> = {
   "expandable-toolbar": dynamic(() => import("@/components/previews/expandable-toolbar")),
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
   "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
+  "sliding-list": dynamic(() => import("@/components/previews/sliding-list")),
+  "rail-list": dynamic(() => import("@/components/previews/rail-list")),
   "expanding-segmented-tabs": dynamic(() => import("@/components/previews/expanding-segmented-tabs")),
   "expandable-tabs": dynamic(() => import("@/components/previews/expandable-tabs")),
   "expanding-panel": dynamic(() => import("@/components/previews/expanding-panel")),
@@ -49,6 +51,8 @@ const previews: Record<string, PreviewComponent> = {
   "use-scroll-anchor": dynamic(() => import("@/components/previews/use-scroll-anchor")),
   "use-scroll-progress": dynamic(() => import("@/components/previews/use-scroll-progress")),
   "scroll-expand": dynamic(() => import("@/components/previews/scroll-expand")),
+  "ripple-scene": dynamic(() => import("@/components/previews/ripple-scene")),
+  "vertical-scene": dynamic(() => import("@/components/previews/vertical-scene")),
 };
 
 export function RegistryPreview({

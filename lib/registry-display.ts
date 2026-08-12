@@ -211,6 +211,8 @@ const registryDisplayItemConfigs = [
   { name: "floating-select", kind: "component", category: "form" },
   { name: "expanding-slider", kind: "component", category: "form" },
   { name: "highlight-tabs", kind: "component", category: "navigation" },
+  { name: "sliding-list", kind: "component", category: "navigation" },
+  { name: "rail-list", kind: "component", category: "navigation" },
   {
     name: "expanding-segmented-tabs",
     kind: "component",
@@ -249,6 +251,18 @@ const registryDisplayItemConfigs = [
   { name: "use-scroll-progress", kind: "hook", category: "motion" },
   {
     name: "scroll-expand",
+    kind: "block",
+    category: "marketing",
+    viewport: "full",
+  },
+  {
+    name: "ripple-scene",
+    kind: "block",
+    category: "marketing",
+    viewport: "full",
+  },
+  {
+    name: "vertical-scene",
     kind: "block",
     category: "marketing",
     viewport: "full",

@@ -26,6 +26,12 @@
       "@/components/ui/check-animation": [
         "./registry/base/ui/check-animation"
       ],
+      "@/components/ui/sliding-list": [
+        "./registry/base/ui/sliding-list"
+      ],
+      "@/components/ui/rail-list": [
+        "./registry/base/ui/rail-list"
+      ],
       "@/hooks/*": [
         "./registry/base/hooks/*"
       ],

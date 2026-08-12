@@ -1,0 +1,279 @@
+.ripple-scene {
+  --ripple-scene-duration: 520ms;
+  --ripple-scene-content-duration: 420ms;
+  --ripple-scene-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  container-type: inline-size;
+  position: relative;
+  isolation: isolate;
+  min-height: 32rem;
+  overflow: hidden;
+  background: oklch(0.12 0 0);
+  color: white;
+}
+
+.ripple-scene--empty {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.ripple-scene__media,
+.ripple-scene__scene,
+.ripple-scene__strip,
+.ripple-scene__image,
+.ripple-scene__scrim {
+  position: absolute;
+  inset: 0;
+}
+
+.ripple-scene__media {
+  z-index: -3;
+  overflow: hidden;
+  background: oklch(0.12 0 0);
+}
+
+/* The outgoing scene never animates — it just sits beneath the wave. */
+.ripple-scene__scene--ripple {
+  perspective: 60rem;
+}
+
+/*
+ * Each strip carries the new image with the old image stacked on top. Before
+ * its delay elapses the strip is flat and shows the old face, so the surface
+ * starts out identical to the base scene — the wave then lifts each strip
+ * into the corrugation, the faces cross over at the crest, and the strip
+ * lands flat as part of the new scene.
+ */
+.ripple-scene__strip {
+  --ripple-scene-tilt: 13deg;
+  --ripple-scene-lift: 2.4rem;
+  --ripple-scene-dip: 0.55%;
+
+  will-change: transform;
+  animation: ripple-scene-strip var(--ripple-scene-duration)
+    cubic-bezier(0.36, 0, 0.22, 1) both;
+  animation-delay: var(--ripple-scene-delay, 0ms);
+}
+
+/* Alternating tilt and depth turn the travelling wave into a corrugation. */
+.ripple-scene__strip:nth-child(even) {
+  --ripple-scene-tilt: -13deg;
+  --ripple-scene-lift: -2.4rem;
+  --ripple-scene-dip: -0.55%;
+}
+
+/* Old face rides the strip and hands over to the new face at the crest. */
+.ripple-scene__face--out {
+  animation: ripple-scene-swap var(--ripple-scene-duration) linear both;
+  animation-delay: var(--ripple-scene-delay, 0ms);
+}
+
+/* Corrugation lighting: raised strips catch light, sunken strips shade. */
+.ripple-scene__strip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 14%);
+  opacity: 0;
+  animation: ripple-scene-shade var(--ripple-scene-duration)
+    cubic-bezier(0.36, 0, 0.22, 1) both;
+  animation-delay: var(--ripple-scene-delay, 0ms);
+}
+
+.ripple-scene__strip:nth-child(even)::after {
+  background: rgb(0 0 0 / 26%);
+}
+
+@keyframes ripple-scene-strip {
+  0% {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.3, 1);
+  }
+  45% {
+    transform: translate3d(0, var(--ripple-scene-dip), var(--ripple-scene-lift))
+      rotateY(var(--ripple-scene-tilt));
+    animation-timing-function: cubic-bezier(0.34, 0, 0.22, 1);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+  }
+}
+
+@keyframes ripple-scene-swap {
+  0%,
+  32% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ripple-scene-shade {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.ripple-scene__image {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  object-fit: cover;
+}
+
+.ripple-scene__scrim {
+  z-index: -2;
+  background:
+    linear-gradient(to top, rgb(0 0 0 / 78%), transparent 62%),
+    linear-gradient(to right, rgb(0 0 0 / 72%), transparent 68%),
+    linear-gradient(to bottom, rgb(0 0 0 / 42%), transparent 32%);
+}
+
+.ripple-scene__chrome {
+  display: grid;
+  height: 100%;
+  min-height: inherit;
+  grid-template-rows: auto 1fr auto;
+  gap: 1.5rem;
+  padding: 1.25rem;
+}
+
+.ripple-scene__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: rgb(255 255 255 / 82%);
+}
+
+/* The selector is a RailList; these classes restyle its slots for the stage. */
+.ripple-scene__selector {
+  border-top: 1px solid rgb(255 255 255 / 24%);
+}
+
+.ripple-scene__tab {
+  min-height: 3rem;
+  padding: 0.875rem 0.75rem 0.75rem;
+  color: rgb(255 255 255 / 68%);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  line-height: 1.25;
+}
+
+.ripple-scene__tab:hover,
+.ripple-scene__tab[data-active] {
+  color: white;
+}
+
+/* Sit the indicator on the rail's top border. */
+.ripple-scene__tab-indicator {
+  top: -1px;
+  right: 0.75rem;
+  left: 0.75rem;
+}
+
+.ripple-scene__content {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.ripple-scene__content-inner {
+  width: min(100%, 48rem);
+}
+
+.ripple-scene__content-inner > * {
+  animation: ripple-scene-rise var(--ripple-scene-content-duration)
+    var(--ripple-scene-ease) both;
+}
+
+.ripple-scene__content-inner > :nth-child(2) {
+  animation-delay: 55ms;
+}
+
+.ripple-scene__content-inner > :nth-child(3) {
+  animation-delay: 110ms;
+}
+
+@keyframes ripple-scene-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ripple-scene__overline {
+  margin: 0 0 0.75rem;
+  max-width: 58ch;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 76%);
+}
+
+.ripple-scene__content h2 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.25rem, 11cqw, 5.5rem);
+  font-weight: 620;
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ripple-scene__description {
+  margin: 1rem 0 0;
+  max-width: 58ch;
+  font-size: clamp(0.875rem, 2.8cqw, 1rem);
+  line-height: 1.6;
+  color: rgb(255 255 255 / 82%);
+  text-wrap: pretty;
+}
+
+@container (min-width: 46rem) {
+  .ripple-scene__chrome {
+    gap: 2rem;
+    padding: 1.75rem 2rem 1rem;
+  }
+
+  .ripple-scene__content {
+    padding-left: clamp(1rem, 6cqw, 6rem);
+  }
+
+  .ripple-scene__tab {
+    min-width: 8rem;
+    padding-inline: 1rem;
+  }
+
+  .ripple-scene__tab-indicator {
+    right: 1rem;
+    left: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple-scene__strip,
+  .ripple-scene__strip::after,
+  .ripple-scene__face--out,
+  .ripple-scene__content-inner > * {
+    animation: none;
+  }
+}
