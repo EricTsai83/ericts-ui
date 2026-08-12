@@ -180,8 +180,6 @@ export default function Home() {
 
         <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
           <div className="mx-auto flex max-w-6xl flex-col gap-10">
-            <HomeMotionWall items={motionWallItems} />
-
             <section className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <h2 className="shrink-0 text-xl font-semibold tracking-tight">
@@ -207,6 +205,8 @@ export default function Home() {
                 </div>
               </div>
             </section>
+
+            <HomeMotionWall items={motionWallItems} />
 
             <section className="grid gap-4 border-y py-5 sm:grid-cols-[140px_1fr] sm:items-center">
               <p className="text-sm font-medium text-muted-foreground">

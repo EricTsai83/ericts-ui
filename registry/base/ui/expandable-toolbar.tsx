@@ -14,7 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,17 @@ const TOOLBAR_TRANSITION = {
   opacity: { duration: 0.14, ease: EASE_OUT },
 } as const;
 const TRIGGER_SURFACE_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
+// An icon swap is a tiny state change, so keep it snappy: ease-out, well
+// under 150ms — the copy button's copy → check treatment, trimmed a touch
+// because the swap runs exit-then-enter and the perceived time is doubled.
+const TRIGGER_ICON_TRANSITION = {
+  duration: 0.1,
+  ease: [0.215, 0.61, 0.355, 1],
+} as const;
+const TRIGGER_ICON_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.5 },
+  visible: { opacity: 1, scale: 1 },
+} as const;
 const TOOLBAR_PADDING = 2;
 /** Must match the toolbar surface's `border` class. */
 const TOOLBAR_BORDER_WIDTH = 1;
@@ -410,8 +421,13 @@ function DefaultExpandableToolbarTrigger({
   collapseIcon?: ReactNode;
   triggerProps: ExpandableToolbarTriggerProps;
 }) {
+  const shouldReduceMotion = useReducedMotion();
   const { className, ...buttonProps } = triggerProps;
   const icon = open ? (collapseIcon ?? expandIcon) : expandIcon;
+  const swapsIcon = collapseIcon != null;
+  const iconTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : TRIGGER_ICON_TRANSITION;
 
   return (
     <Button
@@ -423,9 +439,26 @@ function DefaultExpandableToolbarTrigger({
       )}
       {...buttonProps}
     >
-      <span aria-hidden="true" className="flex items-center justify-center">
-        {icon}
-      </span>
+      {swapsIcon ? (
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={open ? "collapse" : "expand"}
+            aria-hidden="true"
+            variants={TRIGGER_ICON_VARIANTS}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={iconTransition}
+            className="flex items-center justify-center"
+          >
+            {icon}
+          </motion.span>
+        </AnimatePresence>
+      ) : (
+        <span aria-hidden="true" className="flex items-center justify-center">
+          {icon}
+        </span>
+      )}
     </Button>
   );
 }

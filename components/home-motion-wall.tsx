@@ -58,26 +58,31 @@ const MULTI_STEP_ITEMS = [
 ] as const;
 
 function MultiStepVignette({ run }: VignetteProps) {
+  // A fixed-height box pins the card's top edge, so the step-height animation
+  // grows downward — the component's signature move — instead of letting the
+  // centered stage re-center (and drift) the whole card on every height change.
   return (
-    <div className="w-full max-w-60 rounded-xl border bg-background p-4 shadow-sm">
-      <MultiStep
-        currentStep={run % MULTI_STEP_ITEMS.length}
-        steps={MULTI_STEP_ITEMS.map((step) => ({
-          id: step.id,
-          content: (
-            <div className="flex flex-col gap-2.5 pb-1">
-              <p className="text-sm font-semibold">{step.title}</p>
-              {step.lines.map((width, index) => (
-                <span
-                  key={`${width}-${index}`}
-                  className="block h-2 max-w-full rounded-full bg-muted"
-                  style={{ width }}
-                />
-              ))}
-            </div>
-          ),
-        }))}
-      />
+    <div className="flex h-48 w-full items-start justify-center">
+      <div className="w-full max-w-60 rounded-xl border bg-background p-4 shadow-sm">
+        <MultiStep
+          currentStep={run % MULTI_STEP_ITEMS.length}
+          steps={MULTI_STEP_ITEMS.map((step) => ({
+            id: step.id,
+            content: (
+              <div className="flex flex-col gap-2.5 pb-1">
+                <p className="text-sm font-semibold">{step.title}</p>
+                {step.lines.map((width, index) => (
+                  <span
+                    key={`${width}-${index}`}
+                    className="block h-2 max-w-full rounded-full bg-muted"
+                    style={{ width }}
+                  />
+                ))}
+              </div>
+            ),
+          }))}
+        />
+      </div>
     </div>
   );
 }

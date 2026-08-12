@@ -171,7 +171,17 @@ export function MultiStep({
                 disabled={disableContinue || isLastStep}
                 onClick={() => setStep(selectedStep + 1, 1)}
               >
-                {isLastStep ? completeLabel : continueLabel}
+                {/* An invisible twin of the other label reserves the wider
+                    width, so the Continue ↔ Done swap on the last step
+                    doesn't snap the button size. */}
+                <span className="grid justify-items-center">
+                  <span aria-hidden="true" className="invisible col-start-1 row-start-1">
+                    {isLastStep ? continueLabel : completeLabel}
+                  </span>
+                  <span className="col-start-1 row-start-1">
+                    {isLastStep ? completeLabel : continueLabel}
+                  </span>
+                </span>
               </Button>
             </motion.div>
           )}

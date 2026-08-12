@@ -1,7 +1,10 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ComponentShowcase } from "@/components/component-showcase";
+import { buttonVariants } from "@/components/ui/button";
 import {
   getRegistryCodeModel,
   getRegistryMotionApiSnippets,
@@ -13,12 +16,22 @@ import {
   getRegistryItemsByCategory,
 } from "@/lib/registry";
 
+const registryItemNavigation = {
+  ui: { href: "/components", label: "components" },
+  hooks: { href: "/hooks", label: "hooks" },
+  blocks: { href: "/blocks", label: "blocks" },
+} as const;
+
+type RegistryItemCategory = keyof typeof registryItemNavigation;
+
 type RegistryItemPageOptions = {
   name: string;
-  category: string;
+  category: RegistryItemCategory;
 };
 
-export function generateRegistryItemStaticParams(category: string) {
+export function generateRegistryItemStaticParams(
+  category: RegistryItemCategory,
+) {
   return getRegistryItemsByCategory(category).map((item) => ({
     name: item.name,
   }));
@@ -54,10 +67,22 @@ export async function RegistryItemPage({
   const badges = getRegistryItemBadges(item);
   const motionApiSnippets = await getRegistryMotionApiSnippets(item.name);
   const displayItem = getRegistryDisplayItem(item.name);
+  const navigation = registryItemNavigation[category];
 
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-6 py-10 sm:px-8 lg:px-10">
-      <header className="flex max-w-3xl flex-col gap-4">
+      <header className="flex max-w-3xl flex-col gap-5">
+        <Link
+          href={navigation.href}
+          className={buttonVariants({
+            variant: "ghost",
+            size: "sm",
+            className: "extend-touch-target -ml-2.5 self-start",
+          })}
+        >
+          <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+          Back to {navigation.label}
+        </Link>
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-semibold tracking-tight">
             {item.title ?? item.name}
@@ -101,7 +126,10 @@ export async function RegistryItemPage({
   );
 }
 
-function getRegistryItemForCategory(name: string, category: string) {
+function getRegistryItemForCategory(
+  name: string,
+  category: RegistryItemCategory,
+) {
   const item = getRegistryItem(name);
 
   if (item?.category !== category) {
