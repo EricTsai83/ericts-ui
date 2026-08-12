@@ -1,7 +1,4 @@
-<div align="center">
-  <img src="./app/icon.svg" alt="ericts/ui logo" width="96" height="96" />
-  <h1>ericts/ui</h1>
-</div>
+<h1 align="center"><img src="./app/icon.svg" alt="ericts/ui logo" width="48" height="48" align="middle" /> ericts/ui</h1>
 
 ericts/ui is a shadcn-compatible component registry focused on fluid, animated UI components.
 
