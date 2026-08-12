@@ -1,4 +1,4 @@
-import { ArrowRight, Code2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { SVGProps } from "react";
 
@@ -7,7 +7,10 @@ import {
   type ComponentPreviewBrowserItem,
 } from "@/components/component-preview-browser";
 import { HomeHeroMark } from "@/components/home-hero-mark";
-import { RegistryKindIcon } from "@/components/registry-kind-icon";
+import {
+  HomeMotionWall,
+  type HomeMotionWallItem,
+} from "@/components/home-motion-wall";
 import { buttonVariants } from "@/components/ui/button";
 import {
   getRegistryItem,
@@ -15,25 +18,19 @@ import {
   getRegistryItemsByCategory,
   type RegistryItem,
 } from "@/lib/registry";
-import {
-  getRegistryKindFromCategory,
-  getRegistryKindLabel,
-} from "@/lib/registry-kind";
-import { getRegistryInstallCommand } from "@/lib/registry-install-command";
 import { getRegistryInstallTarget } from "@/lib/registry-install";
-import { CopyButton } from "@/registry/base/ui/copy-button";
 
-const homeRegistryItemNames = [
-  "smooth-height",
-  "copy-button",
-  "status-button",
-  "jitter-animation",
-  "squeeze-animation",
-  "highlight-tabs",
-  "text-morph",
+// Each of these has a live vignette in the home motion wall, in spotlight
+// order. Adding a name here requires a matching vignette in home-motion-wall.
+const homeMotionWallNames = [
   "multi-step",
-  "adaptive-drawer",
-  "use-reduced-motion",
+  "otp-input",
+  "expanding-slider",
+  "status-button",
+  "expandable-tabs",
+  "expandable-toolbar",
+  "check-animation",
+  "text-morph",
 ] as const;
 
 // Keep the preview browser curated independently from the registry highlight grid.
@@ -74,12 +71,14 @@ const builtOn = [
 ] as const;
 
 export default function Home() {
-  const installCommand = getRegistryInstallCommand(
-    getRegistryInstallTarget("copy-button"),
-  );
-  const homeRegistryItems = homeRegistryItemNames
+  const motionWallItems: HomeMotionWallItem[] = homeMotionWallNames
     .map((name) => getRegistryItem(name))
-    .filter((item): item is RegistryItem => item !== undefined);
+    .filter((item): item is RegistryItem => item !== undefined)
+    .map((item) => ({
+      name: item.name,
+      title: item.title ?? item.name,
+      href: item.href,
+    }));
   const componentCount = getRegistryItemsByCategory("ui").length;
   const hookCount = getRegistryItemsByCategory("hooks").length;
   const blockCount = getRegistryItemsByCategory("blocks").length;
@@ -181,9 +180,13 @@ export default function Home() {
 
         <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
           <div className="mx-auto flex max-w-6xl flex-col gap-10">
+            <HomeMotionWall items={motionWallItems} />
+
             <section className="flex flex-col gap-6">
               <div className="flex items-center gap-3">
-                <h2 className="shrink-0 text-sm font-medium">README</h2>
+                <h2 className="shrink-0 text-xl font-semibold tracking-tight">
+                  Readme
+                </h2>
                 <div className="h-px flex-1 bg-border" />
               </div>
 
@@ -203,28 +206,6 @@ export default function Home() {
                   <Stat href="/blocks" value={blockCount} label="blocks" />
                 </div>
               </div>
-
-              <div className="overflow-hidden rounded-lg border bg-card text-card-foreground">
-                <div className="flex h-9 items-center border-b px-4 text-sm font-medium">
-                  Install with CLI
-                </div>
-                <div className="flex min-w-0 items-center gap-3 px-4 py-4">
-                  <Code2
-                    aria-hidden="true"
-                    className="size-4 shrink-0 text-muted-foreground"
-                  />
-                  <code className="min-w-0 flex-1 truncate font-mono text-xs leading-6 text-muted-foreground sm:text-sm">
-                    {installCommand}
-                  </code>
-                  <CopyButton
-                    value={installCommand}
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Copy install command"
-                    className="shrink-0"
-                  />
-                </div>
-              </div>
             </section>
 
             <section className="grid gap-4 border-y py-5 sm:grid-cols-[140px_1fr] sm:items-center">
@@ -242,21 +223,6 @@ export default function Home() {
                     </span>
                     <span>{label}</span>
                   </span>
-                ))}
-              </div>
-            </section>
-
-            <section className="flex flex-col gap-6">
-              <div className="flex items-center gap-3">
-                <h2 className="shrink-0 text-xl font-semibold tracking-tight">
-                  Registry highlights
-                </h2>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              <div className="grid overflow-hidden rounded-lg border sm:grid-cols-2 xl:grid-cols-4">
-                {homeRegistryItems.map((item) => (
-                  <FeaturedItem key={item.name} item={item} />
                 ))}
               </div>
             </section>
@@ -340,57 +306,6 @@ function Stat({
     >
       <span className="font-mono text-sm text-foreground">{value}</span>
       <span>{label}</span>
-    </Link>
-  );
-}
-
-function FeaturedItem({ item }: { item: RegistryItem }) {
-  const badges = getRegistryItemBadges(item, 2).visible;
-  const registryKind = getRegistryKindFromCategory(item.category);
-
-  return (
-    <Link
-      href={item.href}
-      className="group -mb-px -mr-px flex min-h-52 min-w-0 flex-col justify-between gap-6 border-b border-r p-5 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <div className="flex min-w-0 flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs font-medium text-muted-foreground">
-            {registryKind ? (
-              <RegistryKindIcon kind={registryKind} className="size-3.5" />
-            ) : null}
-            {registryKind ? getRegistryKindLabel(registryKind) : item.category}
-          </span>
-          <ArrowRight
-            aria-hidden="true"
-            className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <h3 className="text-base font-medium text-foreground">
-            {item.title ?? item.name}
-          </h3>
-          {item.description ? (
-            <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-              {item.description}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      {badges.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {badges.map((badge) => (
-            <span
-              key={badge}
-              className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground"
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
-      ) : null}
     </Link>
   );
 }
