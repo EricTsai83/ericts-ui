@@ -8,4 +8,4 @@ Website: [ui.ericts.com](https://ui.ericts.com)
 
 ## License
 
-MIT
+Licensed under the [MIT License](./LICENSE).
