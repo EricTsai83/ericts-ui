@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  Children,
   type ComponentPropsWithoutRef,
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  type Ref,
   useCallback,
   useEffect,
   useId,
@@ -29,10 +31,12 @@ const TOOLBAR_TRANSITION = {
 } as const;
 const TRIGGER_SURFACE_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 const TOOLBAR_PADDING = 2;
+/** Must match the toolbar surface's `border` class. */
+const TOOLBAR_BORDER_WIDTH = 1;
 const TRIGGER_RADIUS_OPEN = 8;
 const TRIGGER_RADIUS_CLOSED = TRIGGER_RADIUS_OPEN + TOOLBAR_PADDING;
 
-type ExpandableToolbarSide = "start" | "end";
+type ExpandableToolbarSide = "start" | "end" | "center";
 type ExpandableToolbarAnchor = "toolbar" | "trigger";
 type ExpandableToolbarTriggerProps = ComponentPropsWithoutRef<"button"> & {
   "data-state": "open" | "closed";
@@ -64,7 +68,11 @@ type ExpandableToolbarBaseProps = Omit<
   defaultOpen?: boolean;
   /** Called whenever the toolbar requests an open-state change. */
   onOpenChange?: (open: boolean) => void;
-  /** Which side of the trigger the content should expand into. */
+  /**
+   * Which side of the trigger the content should expand into. `center` splits
+   * the children into two panels flanking the trigger, so the toolbar grows
+   * symmetrically while the trigger stays put.
+   */
   side?: ExpandableToolbarSide;
   /** Whether the full toolbar or only the trigger participates in layout. */
   anchor?: ExpandableToolbarAnchor;
@@ -128,13 +136,34 @@ export function ExpandableToolbar({
   const panelId = controlsId ?? `${generatedId}-panel`;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const triggerWrapperRef = useRef<HTMLDivElement>(null);
-  const [contentRef, contentWidth] = useMeasuredWidth<HTMLDivElement>();
+  const [startContentRef, startContentWidth] =
+    useMeasuredWidth<HTMLDivElement>();
+  const [endContentRef, endContentWidth] = useMeasuredWidth<HTMLDivElement>();
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const shouldReduceMotion = useReducedMotion();
   const controlled = open !== undefined;
   const isOpen = controlled ? open : internalOpen;
-  const panelWidth = isOpen ? contentWidth : 0;
   const currentLabel = isOpen ? collapseLabel : expandLabel;
+
+  // `center` flanks the trigger with two panels: the first half of the
+  // children expands into the start side, the rest into the end side.
+  const childArray = Children.toArray(children);
+  const splitIndex = Math.ceil(childArray.length / 2);
+  const startChildren =
+    side === "start"
+      ? childArray
+      : side === "center"
+        ? childArray.slice(0, splitIndex)
+        : [];
+  const endChildren =
+    side === "end"
+      ? childArray
+      : side === "center"
+        ? childArray.slice(splitIndex)
+        : [];
+  const startPanelId = side === "center" ? `${panelId}-start` : panelId;
+  const endPanelId = side === "center" ? `${panelId}-end` : panelId;
+  const startPanelWidth = isOpen ? startContentWidth : 0;
 
   const focusTrigger = useCallback(() => {
     const trigger =
@@ -190,7 +219,8 @@ export function ExpandableToolbar({
     disabled,
     "aria-label": currentLabel,
     "aria-expanded": isOpen,
-    "aria-controls": panelId,
+    "aria-controls":
+      side === "center" ? `${startPanelId} ${endPanelId}` : panelId,
     "data-state": isOpen ? "open" : "closed",
     className: classNames?.trigger,
     onClick: toggleOpen,
@@ -243,19 +273,36 @@ export function ExpandableToolbar({
     </motion.div>
   );
 
-  const panel = (
+  const separator = (
+    <span
+      aria-hidden="true"
+      data-slot="expandable-toolbar-trigger-separator"
+      className={cn(
+        "mx-1 h-5 w-px shrink-0 bg-border",
+        classNames?.triggerSeparator,
+      )}
+    />
+  );
+
+  const renderPanel = (
+    position: "start" | "end",
+    id: string,
+    content: ReactNode[],
+    contentRef: Ref<HTMLDivElement>,
+    contentWidth: number,
+  ) => (
     <motion.div
       initial={false}
-      id={panelId}
+      id={id}
       aria-hidden={!isOpen}
       inert={!isOpen ? true : undefined}
       data-slot="expandable-toolbar-panel"
       data-state={isOpen ? "open" : "closed"}
-      animate={{ width: panelWidth, opacity: isOpen ? 1 : 0 }}
+      animate={{ width: isOpen ? contentWidth : 0, opacity: isOpen ? 1 : 0 }}
       transition={transition}
       className={cn(
         "flex min-w-0 overflow-hidden whitespace-nowrap",
-        side === "start" ? "justify-end" : "justify-start",
+        position === "start" ? "justify-end" : "justify-start",
         !isOpen && "pointer-events-none",
         classNames?.panel,
       )}
@@ -269,27 +316,9 @@ export function ExpandableToolbar({
           classNames?.content,
         )}
       >
-        {side === "end" ? (
-          <span
-            aria-hidden="true"
-            data-slot="expandable-toolbar-trigger-separator"
-            className={cn(
-              "mx-1 h-5 w-px shrink-0 bg-border",
-              classNames?.triggerSeparator,
-            )}
-          />
-        ) : null}
-        {children}
-        {side === "start" ? (
-          <span
-            aria-hidden="true"
-            data-slot="expandable-toolbar-trigger-separator"
-            className={cn(
-              "mx-1 h-5 w-px shrink-0 bg-border",
-              classNames?.triggerSeparator,
-            )}
-          />
-        ) : null}
+        {position === "end" ? separator : null}
+        {content}
+        {position === "start" ? separator : null}
       </div>
     </motion.div>
   );
@@ -309,17 +338,25 @@ export function ExpandableToolbar({
       style={{ ...style, padding: TOOLBAR_PADDING }}
       {...props}
     >
-      {side === "start" ? (
-        <>
-          {panel}
-          {trigger}
-        </>
-      ) : (
-        <>
-          {trigger}
-          {panel}
-        </>
-      )}
+      {startChildren.length > 0
+        ? renderPanel(
+            "start",
+            startPanelId,
+            startChildren,
+            startContentRef,
+            startContentWidth,
+          )
+        : null}
+      {trigger}
+      {endChildren.length > 0
+        ? renderPanel(
+            "end",
+            endPanelId,
+            endChildren,
+            endContentRef,
+            endContentWidth,
+          )
+        : null}
     </div>
   );
 
@@ -334,8 +371,24 @@ export function ExpandableToolbar({
         <motion.div
           className={cn(
             "absolute top-0",
-            side === "start" ? "right-0" : "left-0",
+            side === "start" && "right-0",
+            side === "end" && "left-0",
           )}
+          // For `center`, the box's left edge starts one border + padding to
+          // the left of the anchor slot and shifts by the start panel's width
+          // as it opens, so the trigger itself never moves — both panels
+          // appear to grow out of it symmetrically.
+          style={
+            side === "center"
+              ? { left: -(TOOLBAR_PADDING + TOOLBAR_BORDER_WIDTH) }
+              : undefined
+          }
+          animate={
+            side === "center" ? { x: -startPanelWidth } : undefined
+          }
+          transition={
+            shouldReduceMotion ? { duration: 0 } : TOOLBAR_TRANSITION.width
+          }
         >
           {toolbar}
         </motion.div>

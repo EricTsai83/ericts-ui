@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  ChevronsLeft,
-  ChevronsRight,
+  ChevronsLeftRight,
+  ChevronsRightLeft,
   FilePlus2,
   FolderPlus,
   Mail,
@@ -18,13 +18,16 @@ export default function Preview() {
 
   return (
     <div className="flex min-h-32 w-full items-center justify-center">
+      {/* side="center" splits the actions around the trigger, which stays
+          pinned while both halves grow out of it. Use side="start" / "end"
+          with a docked toolbar that should grow away from an edge. */}
       <ExpandableToolbar
         open={open}
         onOpenChange={setOpen}
-        side="start"
+        side="center"
         anchor="trigger"
-        expandIcon={<ChevronsLeft aria-hidden />}
-        collapseIcon={<ChevronsRight aria-hidden />}
+        expandIcon={<ChevronsLeftRight aria-hidden />}
+        collapseIcon={<ChevronsRightLeft aria-hidden />}
         expandLabel="Show quick actions"
         collapseLabel="Hide quick actions"
       >
