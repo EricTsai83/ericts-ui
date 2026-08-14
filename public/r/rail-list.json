@@ -21,7 +21,8 @@
       "indicator",
       "controlled",
       "uncontrolled",
-      "optional-selection"
+      "optional-selection",
+      "list"
     ],
     "effects": [
       "indicator-reveal",
@@ -29,8 +30,7 @@
     ]
   },
   "categories": [
-    "navigation",
-    "list"
+    "navigation"
   ],
   "type": "registry:ui"
 }

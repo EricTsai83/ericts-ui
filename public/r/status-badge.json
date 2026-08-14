@@ -44,8 +44,7 @@
     ]
   },
   "categories": [
-    "badge",
-    "data-display"
+    "display"
   ],
   "type": "registry:ui"
 }

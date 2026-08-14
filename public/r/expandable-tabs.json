@@ -34,8 +34,7 @@
     ]
   },
   "categories": [
-    "navigation",
-    "menu"
+    "navigation"
   ],
   "type": "registry:ui"
 }

@@ -20,7 +20,8 @@
       "mouse",
       "context-label",
       "drag",
-      "preview"
+      "preview",
+      "cursor"
     ],
     "effects": [
       "spring-follow",
@@ -28,7 +29,7 @@
     ]
   },
   "categories": [
-    "cursor"
+    "effect"
   ],
   "type": "registry:ui"
 }

@@ -22,7 +22,8 @@
       "async-action",
       "loading",
       "success",
-      "submit"
+      "submit",
+      "button"
     ],
     "effects": [
       "state-transition",
@@ -30,7 +31,7 @@
     ]
   },
   "categories": [
-    "button"
+    "action"
   ],
   "type": "registry:ui"
 }

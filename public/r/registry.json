@@ -6,11 +6,16 @@
     {
       "name": "smooth-height",
       "type": "registry:ui",
-      "title": "Smooth Height Layout",
+      "title": "Smooth Height",
       "description": "A Motion-powered layout primitive that observes content size and animates height changes.",
-      "categories": ["layout"],
+      "categories": ["container"],
       "meta": {
-        "tags": ["resize-observer", "content-transition", "height-animation"],
+        "tags": [
+          "resize-observer",
+          "content-transition",
+          "height-animation",
+          "layout"
+        ],
         "effects": ["height", "resize"],
         "cssOnly": true
       },
@@ -28,9 +33,9 @@
       "type": "registry:ui",
       "title": "Copy Button",
       "description": "A shadcn Button-based clipboard control with animated copy and success states.",
-      "categories": ["button"],
+      "categories": ["action"],
       "meta": {
-        "tags": ["clipboard", "copy", "success", "icon-swap"],
+        "tags": ["clipboard", "copy", "success", "icon-swap", "button"],
         "effects": ["state-transition", "icon-swap"],
         "cssOnly": true
       },
@@ -49,9 +54,9 @@
       "type": "registry:ui",
       "title": "Status Button",
       "description": "A shadcn Button-based action that transitions through idle, loading, and success states.",
-      "categories": ["button"],
+      "categories": ["action"],
       "meta": {
-        "tags": ["async-action", "loading", "success", "submit"],
+        "tags": ["async-action", "loading", "success", "submit", "button"],
         "effects": ["state-transition", "spinner"]
       },
       "registryDependencies": ["button"],
@@ -65,11 +70,11 @@
       ]
     },
     {
-      "name": "expanding-toggle-button",
+      "name": "expandable-toggle-button",
       "type": "registry:ui",
-      "title": "Expanding Toggle Button",
+      "title": "Expandable Toggle Button",
       "description": "A shadcn toggle button that expands from an icon into an icon-and-label action while keeping the icon anchored.",
-      "categories": ["button"],
+      "categories": ["action"],
       "meta": {
         "tags": ["button", "toggle", "icon", "controlled", "disclosure"],
         "effects": ["width-animation", "icon-swap", "fade", "reduced-motion"]
@@ -78,9 +83,9 @@
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/expanding-toggle-button.tsx",
+          "path": "registry/base/ui/expandable-toggle-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expanding-toggle-button.tsx"
+          "target": "components/ui/expandable-toggle-button.tsx"
         }
       ]
     },
@@ -89,7 +94,7 @@
       "type": "registry:ui",
       "title": "Play Button",
       "description": "A circular media toggle whose glyph morphs between a play triangle and pause bars, with a ghost or frosted over-video surface.",
-      "categories": ["button"],
+      "categories": ["action"],
       "meta": {
         "tags": [
           "button",
@@ -133,7 +138,7 @@
       "type": "registry:ui",
       "title": "Floating Shortcut Button",
       "description": "A configurable floating action menu with coordinated size presets, a shrinking trigger, crossfading icon states, and staggered shortcuts.",
-      "categories": ["button", "menu"],
+      "categories": ["overlay"],
       "meta": {
         "tags": [
           "floating-action-button",
@@ -141,7 +146,9 @@
           "quick-actions",
           "customizable",
           "size-presets",
-          "controlled"
+          "controlled",
+          "button",
+          "menu"
         ],
         "effects": [
           "scale",
@@ -166,7 +173,7 @@
       "type": "registry:ui",
       "title": "Status Badge",
       "description": "A compact animated badge for status labels with icon and text slot transitions.",
-      "categories": ["badge", "data-display"],
+      "categories": ["display"],
       "meta": {
         "tags": ["badge", "status", "loading", "state-transition", "icon-swap"],
         "effects": ["state-transition", "icon-swap", "pulse"]
@@ -199,9 +206,9 @@
       "type": "registry:ui",
       "title": "Floating Select",
       "description": "A single-button floating select that expands into an animated option list.",
-      "categories": ["select", "button"],
+      "categories": ["form"],
       "meta": {
-        "tags": ["floating", "select", "single-trigger", "listbox"],
+        "tags": ["floating", "select", "single-trigger", "listbox", "button"],
         "effects": ["shared-layout", "stagger", "fade"]
       },
       "dependencies": ["motion"],
@@ -214,11 +221,11 @@
       ]
     },
     {
-      "name": "expanding-slider",
+      "name": "expandable-slider",
       "type": "registry:ui",
-      "title": "Expanding Slider",
+      "title": "Expandable Slider",
       "description": "A composable icon button that grows into a wider button on hover, focus, or drag, revealing a draggable track inside the same surface.",
-      "categories": ["slider", "form"],
+      "categories": ["form"],
       "meta": {
         "tags": [
           "slider",
@@ -233,9 +240,9 @@
       },
       "files": [
         {
-          "path": "registry/base/ui/expanding-slider.tsx",
+          "path": "registry/base/ui/expandable-slider.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expanding-slider.tsx"
+          "target": "components/ui/expandable-slider.tsx"
         }
       ]
     },
@@ -244,14 +251,15 @@
       "type": "registry:ui",
       "title": "Expandable Toolbar",
       "description": "A controlled or uncontrolled toolbar primitive that measures its action slot and expands from either side.",
-      "categories": ["toolbar", "button"],
+      "categories": ["container"],
       "meta": {
         "tags": [
           "toolbar",
           "expandable",
           "quick-actions",
           "measurement",
-          "controlled"
+          "controlled",
+          "button"
         ],
         "effects": ["width-animation", "fade", "reduced-motion"]
       },
@@ -266,11 +274,11 @@
       ]
     },
     {
-      "name": "check-animation",
+      "name": "check-mark",
       "type": "registry:ui",
-      "title": "Check Animation",
+      "title": "Check Mark",
       "description": "A pure SVG checkmark animation that draws a square or circle before the check.",
-      "categories": ["animation", "svg", "feedback"],
+      "categories": ["display"],
       "meta": {
         "tags": [
           "svg",
@@ -279,29 +287,30 @@
           "circle",
           "success",
           "checkmark",
-          "completion"
+          "completion",
+          "feedback"
         ],
         "effects": ["svg-draw", "path-draw", "completion"]
       },
       "files": [
         {
-          "path": "registry/base/ui/check-animation.tsx",
+          "path": "registry/base/ui/check-mark.tsx",
           "type": "registry:ui",
-          "target": "components/ui/check-animation.tsx"
+          "target": "components/ui/check-mark.tsx"
         },
         {
-          "path": "registry/base/ui/check-animation.css",
+          "path": "registry/base/ui/check-mark.css",
           "type": "registry:file",
-          "target": "components/ui/check-animation.css"
+          "target": "components/ui/check-mark.css"
         }
       ]
     },
     {
-      "name": "jitter-animation",
+      "name": "jitter",
       "type": "registry:ui",
-      "title": "Jitter Animation",
+      "title": "Jitter",
       "description": "A jitter animation primitive plus a ready-made vibration icon.",
-      "categories": ["animation", "svg"],
+      "categories": ["effect"],
       "meta": {
         "tags": ["svg", "svg-animation", "jitter", "axis", "primitive"],
         "effects": ["jitter", "horizontal-jitter", "vertical-jitter"]
@@ -309,23 +318,23 @@
       "dependencies": ["lucide-react"],
       "files": [
         {
-          "path": "registry/base/ui/jitter-animation.tsx",
+          "path": "registry/base/ui/jitter.tsx",
           "type": "registry:ui",
-          "target": "components/ui/jitter-animation.tsx"
+          "target": "components/ui/jitter.tsx"
         },
         {
-          "path": "registry/base/ui/jitter-animation.css",
+          "path": "registry/base/ui/jitter.css",
           "type": "registry:file",
-          "target": "components/ui/jitter-animation.css"
+          "target": "components/ui/jitter.css"
         }
       ]
     },
     {
-      "name": "squeeze-animation",
+      "name": "squeeze",
       "type": "registry:ui",
-      "title": "Squeeze Animation",
+      "title": "Squeeze",
       "description": "A squeeze animation primitive plus a ready-made SVG card icon.",
-      "categories": ["animation", "svg"],
+      "categories": ["effect"],
       "meta": {
         "tags": [
           "svg",
@@ -347,23 +356,23 @@
       },
       "files": [
         {
-          "path": "registry/base/ui/squeeze-animation.tsx",
+          "path": "registry/base/ui/squeeze.tsx",
           "type": "registry:ui",
-          "target": "components/ui/squeeze-animation.tsx"
+          "target": "components/ui/squeeze.tsx"
         },
         {
-          "path": "registry/base/ui/squeeze-animation.css",
+          "path": "registry/base/ui/squeeze.css",
           "type": "registry:file",
-          "target": "components/ui/squeeze-animation.css"
+          "target": "components/ui/squeeze.css"
         }
       ]
     },
     {
-      "name": "heartbeat-animation",
+      "name": "heartbeat",
       "type": "registry:ui",
-      "title": "Heartbeat Animation",
+      "title": "Heartbeat",
       "description": "A Motion-powered heartbeat primitive with a projected shadow layer and reduced-motion support.",
-      "categories": ["animation"],
+      "categories": ["effect"],
       "meta": {
         "tags": ["heartbeat", "pulse", "double-thump", "primitive"],
         "effects": ["scale", "pulse", "projected-shadow", "reduced-motion"]
@@ -371,18 +380,18 @@
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/heartbeat-animation.tsx",
+          "path": "registry/base/ui/heartbeat.tsx",
           "type": "registry:ui",
-          "target": "components/ui/heartbeat-animation.tsx"
+          "target": "components/ui/heartbeat.tsx"
         }
       ]
     },
     {
-      "name": "projected-shadow-animation",
+      "name": "projected-shadow",
       "type": "registry:ui",
-      "title": "Projected Shadow Animation",
+      "title": "Projected Shadow",
       "description": "A CSS-powered primitive that layers an element with projected and contact shadows, then gathers them on hover or active state.",
-      "categories": ["animation", "interaction"],
+      "categories": ["effect"],
       "meta": {
         "tags": [
           "hover",
@@ -402,14 +411,14 @@
       },
       "files": [
         {
-          "path": "registry/base/ui/projected-shadow-animation.tsx",
+          "path": "registry/base/ui/projected-shadow.tsx",
           "type": "registry:ui",
-          "target": "components/ui/projected-shadow-animation.tsx"
+          "target": "components/ui/projected-shadow.tsx"
         },
         {
-          "path": "registry/base/ui/projected-shadow-animation.css",
+          "path": "registry/base/ui/projected-shadow.css",
           "type": "registry:file",
-          "target": "components/ui/projected-shadow-animation.css"
+          "target": "components/ui/projected-shadow.css"
         }
       ]
     },
@@ -418,9 +427,17 @@
       "type": "registry:ui",
       "title": "OTP Input",
       "description": "A fixed-slot one-time passcode input with paste, autofill, error shake, and animated success feedback.",
-      "categories": ["form", "input", "feedback"],
+      "categories": ["form"],
       "meta": {
-        "tags": ["otp", "one-time-code", "passcode", "paste", "autofill"],
+        "tags": [
+          "otp",
+          "one-time-code",
+          "passcode",
+          "paste",
+          "autofill",
+          "input",
+          "feedback"
+        ],
         "effects": ["digit-roll", "error-shake", "svg-draw", "success-state"]
       },
       "cssVars": {
@@ -432,7 +449,7 @@
         }
       },
       "registryDependencies": [
-        "https://ui.ericts.com/r/check-animation.json"
+        "https://ui.ericts.com/r/check-mark.json"
       ],
       "dependencies": ["motion"],
       "files": [
@@ -448,7 +465,7 @@
       "type": "registry:ui",
       "title": "Adaptive Switch",
       "description": "An accessible switch with optional state labels, three sizes, and configurable motion.",
-      "categories": ["form", "switch"],
+      "categories": ["form"],
       "meta": {
         "tags": ["switch", "toggle", "status", "controlled", "uncontrolled", "adaptive"],
         "effects": [
@@ -492,9 +509,20 @@
       "type": "registry:ui",
       "title": "Sliding List",
       "description": "A controlled or uncontrolled vertical list with optional initial selection, mirrored alignment, and a dot, dash, or custom icon indicator.",
-      "categories": ["navigation", "list"],
+      "categories": ["navigation"],
       "meta": {
-        "tags": ["selectable-list", "tab-list", "roving-focus", "alignment", "indicator", "icon", "controlled", "uncontrolled", "optional-selection"],
+        "tags": [
+          "selectable-list",
+          "tab-list",
+          "roving-focus",
+          "alignment",
+          "indicator",
+          "icon",
+          "controlled",
+          "uncontrolled",
+          "optional-selection",
+          "list"
+        ],
         "effects": ["active-shift", "indicator-reveal", "reduced-motion"]
       },
       "dependencies": ["motion"],
@@ -511,9 +539,20 @@
       "type": "registry:ui",
       "title": "Rail List",
       "description": "A controlled or uncontrolled horizontal selector rail with centered labels, roving focus, and an edge-underline indicator on the active item.",
-      "categories": ["navigation", "list"],
+      "categories": ["navigation"],
       "meta": {
-        "tags": ["selectable-list", "tab-list", "roving-focus", "horizontal", "underline", "indicator", "controlled", "uncontrolled", "optional-selection"],
+        "tags": [
+          "selectable-list",
+          "tab-list",
+          "roving-focus",
+          "horizontal",
+          "underline",
+          "indicator",
+          "controlled",
+          "uncontrolled",
+          "optional-selection",
+          "list"
+        ],
         "effects": ["indicator-reveal", "reduced-motion"]
       },
       "files": [
@@ -525,21 +564,46 @@
       ]
     },
     {
-      "name": "expanding-segmented-tabs",
+      "name": "rail-stage",
       "type": "registry:ui",
-      "title": "Expanding Segmented Tabs",
-      "description": "A Motion-powered segmented tab list for switching modes or views, with an active tab that expands from icon-only into a label.",
-      "categories": ["navigation", "tabs"],
+      "title": "Rail Stage",
+      "description": "A Base UI tab shell that pairs a scalable vertical rail of choices with a single large stage, collapsing to a scrollable strip on small screens.",
+      "categories": ["navigation"],
       "meta": {
-        "tags": ["segmented-tabs", "mode-switcher", "roving-focus", "arrow-keys"],
+        "tags": ["tabs", "rail", "gallery", "roving-focus", "arrow-keys"],
+        "effects": ["panel-swap"]
+      },
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/base/ui/rail-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/rail-stage.tsx"
+        }
+      ]
+    },
+    {
+      "name": "expandable-segmented-tabs",
+      "type": "registry:ui",
+      "title": "Expandable Segmented Tabs",
+      "description": "A Motion-powered segmented tab list for switching modes or views, with an active tab that expands from icon-only into a label.",
+      "categories": ["navigation"],
+      "meta": {
+        "tags": [
+          "segmented-tabs",
+          "mode-switcher",
+          "roving-focus",
+          "arrow-keys",
+          "tabs"
+        ],
         "effects": ["active-expand", "active-pill", "tap-feedback", "reduced-motion"]
       },
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/expanding-segmented-tabs.tsx",
+          "path": "registry/base/ui/expandable-segmented-tabs.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expanding-segmented-tabs.tsx"
+          "target": "components/ui/expandable-segmented-tabs.tsx"
         }
       ]
     },
@@ -548,7 +612,7 @@
       "type": "registry:ui",
       "title": "Expandable Tabs",
       "description": "A DynamicIsland-style toolbar whose icon tabs expand into actionable menu or content panels, with full keyboard and ARIA support.",
-      "categories": ["navigation", "menu"],
+      "categories": ["navigation"],
       "meta": {
         "tags": [
           "toolbar",
@@ -573,14 +637,14 @@
       ]
     },
     {
-      "name": "expanding-panel",
+      "name": "expandable-panel",
       "type": "registry:ui",
-      "title": "Expanding Panel",
+      "title": "Expandable Panel",
       "description": "A floating panel that grows from a compact icon trigger and holds arbitrary content.",
       "categories": ["overlay"],
       "meta": {
         "tags": [
-          "expanding-panel",
+          "expandable-panel",
           "floating-panel",
           "disclosure",
           "content-agnostic"
@@ -590,9 +654,9 @@
       "dependencies": ["lucide-react", "motion"],
       "files": [
         {
-          "path": "registry/base/ui/expanding-panel.tsx",
+          "path": "registry/base/ui/expandable-panel.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expanding-panel.tsx"
+          "target": "components/ui/expandable-panel.tsx"
         }
       ]
     },
@@ -622,11 +686,11 @@
     {
       "name": "text-morph",
       "type": "registry:ui",
-      "title": "Morphing Text",
+      "title": "Text Morph",
       "description": "A Motion-powered text primitive that morphs matching characters between string updates.",
-      "categories": ["text"],
+      "categories": ["display"],
       "meta": {
-        "tags": ["typography", "character-transition", "word-rotation"],
+        "tags": ["typography", "character-transition", "word-rotation", "text"],
         "effects": ["text-morph", "shared-layout"]
       },
       "dependencies": ["motion"],
@@ -643,7 +707,7 @@
       "type": "registry:ui",
       "title": "Timer",
       "description": "Countdown and count-up timers with optional controls, accurate deadline tracking, customizable digit slots, and opt-out motion.",
-      "categories": ["data-display", "animation"],
+      "categories": ["display"],
       "meta": {
         "tags": [
           "countdown",
@@ -675,21 +739,28 @@
       ]
     },
     {
-      "name": "expandable-modal",
+      "name": "expandable-dialog",
       "type": "registry:ui",
       "title": "Expandable Dialog",
       "description": "A shared-layout dialog that expands list items into an accessible detail view.",
-      "categories": ["dialog"],
+      "categories": ["overlay"],
       "meta": {
-        "tags": ["modal", "details", "list-item", "escape-key", "focus-trap"],
+        "tags": [
+          "modal",
+          "details",
+          "list-item",
+          "escape-key",
+          "focus-trap",
+          "dialog"
+        ],
         "effects": ["shared-layout", "expand", "fade"]
       },
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/ui/expandable-modal.tsx",
+          "path": "registry/base/ui/expandable-dialog.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-modal.tsx"
+          "target": "components/ui/expandable-dialog.tsx"
         }
       ]
     },
@@ -698,9 +769,16 @@
       "type": "registry:ui",
       "title": "Context Cursor",
       "description": "A scoped custom cursor for pointer-rich surfaces where each target can register its own label, icon, and interaction intent.",
-      "categories": ["cursor"],
+      "categories": ["effect"],
       "meta": {
-        "tags": ["pointer", "mouse", "context-label", "drag", "preview"],
+        "tags": [
+          "pointer",
+          "mouse",
+          "context-label",
+          "drag",
+          "preview",
+          "cursor"
+        ],
         "effects": ["spring-follow", "cursor-fade"]
       },
       "dependencies": ["motion"],
@@ -717,9 +795,15 @@
       "type": "registry:ui",
       "title": "Feedback Popover",
       "description": "A Motion-powered feedback popover that expands from a trigger, supports keyboard submission, and confirms receipt inline.",
-      "categories": ["popover"],
+      "categories": ["overlay"],
       "meta": {
-        "tags": ["textarea", "submit", "confirmation", "keyboard-submit"],
+        "tags": [
+          "textarea",
+          "submit",
+          "confirmation",
+          "keyboard-submit",
+          "popover"
+        ],
         "effects": ["expand", "success-state", "shared-layout"]
       },
       "registryDependencies": ["button"],
@@ -737,9 +821,9 @@
       "type": "registry:ui",
       "title": "Multi-Step Flow",
       "description": "A Motion-powered multi-step container that slides between steps and animates height changes.",
-      "categories": ["flow"],
+      "categories": ["container"],
       "meta": {
-        "tags": ["wizard", "stepper", "onboarding", "form-flow"],
+        "tags": ["wizard", "stepper", "onboarding", "form-flow", "flow"],
         "effects": ["slide", "height-animation"]
       },
       "registryDependencies": [
@@ -760,9 +844,15 @@
       "type": "registry:ui",
       "title": "Adaptive Drawer",
       "description": "A shadcn Drawer that measures panel content and animates height changes.",
-      "categories": ["drawer", "layout"],
+      "categories": ["overlay"],
       "meta": {
-        "tags": ["drawer", "adaptive-height", "bottom-sheet", "content-transition"],
+        "tags": [
+          "drawer",
+          "adaptive-height",
+          "bottom-sheet",
+          "content-transition",
+          "layout"
+        ],
         "effects": ["height-animation", "fade", "scale"]
       },
       "registryDependencies": ["button", "drawer"],
@@ -778,11 +868,11 @@
     {
       "name": "staggered-entrance",
       "type": "registry:ui",
-      "title": "Staggered List",
+      "title": "Staggered Entrance",
       "description": "A CSS-powered staggered entrance primitive for lists, cards, steps, rows, and search results.",
-      "categories": ["list"],
+      "categories": ["effect"],
       "meta": {
-        "tags": ["stagger", "entrance", "css-only", "list-animation"],
+        "tags": ["stagger", "entrance", "css-only", "list-animation", "list"],
         "effects": ["stagger", "fade", "slide"]
       },
       "files": [
@@ -803,7 +893,7 @@
       "type": "registry:block",
       "title": "Scroll Expand & Focus Hero",
       "description": "An art-directed scroll hero that expands a detail into context or focuses a full-bleed scene into a discovery.",
-      "categories": ["marketing", "hero"],
+      "categories": ["marketing"],
       "meta": {
         "tags": ["scroll", "hero", "image", "video", "storytelling", "art-direction", "focus"],
         "effects": ["clip-path", "media-zoom", "focus-origin", "scroll-progress", "content-choreography", "frame-offset", "reverse-focus", "circular-focus", "stage-content", "reduced-motion"]
@@ -830,7 +920,7 @@
       "type": "registry:block",
       "title": "Ripple Scene Gallery",
       "description": "An immersive scene selector whose photo lifts into a travelling corrugated wave, swapping to the next scene at the crest before settling flat.",
-      "categories": ["marketing", "gallery"],
+      "categories": ["marketing"],
       "meta": {
         "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
         "effects": ["ripple-wave", "strip-stagger", "crest-swap", "direction-aware", "content-stagger", "reduced-motion"]
@@ -857,7 +947,7 @@
       "type": "registry:block",
       "title": "Vertical Scene Gallery",
       "description": "A direction-aware gallery that reveals later scenes from below and earlier scenes from above with a paired vertical image transition.",
-      "categories": ["marketing", "gallery"],
+      "categories": ["marketing"],
       "meta": {
         "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
         "effects": ["vertical-reveal", "media-zoom", "content-transition", "direction-aware", "reduced-motion"]
@@ -884,9 +974,15 @@
       "type": "registry:hook",
       "title": "useScrollProgress",
       "description": "A render-free vertical scroll progress hook for window or element scrollers with optional time-based smoothing.",
-      "categories": ["motion", "scroll"],
+      "categories": ["motion"],
       "meta": {
-        "tags": ["scroll-progress", "request-animation-frame", "resize-observer", "window-scroll"],
+        "tags": [
+          "scroll-progress",
+          "request-animation-frame",
+          "resize-observer",
+          "window-scroll",
+          "scroll"
+        ],
         "effects": ["scroll-progress", "smoothing"]
       },
       "files": [
@@ -894,6 +990,25 @@
           "path": "registry/base/hooks/use-scroll-progress.ts",
           "type": "registry:hook",
           "target": "@hooks/use-scroll-progress.ts"
+        }
+      ]
+    },
+    {
+      "name": "use-sequence-player",
+      "type": "registry:hook",
+      "title": "useSequencePlayer",
+      "description": "A client-safe React hook that spotlights one scripted animation sequence at a time, pausing off-screen, on hidden tabs, while focused, and under reduced motion.",
+      "categories": ["motion"],
+      "meta": {
+        "tags": ["spotlight", "playback", "intersection-observer", "reduced-motion", "showcase"],
+        "effects": ["sequenced-playback"]
+      },
+      "registryDependencies": ["https://ui.ericts.com/r/use-reduced-motion.json"],
+      "files": [
+        {
+          "path": "registry/base/hooks/use-sequence-player.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-sequence-player.ts"
         }
       ]
     },
@@ -920,7 +1035,7 @@
       "type": "registry:hook",
       "title": "useElementHeight",
       "description": "A client-safe React hook that measures an element's height with ResizeObserver so a container can animate between content heights.",
-      "categories": ["animation"],
+      "categories": ["measurement"],
       "meta": {
         "tags": ["resize-observer", "auto-height", "measure", "height-animation"],
         "effects": ["height-animation"]
@@ -938,14 +1053,15 @@
       "type": "registry:hook",
       "title": "useElementSizeMap",
       "description": "A client-safe React hook that measures multiple keyed element sizes with ResizeObserver so animated shells can morph to active content.",
-      "categories": ["animation", "layout"],
+      "categories": ["measurement"],
       "meta": {
         "tags": [
           "resize-observer",
           "auto-size",
           "measure",
           "width-animation",
-          "height-animation"
+          "height-animation",
+          "layout"
         ],
         "effects": ["morph", "size-animation", "layout-animation"]
       },

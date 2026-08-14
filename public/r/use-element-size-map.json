@@ -17,7 +17,8 @@
       "auto-size",
       "measure",
       "width-animation",
-      "height-animation"
+      "height-animation",
+      "layout"
     ],
     "effects": [
       "morph",
@@ -26,8 +27,7 @@
     ]
   },
   "categories": [
-    "animation",
-    "layout"
+    "measurement"
   ],
   "type": "registry:hook"
 }

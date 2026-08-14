@@ -36,24 +36,27 @@ export type RegistryDisplayNavigationGroup = {
   items: RegistryDisplayItem[];
 };
 
+/**
+ * The registry's one taxonomy. `registry.json` items carry the same slug as
+ * their first `categories` entry, so the published payload and this site's
+ * information architecture cannot drift; `pnpm display:check` enforces it.
+ *
+ * Two rules keep the list honest. Categories describe *what an item is*, never
+ * *that it animates* — every item here animates, so an "animation" category
+ * sorts nothing. And a category only exists once something occupies it: the
+ * list previously carried ten empty buckets inherited from a generic app-blocks
+ * template (auth, dashboard, commerce…), which advertised a scope this registry
+ * never had.
+ *
+ * Ordered concrete → abstract, which is the order groups render on the homepage
+ * and in the demo browser's category jumps.
+ */
 const registryDisplayCategories = [
   {
-    slug: "animation",
+    slug: "action",
     kind: "component",
-    label: "Animation",
-    description: "Motion primitives, transition helpers, and animated states.",
-  },
-  {
-    slug: "button",
-    kind: "component",
-    label: "Button",
-    description: "Actions, copy controls, toolbar triggers, and stateful buttons.",
-  },
-  {
-    slug: "feedback",
-    kind: "component",
-    label: "Feedback",
-    description: "Status, confirmation, and response components.",
+    label: "Actions",
+    description: "Buttons whose motion reports what the action is doing.",
   },
   {
     slug: "form",
@@ -64,74 +67,43 @@ const registryDisplayCategories = [
   {
     slug: "navigation",
     kind: "component",
-    label: "Navigation",
-    description: "Tabs, menus, and navigational primitives.",
+    label: "Tabs & Navigation",
+    description:
+      "Tab lists, selectable rails, and menus with roving focus and a moving indicator.",
   },
   {
     slug: "overlay",
     kind: "component",
-    label: "Overlay",
-    description: "Dialogs, drawers, and elevated surfaces.",
+    label: "Overlays",
+    description:
+      "Dialogs, drawers, popovers, and panels that float above the page.",
   },
   {
-    slug: "layout",
+    slug: "display",
     kind: "component",
-    label: "Layout",
-    description: "Flow and layout primitives for changing content.",
+    label: "Display",
+    description:
+      "Read-only output — status, text, and elapsed time — where motion carries the change.",
   },
   {
-    slug: "data-display",
+    slug: "container",
     kind: "component",
-    label: "Data Display",
-    description: "Reserved for tables, cards, charts, and list components.",
+    label: "Containers",
+    description:
+      "Surfaces that measure their own content and animate as it changes.",
   },
   {
-    slug: "auth",
-    kind: "block",
-    label: "Auth",
-    description: "Login, signup, forgot password, OTP, and SSO flows.",
-  },
-  {
-    slug: "onboarding",
-    kind: "block",
-    label: "Onboarding",
-    description: "First-run setup, workspace creation, and invite flows.",
-  },
-  {
-    slug: "dashboard",
-    kind: "block",
-    label: "Dashboard",
-    description: "Analytics, metrics, and admin overview surfaces.",
-  },
-  {
-    slug: "settings",
-    kind: "block",
-    label: "Settings",
-    description: "Account, billing, team, and product settings flows.",
+    slug: "effect",
+    kind: "component",
+    label: "Effects",
+    description:
+      "Content-agnostic wrappers that add motion to whatever you nest inside them.",
   },
   {
     slug: "marketing",
     kind: "block",
     label: "Marketing",
-    description: "Hero, pricing, FAQ, and feature sections.",
-  },
-  {
-    slug: "commerce",
-    kind: "block",
-    label: "Commerce",
-    description: "Checkout, plan comparison, and billing portal blocks.",
-  },
-  {
-    slug: "content",
-    kind: "block",
-    label: "Content",
-    description: "Blog, docs, changelog, and help center sections.",
-  },
-  {
-    slug: "data-workflow",
-    kind: "block",
-    label: "Data Workflow",
-    description: "Tables, filters, approvals, and issue queue workflows.",
+    description: "Full-page scroll heroes and scene galleries.",
   },
   {
     slug: "accessibility",
@@ -149,78 +121,30 @@ const registryDisplayCategories = [
     slug: "motion",
     kind: "hook",
     label: "Motion",
-    description: "Reserved for animation and transition hooks.",
-  },
-  {
-    slug: "interaction",
-    kind: "hook",
-    label: "Interaction",
-    description: "Reserved for pointer, keyboard, and gesture hooks.",
-  },
-  {
-    slug: "state",
-    kind: "hook",
-    label: "State",
-    description: "Reserved for client state coordination hooks.",
-  },
-  {
-    slug: "browser",
-    kind: "hook",
-    label: "Browser",
-    description: "Reserved for browser capability and environment hooks.",
+    description: "Hooks that drive scroll-linked and eased movement.",
   },
 ] as const satisfies readonly RegistryDisplayCategory[];
 
 const registryDisplayItemConfigs = [
-  {
-    name: "smooth-height",
-    kind: "component",
-    category: "animation",
-    defaultVariant: "motion",
-  },
-  { name: "check-animation", kind: "component", category: "animation" },
-  { name: "jitter-animation", kind: "component", category: "animation" },
-  { name: "squeeze-animation", kind: "component", category: "animation" },
-  { name: "heartbeat-animation", kind: "component", category: "animation" },
-  { name: "projected-shadow-animation", kind: "component", category: "animation" },
-  { name: "text-morph", kind: "component", category: "animation" },
-  { name: "staggered-entrance", kind: "component", category: "animation" },
-  {
-    name: "context-cursor",
-    kind: "component",
-    category: "animation",
-    viewport: "wide",
-  },
-  { name: "copy-button", kind: "component", category: "button" },
-  { name: "status-button", kind: "component", category: "button" },
-  {
-    name: "expanding-toggle-button",
-    kind: "component",
-    category: "button",
-  },
-  {
-    name: "floating-shortcut-button",
-    kind: "component",
-    category: "button",
-  },
-  {
-    name: "expandable-toolbar",
-    kind: "component",
-    category: "button",
-    viewport: "wide",
-  },
-  { name: "play-button", kind: "component", category: "button" },
-  { name: "status-badge", kind: "component", category: "feedback" },
-  { name: "feedback-popover", kind: "component", category: "feedback" },
+  { name: "copy-button", kind: "component", category: "action" },
+  { name: "status-button", kind: "component", category: "action" },
+  { name: "expandable-toggle-button", kind: "component", category: "action" },
+  { name: "play-button", kind: "component", category: "action" },
   { name: "otp-input", kind: "component", category: "form" },
   { name: "floating-select", kind: "component", category: "form" },
   { name: "adaptive-switch", kind: "component", category: "form" },
-  { name: "expanding-slider", kind: "component", category: "form" },
+  { name: "expandable-slider", kind: "component", category: "form" },
   { name: "highlight-tabs", kind: "component", category: "navigation" },
   { name: "sliding-list", kind: "component", category: "navigation" },
   { name: "rail-list", kind: "component", category: "navigation" },
   {
-    name: "expanding-segmented-tabs",
+    name: "rail-stage",
+    kind: "component",
+    category: "navigation",
+    viewport: "wide",
+  },
+  {
+    name: "expandable-segmented-tabs",
     kind: "component",
     category: "navigation",
   },
@@ -231,21 +155,49 @@ const registryDisplayItemConfigs = [
     viewport: "wide",
   },
   {
-    name: "expanding-panel",
-    kind: "component",
-    category: "overlay",
-    viewport: "wide",
-  },
-  {
     name: "navigation-menu",
     kind: "component",
     category: "navigation",
     viewport: "wide",
   },
-  { name: "expandable-modal", kind: "component", category: "overlay" },
+  {
+    name: "expandable-panel",
+    kind: "component",
+    category: "overlay",
+    viewport: "wide",
+  },
+  { name: "expandable-dialog", kind: "component", category: "overlay" },
   { name: "adaptive-drawer", kind: "component", category: "overlay" },
-  { name: "multi-step", kind: "component", category: "layout" },
-  { name: "timer", kind: "component", category: "data-display" },
+  { name: "feedback-popover", kind: "component", category: "overlay" },
+  { name: "floating-shortcut-button", kind: "component", category: "overlay" },
+  { name: "status-badge", kind: "component", category: "display" },
+  { name: "check-mark", kind: "component", category: "display" },
+  { name: "timer", kind: "component", category: "display" },
+  { name: "text-morph", kind: "component", category: "display" },
+  {
+    name: "smooth-height",
+    kind: "component",
+    category: "container",
+    defaultVariant: "motion",
+  },
+  { name: "multi-step", kind: "component", category: "container" },
+  {
+    name: "expandable-toolbar",
+    kind: "component",
+    category: "container",
+    viewport: "wide",
+  },
+  { name: "jitter", kind: "component", category: "effect" },
+  { name: "squeeze", kind: "component", category: "effect" },
+  { name: "heartbeat", kind: "component", category: "effect" },
+  { name: "projected-shadow", kind: "component", category: "effect" },
+  { name: "staggered-entrance", kind: "component", category: "effect" },
+  {
+    name: "context-cursor",
+    kind: "component",
+    category: "effect",
+    viewport: "wide",
+  },
   { name: "use-reduced-motion", kind: "hook", category: "accessibility" },
   { name: "use-element-height", kind: "hook", category: "measurement" },
   {
@@ -256,6 +208,7 @@ const registryDisplayItemConfigs = [
   },
   { name: "use-scroll-anchor", kind: "hook", category: "motion" },
   { name: "use-scroll-progress", kind: "hook", category: "motion" },
+  { name: "use-sequence-player", kind: "hook", category: "motion" },
   {
     name: "scroll-expand",
     kind: "block",

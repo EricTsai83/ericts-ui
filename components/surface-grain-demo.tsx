@@ -12,7 +12,7 @@ import { XIcon, ZoomInIcon } from "lucide-react";
 
 import styles from "@/components/surface-grain-demo.module.css";
 import { cn } from "@/lib/utils";
-import { ExpandingToggleButton } from "@/registry/base/ui/expanding-toggle-button";
+import { ExpandableToggleButton } from "@/registry/base/ui/expandable-toggle-button";
 
 const surfaces = [
   {
@@ -321,7 +321,7 @@ export function SurfaceGrainDemo() {
               "Inspect noise at 4×"
             )}
           </span>
-          <ExpandingToggleButton
+          <ExpandableToggleButton
             ref={magnifierButtonRef}
             active={isMagnifying}
             onActiveChange={setIsMagnifying}

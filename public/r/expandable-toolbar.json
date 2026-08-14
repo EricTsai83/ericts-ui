@@ -23,7 +23,8 @@
       "expandable",
       "quick-actions",
       "measurement",
-      "controlled"
+      "controlled",
+      "button"
     ],
     "effects": [
       "width-animation",
@@ -32,8 +33,7 @@
     ]
   },
   "categories": [
-    "toolbar",
-    "button"
+    "container"
   ],
   "type": "registry:ui"
 }

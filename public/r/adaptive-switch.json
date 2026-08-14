@@ -33,8 +33,7 @@
     ]
   },
   "categories": [
-    "form",
-    "switch"
+    "form"
   ],
   "type": "registry:ui"
 }

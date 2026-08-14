@@ -24,7 +24,8 @@
       "icon",
       "controlled",
       "uncontrolled",
-      "optional-selection"
+      "optional-selection",
+      "list"
     ],
     "effects": [
       "active-shift",
@@ -33,8 +34,7 @@
     ]
   },
   "categories": [
-    "navigation",
-    "list"
+    "navigation"
   ],
   "type": "registry:ui"
 }

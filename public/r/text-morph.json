@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "text-morph",
-  "title": "Morphing Text",
+  "title": "Text Morph",
   "description": "A Motion-powered text primitive that morphs matching characters between string updates.",
   "dependencies": [
     "motion"
@@ -18,7 +18,8 @@
     "tags": [
       "typography",
       "character-transition",
-      "word-rotation"
+      "word-rotation",
+      "text"
     ],
     "effects": [
       "text-morph",
@@ -26,7 +27,7 @@
     ]
   },
   "categories": [
-    "text"
+    "display"
   ],
   "type": "registry:ui"
 }

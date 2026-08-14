@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContextCursor } from "@/registry/base/ui/context-cursor";
 import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
-import { ExpandingPanel } from "@/registry/base/ui/expanding-panel";
+import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
 import { FloatingShortcutButton } from "@/registry/base/ui/floating-shortcut-button";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { RailList } from "@/registry/base/ui/rail-list";
@@ -48,7 +48,7 @@ describe("registry root ref forwarding", () => {
 
     render(
       <>
-        <ExpandingPanel ref={panelRef}>panel</ExpandingPanel>
+        <ExpandablePanel ref={panelRef}>panel</ExpandablePanel>
         <ExpandableTabs
           ref={tabsRef}
           items={[
@@ -63,7 +63,7 @@ describe("registry root ref forwarding", () => {
     );
 
     expect(panelRef.current).toBeInstanceOf(HTMLElement);
-    expect(panelRef.current?.dataset.slot).toBe("expanding-panel");
+    expect(panelRef.current?.dataset.slot).toBe("expandable-panel");
 
     expect(tabsRef.current).toBeInstanceOf(HTMLDivElement);
 
@@ -79,7 +79,7 @@ describe("registry root ref forwarding", () => {
 
     // Outside-click detection reads the same node the consumer ref points at;
     // if the merge dropped the internal ref, this dataset lookup would fail.
-    render(<ExpandingPanel ref={panelRef} defaultOpen />);
+    render(<ExpandablePanel ref={panelRef} defaultOpen />);
 
     expect(panelRef.current?.dataset.state).toBe("open");
   });

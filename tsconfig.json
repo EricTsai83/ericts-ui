@@ -23,8 +23,8 @@
       }
     ],
     "paths": {
-      "@/components/ui/check-animation": [
-        "./registry/base/ui/check-animation"
+      "@/components/ui/check-mark": [
+        "./registry/base/ui/check-mark"
       ],
       "@/components/ui/sliding-list": [
         "./registry/base/ui/sliding-list"

@@ -1,0 +1,31 @@
+.check-mark {
+  --check-mark-ease: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --check-mark-shape-duration: 600ms;
+  --check-mark-check-duration: 400ms;
+}
+
+.check-mark-shape {
+  animation: check-mark-draw var(--check-mark-shape-duration)
+    var(--check-mark-ease) forwards;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.check-mark-checkmark {
+  animation: check-mark-draw var(--check-mark-check-duration)
+    var(--check-mark-ease) var(--check-mark-shape-duration) forwards;
+}
+
+@keyframes check-mark-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check-mark-shape,
+  .check-mark-checkmark {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

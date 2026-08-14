@@ -1,11 +1,14 @@
 import { LogoIcon } from "@/components/icons";
-import { ProjectedShadow } from "@/registry/base/ui/projected-shadow-animation";
+import { ProjectedShadow } from "@/registry/base/ui/projected-shadow";
 
+// Height-bound rather than width-bound: the hero panel is a fixed-height
+// sticky column, so the mark yields space to the copy on short viewports
+// instead of overflowing.
 export function HomeHeroMark() {
   return (
     <ProjectedShadow
       aria-hidden="true"
-      className="aspect-square w-full max-w-[360px] lg:w-[min(100%,360px,38vh)]"
+      className="aspect-square h-full max-h-[304px] w-auto max-w-full"
       projectedShadowClassName="inset-[14%] size-[72%] text-foreground/[0.075] dark:text-muted/50"
       contactShadowClassName="inset-[14%] size-[72%] text-foreground/[0.16] dark:text-muted/55"
       targetClassName="absolute inset-[14%] size-[72%] text-foreground/88"

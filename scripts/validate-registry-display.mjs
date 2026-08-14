@@ -32,6 +32,9 @@ validateRegistryCoverage("registry:block", "block");
 validateDisplayItemsExist();
 validateDisplayKindsMatchRegistry();
 validateKindCategories();
+validatePrimaryCategoryAlignment();
+validateCategoriesAreOccupied();
+validateTitlesMatchNames();
 validateBrowsablePreviews();
 validateRegistryFilesExist();
 validateCssOnlyVariants();
@@ -154,7 +157,7 @@ function getExpectedKind(type) {
   return undefined;
 }
 
-function validateKindCategories() {
+function getCategorySlugsByKind() {
   const categoriesByKind = new Map();
 
   for (const category of displayCategories) {
@@ -167,6 +170,12 @@ function validateKindCategories() {
     categoriesByKind.set(category.kind, categories);
   }
 
+  return categoriesByKind;
+}
+
+function validateKindCategories() {
+  const categoriesByKind = getCategorySlugsByKind();
+
   for (const config of displayConfigs) {
     if (typeof config.kind !== "string" || typeof config.category !== "string") {
       errors.push(`Display config for ${config.name ?? "unknown"} is missing kind/category.`);
@@ -176,6 +185,113 @@ function validateKindCategories() {
     if (!categoriesByKind.get(config.kind)?.has(config.category)) {
       errors.push(
         `Display config ${config.name} uses invalid ${config.kind} category: ${config.category}`,
+      );
+    }
+  }
+}
+
+/**
+ * An item's title must open with its own name, so the two can never describe
+ * different components — `text-morph` titled "Morphing Text" and
+ * `staggered-entrance` titled "Staggered List" (which also implied it only worked
+ * on lists) both drifted this way, and `expandable-modal` titled "Expandable
+ * Dialog" disagreed with its own file name.
+ *
+ * Comparison ignores case and punctuation, so "Multi-Step Flow" satisfies
+ * `multi-step` and "useScrollProgress" satisfies `use-scroll-progress`. Trailing
+ * words stay legal: a title may qualify the name ("Ripple Scene Gallery"), it
+ * just may not contradict it.
+ */
+function validateTitlesMatchNames() {
+  const normalize = (value) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  for (const item of registry.items) {
+    if (typeof item.title !== "string" || typeof item.name !== "string") {
+      continue;
+    }
+
+    if (!normalize(item.title).startsWith(normalize(item.name))) {
+      errors.push(
+        `Registry item "${item.name}" is titled "${item.title}", which does not open with its name — rename one so they agree.`,
+      );
+    }
+  }
+}
+
+/**
+ * The published `registry.json` categories and this site's information
+ * architecture are one taxonomy, so an item's first category must be its display
+ * category. They used to be two uncoordinated vocabularies — 31 slugs against 22,
+ * with nothing comparing them — which is how a card labelled "drawer" came to sit
+ * under an "Overlays" heading, and how 26 of 42 items drifted apart unnoticed.
+ *
+ * Extra entries stay legal for genuine cross-filing, but only from the same
+ * kind's vocabulary; anything more specific belongs in `meta.tags`.
+ */
+function validatePrimaryCategoryAlignment() {
+  const categoriesByKind = getCategorySlugsByKind();
+  const configsByName = new Map(
+    displayConfigs.map((config) => [config.name, config]),
+  );
+
+  for (const item of registry.items) {
+    const config = configsByName.get(item.name);
+
+    if (!config || typeof config.category !== "string") {
+      continue;
+    }
+
+    const categories = item.categories ?? [];
+
+    if (categories.length === 0) {
+      errors.push(
+        `Registry item "${item.name}" declares no categories; the first must be its display category (${config.category}).`,
+      );
+      continue;
+    }
+
+    if (categories[0] !== config.category) {
+      errors.push(
+        `Registry item "${item.name}" lists categories[0] "${categories[0]}" but its display category is "${config.category}" — these are one taxonomy.`,
+      );
+    }
+
+    for (const extra of categories.slice(1)) {
+      if (!categoriesByKind.get(config.kind)?.has(extra)) {
+        errors.push(
+          `Registry item "${item.name}" lists category "${extra}", which is not a ${config.kind} category — move it to meta.tags.`,
+        );
+      }
+    }
+  }
+}
+
+/**
+ * A category may only exist once something occupies it. The taxonomy had
+ * accumulated ten empty buckets copied from a generic app-blocks template
+ * (auth, dashboard, commerce, settings…), each advertising a scope this registry
+ * never had; they stayed invisible because the navigation drops empty groups, so
+ * nothing surfaced the rot. Occupancy counts browsable items only — a category
+ * reachable from no page is just as dead as one with no items at all.
+ */
+function validateCategoriesAreOccupied() {
+  const occupied = new Set(
+    displayConfigs
+      .filter((config) => config.browsable !== false)
+      .map((config) => `${config.kind}:${config.category}`),
+  );
+
+  for (const category of displayCategories) {
+    if (
+      typeof category.slug !== "string" ||
+      typeof category.kind !== "string"
+    ) {
+      continue;
+    }
+
+    if (!occupied.has(`${category.kind}:${category.slug}`)) {
+      errors.push(
+        `Display category ${category.kind}:${category.slug} has no browsable items — remove it instead of shipping an empty bucket.`,
       );
     }
   }

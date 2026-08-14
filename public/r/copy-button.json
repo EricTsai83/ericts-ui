@@ -23,7 +23,8 @@
       "clipboard",
       "copy",
       "success",
-      "icon-swap"
+      "icon-swap",
+      "button"
     ],
     "effects": [
       "state-transition",
@@ -32,7 +33,7 @@
     "cssOnly": true
   },
   "categories": [
-    "button"
+    "action"
   ],
   "type": "registry:ui"
 }

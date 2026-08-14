@@ -24,7 +24,9 @@
       "quick-actions",
       "customizable",
       "size-presets",
-      "controlled"
+      "controlled",
+      "button",
+      "menu"
     ],
     "effects": [
       "scale",
@@ -35,8 +37,7 @@
     ]
   },
   "categories": [
-    "button",
-    "menu"
+    "overlay"
   ],
   "type": "registry:ui"
 }

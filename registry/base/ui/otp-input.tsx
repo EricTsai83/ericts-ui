@@ -8,7 +8,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 
-import { CheckAnimation } from "@/components/ui/check-animation";
+import { CheckMark } from "@/components/ui/check-mark";
 import { cn } from "@/lib/utils";
 
 export type OTPStatus = "idle" | "error" | "success";
@@ -419,11 +419,11 @@ export function OTPInput({
         </div>
 
         {showSuccess ? (
-          <CheckAnimation
+          <CheckMark
             variant="circle"
             size="md"
             label={successIndicatorLabel}
-            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-ericts-success [--check-animation-check-duration:260ms] [--check-animation-shape-duration:420ms]"
+            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-ericts-success [--check-mark-check-duration:260ms] [--check-mark-shape-duration:420ms]"
           />
         ) : null}
       </div>

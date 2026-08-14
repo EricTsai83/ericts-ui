@@ -23,6 +23,37 @@ ericts/ui is a shadcn-compatible component registry for polished, motion-focused
 
 - Never use `any` unless 100% necessary or specifically instructed.
 
+## Registry Conventions
+
+Naming and categories are enforced by `pnpm display:check`; read the JSDoc in
+`lib/registry-display.ts` and `scripts/validate-registry-display.mjs` before
+adding an item. The rules that a validator cannot check:
+
+- **Renaming items is allowed.** Consumers copy source into their own repo, so
+  there is no semver contract. Update in-repo callers and add the old name to
+  `renamedRegistryItems` in `next.config.ts`, which keeps `/r/<name>.json` — the
+  install command people have already pasted — resolving.
+- **Categories describe what an item is, never that it animates.** Every item
+  animates, so an "animation" category sorts nothing. Add a category only when an
+  item occupies it.
+- **`ref` points at a DOM node**, matching React 19 ref-as-prop. Imperative
+  handles go on a separate prop (`controlsRef`, `inputRef`). Guarded by
+  `tests/registry-ref-forwarding.test.tsx`; components whose root ref is also used
+  internally must merge via callback ref rather than spreading.
+- **Time props**: `<state>Duration` for how long a transient state shows,
+  `duration` (ms) for CSS-driven animation, `transition` (Motion object) for
+  Motion-driven.
+- **Slot classes use two shapes on purpose**: a `classNames` object for
+  many-slot components, flat `*ClassName` props for few-slot ones. Do not
+  unify them.
+- **Invariants for every new component**: controlled/uncontrolled must be
+  non-latching; animated components must honour `prefers-reduced-motion`; every
+  effect, observer, and timer must clean up.
+- Deliberate local exceptions, so they are not "fixed" later: `RailList` and
+  `SlidingList` accept arrow keys on both axes (`vertical-scene` depends on it),
+  and the two `CopyButton` variants use different state attributes
+  (`data-copied` vs `data-state`), each self-consistent.
+
 ## Maintainability
 
 1. Performance first.

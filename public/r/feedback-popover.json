@@ -23,7 +23,8 @@
       "textarea",
       "submit",
       "confirmation",
-      "keyboard-submit"
+      "keyboard-submit",
+      "popover"
     ],
     "effects": [
       "expand",
@@ -32,7 +33,7 @@
     ]
   },
   "categories": [
-    "popover"
+    "overlay"
   ],
   "type": "registry:ui"
 }

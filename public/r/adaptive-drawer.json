@@ -24,7 +24,8 @@
       "drawer",
       "adaptive-height",
       "bottom-sheet",
-      "content-transition"
+      "content-transition",
+      "layout"
     ],
     "effects": [
       "height-animation",
@@ -33,8 +34,7 @@
     ]
   },
   "categories": [
-    "drawer",
-    "layout"
+    "overlay"
   ],
   "type": "registry:ui"
 }

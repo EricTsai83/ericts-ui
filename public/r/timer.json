@@ -37,8 +37,7 @@
     ]
   },
   "categories": [
-    "data-display",
-    "animation"
+    "display"
   ],
   "type": "registry:ui"
 }

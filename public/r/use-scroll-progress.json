@@ -16,7 +16,8 @@
       "scroll-progress",
       "request-animation-frame",
       "resize-observer",
-      "window-scroll"
+      "window-scroll",
+      "scroll"
     ],
     "effects": [
       "scroll-progress",
@@ -24,8 +25,7 @@
     ]
   },
   "categories": [
-    "motion",
-    "scroll"
+    "motion"
   ],
   "type": "registry:hook"
 }

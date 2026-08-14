@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 import { LogoIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import { Heartbeat } from "@/registry/base/ui/heartbeat-animation";
+import { Heartbeat } from "@/registry/base/ui/heartbeat";
 
 /**
  * The "404" display, with the brand heart standing in for the middle zero.

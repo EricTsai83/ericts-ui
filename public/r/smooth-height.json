@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "smooth-height",
-  "title": "Smooth Height Layout",
+  "title": "Smooth Height",
   "description": "A Motion-powered layout primitive that observes content size and animates height changes.",
   "dependencies": [
     "motion"
@@ -18,7 +18,8 @@
     "tags": [
       "resize-observer",
       "content-transition",
-      "height-animation"
+      "height-animation",
+      "layout"
     ],
     "effects": [
       "height",
@@ -27,7 +28,7 @@
     "cssOnly": true
   },
   "categories": [
-    "layout"
+    "container"
   ],
   "type": "registry:ui"
 }

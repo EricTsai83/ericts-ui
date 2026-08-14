@@ -23,7 +23,8 @@
       "wizard",
       "stepper",
       "onboarding",
-      "form-flow"
+      "form-flow",
+      "flow"
     ],
     "effects": [
       "slide",
@@ -31,7 +32,7 @@
     ]
   },
   "categories": [
-    "flow"
+    "container"
   ],
   "type": "registry:ui"
 }

@@ -23,7 +23,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
-import { ExpandingPanel } from "@/registry/base/ui/expanding-panel";
+import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
 
 export type RegistryDemoNavigationItem = Pick<
   RegistryDisplayItem,
@@ -293,7 +293,7 @@ export function RegistryDemoShell({
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
       <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
-      <ExpandingPanel
+      <ExpandablePanel
         className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
         open={panelOpen}
         openLabel="Open navigation map"
@@ -305,7 +305,7 @@ export function RegistryDemoShell({
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
           <div
             ref={treeScrollRef}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-(--expanding-panel-trigger-inset)"
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-(--expandable-panel-trigger-inset)"
           >
             <div className="flex flex-col gap-1.5">
               {navigationPanelSourceGroups.map((group) => (
@@ -327,7 +327,7 @@ export function RegistryDemoShell({
           }
           onExit={exitFullscreen}
         />
-      </ExpandingPanel>
+      </ExpandablePanel>
 
       <PreviewNavigationDock
         item={item}
@@ -905,7 +905,7 @@ function targetIsInsideOpenOverlay(target: EventTarget | null) {
     );
 
     return Boolean(
-      overlay && !overlay.closest("[data-slot='expanding-panel']"),
+      overlay && !overlay.closest("[data-slot='expandable-panel']"),
     );
   }
 
@@ -919,7 +919,7 @@ function targetIsInsideOpenOverlay(target: EventTarget | null) {
     "[data-slot='popover-content'], [role='dialog']",
   );
 
-  return Boolean(overlay && !overlay.closest("[data-slot='expanding-panel']"));
+  return Boolean(overlay && !overlay.closest("[data-slot='expandable-panel']"));
 }
 
 function getViewportClassName(viewport = "centered") {

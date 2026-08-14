@@ -19,7 +19,8 @@
       "floating",
       "select",
       "single-trigger",
-      "listbox"
+      "listbox",
+      "button"
     ],
     "effects": [
       "shared-layout",
@@ -28,8 +29,7 @@
     ]
   },
   "categories": [
-    "select",
-    "button"
+    "form"
   ],
   "type": "registry:ui"
 }
