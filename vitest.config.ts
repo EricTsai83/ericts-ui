@@ -24,6 +24,10 @@ export default defineConfig({
         __dirname,
         "registry/base/hooks/use-scroll-progress.ts",
       ),
+      "@/hooks/use-timer": path.resolve(
+        __dirname,
+        "registry/base/hooks/use-timer.ts",
+      ),
       "@": path.resolve(__dirname),
     },
   },

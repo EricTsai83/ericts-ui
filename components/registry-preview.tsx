@@ -17,6 +17,7 @@ type PreviewComponent = ComponentType<{
 // render nothing (the card still shows their metadata).
 const previews: Record<string, PreviewComponent> = {
   "smooth-height": dynamic(() => import("@/components/previews/smooth-height")),
+  "timer": dynamic(() => import("@/components/previews/timer")),
   "copy-button": dynamic(() => import("@/components/previews/copy-button")),
   "check-animation": dynamic(() => import("@/components/previews/check-animation")),
   "jitter-animation": dynamic(() => import("@/components/previews/jitter-animation")),

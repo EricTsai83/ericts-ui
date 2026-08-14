@@ -239,6 +239,7 @@ const registryDisplayItemConfigs = [
   { name: "expandable-modal", kind: "component", category: "overlay" },
   { name: "adaptive-drawer", kind: "component", category: "overlay" },
   { name: "multi-step", kind: "component", category: "layout" },
+  { name: "timer", kind: "component", category: "data-display" },
   { name: "use-reduced-motion", kind: "hook", category: "accessibility" },
   { name: "use-element-height", kind: "hook", category: "measurement" },
   {
