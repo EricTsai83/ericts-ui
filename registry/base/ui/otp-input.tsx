@@ -348,7 +348,7 @@ export function OTPInput({
                 className={cn(
                   "relative grid h-14 w-12 place-items-center overflow-hidden rounded-xl border text-xl font-semibold tabular-nums transition-colors duration-200",
                   showSuccess
-                    ? "border-emerald-500/60 text-foreground"
+                    ? "border-ericts-success/60 text-foreground"
                     : status === "error"
                       ? "border-destructive/60 text-foreground"
                       : char
@@ -423,7 +423,7 @@ export function OTPInput({
             variant="circle"
             size="md"
             label={successIndicatorLabel}
-            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-emerald-500 [--check-animation-check-duration:260ms] [--check-animation-shape-duration:420ms]"
+            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-ericts-success [--check-animation-check-duration:260ms] [--check-animation-shape-duration:420ms]"
           />
         ) : null}
       </div>

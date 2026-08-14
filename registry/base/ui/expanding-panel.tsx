@@ -220,7 +220,7 @@ export function ExpandingPanel({
             transition={panelTransition}
             style={{ transformOrigin: "top right" }}
             className={cn(
-              "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md shadow-black/10 backdrop-blur-lg transition-[width] duration-240 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] motion-reduce:transition-none dark:shadow-black/20",
+              "relative overflow-hidden rounded-lg border border-border/70 bg-popover/90 text-popover-foreground shadow-md backdrop-blur-lg transition-[width] duration-240 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[width,height] motion-reduce:transition-none",
               isOpen
                 ? "w-[min(var(--expanding-panel-width,17rem),calc(100vw-1.5rem))]"
                 : "size-8",

@@ -345,7 +345,7 @@ export const PlayButton = React.forwardRef<HTMLButtonElement, PlayButtonProps>(
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current",
           "motion-reduce:transition-none motion-reduce:active:scale-100",
           frosted
-            ? "bg-black/30 text-white backdrop-blur-[16px] hover:bg-black/45"
+            ? "bg-ericts-media-control/30 text-ericts-media-control-foreground backdrop-blur-[16px] hover:bg-ericts-media-control/45"
             : "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50",
           className,
         )}
@@ -370,10 +370,7 @@ export const PlayButton = React.forwardRef<HTMLButtonElement, PlayButtonProps>(
           viewBox={`0 0 ${ICON_VIEW_BOX} ${ICON_VIEW_BOX}`}
           data-slot="play-button-icon"
           style={{ width: ICON_RATIO, height: ICON_RATIO }}
-          className={cn(
-            "fill-current",
-            frosted && "drop-shadow-[0_0_2px_rgba(0,0,0,0.5)]",
-          )}
+          className="fill-current"
         >
           <path ref={pathRef} d={initialPath.current} />
         </svg>

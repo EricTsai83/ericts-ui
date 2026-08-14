@@ -18,7 +18,6 @@ import {
   getRegistryItemsByCategory,
   type RegistryItem,
 } from "@/lib/registry";
-import { getRegistryInstallTarget } from "@/lib/registry-install";
 
 // Each of these has a live vignette in the home motion wall, in spotlight
 // order. Adding a name here requires a matching vignette in home-motion-wall.
@@ -91,7 +90,6 @@ export default function Home() {
       title: item.title ?? item.name,
       description: item.description,
       href: item.href,
-      installTarget: getRegistryInstallTarget(item.name),
       badges: getRegistryItemBadges(item, 2).visible,
     }));
 
@@ -206,9 +204,7 @@ export default function Home() {
               </div>
             </section>
 
-            <HomeMotionWall items={motionWallItems} />
-
-            <section className="grid gap-4 border-y py-5 sm:grid-cols-[140px_1fr] sm:items-center">
+            <section className="grid gap-4 sm:grid-cols-[140px_1fr] sm:items-center">
               <p className="text-sm font-medium text-muted-foreground">
                 Built on
               </p>
@@ -226,6 +222,8 @@ export default function Home() {
                 ))}
               </div>
             </section>
+
+            <HomeMotionWall items={motionWallItems} />
 
             <ComponentPreviewBrowser items={previewItems} />
           </div>

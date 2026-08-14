@@ -170,13 +170,19 @@ describe("PlayButton", () => {
     const { button } = renderButton();
 
     expect(button.className).not.toContain("backdrop-blur");
-    expect(button.className).not.toContain("bg-black/30");
+    expect(button.className).not.toContain("bg-ericts-media-control/30");
 
     cleanup();
 
-    expect(
-      render(<PlayButton surface="frosted" />).getByRole("button").className,
-    ).toContain("backdrop-blur");
+    const frostedButton = render(
+      <PlayButton surface="frosted" />,
+    ).getByRole("button");
+
+    expect(frostedButton.className).toContain("backdrop-blur");
+    expect(frostedButton.className).toContain("bg-ericts-media-control/30");
+    expect(frostedButton.className).toContain(
+      "text-ericts-media-control-foreground",
+    );
   });
 
   it("ignores clicks while disabled", () => {

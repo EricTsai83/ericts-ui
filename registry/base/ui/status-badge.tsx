@@ -68,9 +68,9 @@ const statusClassNames: Record<StatusBadgeStatus, string> = {
   neutral: "border-border bg-muted text-muted-foreground",
   info: "border-primary/25 bg-primary/10 text-primary",
   success:
-    "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    "border-ericts-success/25 bg-ericts-success/10 text-ericts-success-foreground",
   warning:
-    "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    "border-ericts-warning/25 bg-ericts-warning/10 text-ericts-warning-foreground",
   danger: "border-destructive/25 bg-destructive/10 text-destructive",
   loading: "border-primary/25 bg-primary/10 text-primary",
 };

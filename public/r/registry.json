@@ -109,6 +109,16 @@
           "reduced-motion"
         ]
       },
+      "cssVars": {
+        "light": {
+          "ericts-media-control": "oklch(0 0 0)",
+          "ericts-media-control-foreground": "oklch(1 0 0)"
+        },
+        "dark": {
+          "ericts-media-control": "oklch(0 0 0)",
+          "ericts-media-control-foreground": "oklch(1 0 0)"
+        }
+      },
       "dependencies": ["motion"],
       "files": [
         {
@@ -160,6 +170,20 @@
       "meta": {
         "tags": ["badge", "status", "loading", "state-transition", "icon-swap"],
         "effects": ["state-transition", "icon-swap", "pulse"]
+      },
+      "cssVars": {
+        "light": {
+          "ericts-success": "oklch(0.696 0.17 162.48)",
+          "ericts-success-foreground": "oklch(0.508 0.118 165.612)",
+          "ericts-warning": "oklch(0.769 0.188 70.08)",
+          "ericts-warning-foreground": "oklch(0.555 0.163 48.998)"
+        },
+        "dark": {
+          "ericts-success": "oklch(0.696 0.17 162.48)",
+          "ericts-success-foreground": "oklch(0.845 0.143 164.978)",
+          "ericts-warning": "oklch(0.769 0.188 70.08)",
+          "ericts-warning-foreground": "oklch(0.879 0.169 91.605)"
+        }
       },
       "dependencies": ["motion", "lucide-react"],
       "files": [
@@ -398,6 +422,14 @@
       "meta": {
         "tags": ["otp", "one-time-code", "passcode", "paste", "autofill"],
         "effects": ["digit-roll", "error-shake", "svg-draw", "success-state"]
+      },
+      "cssVars": {
+        "light": {
+          "ericts-success": "oklch(0.696 0.17 162.48)"
+        },
+        "dark": {
+          "ericts-success": "oklch(0.696 0.17 162.48)"
+        }
       },
       "registryDependencies": [
         "https://ui.ericts.com/r/check-animation.json"

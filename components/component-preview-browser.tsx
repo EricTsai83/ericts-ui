@@ -1,21 +1,18 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, Code2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RegistryPreview } from "@/components/registry-preview";
 import { buttonVariants } from "@/components/ui/button";
-import { getRegistryInstallCommand } from "@/lib/registry-install-command";
 import { cn } from "@/lib/utils";
-import { CopyButton } from "@/registry/base/ui/copy-button";
 
 export type ComponentPreviewBrowserItem = {
   name: string;
   title: string;
   description?: string;
   href: string;
-  installTarget: string;
   badges: string[];
 };
 
@@ -33,9 +30,6 @@ export function ComponentPreviewBrowser({
     () => items.find((item) => item.name === activeName) ?? items[0],
     [activeName, items],
   );
-  const installCommand = activeItem
-    ? getRegistryInstallCommand(activeItem.installTarget)
-    : "";
   const activeTabId = activeItem
     ? `component-preview-${activeItem.name}-tab`
     : undefined;
@@ -66,7 +60,7 @@ export function ComponentPreviewBrowser({
             Component preview
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Try a featured component and copy the install command.
+            Try a featured component before opening its full documentation.
           </p>
         </div>
         <Link
@@ -123,7 +117,7 @@ export function ComponentPreviewBrowser({
             id="component-preview-panel"
             role="tabpanel"
             aria-labelledby={activeTabId}
-            className="relative flex min-h-[360px] items-center justify-center overflow-hidden border-b bg-background p-4 sm:min-h-[400px] sm:p-6"
+            className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-background p-4 sm:min-h-[400px] sm:p-6"
           >
             <div
               aria-hidden="true"
@@ -131,27 +125,6 @@ export function ComponentPreviewBrowser({
             />
             <div className="relative z-10 flex w-full min-w-0 items-center justify-center">
               <RegistryPreview name={activeItem.name} />
-            </div>
-          </div>
-
-          <div className="p-3">
-            <div className="flex min-w-0 items-center gap-3 rounded-lg border bg-background p-2.5">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                <Code2 aria-hidden="true" className="size-4" />
-              </span>
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <p className="text-xs font-medium text-foreground">Install</p>
-                <code className="min-w-0 truncate font-mono text-xs text-muted-foreground">
-                  {installCommand}
-                </code>
-              </div>
-              <CopyButton
-                value={installCommand}
-                variant="ghost"
-                size="icon"
-                aria-label={`Copy ${activeItem.title} install command`}
-                className="shrink-0"
-              />
             </div>
           </div>
         </div>
