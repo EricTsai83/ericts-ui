@@ -55,6 +55,7 @@ export type FloatingShortcutButtonClassNames = {
   menu?: string;
   triggerSlot?: string;
   trigger?: string;
+  triggerSurface?: string;
   triggerFace?: string;
   triggerIcon?: string;
   caption?: string;
@@ -71,7 +72,7 @@ export const floatingShortcutSizePresets = {
     openTriggerSize: 36,
     actionSize: 40,
     triggerIconSize: 18,
-    closeIconSize: 22,
+    closeIconSize: 24,
     actionIconSize: 18,
     stackGap: 6,
     triggerGap: 6,
@@ -83,7 +84,7 @@ export const floatingShortcutSizePresets = {
     openTriggerSize: 40,
     actionSize: 48,
     triggerIconSize: 20,
-    closeIconSize: 24,
+    closeIconSize: 28,
     actionIconSize: 20,
     stackGap: 8,
     triggerGap: 8,
@@ -95,7 +96,7 @@ export const floatingShortcutSizePresets = {
     openTriggerSize: 44,
     actionSize: 56,
     triggerIconSize: 24,
-    closeIconSize: 28,
+    closeIconSize: 32,
     actionIconSize: 24,
     stackGap: 10,
     triggerGap: 10,
@@ -246,13 +247,15 @@ function ShortcutGridIcon() {
 
 function ShortcutCloseIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-      <g transform="translate(2.0175 2.035) scale(1.4261)">
-        <path
-          fill="currentColor"
-          d="M12.293.293a1 1 0 1 1 1.414 1.414L8.414 7l5.293 5.293a1 1 0 0 1-1.414 1.414L7 8.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L5.586 7 .293 1.707A1 1 0 1 1 1.707.293L7 5.586z"
-        />
-      </g>
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="m5.5 5.5 13 13m0-13-13 13" />
     </svg>
   );
 }
@@ -561,6 +564,7 @@ export function FloatingShortcutButton({
             {...restTriggerProps}
             ref={triggerRef}
             type="button"
+            variant="link"
             size="icon-lg"
             disabled={triggerDisabled}
             aria-label={open ? closeLabel : resolvedTriggerLabel}
@@ -570,17 +574,28 @@ export function FloatingShortcutButton({
             onClick={handleTriggerClick}
             onKeyDown={handleTriggerKeyDown}
             className={cn(
-              "origin-center rounded-full shadow-sm transition-transform ease-out hover:bg-primary/90 active:bg-primary/90 motion-reduce:transition-none",
+              "relative origin-center rounded-full p-0 no-underline",
               classNames?.trigger,
               triggerClassName,
             )}
             style={{
               width: resolvedMetrics.triggerSize,
               height: resolvedMetrics.triggerSize,
-              transform: `scale(${open ? openScale : 1})`,
-              transitionDuration: `${resolvedMotion.duration}ms`,
             }}
-          />
+          >
+            <span
+              aria-hidden="true"
+              data-slot="floating-shortcut-trigger-surface"
+              className={cn(
+                "pointer-events-none absolute inset-0 rounded-full bg-primary shadow-sm transition-[transform,background-color] ease-in-out group-hover/button:bg-primary/90 group-active/button:bg-primary/90 motion-reduce:transition-none",
+                classNames?.triggerSurface,
+              )}
+              style={{
+                transform: `scale(${open ? openScale : 1})`,
+                transitionDuration: `${resolvedMotion.duration}ms`,
+              }}
+            />
+          </Button>
 
           <div
             aria-hidden="true"

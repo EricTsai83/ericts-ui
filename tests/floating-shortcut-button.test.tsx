@@ -58,6 +58,9 @@ describe("FloatingShortcutButton", () => {
     const triggerIcon = root.querySelector(
       "[data-slot='floating-shortcut-trigger-icon']",
     ) as HTMLElement;
+    const triggerSurface = root.querySelector(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    ) as HTMLElement;
     const action = screen.getByRole("menuitem", { name: "Search", hidden: true });
     const actionIcon = action.querySelector(
       "[data-slot='floating-shortcut-action-icon']",
@@ -66,7 +69,9 @@ describe("FloatingShortcutButton", () => {
 
     expect(trigger.style.width).toBe("56px");
     expect(trigger.style.height).toBe("56px");
-    expect(trigger.style.transitionDuration).toBe("170ms");
+    expect(trigger.style.transform).toBe("");
+    expect(triggerSurface.style.transitionDuration).toBe("170ms");
+    expect(triggerSurface.style.transform).toBe("scale(1)");
     expect(triggerFace.style.transitionDuration).toBe("170ms");
     expect(triggerFace.style.transitionDelay).toBe("85ms");
     expect(triggerIcon.style.width).toBe("20px");
@@ -82,9 +87,14 @@ describe("FloatingShortcutButton", () => {
     expect(action.className).toContain("border-border");
     expect(action.className).not.toContain("hover:-translate-y-px");
     expect(action.className).not.toContain("hover:shadow-lg");
-    expect(
-      closeFace.querySelector("g")?.getAttribute("transform"),
-    ).toContain("scale(1.4261)");
+    const closeIcon = closeFace.querySelector("svg");
+
+    expect(closeIcon?.getAttribute("stroke")).toBe("currentColor");
+    expect(closeIcon?.getAttribute("stroke-width")).toBe("2");
+    expect(closeIcon?.getAttribute("stroke-linecap")).toBe("round");
+    expect(closeIcon?.querySelector("path")?.getAttribute("d")).toBe(
+      "m5.5 5.5 13 13m0-13-13 13",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Quick" }));
 
@@ -92,13 +102,18 @@ describe("FloatingShortcutButton", () => {
     expect(triggerFace.style.transitionDelay).toBe("0ms");
     expect(closeFace.className).toContain("opacity-100");
     expect(closeFace.style.transitionDelay).toBe("85ms");
-    expect(trigger.style.transform).toBe("scale(0.7142857142857143)");
+    expect(trigger.style.width).toBe("56px");
+    expect(trigger.style.height).toBe("56px");
+    expect(trigger.style.transform).toBe("");
+    expect(triggerSurface.style.transform).toBe(
+      "scale(0.7142857142857143)",
+    );
   });
 
   it.each([
-    ["sm", 48, 40, 18, 22],
-    ["md", 56, 48, 20, 24],
-    ["lg", 64, 56, 24, 28],
+    ["sm", 48, 40, 18, 24],
+    ["md", 56, 48, 20, 28],
+    ["lg", 64, 56, 24, 32],
   ] as const)(
     "keeps the %s size preset geometrically aligned",
     (size, triggerSize, actionSize, triggerIconSize, closeIconSize) => {
@@ -160,6 +175,9 @@ describe("FloatingShortcutButton", () => {
     const actionIcon = action.querySelector(
       "[data-slot='floating-shortcut-action-icon']",
     ) as HTMLElement;
+    const triggerSurface = root.querySelector(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    ) as HTMLElement;
 
     expect(root.style.gap).toBe("7px");
     expect(menu.style.gap).toBe("5px");
@@ -169,7 +187,10 @@ describe("FloatingShortcutButton", () => {
     expect(actionIcon.style.width).toBe("17px");
 
     fireEvent.click(trigger);
-    expect(trigger.style.transform).toBe("scale(0.75)");
+    expect(trigger.style.width).toBe("60px");
+    expect(trigger.style.height).toBe("60px");
+    expect(trigger.style.transform).toBe("");
+    expect(triggerSurface.style.transform).toBe("scale(0.75)");
   });
 
   it("preserves timing ratios when motion is customized", () => {
@@ -184,12 +205,15 @@ describe("FloatingShortcutButton", () => {
     const triggerFace = root.querySelector(
       "[data-slot='floating-shortcut-trigger-face']",
     ) as HTMLElement;
+    const triggerSurface = root.querySelector(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    ) as HTMLElement;
     const action = screen.getByRole("menuitem", {
       name: "Search",
       hidden: true,
     });
 
-    expect(trigger.style.transitionDuration).toBe("200ms");
+    expect(triggerSurface.style.transitionDuration).toBe("200ms");
     expect(triggerFace.style.transitionDelay).toBe("100ms");
     expect(action.style.transitionDuration).toBe("152.94117647058823ms");
     expect(
@@ -206,6 +230,7 @@ describe("FloatingShortcutButton", () => {
           menu: "slot-menu",
           triggerSlot: "slot-trigger-slot",
           trigger: "slot-trigger",
+          triggerSurface: "slot-trigger-surface",
           triggerFace: "slot-trigger-face",
           triggerIcon: "slot-trigger-icon",
           caption: "slot-caption",
@@ -245,6 +270,10 @@ describe("FloatingShortcutButton", () => {
         ?.className,
     ).toContain("slot-trigger-slot");
     expect(trigger.className).toContain("slot-trigger");
+    expect(
+      root.querySelector("[data-slot='floating-shortcut-trigger-surface']")
+        ?.className,
+    ).toContain("slot-trigger-surface");
     expect(action.className).toContain("slot-action-button");
     expect(action.className).toContain("local-button");
     expect(action.parentElement?.className).toContain("slot-action-row");
