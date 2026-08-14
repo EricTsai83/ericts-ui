@@ -164,10 +164,10 @@ export function AdaptiveSwitch({
         "data-[animation=none]:transition-none motion-reduce:transition-none",
         hasLabels
           ? "inline-grid min-w-16 grid-cols-2 p-0.5"
-          : "data-[size=default]:h-[18.4px] data-[size=default]:w-8 data-[size=lg]:h-7 data-[size=lg]:w-12 data-[size=sm]:h-3.5 data-[size=sm]:w-6",
-        hasLabels && size === "default" ? "h-8" : null,
-        hasLabels && size === "sm" ? "h-7" : null,
-        hasLabels && size === "lg" ? "h-10" : null,
+          : "data-[size=default]:h-[18.4px] data-[size=default]:w-8 data-[size=lg]:h-7 data-[size=lg]:w-12 data-[size=sm]:h-[17px] data-[size=sm]:w-[30px]",
+        hasLabels && size === "default" ? "h-6" : null,
+        hasLabels && size === "sm" ? "h-5" : null,
+        hasLabels && size === "lg" ? "h-7" : null,
         className,
       )}
       {...props}
@@ -184,7 +184,7 @@ export function AdaptiveSwitch({
               size === "sm"
                 ? "px-2 text-[11px]"
                 : size === "lg"
-                  ? "px-3 text-sm"
+                  ? "px-2.5 text-xs"
                   : "text-xs",
             )}
           >
@@ -200,7 +200,7 @@ export function AdaptiveSwitch({
               size === "sm"
                 ? "px-2 text-[11px]"
                 : size === "lg"
-                  ? "px-3 text-sm"
+                  ? "px-2.5 text-xs"
                   : "text-xs",
             )}
           >
@@ -215,7 +215,7 @@ export function AdaptiveSwitch({
           "group/adaptive-switch-thumb pointer-events-none relative block ring-0",
           hasLabels
             ? "absolute inset-y-0.5 left-0.5 w-[calc(50%-0.125rem)]"
-            : "group-data-[size=default]/adaptive-switch:size-4 group-data-[size=lg]/adaptive-switch:size-6 group-data-[size=sm]/adaptive-switch:size-3",
+            : "group-data-[size=default]/adaptive-switch:size-4 group-data-[size=lg]/adaptive-switch:size-6 group-data-[size=sm]/adaptive-switch:size-[15px]",
         )}
         render={(thumbProps, state) => (
           <span {...thumbProps}>
