@@ -412,6 +412,31 @@
       ]
     },
     {
+      "name": "adaptive-switch",
+      "type": "registry:ui",
+      "title": "Adaptive Switch",
+      "description": "An accessible switch with optional state labels, three sizes, and configurable motion.",
+      "categories": ["form", "switch"],
+      "meta": {
+        "tags": ["switch", "toggle", "status", "controlled", "uncontrolled", "adaptive"],
+        "effects": [
+          "thumb-stretch",
+          "damped-elastic-settle",
+          "configurable-motion",
+          "label-crossfade",
+          "reduced-motion"
+        ]
+      },
+      "dependencies": ["@base-ui/react", "motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/adaptive-switch.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/adaptive-switch.tsx"
+        }
+      ]
+    },
+    {
       "name": "highlight-tabs",
       "type": "registry:ui",
       "title": "Highlight Tabs",

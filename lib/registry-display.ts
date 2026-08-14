@@ -214,6 +214,7 @@ const registryDisplayItemConfigs = [
   { name: "feedback-popover", kind: "component", category: "feedback" },
   { name: "otp-input", kind: "component", category: "form" },
   { name: "floating-select", kind: "component", category: "form" },
+  { name: "adaptive-switch", kind: "component", category: "form" },
   { name: "expanding-slider", kind: "component", category: "form" },
   { name: "highlight-tabs", kind: "component", category: "navigation" },
   { name: "sliding-list", kind: "component", category: "navigation" },
