@@ -27,6 +27,7 @@ const previews: Record<string, PreviewComponent> = {
   "status-badge": dynamic(() => import("@/components/previews/status-badge")),
   "status-button": dynamic(() => import("@/components/previews/status-button")),
   "expanding-toggle-button": dynamic(() => import("@/components/previews/expanding-toggle-button")),
+  "floating-shortcut-button": dynamic(() => import("@/components/previews/floating-shortcut-button")),
   "play-button": dynamic(() => import("@/components/previews/play-button")),
   "floating-select": dynamic(() => import("@/components/previews/floating-select")),
   "expanding-slider": dynamic(() => import("@/components/previews/expanding-slider")),

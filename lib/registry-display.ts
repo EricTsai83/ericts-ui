@@ -199,6 +199,11 @@ const registryDisplayItemConfigs = [
     category: "button",
   },
   {
+    name: "floating-shortcut-button",
+    kind: "component",
+    category: "button",
+  },
+  {
     name: "expandable-toolbar",
     kind: "component",
     category: "button",

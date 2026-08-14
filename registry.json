@@ -119,6 +119,39 @@
       ]
     },
     {
+      "name": "floating-shortcut-button",
+      "type": "registry:ui",
+      "title": "Floating Shortcut Button",
+      "description": "A configurable floating action menu with coordinated size presets, a shrinking trigger, crossfading icon states, and staggered shortcuts.",
+      "categories": ["button", "menu"],
+      "meta": {
+        "tags": [
+          "floating-action-button",
+          "shortcut-menu",
+          "quick-actions",
+          "customizable",
+          "size-presets",
+          "controlled"
+        ],
+        "effects": [
+          "scale",
+          "icon-swap",
+          "stagger",
+          "fade",
+          "reduced-motion"
+        ]
+      },
+      "registryDependencies": ["button"],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/floating-shortcut-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/floating-shortcut-button.tsx"
+        }
+      ]
+    },
+    {
       "name": "status-badge",
       "type": "registry:ui",
       "title": "Status Badge",
