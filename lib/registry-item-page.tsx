@@ -15,33 +15,28 @@ import {
   getRegistryItemBadges,
   getRegistryItemsByCategory,
 } from "@/lib/registry";
-
-const registryItemNavigation = {
-  ui: { href: "/components", label: "components" },
-  hooks: { href: "/hooks", label: "hooks" },
-  blocks: { href: "/blocks", label: "blocks" },
-} as const;
-
-type RegistryItemCategory = keyof typeof registryItemNavigation;
+import {
+  getRegistryKindRegistryCategory,
+  getRegistryKindSegment,
+  type RegistryKind,
+} from "@/lib/registry-kind";
 
 type RegistryItemPageOptions = {
   name: string;
-  category: RegistryItemCategory;
+  kind: RegistryKind;
 };
 
-export function generateRegistryItemStaticParams(
-  category: RegistryItemCategory,
-) {
-  return getRegistryItemsByCategory(category).map((item) => ({
-    name: item.name,
-  }));
+export function generateRegistryItemStaticParams(kind: RegistryKind) {
+  return getRegistryItemsByCategory(getRegistryKindRegistryCategory(kind)).map(
+    (item) => ({ name: item.name }),
+  );
 }
 
 export async function generateRegistryItemMetadata({
   name,
-  category,
+  kind,
 }: RegistryItemPageOptions): Promise<Metadata> {
-  const item = getRegistryItemForCategory(name, category);
+  const item = getRegistryItemForKind(name, kind);
 
   if (!item) {
     return {};
@@ -55,9 +50,9 @@ export async function generateRegistryItemMetadata({
 
 export async function RegistryItemPage({
   name,
-  category,
+  kind,
 }: RegistryItemPageOptions) {
-  const item = getRegistryItemForCategory(name, category);
+  const item = getRegistryItemForKind(name, kind);
 
   if (!item) {
     notFound();
@@ -67,13 +62,13 @@ export async function RegistryItemPage({
   const badges = getRegistryItemBadges(item);
   const motionApiSnippets = await getRegistryMotionApiSnippets(item.name);
   const displayItem = getRegistryDisplayItem(item.name);
-  const navigation = registryItemNavigation[category];
+  const segment = getRegistryKindSegment(kind);
 
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-6 py-10 sm:px-8 lg:px-10">
       <header className="flex max-w-3xl flex-col gap-5">
         <Link
-          href={navigation.href}
+          href={`/${segment}`}
           className={buttonVariants({
             variant: "ghost",
             size: "sm",
@@ -81,7 +76,7 @@ export async function RegistryItemPage({
           })}
         >
           <ArrowLeft data-icon="inline-start" aria-hidden="true" />
-          Back to {navigation.label}
+          Back to {segment}
         </Link>
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-semibold tracking-tight">
@@ -126,13 +121,10 @@ export async function RegistryItemPage({
   );
 }
 
-function getRegistryItemForCategory(
-  name: string,
-  category: RegistryItemCategory,
-) {
+function getRegistryItemForKind(name: string, kind: RegistryKind) {
   const item = getRegistryItem(name);
 
-  if (item?.category !== category) {
+  if (item?.category !== getRegistryKindRegistryCategory(kind)) {
     return undefined;
   }
 

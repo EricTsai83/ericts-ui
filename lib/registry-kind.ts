@@ -1,65 +1,95 @@
 export type RegistryKind = "component" | "hook" | "block";
 
-export const registryKindRank: Record<RegistryKind, number> = {
-  component: 0,
-  hook: 1,
-  block: 2,
+type RegistryKindDefinition = {
+  kind: RegistryKind;
+  /** URL segment this kind's routes live under: `/components/otp-input`. */
+  segment: string;
+  /** The `category` `lib/registry` derives for this kind's registry items. */
+  registryCategory: string;
+  groupLabel: string;
 };
 
-const registryKindLabels: Record<RegistryKind, string> = {
-  component: "UI",
-  hook: "Hook",
-  block: "Block",
-};
+/**
+ * What each kind is called, where it lives, and the order kinds rank in. Every
+ * other mapping between the three vocabularies — display kind, URL segment,
+ * registry category — is derived from this table, because they used to be
+ * spelled out separately in `getHref`, in the item page's back-link map, and in
+ * three copied route directories, so adding a kind meant finding all of them.
+ *
+ * Declaration order is rank order: components lead search results, then hooks,
+ * then blocks.
+ */
+const registryKinds = [
+  {
+    kind: "component",
+    segment: "components",
+    registryCategory: "ui",
+    groupLabel: "Components",
+  },
+  {
+    kind: "hook",
+    segment: "hooks",
+    registryCategory: "hooks",
+    groupLabel: "Hooks",
+  },
+  {
+    kind: "block",
+    segment: "blocks",
+    registryCategory: "blocks",
+    groupLabel: "Blocks",
+  },
+] as const satisfies readonly RegistryKindDefinition[];
 
-const registryKindGroupLabels: Record<RegistryKind, string> = {
-  component: "Components",
-  hook: "Hooks",
-  block: "Blocks",
-};
+const registryKindsByKind = Object.fromEntries(
+  registryKinds.map((definition) => [definition.kind, definition]),
+) as Record<RegistryKind, RegistryKindDefinition>;
+
+export const registryKindSegments = registryKinds.map(
+  (definition) => definition.segment,
+);
+
+export const registryKindRank = Object.fromEntries(
+  registryKinds.map((definition, index) => [definition.kind, index]),
+) as Record<RegistryKind, number>;
 
 export function getRegistryKindFromCategory(
   category: string,
 ): RegistryKind | null {
-  if (category === "blocks") {
-    return "block";
-  }
+  return (
+    registryKinds.find(
+      (definition) => definition.registryCategory === category,
+    )?.kind ?? null
+  );
+}
 
-  if (category === "hooks") {
-    return "hook";
-  }
-
-  if (category === "ui") {
-    return "component";
-  }
-
-  return null;
+export function getRegistryKindFromSegment(
+  segment: string,
+): RegistryKind | null {
+  return (
+    registryKinds.find((definition) => definition.segment === segment)?.kind ??
+    null
+  );
 }
 
 export function getRegistryKindFromSearchId(id: string): RegistryKind | null {
-  if (id.startsWith("component-")) {
-    return "component";
-  }
-
-  if (id.startsWith("hook-")) {
-    return "hook";
-  }
-
-  if (id.startsWith("block-")) {
-    return "block";
-  }
-
-  return null;
+  return (
+    registryKinds.find((definition) => id.startsWith(`${definition.kind}-`))
+      ?.kind ?? null
+  );
 }
 
 export function getRegistryKindSearchId(kind: RegistryKind, name: string) {
   return `${kind}-${name}`;
 }
 
-export function getRegistryKindLabel(kind: RegistryKind) {
-  return registryKindLabels[kind];
+export function getRegistryKindSegment(kind: RegistryKind) {
+  return registryKindsByKind[kind].segment;
+}
+
+export function getRegistryKindRegistryCategory(kind: RegistryKind) {
+  return registryKindsByKind[kind].registryCategory;
 }
 
 export function getRegistryKindGroupLabel(kind: RegistryKind) {
-  return registryKindGroupLabels[kind];
+  return registryKindsByKind[kind].groupLabel;
 }

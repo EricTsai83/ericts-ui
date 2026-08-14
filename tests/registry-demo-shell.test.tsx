@@ -242,7 +242,6 @@ function createDisplayItem(
     href: `/components/${name}`,
     viewHref: `/view/base/${name}`,
     registryUrl: `/r/${name}.json`,
-    installKind: "component",
     tags: [],
     effects: [],
   };

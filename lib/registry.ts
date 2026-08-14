@@ -1,4 +1,8 @@
 import registry from "@/registry.json";
+import {
+  getRegistryKindFromCategory,
+  getRegistryKindSegment,
+} from "@/lib/registry-kind";
 
 type RegistryFile = {
   path: string;
@@ -83,15 +87,10 @@ function getSearchTerms(item: RegistrySourceItem, category: string) {
 }
 
 function getHref(item: RegistrySourceItem, category: string) {
-  if (category === "hooks") {
-    return `/hooks/${item.name}`;
-  }
+  const kind = getRegistryKindFromCategory(category);
+  const segment = kind ? getRegistryKindSegment(kind) : "components";
 
-  if (category === "blocks") {
-    return `/blocks/${item.name}`;
-  }
-
-  return `/components/${item.name}`;
+  return `/${segment}/${item.name}`;
 }
 
 export const registryItems: RegistryItem[] = registrySourceItems.map((item) => {

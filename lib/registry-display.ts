@@ -1,11 +1,21 @@
-import { getRegistryItem, type RegistryItem } from "@/lib/registry";
+import { getRegistryItem } from "@/lib/registry";
+import {
+  getRegistryKindFromCategory,
+  type RegistryKind,
+} from "@/lib/registry-kind";
 
-export type RegistryDisplayKind = "component" | "block" | "hook";
+export type RegistryDisplayKind = RegistryKind;
 export type RegistryDisplayViewport = "centered" | "wide" | "full";
 
+/**
+ * A display config says where an item sits in this site's navigation. It does
+ * *not* say what the item is — `kind` is derived from the registry item's own
+ * `type`, because a hand-written copy of a fact `registry.json` already states
+ * can only ever agree with it or be a bug, and the validator that compared the
+ * two was just paying for the privilege of maintaining both.
+ */
 export type RegistryDisplayItemConfig = {
   name: string;
-  kind: RegistryDisplayKind;
   category: string;
   browsable?: boolean;
   viewport?: RegistryDisplayViewport;
@@ -13,12 +23,12 @@ export type RegistryDisplayItemConfig = {
 };
 
 export type RegistryDisplayItem = RegistryDisplayItemConfig & {
+  kind: RegistryDisplayKind;
   title: string;
   description?: string;
   href: string;
   viewHref: string;
   registryUrl: string;
-  installKind: RegistryDisplayKind;
   tags: string[];
   effects: string[];
 };
@@ -125,108 +135,55 @@ const registryDisplayCategories = [
   },
 ] as const satisfies readonly RegistryDisplayCategory[];
 
+/**
+ * Declaration order is the order items render in the homepage index and the
+ * order the demo browser's previous/next arrows walk them in. The `/components`
+ * list re-sorts them by title, since its cards are a lookup table rather than a
+ * curated tour — but its *group* order still comes from the category list above.
+ */
 const registryDisplayItemConfigs = [
-  { name: "copy-button", kind: "component", category: "action" },
-  { name: "status-button", kind: "component", category: "action" },
-  { name: "expandable-toggle-button", kind: "component", category: "action" },
-  { name: "play-button", kind: "component", category: "action" },
-  { name: "otp-input", kind: "component", category: "form" },
-  { name: "floating-select", kind: "component", category: "form" },
-  { name: "adaptive-switch", kind: "component", category: "form" },
-  { name: "expandable-slider", kind: "component", category: "form" },
-  { name: "highlight-tabs", kind: "component", category: "navigation" },
-  { name: "sliding-list", kind: "component", category: "navigation" },
-  { name: "rail-list", kind: "component", category: "navigation" },
-  {
-    name: "rail-stage",
-    kind: "component",
-    category: "navigation",
-    viewport: "wide",
-  },
-  {
-    name: "expandable-segmented-tabs",
-    kind: "component",
-    category: "navigation",
-  },
-  {
-    name: "expandable-tabs",
-    kind: "component",
-    category: "navigation",
-    viewport: "wide",
-  },
-  {
-    name: "navigation-menu",
-    kind: "component",
-    category: "navigation",
-    viewport: "wide",
-  },
-  {
-    name: "expandable-panel",
-    kind: "component",
-    category: "overlay",
-    viewport: "wide",
-  },
-  { name: "expandable-dialog", kind: "component", category: "overlay" },
-  { name: "adaptive-drawer", kind: "component", category: "overlay" },
-  { name: "feedback-popover", kind: "component", category: "overlay" },
-  { name: "floating-shortcut-button", kind: "component", category: "overlay" },
-  { name: "status-badge", kind: "component", category: "display" },
-  { name: "check-mark", kind: "component", category: "display" },
-  { name: "timer", kind: "component", category: "display" },
-  { name: "text-morph", kind: "component", category: "display" },
-  {
-    name: "smooth-height",
-    kind: "component",
-    category: "container",
-    defaultVariant: "motion",
-  },
-  { name: "multi-step", kind: "component", category: "container" },
-  {
-    name: "expandable-toolbar",
-    kind: "component",
-    category: "container",
-    viewport: "wide",
-  },
-  { name: "jitter", kind: "component", category: "effect" },
-  { name: "squeeze", kind: "component", category: "effect" },
-  { name: "heartbeat", kind: "component", category: "effect" },
-  { name: "projected-shadow", kind: "component", category: "effect" },
-  { name: "staggered-entrance", kind: "component", category: "effect" },
-  {
-    name: "context-cursor",
-    kind: "component",
-    category: "effect",
-    viewport: "wide",
-  },
-  { name: "use-reduced-motion", kind: "hook", category: "accessibility" },
-  { name: "use-element-height", kind: "hook", category: "measurement" },
-  {
-    name: "use-element-size-map",
-    kind: "hook",
-    category: "measurement",
-    viewport: "wide",
-  },
-  { name: "use-scroll-anchor", kind: "hook", category: "motion" },
-  { name: "use-scroll-progress", kind: "hook", category: "motion" },
-  { name: "use-sequence-player", kind: "hook", category: "motion" },
-  {
-    name: "scroll-expand",
-    kind: "block",
-    category: "marketing",
-    viewport: "full",
-  },
-  {
-    name: "ripple-scene",
-    kind: "block",
-    category: "marketing",
-    viewport: "full",
-  },
-  {
-    name: "vertical-scene",
-    kind: "block",
-    category: "marketing",
-    viewport: "full",
-  },
+  { name: "copy-button", category: "action" },
+  { name: "status-button", category: "action" },
+  { name: "expandable-toggle-button", category: "action" },
+  { name: "play-button", category: "action" },
+  { name: "otp-input", category: "form" },
+  { name: "floating-select", category: "form" },
+  { name: "adaptive-switch", category: "form" },
+  { name: "expandable-slider", category: "form" },
+  { name: "highlight-tabs", category: "navigation" },
+  { name: "sliding-list", category: "navigation" },
+  { name: "rail-list", category: "navigation" },
+  { name: "rail-stage", category: "navigation", viewport: "wide" },
+  { name: "expandable-segmented-tabs", category: "navigation" },
+  { name: "expandable-tabs", category: "navigation", viewport: "wide" },
+  { name: "navigation-menu", category: "navigation", viewport: "wide" },
+  { name: "expandable-panel", category: "overlay", viewport: "wide" },
+  { name: "expandable-dialog", category: "overlay" },
+  { name: "adaptive-drawer", category: "overlay" },
+  { name: "feedback-popover", category: "overlay" },
+  { name: "floating-shortcut-button", category: "overlay" },
+  { name: "status-badge", category: "display" },
+  { name: "check-mark", category: "display" },
+  { name: "timer", category: "display" },
+  { name: "text-morph", category: "display" },
+  { name: "smooth-height", category: "container", defaultVariant: "motion" },
+  { name: "multi-step", category: "container" },
+  { name: "expandable-toolbar", category: "container", viewport: "wide" },
+  { name: "jitter", category: "effect" },
+  { name: "squeeze", category: "effect" },
+  { name: "heartbeat", category: "effect" },
+  { name: "projected-shadow", category: "effect" },
+  { name: "staggered-entrance", category: "effect" },
+  { name: "context-cursor", category: "effect", viewport: "wide" },
+  { name: "use-reduced-motion", category: "accessibility" },
+  { name: "use-element-height", category: "measurement" },
+  { name: "use-element-size-map", category: "measurement", viewport: "wide" },
+  { name: "use-scroll-anchor", category: "motion" },
+  { name: "use-scroll-progress", category: "motion" },
+  { name: "use-sequence-player", category: "motion" },
+  { name: "scroll-expand", category: "marketing", viewport: "full" },
+  { name: "ripple-scene", category: "marketing", viewport: "full" },
+  { name: "vertical-scene", category: "marketing", viewport: "full" },
 ] as const satisfies readonly RegistryDisplayItemConfig[];
 
 const registryDisplayItems = registryDisplayItemConfigs
@@ -326,19 +283,20 @@ function createDisplayItem(
   config: RegistryDisplayItemConfig,
 ): RegistryDisplayItem | undefined {
   const item = getRegistryItem(config.name);
+  const kind = item ? getRegistryKindFromCategory(item.category) : null;
 
-  if (!item) {
+  if (!item || !kind) {
     return undefined;
   }
 
   return {
     ...config,
+    kind,
     title: item.title ?? item.name,
     description: item.description,
     href: item.href,
     viewHref: `/view/base/${item.name}`,
     registryUrl: item.registryUrl,
-    installKind: config.kind,
     tags: item.meta?.tags ?? [],
     effects: item.meta?.effects ?? [],
   };
@@ -411,22 +369,4 @@ function wrapIndex(index: number, length: number) {
   }
 
   return ((index % length) + length) % length;
-}
-
-export function getRegistryDisplayKindForRegistryItem(
-  item: RegistryItem,
-): RegistryDisplayKind | undefined {
-  if (item.category === "ui") {
-    return "component";
-  }
-
-  if (item.category === "hooks") {
-    return "hook";
-  }
-
-  if (item.category === "blocks") {
-    return "block";
-  }
-
-  return undefined;
 }

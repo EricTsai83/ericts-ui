@@ -42,6 +42,14 @@ type RegistryItemsBrowserProps = {
   noItemsLabel: string;
   enableArrangement?: boolean;
   arrangementStorageKey?: string;
+  /**
+   * Category slugs in the order their groups should render. This browser used
+   * to order groups by label instead, which quietly gave the same taxonomy two
+   * orders — the homepage rendered Actions → Form → Tabs & Navigation, this
+   * list rendered Actions → Containers → Display. Ordering lives with the
+   * category declarations; this component only follows it.
+   */
+  categoryOrder?: readonly string[];
   fullscreenHref?: string;
   fullscreenLabel?: string;
 };
@@ -51,6 +59,8 @@ type RegistryItemGroup = {
   label: string;
   items: RegistryListItem[];
 };
+
+const noCategoryOrder: readonly string[] = [];
 
 function getDisplayName(item: RegistryListItem) {
   return item.title ?? item.name;
@@ -70,11 +80,15 @@ function formatCategoryLabel(category: string) {
 
 function groupItemsByPrimaryCategory(
   items: RegistryListItem[],
+  categoryOrder: readonly string[],
 ): RegistryItemGroup[] {
   const groups = new Map<
     string,
     { label: string; items: RegistryListItem[] }
   >();
+  const categoryRank = new Map(
+    categoryOrder.map((category, index) => [category, index]),
+  );
 
   for (const item of items) {
     const category =
@@ -92,7 +106,18 @@ function groupItemsByPrimaryCategory(
     category,
     label: group.label,
     items: group.items.sort(compareItems),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  })).sort((a, b) => {
+    // A category with no declared rank sorts last rather than first, so an item
+    // that predates its category declaration cannot displace the curated order.
+    const rankA = categoryRank.get(a.category) ?? Number.POSITIVE_INFINITY;
+    const rankB = categoryRank.get(b.category) ?? Number.POSITIVE_INFINITY;
+
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+
+    return a.label.localeCompare(b.label);
+  });
 }
 
 function getItemMetadata(
@@ -187,6 +212,7 @@ export function RegistryItemsBrowser({
   noItemsLabel,
   enableArrangement = false,
   arrangementStorageKey,
+  categoryOrder = noCategoryOrder,
   fullscreenHref,
   fullscreenLabel = `Browse ${itemLabelPlural} fullscreen`,
 }: RegistryItemsBrowserProps) {
@@ -216,8 +242,8 @@ export function RegistryItemsBrowser({
   }, [items, normalizedQuery]);
 
   const groupedItems = useMemo(
-    () => groupItemsByPrimaryCategory(filteredItems),
-    [filteredItems],
+    () => groupItemsByPrimaryCategory(filteredItems, categoryOrder),
+    [filteredItems, categoryOrder],
   );
 
   const clearSearch = () => setQuery("");

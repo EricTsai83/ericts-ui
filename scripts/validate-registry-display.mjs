@@ -22,6 +22,23 @@ const displayCategories = readObjectArray(
   "registryDisplayCategories",
 );
 const previewNames = new Set(readObjectMapKeys(previewSource, "previews"));
+const registryItemsByName = new Map(
+  registry.items.map((item) => [item.name, item]),
+);
+/**
+ * A display config's kind is derived from its registry item's `type`, never
+ * declared. This map is the same derivation `lib/registry-display.ts` performs
+ * at runtime, so the two cannot disagree — which is why the old
+ * `validateDisplayKindsMatchRegistry` (it compared a hand-written `kind` field
+ * against this) no longer has anything to compare.
+ */
+const displayKindsByName = new Map(
+  displayConfigs.map((config) => [
+    config.name,
+    getExpectedKind(registryItemsByName.get(config.name)?.type),
+  ]),
+);
+const listPagePath = "app/(app)/[kind]/page.tsx";
 const errors = [];
 
 validateDuplicateDisplayNames();
@@ -30,8 +47,9 @@ validateRegistryCoverage("registry:ui", "component");
 validateRegistryCoverage("registry:hook", "hook");
 validateRegistryCoverage("registry:block", "block");
 validateDisplayItemsExist();
-validateDisplayKindsMatchRegistry();
+validateConfigsDeclareNoKind();
 validateKindCategories();
+validateListPagesFollowCategoryOrder();
 validatePrimaryCategoryAlignment();
 validateCategoriesAreOccupied();
 validateTitlesMatchNames();
@@ -98,7 +116,7 @@ function validateRegistryCoverage(type, kind) {
     .map((item) => item.name);
   const displayNames = new Set(
     displayConfigs
-      .filter((config) => config.kind === kind)
+      .filter((config) => displayKindsByName.get(config.name) === kind)
       .map((config) => config.name),
   );
 
@@ -119,25 +137,41 @@ function validateDisplayItemsExist() {
   }
 }
 
-function validateDisplayKindsMatchRegistry() {
-  const registryItemsByName = new Map(
-    registry.items.map((item) => [item.name, item]),
-  );
-
+/**
+ * Kind is derived, so re-declaring it in a display config is dead weight that
+ * can only drift. This check exists to stop the field growing back.
+ */
+function validateConfigsDeclareNoKind() {
   for (const config of displayConfigs) {
-    const registryItem = registryItemsByName.get(config.name);
-
-    if (!registryItem) {
-      continue;
-    }
-
-    const expectedKind = getExpectedKind(registryItem.type);
-
-    if (expectedKind && config.kind !== expectedKind) {
+    if (config.kind !== undefined) {
       errors.push(
-        `Display config ${config.name} uses kind ${config.kind}, expected ${expectedKind}.`,
+        `Display config ${config.name} declares kind "${config.kind}" — kind comes from the registry item's type, so drop the field.`,
       );
     }
+  }
+}
+
+/**
+ * The category list is ordered concrete → abstract, and that order is the site's
+ * one group order. The list page must hand it to the browser rather than let the
+ * browser invent one: the browser used to sort groups by label, so the same
+ * taxonomy read Actions → Form → Tabs & Navigation on the homepage and
+ * Actions → Containers → Display on `/components`.
+ */
+function validateListPagesFollowCategoryOrder() {
+  const absolutePath = path.join(root, listPagePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    errors.push(`Missing registry list page: ${listPagePath}`);
+    return;
+  }
+
+  const expected = "categoryOrder={getRegistryDisplayCategories(kind)}";
+
+  if (!fs.readFileSync(absolutePath, "utf8").includes(expected)) {
+    errors.push(
+      `${listPagePath} must pass ${expected} so its group order matches the declared category order.`,
+    );
   }
 }
 
@@ -177,14 +211,18 @@ function validateKindCategories() {
   const categoriesByKind = getCategorySlugsByKind();
 
   for (const config of displayConfigs) {
-    if (typeof config.kind !== "string" || typeof config.category !== "string") {
-      errors.push(`Display config for ${config.name ?? "unknown"} is missing kind/category.`);
+    const kind = displayKindsByName.get(config.name);
+
+    if (typeof kind !== "string" || typeof config.category !== "string") {
+      errors.push(
+        `Display config for ${config.name ?? "unknown"} has no derivable kind, or is missing a category.`,
+      );
       continue;
     }
 
-    if (!categoriesByKind.get(config.kind)?.has(config.category)) {
+    if (!categoriesByKind.get(kind)?.has(config.category)) {
       errors.push(
-        `Display config ${config.name} uses invalid ${config.kind} category: ${config.category}`,
+        `Display config ${config.name} uses invalid ${kind} category: ${config.category}`,
       );
     }
   }
@@ -256,10 +294,12 @@ function validatePrimaryCategoryAlignment() {
       );
     }
 
+    const kind = displayKindsByName.get(config.name);
+
     for (const extra of categories.slice(1)) {
-      if (!categoriesByKind.get(config.kind)?.has(extra)) {
+      if (!categoriesByKind.get(kind)?.has(extra)) {
         errors.push(
-          `Registry item "${item.name}" lists category "${extra}", which is not a ${config.kind} category — move it to meta.tags.`,
+          `Registry item "${item.name}" lists category "${extra}", which is not a ${kind} category — move it to meta.tags.`,
         );
       }
     }
@@ -278,7 +318,10 @@ function validateCategoriesAreOccupied() {
   const occupied = new Set(
     displayConfigs
       .filter((config) => config.browsable !== false)
-      .map((config) => `${config.kind}:${config.category}`),
+      .map(
+        (config) =>
+          `${displayKindsByName.get(config.name)}:${config.category}`,
+      ),
   );
 
   for (const category of displayCategories) {

@@ -48,6 +48,9 @@ const items = [
 ];
 
 const arrangementStorageKey = "ericts-ui:components:arrangement";
+// Deliberately not alphabetical: label sorting would read Animation → Button →
+// Overlays, which is exactly the order this browser used to impose on its own.
+const categoryOrder = ["overlay", "button", "animation"];
 
 afterEach(() => {
   cleanup();
@@ -56,12 +59,15 @@ afterEach(() => {
 
 function BrowserFixture({
   enableArrangement = true,
+  order = categoryOrder,
 }: {
   enableArrangement?: boolean;
+  order?: string[];
 }) {
   return (
     <RegistryItemsBrowser
       items={items}
+      categoryOrder={order}
       title="Components"
       description="Browse components."
       searchInputId="components-search"
@@ -169,6 +175,30 @@ describe("RegistryItemsBrowser arrangement", () => {
     ).toBeNull();
     expect(screen.getByText("Zulu Button")).toBeTruthy();
     expect(screen.queryByText("Beta Animation")).toBeNull();
+  });
+});
+
+describe("RegistryItemsBrowser group order", () => {
+  function showCategoryGroups() {
+    fireEvent.click(
+      screen.getByRole("button", { name: "Arrange by category" }),
+    );
+
+    return screen
+      .getAllByRole("heading", { level: 3 })
+      .map((heading) => heading.textContent);
+  }
+
+  it("renders groups in the order the categories were declared", () => {
+    renderBrowser();
+
+    expect(showCategoryGroups()).toEqual(["Overlays", "Button", "Animation"]);
+  });
+
+  it("sorts a category with no declared rank after the declared ones", () => {
+    render(<BrowserFixture order={["animation"]} />);
+
+    expect(showCategoryGroups()).toEqual(["Animation", "Button", "Overlays"]);
   });
 });
 
