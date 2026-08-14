@@ -33,6 +33,18 @@ const items = [
     groupLabel: "Animation",
     href: "/components/alpha-animation",
   },
+  {
+    // A registry slug that differs from the display label, which is what used
+    // to surface as a card reading "drawer" underneath an "Overlays" heading.
+    name: "delta-drawer",
+    title: "Delta Drawer",
+    category: "ui",
+    categories: ["drawer"],
+    groupCategory: "overlay",
+    groupLabel: "Overlays",
+    meta: { effects: ["height-animation"] },
+    href: "/components/delta-drawer",
+  },
 ];
 
 const arrangementStorageKey = "ericts-ui:components:arrangement";
@@ -157,5 +169,26 @@ describe("RegistryItemsBrowser arrangement", () => {
     ).toBeNull();
     expect(screen.getByText("Zulu Button")).toBeTruthy();
     expect(screen.queryByText("Beta Animation")).toBeNull();
+  });
+});
+
+describe("RegistryItemsBrowser category labels", () => {
+  it("labels a card with the same taxonomy as the group headings", () => {
+    renderBrowser();
+
+    expect(screen.getByText("Overlays / height-animation")).toBeTruthy();
+    expect(screen.queryByText("drawer / height-animation")).toBeNull();
+  });
+
+  it("drops the category from a card once its heading states it", () => {
+    renderBrowser();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Arrange by category" }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Overlays" })).toBeTruthy();
+    expect(screen.getByText("height-animation")).toBeTruthy();
+    expect(screen.queryByText("Overlays / height-animation")).toBeNull();
   });
 });
