@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AdaptiveSwitch } from "@/registry/base/ui/adaptive-switch";
@@ -7,6 +8,23 @@ import { AdaptiveSwitch } from "@/registry/base/ui/adaptive-switch";
 afterEach(cleanup);
 
 describe("AdaptiveSwitch", () => {
+  it("renders the initial checked position without enabling animations", () => {
+    const markup = renderToString(
+      <AdaptiveSwitch
+        aria-label="Initial state"
+        checkedLabel="Live"
+        uncheckedLabel="Paused"
+        defaultChecked
+      />,
+    );
+
+    expect(markup).toContain('data-animated="false"');
+    expect(markup).toContain(
+      'style="transform:translateX(100%);transform-origin:100% 50% 0"',
+    );
+    expect(markup).not.toContain("will-change-transform");
+  });
+
   it("reveals the matching text while toggling in uncontrolled mode", () => {
     const onCheckedChange = vi.fn();
 
@@ -41,7 +59,9 @@ describe("AdaptiveSwitch", () => {
     fireEvent.click(control);
 
     expect(control.getAttribute("data-checked")).toBe("");
+    expect(control.getAttribute("data-animated")).toBe("true");
     expect(thumbVisual?.getAttribute("aria-hidden")).toBe("true");
+    expect(thumbVisual?.className).toContain("will-change-transform");
     expect(onCheckedChange).toHaveBeenCalledWith(true, expect.any(Object));
   });
 
@@ -68,7 +88,7 @@ describe("AdaptiveSwitch", () => {
     expect(thumb?.className).toContain("group/adaptive-switch-thumb");
     expect(thumb?.className).not.toContain("transition-transform");
     expect(thumb?.className).not.toContain("background-color");
-    expect(thumbVisual?.className).toContain("will-change-transform");
+    expect(thumbVisual?.className).not.toContain("will-change-transform");
     expect(
       control.querySelector("[data-slot='adaptive-switch-checked-label']"),
     ).toBeNull();

@@ -4,10 +4,11 @@ import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 import {
   motion,
   useReducedMotion,
+  type MotionStyle,
   type Transition,
   type Variants,
 } from "motion/react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,19 @@ const ELASTIC_SCALE_X = [
   1.16, 1.5, 1.24, 0.9, 1.06, 0.97, 1.02, 0.992, 1.012, 0.996, 1,
 ] as const;
 const ELASTIC_SCALE_Y = ELASTIC_SCALE_X.map((scaleX) => 1 / scaleX);
+
+function getStaticThumbStyle(
+  checked: boolean,
+  hasLabels: boolean,
+): MotionStyle {
+  return {
+    x: checked ? (hasLabels ? "100%" : "calc(100% - 2px)") : "0%",
+    scaleX: 1,
+    scaleY: 1,
+    originX: checked ? 1 : 0,
+    originY: 0.5,
+  };
+}
 
 function createThumbVariants(
   hasLabels: boolean,
@@ -135,11 +149,13 @@ export function AdaptiveSwitch({
   size = "default",
   animation,
   className,
+  onCheckedChange,
   ...props
 }: AdaptiveSwitchProps) {
   const hasLabels = checkedLabel != null || uncheckedLabel != null;
   const animationMode = animation ?? (hasLabels ? "elastic" : "smooth");
   const shouldReduceMotion = useReducedMotion() ?? false;
+  const [hasChanged, setHasChanged] = useState(false);
   const thumbVariants = createThumbVariants(
     hasLabels,
     animationMode,
@@ -152,9 +168,10 @@ export function AdaptiveSwitch({
       data-size={size}
       data-with-labels={hasLabels ? "true" : "false"}
       data-animation={animationMode}
+      data-animated={hasChanged ? "true" : "false"}
       className={cn(
         "group/adaptive-switch relative inline-flex shrink-0 cursor-pointer select-none items-center overflow-visible rounded-full border border-transparent outline-none",
-        "transition-[background-color,border-color,box-shadow] duration-150 ease-[ease]",
+        "data-[animated=true]:transition-[background-color,border-color,box-shadow] data-[animated=true]:duration-150 data-[animated=true]:ease-[ease]",
         "after:absolute after:-inset-x-3 after:-inset-y-2",
         "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
@@ -170,6 +187,10 @@ export function AdaptiveSwitch({
         hasLabels && size === "lg" ? "h-7" : null,
         className,
       )}
+      onCheckedChange={(checked, eventDetails) => {
+        setHasChanged(true);
+        onCheckedChange?.(checked, eventDetails);
+      }}
       {...props}
     >
       {hasLabels ? (
@@ -179,7 +200,7 @@ export function AdaptiveSwitch({
             data-slot="adaptive-switch-checked-label"
             className={cn(
               "col-start-1 row-start-1 inline-flex min-w-max items-center justify-center px-2.5 font-medium text-primary-foreground opacity-0",
-              "transition-opacity duration-200 ease-[cubic-bezier(0.65,0,0.35,1)]",
+              "group-data-[animated=true]/adaptive-switch:transition-opacity group-data-[animated=true]/adaptive-switch:duration-200 group-data-[animated=true]/adaptive-switch:ease-[cubic-bezier(0.65,0,0.35,1)]",
               "group-data-checked/adaptive-switch:opacity-100 group-data-[animation=none]/adaptive-switch:transition-none motion-reduce:transition-none",
               size === "sm"
                 ? "px-2 text-[11px]"
@@ -195,7 +216,7 @@ export function AdaptiveSwitch({
             data-slot="adaptive-switch-unchecked-label"
             className={cn(
               "col-start-2 row-start-1 inline-flex min-w-max items-center justify-center px-2.5 font-medium text-foreground opacity-0",
-              "transition-opacity duration-200 ease-[cubic-bezier(0.65,0,0.35,1)]",
+              "group-data-[animated=true]/adaptive-switch:transition-opacity group-data-[animated=true]/adaptive-switch:duration-200 group-data-[animated=true]/adaptive-switch:ease-[cubic-bezier(0.65,0,0.35,1)]",
               "group-data-unchecked/adaptive-switch:opacity-100 group-data-[animation=none]/adaptive-switch:transition-none motion-reduce:transition-none",
               size === "sm"
                 ? "px-2 text-[11px]"
@@ -223,11 +244,24 @@ export function AdaptiveSwitch({
               aria-hidden="true"
               data-slot="adaptive-switch-thumb-visual"
               initial={false}
-              animate={state.checked ? "checked" : "unchecked"}
+              animate={
+                hasChanged
+                  ? state.checked
+                    ? "checked"
+                    : "unchecked"
+                  : undefined
+              }
               variants={thumbVariants}
+              style={
+                hasChanged
+                  ? undefined
+                  : getStaticThumbStyle(state.checked, hasLabels)
+              }
               className={cn(
                 "absolute inset-0 rounded-full bg-background ring-0 group-data-checked/adaptive-switch-thumb:dark:bg-primary-foreground group-data-unchecked/adaptive-switch-thumb:dark:bg-foreground",
-                animationMode === "none" ? null : "will-change-transform",
+                hasChanged && animationMode !== "none"
+                  ? "will-change-transform"
+                  : null,
                 hasLabels ? "shadow-sm" : null,
               )}
             />
