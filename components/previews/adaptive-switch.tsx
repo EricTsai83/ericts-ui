@@ -5,40 +5,43 @@ import { useState } from "react";
 import { AdaptiveSwitch } from "@/registry/base/ui/adaptive-switch";
 
 export default function Preview() {
-  const [isLive, setIsLive] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [largeSwitchEnabled, setLargeSwitchEnabled] = useState(false);
+  const [largeElasticTextEnabled, setLargeElasticTextEnabled] = useState(true);
+  const [mediumStaticTextEnabled, setMediumStaticTextEnabled] = useState(false);
+  const [smallSmoothSwitchEnabled, setSmallSmoothSwitchEnabled] =
+    useState(false);
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-6">
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium">Workspace status</span>
-        <AdaptiveSwitch
-          checked={isLive}
-          onCheckedChange={setIsLive}
-          checkedLabel="Live"
-          uncheckedLabel="Paused"
-          aria-label="Workspace status"
-        />
-      </div>
+    <div className="grid grid-cols-[max-content_auto] items-center justify-items-start gap-x-4 gap-y-5">
+      <span className="text-sm font-medium">Large · With text · Elastic</span>
+      <AdaptiveSwitch
+        checked={largeElasticTextEnabled}
+        onCheckedChange={setLargeElasticTextEnabled}
+        checkedLabel="Live"
+        uncheckedLabel="Paused"
+        size="lg"
+        aria-label="Switch with text and elastic animation"
+      />
 
-      <label className="flex items-center gap-3 text-sm font-medium">
-        <AdaptiveSwitch
-          checked={notificationsEnabled}
-          onCheckedChange={setNotificationsEnabled}
-        />
-        Notifications
-      </label>
+      <span className="text-sm font-medium">
+        Medium · With text · No animation
+      </span>
+      <AdaptiveSwitch
+        checked={mediumStaticTextEnabled}
+        onCheckedChange={setMediumStaticTextEnabled}
+        checkedLabel="On"
+        uncheckedLabel="Off"
+        size="default"
+        animation="none"
+        aria-label="Switch with text and without animation"
+      />
 
-      <label className="flex items-center gap-3 text-sm font-medium">
-        <AdaptiveSwitch
-          checked={largeSwitchEnabled}
-          onCheckedChange={setLargeSwitchEnabled}
-          size="lg"
-          animation="none"
-        />
-        Large switch · no animation
-      </label>
+      <span className="text-sm font-medium">Small · Without text · Smooth</span>
+      <AdaptiveSwitch
+        checked={smallSmoothSwitchEnabled}
+        onCheckedChange={setSmallSmoothSwitchEnabled}
+        size="sm"
+        aria-label="Switch without text and with smooth animation"
+      />
     </div>
   );
 }

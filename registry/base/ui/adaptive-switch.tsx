@@ -32,8 +32,8 @@ export type AdaptiveSwitchProps = Omit<
 };
 
 const ELASTIC_SETTLE_TRANSITION: Transition = {
-  duration: 0.48,
-  times: [0, 0.1, 0.22, 0.34, 0.44, 0.59, 0.72, 0.83, 0.92, 1],
+  duration: 0.52,
+  times: [0, 0.09, 0.2, 0.31, 0.4, 0.53, 0.64, 0.74, 0.82, 0.89, 0.95, 1],
   ease: [0.65, 0, 0.35, 1],
 };
 
@@ -43,7 +43,7 @@ const SLIDE_TRANSITION: Transition = {
   ease: [0.22, 1, 0.36, 1],
 };
 const ELASTIC_SCALE_X = [
-  1.16, 1.5, 1.24, 0.9, 1.06, 0.97, 1.02, 0.992, 1,
+  1.16, 1.5, 1.24, 0.9, 1.06, 0.97, 1.02, 0.992, 1.012, 0.996, 1,
 ] as const;
 const ELASTIC_SCALE_Y = ELASTIC_SCALE_X.map((scaleX) => 1 / scaleX);
 
@@ -96,10 +96,12 @@ function createThumbVariants(
         checkedX,
         checkedX,
         checkedX,
+        checkedX,
+        checkedX,
       ],
       scaleX: [null, ...ELASTIC_SCALE_X],
       scaleY: [null, ...ELASTIC_SCALE_Y],
-      originX: [null, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+      originX: [null, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
       originY: 0.5,
       transition: ELASTIC_SETTLE_TRANSITION,
     },
@@ -115,10 +117,12 @@ function createThumbVariants(
         "0%",
         "0%",
         "0%",
+        "0%",
+        "0%",
       ],
       scaleX: [null, ...ELASTIC_SCALE_X],
       scaleY: [null, ...ELASTIC_SCALE_Y],
-      originX: [null, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+      originX: [null, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
       originY: 0.5,
       transition: ELASTIC_SETTLE_TRANSITION,
     },
