@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import "./smooth-height.css";
 
-export type SmoothHeightProps = React.ComponentPropsWithoutRef<"div"> & {
+export type SmoothHeightProps = React.ComponentProps<"div"> & {
   children: React.ReactNode;
   innerClassName?: string;
 };

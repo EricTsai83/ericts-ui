@@ -15,7 +15,7 @@ type StaggeredEntranceStyle<TItem> =
   | ((item: TItem, index: number) => React.CSSProperties | undefined);
 
 export type StaggeredEntranceProps<TItem = React.ReactNode> = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "children"
 > & {
   as?: React.ElementType;
@@ -29,8 +29,10 @@ export type StaggeredEntranceProps<TItem = React.ReactNode> = Omit<
   staggerOffset?: number;
   axis?: StaggeredEntranceAxis;
   distance?: number | string;
-  scale?: number;
-  opacity?: number;
+  /** Scale each item animates *from* before settling at 1. */
+  fromScale?: number;
+  /** Opacity each item animates *from* before settling at 1. */
+  fromOpacity?: number;
   reverse?: boolean;
   disabled?: boolean;
   getItemKey?: StaggeredEntranceKey<TItem>;
@@ -38,7 +40,7 @@ export type StaggeredEntranceProps<TItem = React.ReactNode> = Omit<
   itemStyle?: StaggeredEntranceStyle<TItem>;
 };
 
-export type StaggeredEntranceItemProps = React.ComponentPropsWithoutRef<"div"> & {
+export type StaggeredEntranceItemProps = React.ComponentProps<"div"> & {
   as?: React.ElementType;
   index?: number;
 };
@@ -56,8 +58,8 @@ export function StaggeredEntrance<TItem = React.ReactNode>({
   staggerOffset = 0,
   axis = "y",
   distance = 10,
-  scale = 1,
-  opacity = 0,
+  fromScale = 1,
+  fromOpacity = 0,
   reverse = false,
   disabled = false,
   itemClassName,
@@ -89,8 +91,8 @@ export function StaggeredEntrance<TItem = React.ReactNode>({
     "--staggered-entrance-initial-delay": toCssTime(initialDelay),
     "--staggered-entrance-from-x": axis === "x" ? resolvedDistance : "0px",
     "--staggered-entrance-from-y": axis === "y" ? resolvedDistance : "0px",
-    "--staggered-entrance-from-scale": String(scale),
-    "--staggered-entrance-from-opacity": String(opacity),
+    "--staggered-entrance-from-scale": String(fromScale),
+    "--staggered-entrance-from-opacity": String(fromOpacity),
     ...style,
   };
 

@@ -13,6 +13,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -75,7 +76,8 @@ export type ExpandableTabsClassNames = {
   menuItem?: string;
 };
 
-export interface ExpandableTabsProps {
+export interface ExpandableTabsProps
+  extends Omit<ComponentProps<"div">, "defaultValue" | "onSelect"> {
   items: ExpandableTabItem[];
   /** Open tab id, or null/undefined for the closed (bar-only) state. */
   value?: string | null;
@@ -87,7 +89,6 @@ export interface ExpandableTabsProps {
   closeOnSelect?: boolean;
   /** Accessible name for the toolbar. */
   "aria-label"?: string;
-  className?: string;
   classNames?: ExpandableTabsClassNames;
 }
 
@@ -518,6 +519,10 @@ export function ExpandableTabs({
   "aria-label": ariaLabel = "Quick actions",
   className,
   classNames,
+  style,
+  onKeyDown,
+  ref,
+  ...props
 }: ExpandableTabsProps) {
   const reduce = useReducedMotion();
   const baseId = useId();
@@ -717,6 +722,7 @@ export function ExpandableTabs({
   // focus to the trigger that opened it.
   const handleRootKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.defaultPrevented) return;
       if (event.key === "Escape" && visualActiveId) {
         event.preventDefault();
         const openId = visualActiveId;
@@ -725,6 +731,21 @@ export function ExpandableTabs({
       }
     },
     [focusTab, setActive, visualActiveId],
+  );
+
+  // The root node is needed internally (outside-click detection) *and* by
+  // consumers, so the consumer's ref is merged in rather than overwritten.
+  const setRootRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      rootRef.current = node;
+
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
   );
 
   const dock = useDockGeometry(items, visualActiveId, buttonSizes);
@@ -754,9 +775,14 @@ export function ExpandableTabs({
   return (
     <>
       <div
-        ref={rootRef}
-        onKeyDown={handleRootKeyDown}
+        {...props}
+        ref={setRootRef}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          handleRootKeyDown(event);
+        }}
         style={{
+          ...style,
           width: targetSize.width,
           height: targetSize.height,
           transformOrigin: "bottom center",

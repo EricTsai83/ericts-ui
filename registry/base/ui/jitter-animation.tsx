@@ -8,7 +8,7 @@ import "./jitter-animation.css";
 export type JitterAxis = "both" | "horizontal" | "vertical";
 export type JitterAnimationAxis = JitterAxis;
 
-export type JitterProps = React.ComponentPropsWithoutRef<"span"> & {
+export type JitterProps = React.ComponentProps<"span"> & {
   /** The axis the content jitters on. Defaults to horizontal. */
   axis?: JitterAxis;
   /** Classes applied to the animated child wrapper. */
@@ -39,7 +39,7 @@ export function Jitter({
   );
 }
 
-export type JitterAnimationProps = React.ComponentPropsWithoutRef<"div"> & {
+export type JitterAnimationProps = React.ComponentProps<"div"> & {
   /** The axis the icon jitters on. Defaults to horizontal. */
   axis?: JitterAxis;
 };

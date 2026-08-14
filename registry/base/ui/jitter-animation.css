@@ -1,3 +1,4 @@
+.jitter,
 .jitter-animation {
   --jitter-animation-x: 3px;
   --jitter-animation-y: 0px;
@@ -7,14 +8,15 @@
   backface-visibility: hidden;
   transform-origin: center;
   animation: jitter-animation 480ms steps(1, end) both;
-  will-change: transform;
 }
 
+.jitter[data-axis="vertical"],
 .jitter-animation[data-axis="vertical"] {
   --jitter-animation-x: 0px;
   --jitter-animation-y: 3px;
 }
 
+.jitter[data-axis="both"],
 .jitter-animation[data-axis="both"] {
   --jitter-animation-x: 3px;
   --jitter-animation-y: 2px;
@@ -131,6 +133,5 @@
 @media (prefers-reduced-motion: reduce) {
   .jitter-target {
     animation: none;
-    will-change: auto;
   }
 }

@@ -54,7 +54,6 @@ export type ExpandingToggleButtonProps = Omit<
   | "children"
   | "onClick"
   | "size"
-  | "style"
 > & {
   /** Controlled active state. */
   active?: boolean;
@@ -97,6 +96,7 @@ export const ExpandingToggleButton = React.forwardRef<
     size = "lg",
     disabled,
     className,
+    style,
     onClick,
     type = "button",
     ...props
@@ -220,7 +220,9 @@ export const ExpandingToggleButton = React.forwardRef<
         data-active={isActive}
         data-slot="expanding-toggle-button"
         onClick={handleClick}
-        style={{ width: collapsedWidth }}
+        // `width` stays component-managed (it is animated imperatively);
+        // everything else in `style` passes through.
+        style={{ ...style, width: collapsedWidth }}
         className={cn(
           "absolute top-0 gap-0! overflow-hidden p-0! transition-colors will-change-[width] motion-reduce:transition-none",
           expandFrom === "start" ? "right-0 justify-end" : "left-0 justify-start",

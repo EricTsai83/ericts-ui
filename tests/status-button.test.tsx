@@ -70,7 +70,9 @@ describe("StatusButton", () => {
         vi.advanceTimersByTime(100);
       });
 
-      expect(screen.getByText("Success label")).toBeTruthy();
+      // The label renders twice on purpose: the visible animated span and the
+      // aria-live announcement for screen readers.
+      expect(screen.getAllByText("Success label").length).toBeGreaterThan(0);
 
       await act(async () => {
         vi.advanceTimersByTime(200);

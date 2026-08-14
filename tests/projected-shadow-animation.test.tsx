@@ -26,7 +26,9 @@ describe("ProjectedShadow", () => {
       "[data-slot='projected-shadow']",
     );
 
-    expect(root?.dataset.active).toBe("true");
+    // Empty-string presence attribute, matching the rest of the registry
+    // (HighlightTabs / RailList / SlidingList) so `[data-active]` selectors work.
+    expect(root?.dataset.active).toBe("");
     expect(root?.style.getPropertyValue("--projected-shadow-duration")).toBe(
       "140ms",
     );

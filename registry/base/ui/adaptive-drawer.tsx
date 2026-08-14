@@ -52,12 +52,19 @@ export type AdaptiveDrawerProps = {
   resetOnClose?: boolean;
   title?: React.ReactNode;
   description?: React.ReactNode;
+  /**
+   * Custom trigger. An element is rendered as the trigger itself (no wrapper
+   * button, so `<Button>` works without nesting). Pass `null` to render no
+   * trigger at all, e.g. when the drawer is opened from elsewhere via `open`.
+   */
   trigger?: React.ReactNode;
   triggerLabel?: React.ReactNode;
   closeLabel?: string;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Classes for the drawer card. */
+  className?: string;
   drawerClassName?: string;
   contentClassName?: string;
   heightTransition?: MotionTransition;
@@ -78,6 +85,7 @@ export function AdaptiveDrawer({
   open,
   defaultOpen = false,
   onOpenChange,
+  className,
   drawerClassName,
   contentClassName,
   heightTransition,
@@ -241,9 +249,13 @@ export function AdaptiveDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={setOpen}>
-      <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
-        {trigger ?? triggerLabel}
-      </DrawerTrigger>
+      {trigger === null ? null : React.isValidElement(trigger) ? (
+        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      ) : (
+        <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
+          {trigger ?? triggerLabel}
+        </DrawerTrigger>
+      )}
       <DrawerContent
         onPointerDown={(event) => {
           if (event.target === event.currentTarget) {
@@ -258,6 +270,7 @@ export function AdaptiveDrawer({
         <div
           className={cn(
             "mx-auto max-w-sm overflow-hidden rounded-2xl border bg-background",
+            className,
             drawerClassName,
           )}
         >

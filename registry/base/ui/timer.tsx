@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  forwardRef,
   useEffect,
   useImperativeHandle,
-  type ComponentPropsWithoutRef,
-  type ForwardedRef,
+  useRef,
+  type ComponentProps,
+  type Ref,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
@@ -24,10 +24,7 @@ const DIGIT_TRANSITION = {
 
 type TimerDirection = "down" | "up";
 
-type TimerDisplayProps = Omit<
-  ComponentPropsWithoutRef<"time">,
-  "children"
-> & {
+type TimerDisplayProps = Omit<ComponentProps<"time">, "children"> & {
   seconds: number;
   direction: TimerDirection;
   status: TimerStatus;
@@ -40,10 +37,13 @@ type TimerDisplayProps = Omit<
 
 export type TimerHandle = TimerControls;
 
-type SharedTimerProps = Omit<
-  ComponentPropsWithoutRef<"time">,
-  "children"
-> & {
+type SharedTimerProps = Omit<ComponentProps<"time">, "children"> & {
+  /**
+   * Imperative pause/resume/reset/restart controls. `ref` points at the
+   * rendered `<time>` element, matching every other component in the registry;
+   * the controls live here so both are reachable.
+   */
+  controlsRef?: Ref<TimerHandle>;
   /** Start automatically on mount. */
   autoStart?: boolean;
   /** Declaratively pause or resume the timer. */
@@ -74,52 +74,46 @@ export type CountUpProps = SharedTimerProps & {
   endAt?: number;
 };
 
-export const Countdown = forwardRef<TimerHandle, CountdownProps>(
-  function Countdown(
-    {
-      duration,
-      autoStart = true,
-      paused,
-      disabled = false,
-      onComplete,
-      ...props
-    },
-    ref,
-  ) {
-    const timer = useCountdown({
-      duration,
-      autoStart,
-      disabled,
-      onComplete,
-    });
-
-    useTimerHandle(ref, timer);
-    usePausedProp(paused, timer);
-
-    return (
-      <TimerDisplay
-        seconds={timer.seconds}
-        direction="down"
-        status={timer.status}
-        disabled={disabled}
-        {...props}
-      />
-    );
-  },
-);
-
-export const CountUp = forwardRef<TimerHandle, CountUpProps>(function CountUp(
-  {
-    startAt = 0,
-    endAt,
-    autoStart = true,
-    paused,
-    disabled = false,
+export function Countdown({
+  duration,
+  autoStart = true,
+  paused,
+  disabled = false,
+  onComplete,
+  controlsRef,
+  ...props
+}: CountdownProps) {
+  const timer = useCountdown({
+    duration,
+    autoStart,
+    disabled,
     onComplete,
-    ...props
-  },
-  ref,
-) {
+  });
+
+  useTimerHandle(controlsRef, timer);
+  usePausedProp(paused, timer);
+
+  return (
+    <TimerDisplay
+      seconds={timer.seconds}
+      direction="down"
+      status={timer.status}
+      disabled={disabled}
+      {...props}
+    />
+  );
+}
+
+export function CountUp({
+  startAt = 0,
+  endAt,
+  autoStart = true,
+  paused,
+  disabled = false,
+  onComplete,
+  controlsRef,
+  ...props
+}: CountUpProps) {
   const timer = useCountUp({
     startAt,
     endAt,
@@ -128,7 +122,7 @@ export const CountUp = forwardRef<TimerHandle, CountUpProps>(function CountUp(
     onComplete,
   });
 
-  useTimerHandle(ref, timer);
+  useTimerHandle(controlsRef, timer);
   usePausedProp(paused, timer);
 
   return (
@@ -140,7 +134,7 @@ export const CountUp = forwardRef<TimerHandle, CountUpProps>(function CountUp(
       {...props}
     />
   );
-});
+}
 
 function TimerDisplay({
   seconds: totalSeconds,
@@ -300,7 +294,7 @@ function TimerDigit({
 }
 
 function useTimerHandle(
-  ref: ForwardedRef<TimerHandle>,
+  ref: Ref<TimerHandle> | undefined,
   timer: TimerControls,
 ) {
   useImperativeHandle(
@@ -320,11 +314,19 @@ function usePausedProp(
   timer: Pick<TimerControls, "pause" | "resume">,
 ) {
   const { pause, resume } = timer;
+  // Pause applies on mount (an initially-paused timer must not run), but
+  // resume only fires on a true -> false transition: resuming on every effect
+  // run would override `autoStart={false}` on mount and silently undo
+  // imperative pauses whenever the control identities change.
+  const previousPausedRef = useRef<boolean | undefined>(undefined);
 
   useEffect(() => {
-    if (paused === true) {
+    const previousPaused = previousPausedRef.current;
+    previousPausedRef.current = paused;
+
+    if (paused === true && previousPaused !== true) {
       pause();
-    } else if (paused === false) {
+    } else if (paused === false && previousPaused === true) {
       resume();
     }
   }, [pause, paused, resume]);

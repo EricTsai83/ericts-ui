@@ -40,12 +40,18 @@ const heartbeatTransition = {
 
 type HeartbeatTransition = NonNullable<HTMLMotionProps<"span">["transition"]>;
 
-export type HeartbeatProps = React.ComponentPropsWithoutRef<"span"> & {
+/**
+ * Note: `children` is rendered twice — once as the blurred shadow layer and
+ * once as the visible target. Keep it a simple icon or glyph: anything
+ * carrying an `id`, or a heavy node like an `img`/`video`, would be duplicated
+ * in the DOM. Set `showShadow={false}` to render it only once.
+ */
+export type HeartbeatProps = React.ComponentProps<"span"> & {
   /** Classes applied to the visible animated child wrapper. */
   targetClassName?: string;
   /** Classes applied to the projected shadow layer. */
   shadowClassName?: string;
-  /** Hide the projected shadow layer. */
+  /** Render the projected shadow layer. Defaults to true. */
   showShadow?: boolean;
   /** Override the default double-thump transition. */
   transition?: HeartbeatTransition;

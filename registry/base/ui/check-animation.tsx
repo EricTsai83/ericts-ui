@@ -8,7 +8,7 @@ export type CheckAnimationVariant = "square" | "circle";
 export type CheckAnimationSize = "sm" | "md" | "lg";
 
 export interface CheckAnimationProps
-  extends Omit<React.ComponentPropsWithoutRef<"span">, "children"> {
+  extends Omit<React.ComponentProps<"span">, "children"> {
   variant?: CheckAnimationVariant;
   size?: CheckAnimationSize;
   /** Accessible label. Omit for a decorative mark. */

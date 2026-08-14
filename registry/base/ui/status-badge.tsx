@@ -39,6 +39,16 @@ export interface StatusBadgeProps
   showIcon?: boolean;
   pulse?: boolean;
   contentKey?: string | number;
+  /**
+   * Make the badge itself a polite live region, so transitions like
+   * loading → success are announced (the icon is `aria-hidden` and a swapped
+   * label alone is not announced). Defaults to true.
+   *
+   * The role goes on the badge rather than on an extra sr-only copy of the
+   * label, so the text exists once and is never read twice. Set to false when
+   * the badge is decorative or the surrounding UI already announces the change.
+   */
+  announce?: boolean;
 }
 
 const EASE = [0.4, 0, 0.2, 1] as const;
@@ -149,6 +159,7 @@ export function StatusBadge({
   showIcon = true,
   pulse = status === "loading",
   contentKey,
+  announce = true,
   className,
   ...props
 }: StatusBadgeProps) {
@@ -164,6 +175,9 @@ export function StatusBadge({
     <motion.span
       layout
       data-slot="status-badge"
+      // Before the spread, so a consumer can still override or opt out.
+      role={announce ? "status" : undefined}
+      aria-live={announce ? "polite" : undefined}
       transition={shouldReduceMotion ? { duration: 0 } : SPRING_LAYOUT}
       className={cn(
         "relative inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full border font-medium tabular-nums",
@@ -237,6 +251,7 @@ export function StatusBadge({
           </AnimatePresence>
         </span>
       ) : null}
+
     </motion.span>
   );
 }

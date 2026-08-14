@@ -15,14 +15,17 @@ export type OTPStatus = "idle" | "error" | "success";
 
 export interface OTPInputProps
   extends Omit<
-    React.ComponentPropsWithoutRef<"div">,
+    React.ComponentProps<"div">,
     "defaultValue" | "onChange"
   > {
   /** Number of slots. Default 6. */
   length?: number;
   value?: string;
   defaultValue?: string;
+  /** @deprecated Use `onValueChange`. Kept as an alias. */
   onChange?: (value: string) => void;
+  /** Called with the joined value after every edit. */
+  onValueChange?: (value: string) => void;
   /** Fires once every slot is filled. */
   onComplete?: (value: string) => void;
   /** Optional label rendered above the slots. */
@@ -39,6 +42,12 @@ export interface OTPInputProps
   mask?: boolean;
   disabled?: boolean;
   autoFocus?: boolean;
+  /**
+   * Ref to the underlying (visually hidden) input. `ref` points at the root
+   * element, which is not focusable — use this to focus the field
+   * programmatically, e.g. after a "resend code" action.
+   */
+  inputRef?: React.Ref<HTMLInputElement>;
   /** Accessible label for the underlying input. */
   "aria-label"?: string;
   /** Accessible label for the success indicator. */
@@ -52,6 +61,7 @@ export function OTPInput({
   value: controlledValue,
   defaultValue = "",
   onChange,
+  onValueChange,
   onComplete,
   label,
   hint,
@@ -61,6 +71,7 @@ export function OTPInput({
   mask = false,
   disabled = false,
   autoFocus = false,
+  inputRef: consumerInputRef,
   "aria-label": ariaLabel = "One-time passcode",
   successIndicatorLabel = "Code verified",
   className,
@@ -71,6 +82,15 @@ export function OTPInput({
   const shouldReduceMotion = useReducedMotion();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const slotsRef = React.useRef<HTMLDivElement>(null);
+  // The input drives every interaction internally, so the consumer's ref is
+  // merged in rather than replacing it.
+  const setInputRef = React.useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node;
+      assignRef(consumerInputRef, node);
+    },
+    [consumerInputRef],
+  );
   const controlled = controlledValue !== undefined;
 
   // Source of truth is a fixed-length array, so a cleared middle slot stays an
@@ -100,12 +120,28 @@ export function OTPInput({
     slotCount - 1,
   );
 
+  // Sync internal state when a controlled parent changes `value` from outside
+  // (e.g. clearing to "" after a failed verification). Without this, `active`
+  // stays pinned and caret navigation is dead until the next digit re-syncs.
+  const [prevControlledJoined, setPrevControlledJoined] =
+    React.useState(controlledJoined);
+
+  if (controlled && controlledJoined !== prevControlledJoined) {
+    setPrevControlledJoined(controlledJoined);
+
+    if (controlledJoined !== stateJoined) {
+      setSlots(toSlots(controlledJoined, slotCount));
+      setActive(Math.min((controlledJoined ?? "").length, slotCount - 1));
+    }
+  }
+
   const commit = React.useCallback(
     (next: string[]) => {
       const wasComplete = visibleSlots.every(isFilled);
       setSlots(next);
 
       const str = next.join("");
+      onValueChange?.(str);
       onChange?.(str);
 
       // Fire only on the empty -> full transition, not every edit of a full code.
@@ -113,7 +149,7 @@ export function OTPInput({
         onComplete?.(str);
       }
     },
-    [onChange, onComplete, visibleSlots],
+    [onChange, onComplete, onValueChange, visibleSlots],
   );
 
   const clearSlot = React.useCallback(
@@ -208,12 +244,20 @@ export function OTPInput({
   };
 
   // Autofill path: SMS one-time-code arrives as a whole value in one shot.
-  // Keystrokes go through onKeyDown and paste through onPaste.
+  // Physical keystrokes go through onKeyDown and paste through onPaste.
   const onChangeNative = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
 
     const digits = sanitize(event.target.value, slotCount);
     if (!digits) return;
+
+    // Android soft keyboards report keydown as "Unidentified", so single
+    // digits land here instead of onKeyDown. Treat them as normal typing at
+    // the active slot; only multi-digit values are whole-code autofill.
+    if (digits.length === 1) {
+      insert(digits);
+      return;
+    }
 
     commit(toSlots(digits, slotCount));
     setActive(Math.min(digits.length, slotCount - 1));
@@ -270,7 +314,7 @@ export function OTPInput({
         }}
       >
         <input
-          ref={inputRef}
+          ref={setInputRef}
           id={`${uid}-input`}
           inputMode="numeric"
           autoComplete="one-time-code"
@@ -403,6 +447,14 @@ export function OTPInput({
       ) : null}
     </div>
   );
+}
+
+function assignRef<T>(ref: React.Ref<T> | undefined, node: T | null) {
+  if (typeof ref === "function") {
+    ref(node);
+  } else if (ref) {
+    (ref as React.RefObject<T | null>).current = node;
+  }
 }
 
 function isFilled(value: string) {

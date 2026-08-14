@@ -56,7 +56,7 @@ describe("Countdown", () => {
 
   it("supports pause, resume, reset, and restart through its handle", () => {
     const ref = createRef<TimerHandle>();
-    render(<Countdown ref={ref} duration={3} />);
+    render(<Countdown controlsRef={ref} duration={3} />);
 
     act(() => vi.advanceTimersByTime(1000));
     expect(screen.getByRole("timer").getAttribute("data-value")).toBe("2");
@@ -77,6 +77,17 @@ describe("Countdown", () => {
 
     act(() => ref.current?.restart());
     expect(screen.getByRole("timer").getAttribute("data-state")).toBe("running");
+  });
+
+  it("forwards ref to the rendered <time> element, not the control handle", () => {
+    const domRef = createRef<HTMLTimeElement>();
+    const controlsRef = createRef<TimerHandle>();
+
+    render(<Countdown ref={domRef} controlsRef={controlsRef} duration={3} />);
+
+    expect(domRef.current).toBeInstanceOf(HTMLTimeElement);
+    expect(domRef.current).toBe(screen.getByRole("timer"));
+    expect(typeof controlsRef.current?.restart).toBe("function");
   });
 
   it("can be paused declaratively or disabled", () => {

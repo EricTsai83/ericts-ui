@@ -15,7 +15,7 @@ export type RailListItem = {
 };
 
 export type RailListProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "defaultValue" | "onChange"
 > & {
   items: RailListItem[];

@@ -67,7 +67,7 @@ const ScrollExpandItemContext = React.createContext<
 
 export interface ScrollExpandProps
   extends Omit<
-    React.ComponentPropsWithoutRef<"div">,
+    React.ComponentProps<"div">,
     "title" | "onProgress"
   > {
   src?: string;
@@ -127,7 +127,7 @@ export interface ScrollExpandProps
 }
 
 export interface ScrollExpandItemProps
-  extends React.ComponentPropsWithoutRef<"div"> {
+  extends React.ComponentProps<"div"> {
   /** Scroll progress where this item starts entering. */
   start?: number;
   /** Scroll progress where this item finishes entering. */
@@ -207,6 +207,7 @@ export function ScrollExpand({
   tabIndex,
   role,
   "aria-label": ariaLabel,
+  ref,
   ...props
 }: ScrollExpandProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
@@ -650,6 +651,20 @@ export function ScrollExpand({
   const setMediaRef = React.useCallback((node: HTMLElement | null) => {
     mediaRef.current = node;
   }, []);
+  // The root node is the scroll container and progress target internally, and
+  // consumers may want it too, so the consumer's ref is merged in.
+  const setRootRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      rootRef.current = node;
+
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
   // In focal mode the element is grown to the cover box by `handleMeasure`, so
   // it is anchored top-left and left to overflow. `object-fit: cover` from the
   // stylesheet stays put deliberately: the sized box already carries the media's
@@ -692,7 +707,7 @@ export function ScrollExpand({
 
   return (
     <div
-      ref={rootRef}
+      ref={setRootRef}
       data-slot="scroll-expand"
       data-direction={direction}
       data-frame-shape={frameShape}

@@ -111,7 +111,7 @@ const variantClassNames: Record<ContextCursorVariant, string> = {
 };
 
 export type ContextCursorProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "onPointerEnter" | "onPointerLeave" | "onPointerMove"
 > & {
   follow?: ContextCursorFollow;
@@ -131,6 +131,7 @@ export function ContextCursor({
   animation,
   edgeFadeDistance = defaultEdgeFadeDistance,
   disabled,
+  ref,
   ...props
 }: ContextCursorProps) {
   const initialHiddenOpacity =
@@ -504,13 +505,28 @@ export function ContextCursor({
     }),
     [hideCursor, isDisabled, showCursor],
   );
+
+  // The wrapper node is needed internally (bounds measurement, native-cursor
+  // lock) *and* by consumers, so the consumer's ref is merged in.
+  const setWrapperRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      wrapperRef.current = node;
+
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
   const variant = cursor?.variant ?? "default";
 
   return (
     <ContextCursorContext.Provider value={contextValue}>
       <div
         {...props}
-        ref={wrapperRef}
+        ref={setWrapperRef}
         data-slot="context-cursor"
         className={cn("relative", className)}
         onPointerEnter={handlePointerEnter}
@@ -692,7 +708,7 @@ function snapToDevicePixel(value: number) {
 }
 
 export type ContextCursorTargetProps =
-  React.ComponentPropsWithoutRef<"div"> & {
+  React.ComponentProps<"div"> & {
     label: React.ReactNode;
     icon?: React.ReactNode;
     variant?: ContextCursorVariant;
@@ -712,6 +728,17 @@ export function ContextCursorTarget({
 }: ContextCursorTargetProps) {
   const context = React.useContext(ContextCursorContext);
   const targetId = React.useId();
+  const hideCursorRef = React.useRef(context?.hideCursor);
+
+  React.useEffect(() => {
+    hideCursorRef.current = context?.hideCursor;
+  });
+
+  // A target removed mid-hover never fires pointerleave, which would strand
+  // the badge (with this target's label) following the pointer indefinitely.
+  React.useEffect(() => {
+    return () => hideCursorRef.current?.(targetId);
+  }, [targetId]);
 
   return (
     <div

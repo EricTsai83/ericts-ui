@@ -40,6 +40,13 @@
   transition-property: opacity, transform;
   transition-duration: var(--projected-shadow-duration);
   transition-timing-function: var(--projected-shadow-ease);
+}
+
+/* Promote only while the gather can actually run. Three layers per instance,
+   permanently promoted, is real GPU memory in a grid of these. */
+.projected-shadow:hover .projected-shadow-layer,
+.projected-shadow:focus-within .projected-shadow-layer,
+.projected-shadow[data-active] .projected-shadow-layer {
   will-change: transform, opacity;
 }
 
@@ -76,11 +83,11 @@
     rotate(var(--projected-shadow-target-rotate));
 }
 
-.projected-shadow[data-active="true"] .projected-shadow-layer {
+.projected-shadow[data-active] .projected-shadow-layer {
   transition-duration: var(--projected-shadow-active-duration);
 }
 
-.projected-shadow[data-active="true"] .projected-shadow-projected {
+.projected-shadow[data-active] .projected-shadow-projected {
   opacity: var(--projected-shadow-projected-active-opacity);
   transform: translate3d(
       var(--projected-shadow-projected-active-x),
@@ -91,7 +98,7 @@
     rotate(var(--projected-shadow-projected-active-rotate));
 }
 
-.projected-shadow[data-active="true"] .projected-shadow-contact {
+.projected-shadow[data-active] .projected-shadow-contact {
   opacity: var(--projected-shadow-contact-active-opacity);
   transform: translate3d(
       var(--projected-shadow-contact-active-x),
@@ -102,7 +109,7 @@
     rotate(var(--projected-shadow-contact-active-rotate));
 }
 
-.projected-shadow[data-active="true"] .projected-shadow-target {
+.projected-shadow[data-active] .projected-shadow-target {
   transform: translate3d(
       var(--projected-shadow-target-active-x),
       var(--projected-shadow-target-active-y),
@@ -148,6 +155,43 @@
       scale(var(--projected-shadow-target-active-scale))
       rotate(var(--projected-shadow-target-active-rotate));
   }
+}
+
+/* Keyboard parity with the hover gather when the wrapped child is focusable. */
+.projected-shadow:focus-within .projected-shadow-layer {
+  transition-duration: var(--projected-shadow-active-duration);
+}
+
+.projected-shadow:focus-within .projected-shadow-projected {
+  opacity: var(--projected-shadow-projected-active-opacity);
+  transform: translate3d(
+      var(--projected-shadow-projected-active-x),
+      var(--projected-shadow-projected-active-y),
+      0
+    )
+    scale(var(--projected-shadow-projected-active-scale))
+    rotate(var(--projected-shadow-projected-active-rotate));
+}
+
+.projected-shadow:focus-within .projected-shadow-contact {
+  opacity: var(--projected-shadow-contact-active-opacity);
+  transform: translate3d(
+      var(--projected-shadow-contact-active-x),
+      var(--projected-shadow-contact-active-y),
+      0
+    )
+    scale(var(--projected-shadow-contact-active-scale))
+    rotate(var(--projected-shadow-contact-active-rotate));
+}
+
+.projected-shadow:focus-within .projected-shadow-target {
+  transform: translate3d(
+      var(--projected-shadow-target-active-x),
+      var(--projected-shadow-target-active-y),
+      0
+    )
+    scale(var(--projected-shadow-target-active-scale))
+    rotate(var(--projected-shadow-target-active-rotate));
 }
 
 @media (prefers-reduced-motion: reduce) {

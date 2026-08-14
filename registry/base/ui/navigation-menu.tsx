@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 type NavigationMenuProps = NavigationMenuPrimitive.Root.Props &
   Pick<NavigationMenuPrimitive.Positioner.Props, "align"> & {
     positionerClassName?: string;
+    /**
+     * Render the built-in positioner. Set to false when composing your own
+     * `NavigationMenuPositioner` in `children` (e.g. to change side or
+     * offsets), so two portalled positioners never mount at once.
+     */
+    positioner?: boolean;
   };
 
 function NavigationMenu({
@@ -16,6 +22,7 @@ function NavigationMenu({
   className,
   children,
   positionerClassName,
+  positioner = true,
   ...props
 }: NavigationMenuProps) {
   return (
@@ -28,10 +35,12 @@ function NavigationMenu({
       {...props}
     >
       {children}
-      <NavigationMenuPositioner
-        align={align}
-        className={positionerClassName}
-      />
+      {positioner ? (
+        <NavigationMenuPositioner
+          align={align}
+          className={positionerClassName}
+        />
+      ) : null}
     </NavigationMenuPrimitive.Root>
   );
 }
@@ -209,6 +218,8 @@ function NavigationMenuArrow({
     />
   );
 }
+
+export type { NavigationMenuProps };
 
 export {
   NavigationMenu,

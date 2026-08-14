@@ -11,7 +11,7 @@ const variants = {
   visible: { opacity: 1, scale: 1 },
 };
 
-type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
+type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
 
 export type CopyButtonProps = Omit<
@@ -21,14 +21,15 @@ export type CopyButtonProps = Omit<
   /** Text written to the clipboard when the button is pressed. */
   value: string;
   /** How long, in ms, the copied state is shown before reverting. */
-  timeout?: number;
+  /** How long the copied state stays visible, in ms. */
+  copiedDuration?: number;
   /** Called with the copied value after a successful write. */
   onCopy?: (value: string) => void;
 };
 
 export function CopyButton({
   value,
-  timeout = 1000,
+  copiedDuration = 1000,
   onCopy,
   onClick,
   className,
@@ -66,9 +67,9 @@ export function CopyButton({
       setCopied(true);
 
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), timeout);
+      timer.current = setTimeout(() => setCopied(false), copiedDuration);
     },
-    [onClick, onCopy, timeout, value],
+    [copiedDuration, onClick, onCopy, value],
   );
 
   // An icon swap is a tiny state change, so keep it snappy: ease-out, well

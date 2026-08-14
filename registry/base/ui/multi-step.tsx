@@ -31,9 +31,11 @@ export type MultiStepProps = Omit<
   | "transition"
 > & {
   steps: MultiStepItem[];
-  currentStep?: number;
+  step?: number;
   defaultStep?: number;
   onStepChange?: (step: number) => void;
+  /** Called when the primary action is pressed on the last step. */
+  onComplete?: () => void;
   backLabel?: React.ReactNode;
   continueLabel?: React.ReactNode;
   completeLabel?: React.ReactNode;
@@ -48,9 +50,10 @@ export type MultiStepProps = Omit<
 
 export function MultiStep({
   steps,
-  currentStep,
+  step,
   defaultStep = 0,
   onStepChange,
+  onComplete,
   backLabel = "Back",
   continueLabel = "Continue",
   completeLabel = "Done",
@@ -65,21 +68,32 @@ export function MultiStep({
   ...props
 }: MultiStepProps) {
   const [uncontrolledStep, setUncontrolledStep] = React.useState(defaultStep);
-  const [direction, setDirection] = React.useState<StepDirection>(1);
   const [innerRef, height] = useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
 
-  const selectedStep = clampStep(currentStep ?? uncontrolledStep, steps.length);
-  const isControlled = currentStep !== undefined;
+  const selectedStep = clampStep(step ?? uncontrolledStep, steps.length);
+  const isControlled = step !== undefined;
   const isFirstStep = selectedStep === 0;
   const isLastStep = selectedStep === steps.length - 1;
   const activeStep = steps[selectedStep];
 
-  const setStep = React.useCallback(
-    (nextStep: number, nextDirection: StepDirection) => {
-      const resolvedStep = clampStep(nextStep, steps.length);
+  // Direction is derived from the step delta during render (rather than set in
+  // the click handlers), so externally-driven `step` changes — the only
+  // kind that exist with a custom `footer` — still animate the right way.
+  const [transitionState, setTransitionState] = React.useState<{
+    step: number;
+    direction: StepDirection;
+  }>({ step: selectedStep, direction: 1 });
+  let direction = transitionState.direction;
 
-      setDirection(nextDirection);
+  if (transitionState.step !== selectedStep) {
+    direction = selectedStep < transitionState.step ? -1 : 1;
+    setTransitionState({ step: selectedStep, direction });
+  }
+
+  const setStep = React.useCallback(
+    (nextStep: number) => {
+      const resolvedStep = clampStep(nextStep, steps.length);
 
       if (!isControlled) {
         setUncontrolledStep(resolvedStep);
@@ -149,7 +163,9 @@ export function MultiStep({
               </motion.div>
             </AnimatePresence>
           </div>
-          {footer ?? (
+          {footer !== undefined ? (
+            footer
+          ) : (
             <motion.div
               layout={!shouldReduceMotion}
               data-slot="multi-step-actions"
@@ -162,14 +178,16 @@ export function MultiStep({
                 type="button"
                 variant="outline"
                 disabled={disableBack || isFirstStep}
-                onClick={() => setStep(selectedStep - 1, -1)}
+                onClick={() => setStep(selectedStep - 1)}
               >
                 {backLabel}
               </Button>
               <Button
                 type="button"
-                disabled={disableContinue || isLastStep}
-                onClick={() => setStep(selectedStep + 1, 1)}
+                disabled={disableContinue || (isLastStep && !onComplete)}
+                onClick={() =>
+                  isLastStep ? onComplete?.() : setStep(selectedStep + 1)
+                }
               >
                 {/* An invisible twin of the other label reserves the wider
                     width, so the Continue ↔ Done swap on the last step

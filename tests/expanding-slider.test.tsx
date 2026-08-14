@@ -460,4 +460,66 @@ describe("ExpandingSlider", () => {
       consoleError.mockRestore();
     });
   });
+
+  describe("rtl", () => {
+    it("mirrors pointer mapping and horizontal arrow keys when direction is rtl", () => {
+      const onValueChange = vi.fn();
+      const { slider, rail } = renderSlider({
+        defaultValue: 50,
+        collapseDelay: 0,
+        onValueChange,
+      });
+
+      // The component reads the resolved writing direction, so stub the
+      // computed style rather than relying on jsdom inheriting `dir`.
+      const realGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, "getComputedStyle").mockImplementation(
+        ((element: Element, pseudo?: string | null) => {
+          const style = realGetComputedStyle(element, pseudo ?? undefined);
+
+          return element === rail || element === slider
+            ? ({ ...style, direction: "rtl" } as CSSStyleDeclaration)
+            : style;
+        }) as typeof window.getComputedStyle,
+      );
+
+      const clientXFor = stubRailRect(rail);
+
+      // A pointer 25% from the physical left is 75% along an RTL track.
+      fireEvent.pointerDown(slider, {
+        button: 0,
+        pointerId: 1,
+        clientX: clientXFor(25),
+      });
+      expect(slider.getAttribute("aria-valuenow")).toBe("75");
+
+      // ArrowLeft advances in RTL; the vertical pair keeps absolute meaning.
+      fireEvent.keyDown(slider, { key: "ArrowLeft" });
+      expect(slider.getAttribute("aria-valuenow")).toBe("76");
+
+      fireEvent.keyDown(slider, { key: "ArrowRight" });
+      expect(slider.getAttribute("aria-valuenow")).toBe("75");
+
+      fireEvent.keyDown(slider, { key: "ArrowUp" });
+      expect(slider.getAttribute("aria-valuenow")).toBe("76");
+    });
+
+    it("keeps ltr behavior untouched", () => {
+      const { slider, rail } = renderSlider({
+        defaultValue: 50,
+        collapseDelay: 0,
+      });
+      const clientXFor = stubRailRect(rail);
+
+      fireEvent.pointerDown(slider, {
+        button: 0,
+        pointerId: 1,
+        clientX: clientXFor(25),
+      });
+      expect(slider.getAttribute("aria-valuenow")).toBe("25");
+
+      fireEvent.keyDown(slider, { key: "ArrowRight" });
+      expect(slider.getAttribute("aria-valuenow")).toBe("26");
+    });
+  });
 });

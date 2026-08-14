@@ -29,7 +29,7 @@ export type RippleSceneItem = {
 };
 
 export interface RippleSceneProps
-  extends Omit<React.ComponentPropsWithoutRef<"section">, "onChange"> {
+  extends Omit<React.ComponentProps<"section">, "onChange"> {
   items: readonly RippleSceneItem[];
   /** Controlled selected scene value. */
   value?: string;

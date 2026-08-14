@@ -122,4 +122,60 @@ describe("ExpandableToolbar", () => {
     expect(onOpenChange).toHaveBeenCalledWith(true);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
+
+  it("moves focus between visible controls with the arrow keys (role=toolbar)", () => {
+    render(
+      <ExpandableToolbar
+        defaultOpen
+        side="start"
+        anchor="toolbar"
+        expandIcon={<span>+</span>}
+        expandLabel="Expand actions"
+        collapseLabel="Collapse actions"
+      >
+        <button type="button">One</button>
+        <button type="button">Two</button>
+      </ExpandableToolbar>,
+    );
+
+    const toolbar = screen.getByRole("toolbar");
+    const one = screen.getByRole("button", { name: "One" });
+    const two = screen.getByRole("button", { name: "Two" });
+
+    one.focus();
+    expect(document.activeElement).toBe(one);
+
+    fireEvent.keyDown(toolbar, { key: "ArrowRight" });
+    expect(document.activeElement).toBe(two);
+
+    fireEvent.keyDown(toolbar, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(one);
+
+    fireEvent.keyDown(toolbar, { key: "End" });
+    expect(document.activeElement).not.toBe(one);
+  });
+
+  it("leaves the arrow keys to the caret inside a text field", () => {
+    render(
+      <ExpandableToolbar
+        defaultOpen
+        side="start"
+        anchor="toolbar"
+        expandIcon={<span>+</span>}
+        expandLabel="Expand actions"
+        collapseLabel="Collapse actions"
+      >
+        <input aria-label="Search" defaultValue="abc" />
+        <button type="button">Two</button>
+      </ExpandableToolbar>,
+    );
+
+    const toolbar = screen.getByRole("toolbar");
+    const input = screen.getByLabelText("Search");
+
+    input.focus();
+    fireEvent.keyDown(toolbar, { key: "ArrowRight" });
+
+    expect(document.activeElement).toBe(input);
+  });
 });

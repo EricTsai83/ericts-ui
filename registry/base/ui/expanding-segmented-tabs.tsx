@@ -19,7 +19,7 @@ export type ExpandingSegmentedTabsItem = {
 };
 
 export type ExpandingSegmentedTabsProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "defaultValue" | "onChange"
 > & {
   items: ExpandingSegmentedTabsItem[];
@@ -119,8 +119,21 @@ export function ExpandingSegmentedTabs({
   );
 
   const enabledItems = React.useMemo(() => getEnabledItems(items), [items]);
-  const selectedValue =
-    getSelectableValue(items, isControlled ? value : uncontrolledValue) ?? "";
+  // A controlled `value` is authoritative: it renders as-is, even when it
+  // matches no enabled item (then nothing is active). Silently remapping it to
+  // the first enabled item would show a selection the parent never set, with
+  // no `onValueChange` to tell it. The fallback applies to uncontrolled state
+  // only, where this component owns the value.
+  const selectedValue = isControlled
+    ? (value ?? "")
+    : (getSelectableValue(items, uncontrolledValue) ?? "");
+  // Roving tabindex still needs exactly one tabbable item, or a controlled
+  // value that matches nothing would make the tablist keyboard-unreachable.
+  const focusableValue = enabledItems.some(
+    (item) => item.value === selectedValue,
+  )
+    ? selectedValue
+    : enabledItems[0]?.value;
 
   const [transitionFromValue] = React.useState<string | null>(() => {
     if (!transitionKey) return null;
@@ -261,7 +274,7 @@ export function ExpandingSegmentedTabs({
               aria-selected={isActive}
               aria-label={item.ariaLabel}
               disabled={item.disabled}
-              tabIndex={isActive ? 0 : -1}
+              tabIndex={item.value === focusableValue ? 0 : -1}
               data-slot="expanding-segmented-tabs-item"
               data-active={isActive ? "" : undefined}
               initial={initialStyles}

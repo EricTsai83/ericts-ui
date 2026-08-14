@@ -192,7 +192,15 @@ export function ExpandingSlider({
 
       if (usable <= 0) return undefined;
 
-      const ratio = clamp((clientX - rect.left - THUMB_SIZE / 2) / usable, 0, 1);
+      const rawRatio = clamp(
+        (clientX - rect.left - THUMB_SIZE / 2) / usable,
+        0,
+        1,
+      );
+      // Pointer coordinates are always physical; in an RTL context the track
+      // runs right-to-left, so the ratio has to be mirrored to stay on the
+      // same side of the rail as the fill.
+      const ratio = isRtl(rail) ? 1 - rawRatio : rawRatio;
 
       return clampToStep(min + ratio * (max - min), min, max, step);
     },
@@ -466,7 +474,15 @@ export function ExpandingSliderTrack({
 
           if (steps !== undefined) {
             event.preventDefault();
-            stepBy(steps);
+            // Horizontal arrows follow the writing direction (ArrowLeft
+            // increases in RTL); the vertical pair and PageUp/Down keep their
+            // absolute meaning.
+            const directional =
+              HORIZONTAL_KEYS.includes(event.key) && isRtl(event.currentTarget)
+                ? -steps
+                : steps;
+
+            stepBy(directional);
             return;
           }
 
@@ -539,7 +555,7 @@ export function ExpandingSliderRange({
     <div
       data-slot="expanding-slider-range"
       className={cn(
-        "absolute inset-y-0 left-0 w-(--expanding-slider-fill) rounded-full bg-primary",
+        "absolute inset-y-0 start-0 w-(--expanding-slider-fill) rounded-full bg-primary",
         className,
       )}
       {...props}
@@ -558,7 +574,7 @@ export function ExpandingSliderThumb({
     <div
       data-slot="expanding-slider-thumb"
       className={cn(
-        "absolute top-1/2 left-(--expanding-slider-thumb-offset) size-(--expanding-slider-thumb-size) -translate-y-1/2 scale-100 rounded-full bg-primary shadow-sm",
+        "absolute top-1/2 start-(--expanding-slider-thumb-offset) size-(--expanding-slider-thumb-size) -translate-y-1/2 scale-100 rounded-full bg-primary shadow-sm",
         "transition-transform duration-200 ease-[cubic-bezier(0,0,0.2,1)] motion-reduce:transition-none",
         "group-data-[expanded=false]/expanding-slider:scale-0",
         className,
@@ -576,6 +592,13 @@ const KEY_STEPS: Record<string, number | undefined> = {
   PageUp: PAGE_STEP_MULTIPLIER,
   PageDown: -PAGE_STEP_MULTIPLIER,
 };
+
+const HORIZONTAL_KEYS = ["ArrowLeft", "ArrowRight"];
+
+/** Reads the resolved writing direction, so `dir` anywhere up the tree counts. */
+function isRtl(element: Element) {
+  return window.getComputedStyle(element).direction === "rtl";
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));

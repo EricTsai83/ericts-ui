@@ -52,7 +52,7 @@ export type ExpandingPanelClassNames = {
 };
 
 export type ExpandingPanelProps = Omit<
-  React.ComponentPropsWithoutRef<"aside">,
+  React.ComponentProps<"aside">,
   "children"
 > & {
   open?: boolean;
@@ -62,6 +62,11 @@ export type ExpandingPanelProps = Omit<
   openLabel?: string;
   closeLabel?: string;
   closeOnEscape?: boolean;
+  /**
+   * Collapse when a pointer goes down outside the panel. Content that portals
+   * outside the panel's subtree (Select, Popover, Dialog) registers as
+   * "outside"; set this to false and close manually in that case.
+   */
   closeOnOutsideClick?: boolean;
   classNames?: ExpandingPanelClassNames;
   children?: React.ReactNode;
@@ -95,6 +100,7 @@ export function ExpandingPanel({
   children,
   "aria-label": ariaLabel = "Expanding panel",
   onKeyDown,
+  ref,
   ...props
 }: ExpandingPanelProps) {
   const generatedId = React.useId();
@@ -135,6 +141,9 @@ export function ExpandingPanel({
       if (
         !root ||
         !(event.target instanceof Node) ||
+        // A target detached by the very interaction being handled (e.g. a
+        // removed list row) can no longer prove it was outside the panel.
+        !event.target.isConnected ||
         root.contains(event.target)
       ) {
         return;
@@ -174,10 +183,25 @@ export function ExpandingPanel({
     [isOpen, setOpen],
   );
 
+  // The root node is needed internally (outside-click detection) *and* by
+  // consumers, so the consumer's ref is merged in rather than overwritten.
+  const setRootRef = React.useCallback(
+    (node: HTMLElement | null) => {
+      rootRef.current = node;
+
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
+
   return (
     <ExpandingPanelContext.Provider value={contextValue}>
       <aside
-        ref={rootRef}
+        ref={setRootRef}
         aria-label={ariaLabel}
         data-slot="expanding-panel"
         data-state={isOpen ? "open" : "closed"}

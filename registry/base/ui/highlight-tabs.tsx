@@ -9,16 +9,26 @@ export type HighlightTab = {
   value: string;
   label: React.ReactNode;
   disabled?: boolean;
+  /** Id applied to the trigger, so a tabpanel can point back via aria-labelledby. */
+  id?: string;
+  /** Id of the tabpanel this trigger controls. */
+  ariaControls?: string;
 };
 
 export type HighlightTabsProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "defaultValue" | "onChange"
 > & {
   tabs: HighlightTab[];
   value?: string;
   defaultValue?: string;
-  onValueChange?: (value: string) => void;
+  onValueChange?: (value: string, tab: HighlightTab) => void;
+  /**
+   * Commit selection when the pointer sweeps over a tab. Defaults to true —
+   * the moving highlight is this component's signature interaction. Set it to
+   * false when selection drives panel content, so hovering across the list
+   * doesn't churn `onValueChange` for every tab it crosses.
+   */
   selectOnHover?: boolean;
   listClassName?: string;
   tabClassName?: string;
@@ -77,10 +87,17 @@ export function HighlightTabs({
         setUncontrolledValue(nextValue);
       }
 
-      onValueChange?.(nextValue);
+      onValueChange?.(nextValue, nextTab);
     },
     [activeValue, isControlled, onValueChange, tabs],
   );
+
+  // A controlled `value` that matches no enabled tab (e.g. stale after `tabs`
+  // shrinks) must not leave every trigger at tabIndex -1, or the tablist
+  // becomes unreachable by keyboard.
+  const focusableValue = enabledTabs.some((tab) => tab.value === activeValue)
+    ? activeValue
+    : enabledTabs[0]?.value;
 
   const focusTab = React.useCallback((nextValue: string) => {
     tabRefs.current.get(nextValue)?.focus();
@@ -134,6 +151,7 @@ export function HighlightTabs({
         <ul
           role="tablist"
           aria-label={ariaLabel}
+          aria-orientation="horizontal"
           data-slot="highlight-tabs-list"
           className={cn(
             "inline-flex items-center gap-1 rounded-lg bg-muted/70 p-1",
@@ -148,9 +166,11 @@ export function HighlightTabs({
                 <button
                   type="button"
                   role="tab"
+                  id={tab.id}
+                  aria-controls={tab.ariaControls}
                   aria-selected={isActive}
                   disabled={tab.disabled}
-                  tabIndex={isActive ? 0 : -1}
+                  tabIndex={tab.value === focusableValue ? 0 : -1}
                   ref={(element) => {
                     if (element) {
                       tabRefs.current.set(tab.value, element);

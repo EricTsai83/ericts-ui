@@ -17,7 +17,7 @@ export type SlidingListItem = {
 };
 
 export type SlidingListProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "align" | "defaultValue" | "onChange"
 > & {
   items: SlidingListItem[];
@@ -207,9 +207,10 @@ export function SlidingList({
               >
                 <motion.span
                   initial={false}
-                  animate={{
-                    transform: `translateX(${isActive ? activeOffset : 0}px)`,
-                  }}
+                  // Independent transform values (not a composed `transform`
+                  // string), so Motion can use its hardware-accelerated path
+                  // instead of interpolating a string on the main thread.
+                  animate={{ x: isActive ? activeOffset : 0 }}
                   transition={transition}
                   className="relative inline-flex items-center will-change-transform"
                 >
@@ -224,7 +225,8 @@ export function SlidingList({
                     initial={false}
                     animate={{
                       opacity: isActive ? 1 : 0,
-                      transform: `translateY(-50%) scale(${isActive ? 1 : 0.5})`,
+                      y: "-50%",
+                      scale: isActive ? 1 : 0.5,
                     }}
                     transition={transition}
                     className={cn(

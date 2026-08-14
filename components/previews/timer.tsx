@@ -22,7 +22,7 @@ export default function Preview() {
           <p className="text-sm text-muted-foreground">Filled digit slots</p>
         </div>
         <Countdown
-          ref={countdownRef}
+          controlsRef={countdownRef}
           duration={COUNTDOWN_DURATION}
           className="gap-2 text-2xl font-medium"
           valueClassName="gap-1"

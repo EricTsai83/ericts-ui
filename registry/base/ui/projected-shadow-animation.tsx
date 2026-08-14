@@ -15,7 +15,7 @@ export type ProjectedShadowOffset = {
   y?: ProjectedShadowLengthValue;
 };
 
-export type ProjectedShadowProps = React.ComponentPropsWithoutRef<"span"> & {
+export type ProjectedShadowProps = React.ComponentProps<"span"> & {
   /** Keep the gathered state active without requiring hover. */
   active?: boolean;
   /** Animation duration for release. Numeric values are converted to ms. */
@@ -36,9 +36,9 @@ export type ProjectedShadowProps = React.ComponentPropsWithoutRef<"span"> & {
   projectedShadowClassName?: string;
   /** Classes applied to the close contact shadow layer. */
   contactShadowClassName?: string;
-  /** Hide the far projected shadow layer. */
+  /** Render the far projected shadow layer. Defaults to true. */
   showProjectedShadow?: boolean;
-  /** Hide the close contact shadow layer. */
+  /** Render the close contact shadow layer. Defaults to true. */
   showContactShadow?: boolean;
 };
 
@@ -65,7 +65,7 @@ export function ProjectedShadow({
   return (
     <span
       data-slot="projected-shadow"
-      data-active={active ? "true" : undefined}
+      data-active={active ? "" : undefined}
       className={cn(
         "projected-shadow relative inline-flex items-center justify-center",
         className,

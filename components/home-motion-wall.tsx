@@ -65,7 +65,7 @@ function MultiStepVignette({ run }: VignetteProps) {
     <div className="flex h-48 w-full items-start justify-center">
       <div className="w-full max-w-60 rounded-xl border bg-background p-4 shadow-sm">
         <MultiStep
-          currentStep={run % MULTI_STEP_ITEMS.length}
+          step={run % MULTI_STEP_ITEMS.length}
           steps={MULTI_STEP_ITEMS.map((step) => ({
             id: step.id,
             content: (

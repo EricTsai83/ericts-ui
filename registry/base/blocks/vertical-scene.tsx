@@ -32,7 +32,7 @@ export type VerticalSceneItem = {
 };
 
 export interface VerticalSceneProps
-  extends Omit<React.ComponentPropsWithoutRef<"section">, "onChange"> {
+  extends Omit<React.ComponentProps<"section">, "onChange"> {
   items: readonly VerticalSceneItem[];
   /** Controlled selected scene value. */
   value?: string;

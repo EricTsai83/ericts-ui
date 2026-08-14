@@ -12,7 +12,6 @@
   backface-visibility: hidden;
   transform-origin: center;
   animation: squeeze-animation var(--squeeze-animation-duration) both;
-  will-change: transform;
 }
 
 .squeeze-animation-svg .squeeze-animation-target,

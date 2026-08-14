@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
+type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
 type ButtonState = "idle" | "loading" | "success";
 
@@ -14,9 +14,23 @@ export type StatusButtonProps = Omit<ButtonProps, "children" | "onClick"> & {
   idleLabel?: React.ReactNode;
   loadingLabel?: React.ReactNode;
   successLabel?: React.ReactNode;
+  /**
+   * Minimum time in ms the loading state stays visible, so quick requests
+   * don't flash. Slow requests keep loading until `onClick` settles.
+   */
   loadingDuration?: number;
+  /** Time in ms the success state stays visible before returning to idle. */
   successDuration?: number;
+  /** Announced to screen readers while loading. Defaults to a string `loadingLabel`. */
+  loadingAnnouncement?: string;
+  /** Announced to screen readers on success. Defaults to a string `successLabel`. */
+  successAnnouncement?: string;
   onClick?: (event: ButtonClickEvent) => void | Promise<void>;
+  /**
+   * Called when `onClick` rejects. Without this the button silently returns to
+   * idle, which is indistinguishable from never having been pressed.
+   */
+  onError?: (error: unknown) => void;
 };
 
 function Spinner({ className }: { className?: string }) {
@@ -32,14 +46,17 @@ function Spinner({ className }: { className?: string }) {
 }
 
 export function StatusButton({
-  idleLabel = "Send me a login link",
+  idleLabel = "Submit",
   loadingLabel = <Spinner />,
-  successLabel = "Login link sent!",
+  successLabel = "Done",
   loadingDuration = 1750,
   successDuration = 1750,
+  loadingAnnouncement,
+  successAnnouncement,
   disabled,
   className,
   onClick,
+  onError,
   type = "button",
   ...props
 }: StatusButtonProps) {
@@ -68,26 +85,40 @@ export function StatusButton({
       setButtonState("loading");
       clearTimers();
 
+      const startedAt = Date.now();
+
       try {
         await onClick?.(event);
-      } catch {
+      } catch (error) {
         if (!isMountedRef.current) return;
         setButtonState("idle");
+        onError?.(error);
         return;
       }
 
       if (!isMountedRef.current) return;
 
+      // `loadingDuration` is a floor, not an added delay: fast requests hold
+      // the spinner long enough to read, slow ones switch as soon as they end.
+      const remaining = Math.max(0, loadingDuration - (Date.now() - startedAt));
+
       timers.current = [
         setTimeout(() => {
           setButtonState("success");
-        }, loadingDuration),
+        }, remaining),
         setTimeout(() => {
           setButtonState("idle");
-        }, loadingDuration + successDuration),
+        }, remaining + successDuration),
       ];
     },
-    [buttonState, clearTimers, loadingDuration, onClick, successDuration]
+    [
+      buttonState,
+      clearTimers,
+      loadingDuration,
+      onClick,
+      onError,
+      successDuration,
+    ]
   );
 
   const copy: Record<ButtonState, React.ReactNode> = {
@@ -122,9 +153,11 @@ export function StatusButton({
       </AnimatePresence>
       <span role="status" aria-live="polite" className="sr-only">
         {buttonState === "loading"
-          ? "Sending login link"
+          ? (loadingAnnouncement ??
+            (typeof loadingLabel === "string" ? loadingLabel : "Loading"))
           : buttonState === "success"
-            ? "Login link sent"
+            ? (successAnnouncement ??
+              (typeof successLabel === "string" ? successLabel : "Done"))
             : ""}
       </span>
     </Button>

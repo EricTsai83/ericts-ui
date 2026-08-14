@@ -258,7 +258,7 @@ function ShortcutCloseIcon() {
 }
 
 export type FloatingShortcutButtonProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "onChange"
 > & {
   /** FloatingShortcutAction elements revealed above the trigger. */
@@ -333,6 +333,7 @@ export function FloatingShortcutButton({
   className,
   style,
   onKeyDown,
+  ref,
   ...props
 }: FloatingShortcutButtonProps) {
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
@@ -383,6 +384,21 @@ export function FloatingShortcutButton({
     [controlled, onOpenChange],
   );
 
+  // The root node is needed internally (menu-item queries, outside-click) *and*
+  // by consumers, so the consumer's ref is merged in rather than overwritten.
+  const setRootRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      rootRef.current = node;
+
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
+
   const getEnabledItems = React.useCallback(
     () =>
       Array.from(
@@ -397,6 +413,26 @@ export function FloatingShortcutButton({
     setOpen(false);
     triggerRef.current?.focus();
   }, [setOpen]);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    // The ARIA menu-button pattern dismisses on outside interaction. Focus is
+    // intentionally left where the user clicked (unlike Escape, which returns
+    // it to the trigger).
+    const handlePointerDown = (event: PointerEvent) => {
+      const root = rootRef.current;
+
+      if (!root || !(event.target instanceof Node)) return;
+      if (root.contains(event.target)) return;
+
+      setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open, setOpen]);
 
   React.useEffect(() => {
     if (!open || !pendingFocusRef.current) return;
@@ -484,7 +520,7 @@ export function FloatingShortcutButton({
     >
       <div
         {...props}
-        ref={rootRef}
+        ref={setRootRef}
         data-slot="floating-shortcut-button"
         data-state={open ? "open" : "closed"}
         className={cn(

@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "registry/base/hooks/use-reduced-motion.ts",
-      "content": "\"use client\";\n\nimport { useEffect, useRef, useState } from \"react\";\n\nconst REDUCED_MOTION_QUERY = \"(prefers-reduced-motion: reduce)\";\n\nexport function useReducedMotion(): boolean {\n  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);\n  const mediaQueryRef = useRef<MediaQueryList | null>(null);\n\n  useEffect(() => {\n    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);\n    mediaQueryRef.current = mediaQuery;\n\n    const listener = () => {\n      setPrefersReducedMotion(mediaQueryRef.current?.matches ?? false);\n    };\n\n    listener();\n\n    mediaQuery.addEventListener(\"change\", listener);\n\n    return () => {\n      mediaQuery.removeEventListener(\"change\", listener);\n    };\n  }, []);\n\n  return prefersReducedMotion;\n}\n",
+      "content": "\"use client\";\n\nimport { useSyncExternalStore } from \"react\";\n\nconst REDUCED_MOTION_QUERY = \"(prefers-reduced-motion: reduce)\";\n\nfunction subscribe(onStoreChange: () => void): () => void {\n  const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);\n\n  mediaQuery.addEventListener(\"change\", onStoreChange);\n\n  return () => {\n    mediaQuery.removeEventListener(\"change\", onStoreChange);\n  };\n}\n\nfunction getSnapshot(): boolean {\n  return window.matchMedia(REDUCED_MOTION_QUERY).matches;\n}\n\nfunction getServerSnapshot(): boolean {\n  return false;\n}\n\nexport function useReducedMotion(): boolean {\n  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);\n}\n",
       "type": "registry:hook",
       "target": "@hooks/use-reduced-motion.ts"
     }

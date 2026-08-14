@@ -33,7 +33,11 @@ export type FloatingSelectOption = FloatingSelectOptionBase &
       }
   );
 
-export interface FloatingSelectProps {
+export interface FloatingSelectProps
+  extends Omit<
+    React.ComponentProps<"div">,
+    "defaultValue" | "onChange" | "children"
+  > {
   /** The choices revealed when the button is opened. */
   options: FloatingSelectOption[];
   /** Trigger label shown before the selected value. */
@@ -48,6 +52,12 @@ export interface FloatingSelectProps {
   onValueChange?: (value: string, option: FloatingSelectOption) => void;
   /** @deprecated Use `onValueChange`. Kept for compatibility with earlier versions. */
   onChange?: (value: string, option: FloatingSelectOption) => void;
+  /** Controlled open state of the options panel. */
+  open?: boolean;
+  /** Uncontrolled initial open state. */
+  defaultOpen?: boolean;
+  /** Fires whenever the panel requests an open-state change. */
+  onOpenChange?: (open: boolean) => void;
   /** Close the panel after selecting an option. */
   closeOnSelect?: boolean;
   /** Show the selected value next to the trigger label. */
@@ -68,6 +78,12 @@ export interface FloatingSelectProps {
   triggerClassName?: string;
   /** Classes applied to the options panel. */
   panelClassName?: string;
+  /**
+   * Classes applied to the outer positioning wrapper (the element carrying
+   * `fixed`/`z-50` in `placement="fixed"`), so the stacking context can be
+   * overridden without forking the component.
+   */
+  wrapperClassName?: string;
 }
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
@@ -117,6 +133,9 @@ export function FloatingSelect({
   value,
   onValueChange,
   onChange,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
   closeOnSelect = true,
   showSelectedValue = true,
   placement = "fixed",
@@ -127,13 +146,27 @@ export function FloatingSelect({
   className,
   triggerClassName,
   panelClassName,
+  wrapperClassName,
+  ...props
 }: FloatingSelectProps) {
   const shellRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLDivElement>(null);
   const reactId = React.useId();
   const listboxId = `${reactId}-listbox`;
   const shouldReduceMotion = useReducedMotion();
-  const [open, setOpen] = React.useState(false);
+  const openControlled = openProp !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
+  const open = openControlled ? openProp : uncontrolledOpen;
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!openControlled) {
+        setUncontrolledOpen(nextOpen);
+      }
+
+      onOpenChange?.(nextOpen);
+    },
+    [onOpenChange, openControlled],
+  );
   const [optionHoverLocked, setOptionHoverLocked] = React.useState(false);
   const [inlineAnchorSize, setInlineAnchorSize] = React.useState<{
     width: number;
@@ -143,11 +176,41 @@ export function FloatingSelect({
     defaultValue ?? (options[0] ? getOptionValue(options[0]) : ""),
   );
 
+  // The trigger and the listbox are swapped in and out of the DOM by
+  // AnimatePresence, so focus must be managed manually: into the selected
+  // option when the listbox mounts, back onto the trigger after keyboard or
+  // selection closes (pointer dismissals leave focus where the user clicked).
+  const pendingTriggerFocusRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const shellElement = shellRef.current;
+
+    if (!shellElement) return;
+
+    if (open) {
+      const target =
+        shellElement.querySelector<HTMLButtonElement>(
+          '[role="option"][aria-selected="true"]',
+        ) ?? shellElement.querySelector<HTMLButtonElement>('[role="option"]');
+
+      target?.focus();
+      return;
+    }
+
+    if (pendingTriggerFocusRef.current) {
+      pendingTriggerFocusRef.current = false;
+      shellElement
+        .querySelector<HTMLButtonElement>('[data-slot="floating-select-trigger"]')
+        ?.focus();
+    }
+  }, [open]);
+
   React.useEffect(() => {
     if (!open) return;
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        pendingTriggerFocusRef.current = true;
         setOpen(false);
       }
     }
@@ -155,7 +218,7 @@ export function FloatingSelect({
     window.addEventListener("keydown", onKeyDown);
 
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+  }, [open, setOpen]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -169,7 +232,7 @@ export function FloatingSelect({
     document.addEventListener("pointerdown", onPointerDown);
 
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+  }, [open, setOpen]);
 
   React.useEffect(() => {
     if (!open || shouldReduceMotion === true || !optionHoverLocked) return;
@@ -216,8 +279,42 @@ export function FloatingSelect({
     }
 
     if (closeOnSelect) {
+      pendingTriggerFocusRef.current = true;
       setOpen(false);
     }
+  };
+
+  // role="listbox" promises arrow-key navigation; options are real buttons,
+  // so roving focus is enough (no aria-activedescendant needed).
+  const handleListboxKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+
+    const optionElements = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+    );
+
+    if (optionElements.length === 0) return;
+
+    event.preventDefault();
+
+    const currentIndex = optionElements.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
+    const lastIndex = optionElements.length - 1;
+    let nextIndex = 0;
+
+    if (event.key === "ArrowDown") {
+      nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % optionElements.length;
+    } else if (event.key === "ArrowUp") {
+      nextIndex =
+        currentIndex < 0
+          ? lastIndex
+          : (currentIndex - 1 + optionElements.length) % optionElements.length;
+    } else if (event.key === "End") {
+      nextIndex = lastIndex;
+    }
+
+    optionElements[nextIndex]?.focus();
   };
 
   const updateInlineAnchorSize = React.useCallback(
@@ -315,6 +412,7 @@ export function FloatingSelect({
               role="listbox"
               aria-label={typeof label === "string" ? label : "Options"}
               data-slot="floating-select-listbox"
+              onKeyDown={handleListboxKeyDown}
               initial={shouldReduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={
@@ -399,7 +497,6 @@ export function FloatingSelect({
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                aria-controls={listboxId}
                 data-slot="floating-select-trigger"
                 onClick={handleOpen}
                 className={cn(
@@ -433,8 +530,12 @@ export function FloatingSelect({
   if (placement === "inline") {
     return (
       <div
-        className="relative flex justify-center"
-        style={open && inlineAnchorSize ? inlineAnchorSize : undefined}
+        {...props}
+        className={cn("relative flex justify-center", wrapperClassName)}
+        style={{
+          ...(open && inlineAnchorSize ? inlineAnchorSize : undefined),
+          ...props.style,
+        }}
       >
         <div
           className={cn(
@@ -450,16 +551,19 @@ export function FloatingSelect({
 
   return (
     <div
+      {...props}
       className={cn(
         "pointer-events-none fixed inset-x-0 z-50 flex translate-z-0 px-4",
         position === "top" ? "top-0" : "bottom-0",
         alignClass,
+        wrapperClassName,
       )}
-      style={
-        position === "top"
+      style={{
+        ...(position === "top"
           ? { paddingTop: `max(${offset}px, env(safe-area-inset-top))` }
-          : { paddingBottom: `max(${offset}px, env(safe-area-inset-bottom))` }
-      }
+          : { paddingBottom: `max(${offset}px, env(safe-area-inset-bottom))` }),
+        ...props.style,
+      }}
     >
       {shell}
     </div>

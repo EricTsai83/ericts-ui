@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 import "./copy-button.css";
 
-type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
+type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
 
 export type CopyButtonProps = Omit<
@@ -16,13 +16,14 @@ export type CopyButtonProps = Omit<
   "children" | "value" | "onCopy"
 > & {
   value: string;
-  timeout?: number;
+  /** How long the copied state stays visible, in ms. */
+  copiedDuration?: number;
   onCopy?: (value: string) => void;
 };
 
 export function CopyButton({
   value,
-  timeout = 1000,
+  copiedDuration = 1000,
   onCopy,
   onClick,
   className,
@@ -33,6 +34,7 @@ export function CopyButton({
   ...props
 }: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
+  const [interacted, setInteracted] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
@@ -54,12 +56,13 @@ export function CopyButton({
       }
 
       onCopy?.(value);
+      setInteracted(true);
       setCopied(true);
 
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), timeout);
+      timer.current = setTimeout(() => setCopied(false), copiedDuration);
     },
-    [onClick, onCopy, timeout, value],
+    [copiedDuration, onClick, onCopy, value],
   );
 
   return (
@@ -68,7 +71,11 @@ export function CopyButton({
       variant={variant}
       size={size}
       aria-label={ariaLabel}
-      data-state={copied ? "open" : "closed"}
+      // Same root attribute as the motion variant, so switching between the two
+      // doesn't break consumer selectors. (The per-icon `data-state` below is
+      // an internal styling hook for the CSS keyframes.)
+      data-copied={copied}
+      data-interacted={interacted ? "true" : undefined}
       onClick={handleCopy}
       className={cn("copy-button", className)}
       {...props}

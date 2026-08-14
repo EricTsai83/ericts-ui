@@ -2,15 +2,13 @@
 
 import {
   Children,
-  type ComponentPropsWithoutRef,
+  type ComponentProps,
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
   type Ref,
   useCallback,
-  useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -21,9 +19,6 @@ import { cn } from "@/lib/utils";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const DEFAULT_CONTENT_MAX_WIDTH = "min(32rem, calc(100vw - 2rem))";
-
-const useIsomorphicLayoutEffect =
-  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 const TOOLBAR_TRANSITION = {
   width: { duration: 0.2, ease: EASE_OUT },
@@ -49,7 +44,7 @@ const TRIGGER_RADIUS_CLOSED = TRIGGER_RADIUS_OPEN + TOOLBAR_PADDING;
 
 type ExpandableToolbarSide = "start" | "end" | "center";
 type ExpandableToolbarAnchor = "toolbar" | "trigger";
-type ExpandableToolbarTriggerProps = ComponentPropsWithoutRef<"button"> & {
+type ExpandableToolbarTriggerProps = ComponentProps<"button"> & {
   "data-state": "open" | "closed";
 };
 
@@ -70,7 +65,7 @@ export type ExpandableToolbarTriggerRenderProps = {
 };
 
 type ExpandableToolbarBaseProps = Omit<
-  ComponentPropsWithoutRef<"div">,
+  ComponentProps<"div">,
   "children" | "defaultValue" | "onChange"
 > & {
   /** Controlled open state. */
@@ -204,18 +199,57 @@ export function ExpandableToolbar({
     (event: KeyboardEvent<HTMLDivElement>) => {
       onKeyDown?.(event);
 
-      if (
-        event.defaultPrevented ||
-        !closeOnEscape ||
-        !isOpen ||
-        event.key !== "Escape"
-      ) {
+      if (event.defaultPrevented) return;
+
+      if (closeOnEscape && isOpen && event.key === "Escape") {
+        event.stopPropagation();
+        setOpen(false);
+        focusTrigger();
         return;
       }
 
-      event.stopPropagation();
-      setOpen(false);
-      focusTrigger();
+      // `role="toolbar"` promises horizontal arrow-key navigation (ARIA APG),
+      // so move focus between the visible controls. Text-entry controls keep
+      // the arrows for caret movement.
+      if (!TOOLBAR_NAV_KEYS.includes(event.key)) return;
+
+      const activeElement = document.activeElement;
+
+      if (activeElement instanceof HTMLElement && isTextEntry(activeElement)) {
+        return;
+      }
+
+      // Collapsed panels carry `inert` + `aria-hidden`, so filter on that
+      // rather than on layout: `offsetParent` is also null for `position:
+      // fixed` elements that are perfectly visible.
+      const focusables = Array.from(
+        event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter(
+        (element) =>
+          !element.closest("[inert],[hidden],[aria-hidden='true']"),
+      );
+
+      if (focusables.length === 0) return;
+
+      const currentIndex = focusables.indexOf(activeElement as HTMLElement);
+      const lastIndex = focusables.length - 1;
+      let nextIndex: number;
+
+      if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = lastIndex;
+      } else if (event.key === "ArrowRight") {
+        nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % focusables.length;
+      } else {
+        nextIndex =
+          currentIndex < 0
+            ? lastIndex
+            : (currentIndex - 1 + focusables.length) % focusables.length;
+      }
+
+      event.preventDefault();
+      focusables[nextIndex]?.focus();
     },
     [closeOnEscape, focusTrigger, isOpen, onKeyDown, setOpen],
   );
@@ -470,12 +504,30 @@ function getFirstFocusableElement(element: HTMLElement | null) {
   return element?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? null;
 }
 
-function useMeasuredWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState(0);
+const TOOLBAR_NAV_KEYS = ["ArrowLeft", "ArrowRight", "Home", "End"];
 
-  useIsomorphicLayoutEffect(() => {
-    const element = ref.current;
+/** Controls where the arrow keys belong to the caret, not to toolbar nav. */
+function isTextEntry(element: HTMLElement) {
+  return (
+    element instanceof HTMLTextAreaElement ||
+    element.isContentEditable ||
+    (element instanceof HTMLInputElement &&
+      !["button", "checkbox", "radio", "range", "submit", "reset"].includes(
+        element.type,
+      ))
+  );
+}
+
+function useMeasuredWidth<T extends HTMLElement>() {
+  const [width, setWidth] = useState(0);
+  const observerRef = useRef<ResizeObserver | null>(null);
+
+  // A callback ref (rather than a mount-only effect) so a panel that mounts
+  // later — `side` flipping to "center", children growing past one — is still
+  // measured and observed instead of animating open to width 0.
+  const ref = useCallback((element: T | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
 
     if (!element) return;
 
@@ -494,8 +546,7 @@ function useMeasuredWidth<T extends HTMLElement>() {
     });
 
     resizeObserver.observe(element);
-
-    return () => resizeObserver.disconnect();
+    observerRef.current = resizeObserver;
   }, []);
 
   return [ref, width] as const;

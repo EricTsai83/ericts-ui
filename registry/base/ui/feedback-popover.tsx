@@ -15,21 +15,34 @@ import { cn } from "@/lib/utils";
 type FeedbackState = "idle" | "loading" | "success";
 
 export type FeedbackPopoverProps = Omit<
-  React.ComponentPropsWithoutRef<"div">,
+  React.ComponentProps<"div">,
   "children" | "onSubmit"
 > & {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSubmit?: (feedback: string) => void | Promise<void>;
+  /**
+   * Called when `onSubmit` rejects. Without this the form silently returns to
+   * idle with the draft intact and no way to surface the failure.
+   */
+  onError?: (error: unknown) => void;
   triggerLabel?: React.ReactNode;
+  /**
+   * Doubles as the placeholder: it floats over the empty textarea and clears
+   * once there is text, so there is no separate `placeholder` prop.
+   */
   textareaLabel?: string;
-  placeholder?: string;
   submitLabel?: React.ReactNode;
   successTitle?: React.ReactNode;
   successDescription?: React.ReactNode;
   loadingAnnouncement?: string;
+  /**
+   * Minimum time in ms the loading state stays visible, so quick submissions
+   * don't flash. Slow ones keep loading until `onSubmit` settles.
+   */
   loadingDuration?: number;
+  /** Time in ms the success screen stays visible before the popover closes. */
   successDuration?: number;
 };
 
@@ -56,9 +69,9 @@ export function FeedbackPopover({
   defaultOpen = false,
   onOpenChange,
   onSubmit,
+  onError,
   triggerLabel = "Feedback",
   textareaLabel = "Feedback",
-  placeholder = "Feedback",
   submitLabel = "Send feedback",
   successTitle = "Feedback received!",
   successDescription = "Thanks for helping us improve.",
@@ -72,6 +85,7 @@ export function FeedbackPopover({
   const titleId = `${reactId}-title`;
   const descriptionId = `${reactId}-description`;
   const popoverRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const timers = React.useRef<number[]>([]);
   const isMountedRef = React.useRef(true);
   const shouldReduceMotion = useReducedMotion();
@@ -98,10 +112,20 @@ export function FeedbackPopover({
     [isControlled, onOpenChange],
   );
 
-  const closePopover = React.useCallback(() => {
-    clearTimers();
-    setOpen(false);
-  }, [clearTimers, setOpen]);
+  const closePopover = React.useCallback(
+    (options?: { restoreFocus?: boolean }) => {
+      clearTimers();
+      setOpen(false);
+
+      // Keyboard and programmatic closes return focus to the trigger so the
+      // user isn't dropped on <body>; pointer dismissals leave focus where
+      // the user clicked.
+      if (options?.restoreFocus) {
+        triggerRef.current?.focus();
+      }
+    },
+    [clearTimers, setOpen],
+  );
 
   const openPopover = React.useCallback(() => {
     clearTimers();
@@ -109,6 +133,22 @@ export function FeedbackPopover({
     setFeedback("");
     setOpen(true);
   }, [clearTimers, setOpen]);
+
+  // Controlled parents can flip `open` without going through `openPopover`;
+  // reset on the closed -> open transition so a reopen never shows the
+  // previous session's stale draft or success screen.
+  const wasOpenRef = React.useRef(isOpen);
+
+  React.useEffect(() => {
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+
+    if (isOpen && !wasOpen) {
+      clearTimers();
+      setFormState("idle");
+      setFeedback("");
+    }
+  }, [clearTimers, isOpen]);
 
   const submitFeedback = React.useCallback(async () => {
     if (!trimmedFeedback || formState !== "idle") return;
@@ -118,9 +158,10 @@ export function FeedbackPopover({
 
     try {
       await Promise.all([onSubmit?.(trimmedFeedback), wait(loadingDuration)]);
-    } catch {
+    } catch (error) {
       if (!isMountedRef.current) return;
       setFormState("idle");
+      onError?.(error);
       return;
     }
 
@@ -130,12 +171,14 @@ export function FeedbackPopover({
     timers.current = [
       window.setTimeout(() => {
         setOpen(false);
+        triggerRef.current?.focus();
       }, successDuration),
     ];
   }, [
     clearTimers,
     formState,
     loadingDuration,
+    onError,
     onSubmit,
     setOpen,
     successDuration,
@@ -170,14 +213,17 @@ export function FeedbackPopover({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        closePopover();
+        closePopover({ restoreFocus: true });
         return;
       }
 
       if (
         (event.ctrlKey || event.metaKey) &&
         event.key === "Enter" &&
-        formState === "idle"
+        formState === "idle" &&
+        // Only submit when focus is inside the popover, so Cmd/Ctrl+Enter in
+        // some other form on the page doesn't send this one.
+        popoverRef.current?.contains(document.activeElement)
       ) {
         event.preventDefault();
         void submitFeedback();
@@ -209,6 +255,7 @@ export function FeedbackPopover({
     >
       <LayoutGroup id={reactId}>
         <motion.button
+          ref={triggerRef}
           type="button"
           layoutId="feedback-popover-wrapper"
           aria-haspopup="dialog"
@@ -317,10 +364,9 @@ export function FeedbackPopover({
                       autoFocus
                       required
                       value={feedback}
-                      placeholder={placeholder}
                       disabled={formState === "loading"}
                       onChange={(event) => setFeedback(event.target.value)}
-                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-sm leading-6 outline-none placeholder:text-transparent focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-sm leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
                     />
 
                     <div className="relative flex items-center justify-end border-t border-dashed bg-muted/30 px-3 py-2.5">

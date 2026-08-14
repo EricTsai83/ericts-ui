@@ -15,7 +15,7 @@ export type SqueezeOptions = {
   duration?: SqueezeAnimationValue;
 };
 
-export type SqueezeProps = React.ComponentPropsWithoutRef<"span"> &
+export type SqueezeProps = React.ComponentProps<"span"> &
   SqueezeOptions & {
     /** Classes applied to the animated child wrapper. */
     targetClassName?: string;
@@ -48,7 +48,7 @@ export function Squeeze({
   );
 }
 
-export type SqueezeAnimationProps = React.ComponentPropsWithoutRef<"div"> &
+export type SqueezeAnimationProps = React.ComponentProps<"div"> &
   SqueezeOptions & {
     /** Classes applied to the animated SVG group. */
     targetClassName?: string;
