@@ -77,7 +77,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               <Link
                 href="/components"
                 className={buttonVariants({ variant: "default", size: "lg" })}
