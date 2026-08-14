@@ -14,6 +14,22 @@ import { cn } from "@/lib/utils";
 
 type FeedbackState = "idle" | "loading" | "success";
 
+const INSTANT_TRANSITION = { duration: 0 } as const;
+const CONTENT_TRANSITION = {
+  type: "spring",
+  duration: 0.4,
+  bounce: 0,
+} as const;
+const SUBMIT_TRANSITION = {
+  type: "spring",
+  duration: 0.3,
+  bounce: 0,
+} as const;
+// Stable dependencies skip layout measurement while typing. Keeping the two
+// values different still lets Motion promote between the shared elements.
+const TRIGGER_LAYOUT_DEPENDENCY = "trigger";
+const POPOVER_LAYOUT_DEPENDENCY = "popover";
+
 export type FeedbackPopoverProps = Omit<
   React.ComponentProps<"div">,
   "children" | "onSubmit"
@@ -51,7 +67,7 @@ function Spinner({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70",
+        "size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70 motion-reduce:animate-none",
         className,
       )}
     />
@@ -236,13 +252,13 @@ export function FeedbackPopover({
 
   // Match the reference: the popover morph uses Motion's default layout transition
   // (tween, 0.45s, ease [0.4, 0, 0.1, 1]) by leaving `transition` undefined.
-  const layoutTransition = shouldReduceMotion ? { duration: 0 } : undefined;
+  const layoutTransition = shouldReduceMotion ? INSTANT_TRANSITION : undefined;
   const contentTransition = shouldReduceMotion
-    ? { duration: 0 }
-    : ({ type: "spring", duration: 0.4, bounce: 0 } as const);
+    ? INSTANT_TRANSITION
+    : CONTENT_TRANSITION;
   const submitTransition = shouldReduceMotion
-    ? { duration: 0 }
-    : ({ type: "spring", duration: 0.3, bounce: 0 } as const);
+    ? INSTANT_TRANSITION
+    : SUBMIT_TRANSITION;
 
   return (
     <div
@@ -258,6 +274,7 @@ export function FeedbackPopover({
           ref={triggerRef}
           type="button"
           layoutId="feedback-popover-wrapper"
+          layoutDependency={TRIGGER_LAYOUT_DEPENDENCY}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={isOpen ? reactId : undefined}
@@ -266,11 +283,12 @@ export function FeedbackPopover({
           style={{ borderRadius: 8 }}
           className={cn(
             buttonVariants({ variant: "outline", size: "default" }),
-            "relative overflow-hidden transition-colors",
+            "relative overflow-hidden transition-colors motion-reduce:transition-none",
           )}
         >
           <motion.span
             layoutId="feedback-popover-title"
+            layoutDependency={TRIGGER_LAYOUT_DEPENDENCY}
             transition={layoutTransition}
             className="leading-6"
           >
@@ -285,6 +303,7 @@ export function FeedbackPopover({
               id={reactId}
               ref={popoverRef}
               layoutId="feedback-popover-wrapper"
+              layoutDependency={POPOVER_LAYOUT_DEPENDENCY}
               role="dialog"
               aria-labelledby={titleId}
               aria-describedby={
@@ -297,6 +316,7 @@ export function FeedbackPopover({
               <motion.span
                 id={titleId}
                 layoutId="feedback-popover-title"
+                layoutDependency={POPOVER_LAYOUT_DEPENDENCY}
                 transition={layoutTransition}
                 data-state={formState}
                 data-has-feedback={feedback ? "true" : "false"}
@@ -312,13 +332,25 @@ export function FeedbackPopover({
                     initial={
                       shouldReduceMotion
                         ? false
-                        : { opacity: 0, y: -32, filter: "blur(4px)" }
+                        : {
+                            opacity: 0,
+                            transform: "translateY(-32px)",
+                            filter: "blur(4px)",
+                          }
                     }
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    animate={{
+                      opacity: 1,
+                      transform: "translateY(0px)",
+                      filter: "blur(0px)",
+                    }}
                     exit={
                       shouldReduceMotion
                         ? undefined
-                        : { opacity: 0, y: 8, filter: "blur(4px)" }
+                        : {
+                            opacity: 0,
+                            transform: "translateY(8px)",
+                            filter: "blur(4px)",
+                          }
                     }
                     transition={contentTransition}
                     className="flex h-full flex-col items-center justify-center gap-3 px-8 py-8 text-center"
@@ -347,7 +379,11 @@ export function FeedbackPopover({
                     exit={
                       shouldReduceMotion
                         ? undefined
-                        : { opacity: 0, y: 8, filter: "blur(4px)" }
+                        : {
+                            opacity: 0,
+                            transform: "translateY(8px)",
+                            filter: "blur(4px)",
+                          }
                     }
                     transition={contentTransition}
                     onSubmit={(event) => {
@@ -390,13 +426,22 @@ export function FeedbackPopover({
                             initial={
                               shouldReduceMotion
                                 ? false
-                                : { opacity: 0, y: -25 }
+                                : {
+                                    opacity: 0,
+                                    transform: "translateY(-25px)",
+                                  }
                             }
-                            animate={{ opacity: 1, y: 0 }}
+                            animate={{
+                              opacity: 1,
+                              transform: "translateY(0px)",
+                            }}
                             exit={
                               shouldReduceMotion
                                 ? undefined
-                                : { opacity: 0, y: 25 }
+                                : {
+                                    opacity: 0,
+                                    transform: "translateY(25px)",
+                                  }
                             }
                             transition={submitTransition}
                             className="inline-flex items-center justify-center gap-1.5"
