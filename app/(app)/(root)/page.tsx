@@ -63,7 +63,7 @@ export default function Home() {
         <div className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between gap-8 overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-muted/40 to-transparent"
+            className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-linear-to-l from-muted/40 to-transparent"
           />
 
           <div className="relative z-10 flex max-w-xl flex-col gap-7">
@@ -136,7 +136,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
     </main>
   );
 }
