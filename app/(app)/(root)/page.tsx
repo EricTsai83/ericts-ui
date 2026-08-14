@@ -2,49 +2,17 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { SVGProps } from "react";
 
-import {
-  ComponentPreviewBrowser,
-  type ComponentPreviewBrowserItem,
-} from "@/components/component-preview-browser";
 import { HomeHeroMark } from "@/components/home-hero-mark";
 import {
-  HomeMotionWall,
-  type HomeMotionWallItem,
-} from "@/components/home-motion-wall";
+  HomeRegistryIndex,
+  type HomeRegistryIndexGroup,
+} from "@/components/home-registry-index";
 import { buttonVariants } from "@/components/ui/button";
+import { getRegistryItemsByCategory } from "@/lib/registry";
 import {
-  getRegistryItem,
-  getRegistryItemBadges,
-  getRegistryItemsByCategory,
-  type RegistryItem,
-} from "@/lib/registry";
-
-// Each of these has a live vignette in the home motion wall, in spotlight
-// order. Adding a name here requires a matching vignette in home-motion-wall.
-const homeMotionWallNames = [
-  "multi-step",
-  "otp-input",
-  "expanding-slider",
-  "status-button",
-  "expandable-tabs",
-  "expandable-toolbar",
-  "check-animation",
-  "text-morph",
-] as const;
-
-// Keep the preview browser curated independently from the registry highlight grid.
-// These should be UI components with strong live demos, in the order they appear.
-const componentPreviewNames = [
-  "expandable-tabs",
-  "expanding-panel",
-  "highlight-tabs",
-  "smooth-height",
-  "status-button",
-  "otp-input",
-  "multi-step",
-  "adaptive-drawer",
-  "text-morph",
-] as const;
+  getRegistryDisplayItems,
+  getRegistryDisplayNavigationGroups,
+} from "@/lib/registry-display";
 
 const builtOn = [
   {
@@ -70,33 +38,29 @@ const builtOn = [
 ] as const;
 
 export default function Home() {
-  const motionWallItems: HomeMotionWallItem[] = homeMotionWallNames
-    .map((name) => getRegistryItem(name))
-    .filter((item): item is RegistryItem => item !== undefined)
-    .map((item) => ({
-      name: item.name,
-      title: item.title ?? item.name,
-      href: item.href,
-    }));
+  // Components carry enough items to be worth splitting by semantic category;
+  // hooks and blocks are short enough that their own sub-categories would read
+  // as noise, so each collapses to a single kind-labelled group.
+  const indexGroups: HomeRegistryIndexGroup[] = [
+    ...getRegistryDisplayNavigationGroups("component").map((group) => ({
+      label: group.label,
+      items: group.items.map(toIndexItem),
+    })),
+    ...(["hook", "block"] as const).map((kind) => ({
+      label: kind === "hook" ? "Hooks" : "Blocks",
+      items: getRegistryDisplayItems(kind)
+        .filter((item) => item.browsable !== false)
+        .map(toIndexItem),
+    })),
+  ].filter((group) => group.items.length > 0);
   const componentCount = getRegistryItemsByCategory("ui").length;
   const hookCount = getRegistryItemsByCategory("hooks").length;
   const blockCount = getRegistryItemsByCategory("blocks").length;
-  const previewItems: ComponentPreviewBrowserItem[] = componentPreviewNames
-    .map((name) => getRegistryItem(name))
-    .filter((item): item is RegistryItem => item !== undefined)
-    .filter((item) => item.category === "ui")
-    .map((item) => ({
-      name: item.name,
-      title: item.title ?? item.name,
-      description: item.description,
-      href: item.href,
-      badges: getRegistryItemBadges(item, 2).visible,
-    }));
 
   return (
     <main className="isolate min-h-[calc(100vh-3.5rem)] text-foreground">
-      <section className="grid min-h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(340px,42vw)_minmax(0,1fr)] lg:items-start">
-        <div className="relative flex min-h-[560px] flex-col justify-between overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
+      <section className="grid lg:grid-cols-[minmax(360px,40vw)_minmax(0,1fr)] lg:items-start">
+        <div className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between gap-8 overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-muted/40 to-transparent"
@@ -104,12 +68,12 @@ export default function Home() {
 
           <div className="relative z-10 flex max-w-xl flex-col gap-7">
             <div className="flex flex-col gap-5">
-              <h1 className="max-w-[12ch] text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                Motion primitives for shadcn teams.
+              <h1 className="max-w-[18ch] text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+                Motion-First Components
               </h1>
               <p className="max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
-                A compact registry for polished interaction components, hooks,
-                and CSS-friendly motion patterns you can install as source.
+                Components, hooks, and blocks for any shadcn/ui project. Each
+                installs as source, so the timing stays yours to tune.
               </p>
             </div>
 
@@ -130,85 +94,26 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative z-10 my-12 flex flex-1 items-center justify-center lg:my-0">
+          <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center py-1">
             <HomeHeroMark />
           </div>
 
-          <div className="relative z-10 max-w-lg text-xs leading-5 text-muted-foreground">
-            Special thanks to{" "}
-            <Link
-              href="https://x.com/shadcn"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              shadcn
-            </Link>
-            ,{" "}
-            <Link
-              href="https://x.com/emilkowalski"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Emil Kowalski
-            </Link>
-            ,{" "}
-            <Link
-              href="https://x.com/mannupaaji"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Manu Arora
-            </Link>
-            , and{" "}
-            <Link
-              href="https://x.com/saurra3h"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-sm font-medium text-foreground underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Saurabh
-            </Link>
-            , whose open-source work and component design references shaped this
-            site.
-          </div>
-        </div>
+          <div className="relative z-10 flex flex-col gap-7">
+            <div className="flex flex-wrap gap-x-10 gap-y-5">
+              <Stat
+                href="/components"
+                value={componentCount}
+                label="components"
+              />
+              <Stat href="/hooks" value={hookCount} label="hooks" />
+              <Stat href="/blocks" value={blockCount} label="blocks" />
+            </div>
 
-        <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10">
-            <section className="flex flex-col gap-6">
-              <div className="flex items-center gap-3">
-                <h2 className="shrink-0 text-xl font-semibold tracking-tight">
-                  Readme
-                </h2>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              <div className="flex max-w-5xl flex-col gap-4">
-                <p className="text-base leading-7 text-muted-foreground sm:text-lg">
-                  Install small, composable UI pieces for animated height,
-                  clipboard feedback, tab highlights, multi-step flows, adaptive
-                  drawers, and reduced-motion-aware behavior.
-                </p>
-                <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-                  <Stat
-                    href="/components"
-                    value={componentCount}
-                    label="components"
-                  />
-                  <Stat href="/hooks" value={hookCount} label="hooks" />
-                  <Stat href="/blocks" value={blockCount} label="blocks" />
-                </div>
-              </div>
-            </section>
-
-            <section className="grid gap-4 sm:grid-cols-[140px_1fr] sm:items-center">
-              <p className="text-sm font-medium text-muted-foreground">
+            <div className="flex flex-col gap-2.5">
+              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                 Built on
               </p>
-              <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground">
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
                 {builtOn.map(({ label, icon: Icon, iconClassName }) => (
                   <span
                     key={label}
@@ -221,16 +126,23 @@ export default function Home() {
                   </span>
                 ))}
               </div>
-            </section>
+            </div>
+          </div>
+        </div>
 
-            <HomeMotionWall items={motionWallItems} />
-
-            <ComponentPreviewBrowser items={previewItems} />
+        <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
+          <div className="mx-auto max-w-6xl">
+            <HomeRegistryIndex groups={indexGroups} />
           </div>
         </div>
       </section>
+
     </main>
   );
+}
+
+function toIndexItem(item: { name: string; title: string; href: string }) {
+  return { name: item.name, title: item.title, href: item.href };
 }
 
 function ShadcnUiIcon(props: SVGProps<SVGSVGElement>) {
@@ -300,10 +212,14 @@ function Stat({
     <Link
       href={href}
       aria-label={`View ${value} ${label}`}
-      className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group flex min-w-0 flex-col gap-1.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span className="font-mono text-sm text-foreground">{value}</span>
-      <span>{label}</span>
+      <span className="font-mono text-3xl font-medium leading-none tabular-nums text-foreground">
+        {value}
+      </span>
+      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground underline-offset-4 transition-colors group-hover:text-foreground group-hover:underline">
+        {label}
+      </span>
     </Link>
   );
 }
