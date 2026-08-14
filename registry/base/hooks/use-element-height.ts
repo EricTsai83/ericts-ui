@@ -24,6 +24,8 @@ import { useCallback, useRef, useState } from "react";
  * - Uses a *callback ref*, so it re-measures correctly even when the measured
  *   element is conditionally rendered or swapped out — the common case for
  *   collapsibles. (A `useRef` + `useEffect([])` hook would silently miss that.)
+ * - Returns a `measure` callback for state changes that must synchronize their
+ *   height target before paint, such as a step transition with layout motion.
  * - Reads the *border-box* height (padding + border included), because that's the
  *   box the parent actually has to grow to.
  * - `threshold` ignores sub-pixel ResizeObserver noise that would otherwise
@@ -31,24 +33,37 @@ import { useCallback, useRef, useState } from "react";
  */
 export function useElementHeight<T extends HTMLElement>(threshold = 0.5) {
   const [height, setHeight] = useState<number | null>(null);
+  const elementRef = useRef<T | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
+
+  const updateHeight = useCallback(
+    (nextHeight: number) => {
+      setHeight((currentHeight) => {
+        if (currentHeight === null) return nextHeight;
+
+        return Math.abs(currentHeight - nextHeight) > threshold
+          ? nextHeight
+          : currentHeight;
+      });
+    },
+    [threshold]
+  );
+
+  const measure = useCallback(() => {
+    const element = elementRef.current;
+
+    if (!element) return;
+
+    updateHeight(element.getBoundingClientRect().height);
+  }, [updateHeight]);
 
   const ref = useCallback(
     (element: T | null) => {
       // Tear down the previous observer whenever the element changes or unmounts.
       observerRef.current?.disconnect();
+      elementRef.current = element;
 
       if (!element) return;
-
-      const updateHeight = (nextHeight: number) => {
-        setHeight((currentHeight) => {
-          if (currentHeight === null) return nextHeight;
-
-          return Math.abs(currentHeight - nextHeight) > threshold
-            ? nextHeight
-            : currentHeight;
-        });
-      };
 
       updateHeight(element.getBoundingClientRect().height);
 
@@ -72,8 +87,8 @@ export function useElementHeight<T extends HTMLElement>(threshold = 0.5) {
       observer.observe(element);
       observerRef.current = observer;
     },
-    [threshold]
+    [updateHeight]
   );
 
-  return [ref, height] as const;
+  return [ref, height, measure] as const;
 }

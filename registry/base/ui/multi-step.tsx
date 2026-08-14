@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils";
 type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
 type StepDirection = -1 | 1;
 
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
+
 export type MultiStepItem = {
   id: string;
   content: React.ReactNode;
@@ -68,7 +71,8 @@ export function MultiStep({
   ...props
 }: MultiStepProps) {
   const [uncontrolledStep, setUncontrolledStep] = React.useState(defaultStep);
-  const [innerRef, height] = useElementHeight<HTMLDivElement>();
+  const [innerRef, height, measureHeight] =
+    useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
 
   const selectedStep = clampStep(step ?? uncontrolledStep, steps.length);
@@ -77,23 +81,35 @@ export function MultiStep({
   const isLastStep = selectedStep === steps.length - 1;
   const activeStep = steps[selectedStep];
 
-  // Direction is derived from the step delta during render (rather than set in
-  // the click handlers), so externally-driven `step` changes — the only
-  // kind that exist with a custom `footer` — still animate the right way.
   const [transitionState, setTransitionState] = React.useState<{
     step: number;
     direction: StepDirection;
   }>({ step: selectedStep, direction: 1 });
   let direction = transitionState.direction;
 
+  // Built-in actions update this state in the same event as the step. This
+  // fallback only derives direction for externally driven controlled changes.
   if (transitionState.step !== selectedStep) {
     direction = selectedStep < transitionState.step ? -1 : 1;
     setTransitionState({ step: selectedStep, direction });
   }
 
+  // Measure the new step before paint so the content, footer projection, and
+  // container height begin from the same animation frame.
+  useIsomorphicLayoutEffect(() => {
+    measureHeight();
+  }, [activeStep?.id, measureHeight]);
+
   const setStep = React.useCallback(
     (nextStep: number) => {
       const resolvedStep = clampStep(nextStep, steps.length);
+      const nextDirection: StepDirection =
+        resolvedStep < selectedStep ? -1 : 1;
+
+      setTransitionState({
+        step: resolvedStep,
+        direction: nextDirection,
+      });
 
       if (!isControlled) {
         setUncontrolledStep(resolvedStep);
@@ -101,12 +117,12 @@ export function MultiStep({
 
       onStepChange?.(resolvedStep);
     },
-    [isControlled, onStepChange, steps.length],
+    [isControlled, onStepChange, selectedStep, steps.length],
   );
 
   const resolvedTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
-    : (transition ?? { type: "spring", duration: 0.5, bounce: 0 });
+    : (transition ?? { type: "spring", duration: 0.3, bounce: 0 });
   const contentVariants = shouldReduceMotion
     ? reducedMotionStepVariants
     : stepVariants;

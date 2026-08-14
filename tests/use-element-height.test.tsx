@@ -2,6 +2,8 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useLayoutEffect } from "react";
+
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 
 class ResizeObserverMock implements ResizeObserver {
@@ -41,11 +43,18 @@ afterEach(() => {
 function HeightHarness({
   threshold,
   version = 0,
+  measureVersion = 0,
 }: {
   threshold?: number;
   version?: number;
+  measureVersion?: number;
 }) {
-  const [ref, height] = useElementHeight<HTMLDivElement>(threshold);
+  const [ref, height, measure] =
+    useElementHeight<HTMLDivElement>(threshold);
+
+  useLayoutEffect(() => {
+    if (measureVersion > 0) measure();
+  }, [measure, measureVersion]);
 
   return (
     <>
@@ -136,6 +145,18 @@ describe("useElementHeight", () => {
     });
 
     expect(screen.getByTestId("height").textContent).toBe("82.1");
+  });
+
+  it("can remeasure synchronously after a layout-changing render", () => {
+    const getBoundingClientRect = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue(rectWithHeight(40));
+    const view = render(<HeightHarness />);
+
+    getBoundingClientRect.mockReturnValue(rectWithHeight(84));
+    view.rerender(<HeightHarness measureVersion={1} />);
+
+    expect(screen.getByTestId("height").textContent).toBe("84");
   });
 
   it("falls back to the rendered rectangle when border-box data is absent", () => {
