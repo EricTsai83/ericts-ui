@@ -41,6 +41,8 @@ export type RailStageProps = Omit<
    */
   orientation?: "vertical" | "horizontal";
   railClassName?: string;
+  tabClassName?: string;
+  indicatorClassName?: string;
   stageClassName?: string;
   headerClassName?: string;
 };
@@ -89,11 +91,14 @@ export function RailStage({
   className,
   style,
   railClassName,
+  tabClassName,
+  indicatorClassName,
   stageClassName,
   headerClassName,
   ...props
 }: RailStageProps) {
   const railRef = React.useRef<HTMLDivElement | null>(null);
+  const indicatorRef = React.useRef<HTMLSpanElement | null>(null);
   const firstId = items[0]?.id;
   const [uncontrolledValue, setUncontrolledValue] = React.useState(
     () => defaultValue ?? firstId,
@@ -115,6 +120,41 @@ export function RailStage({
     [isControlled, onValueChange],
   );
 
+  const syncIndicator = React.useCallback(() => {
+    const rail = railRef.current;
+    const indicator = indicatorRef.current;
+    const selected = rail?.querySelector<HTMLElement>(
+      "[data-rail-stage-active]",
+    );
+
+    if (!rail || !indicator || !selected) return;
+
+    const indicatorHeight = Math.max(selected.offsetHeight - 16, 0);
+    const indicatorY =
+      selected.offsetTop + (selected.offsetHeight - indicatorHeight) / 2;
+
+    indicator.style.height = `${indicatorHeight}px`;
+    indicator.style.transform = `translate3d(0, ${indicatorY}px, 0)`;
+    indicator.dataset.active = "";
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const rail = railRef.current;
+    const selected = rail?.querySelector<HTMLElement>(
+      "[data-rail-stage-active]",
+    );
+
+    syncIndicator();
+
+    if (!rail || !selected || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(syncIndicator);
+    observer.observe(rail);
+    observer.observe(selected);
+
+    return () => observer.disconnect();
+  }, [activeItem?.id, syncIndicator]);
+
   // Only meaningful in the collapsed strip: keep the selected entry visible when
   // selection moves by keyboard or from outside the component.
   React.useEffect(() => {
@@ -122,7 +162,9 @@ export function RailStage({
 
     if (!rail || rail.scrollWidth <= rail.clientWidth) return;
 
-    const selected = rail.querySelector<HTMLElement>("[data-active]");
+    const selected = rail.querySelector<HTMLElement>(
+      "[data-rail-stage-active]",
+    );
 
     if (!selected) return;
 
@@ -158,7 +200,7 @@ export function RailStage({
     >
       <div
         className={cn(
-          "flex min-w-0 flex-col",
+          "order-2 flex min-w-0 flex-col",
           railSide === "start" ? "sm:order-2" : "sm:order-1",
         )}
       >
@@ -191,32 +233,46 @@ export function RailStage({
         ref={railRef}
         aria-label={railLabel}
         className={cn(
-          "flex min-w-0 flex-nowrap overflow-x-auto overflow-y-hidden border-t",
+          "relative order-1 flex min-w-0 flex-nowrap overflow-x-auto overflow-y-hidden border-b",
           // Hide the strip's scrollbar without depending on a project utility.
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          "sm:flex-col sm:overflow-visible sm:border-t-0",
+          "sm:flex-col sm:overflow-visible sm:border-b-0",
           railSide === "start"
             ? "sm:order-1 sm:border-r"
             : "sm:order-2 sm:border-l",
           railClassName,
         )}
       >
+        <span
+          ref={indicatorRef}
+          aria-hidden="true"
+          data-slot="rail-stage-indicator"
+          className={cn(
+            "pointer-events-none absolute top-0 hidden w-px bg-foreground opacity-0 will-change-transform",
+            "transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.645,0.045,0.355,1)]",
+            "data-active:opacity-100 motion-reduce:transition-none sm:block",
+            railSide === "start" ? "left-0" : "right-0",
+            indicatorClassName,
+          )}
+        />
+
         {items.map((item) => (
           <TabsPrimitive.Tab
             key={item.id}
             value={item.id}
+            data-rail-stage-active={
+              item.id === activeItem.id ? "" : undefined
+            }
             className={cn(
               "relative -mb-px flex h-11 min-w-44 flex-none items-center gap-2 border-b px-4 text-left font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground transition-colors",
               "hover:bg-muted/30 hover:text-foreground",
               "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              // The selected marker runs along the edge the stage is on, so the
-              // rail reads as attached to what it controls.
+              // The collapsed strip keeps a local underline; wide layouts use
+              // the single measured indicator above so it can slide between tabs.
               "data-active:bg-muted/35 data-active:text-foreground",
               "data-active:after:absolute data-active:after:inset-x-4 data-active:after:bottom-0 data-active:after:h-px data-active:after:bg-foreground",
-              "sm:min-w-0 sm:data-active:after:inset-x-auto sm:data-active:after:inset-y-2 sm:data-active:after:h-auto sm:data-active:after:w-px",
-              railSide === "start"
-                ? "sm:data-active:after:left-0"
-                : "sm:data-active:after:right-0",
+              "sm:min-w-0 sm:data-active:after:hidden",
+              tabClassName,
             )}
           >
             <span className="min-w-0 truncate">{item.label}</span>

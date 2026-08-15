@@ -36,6 +36,13 @@ const nextConfig: NextConfig = {
         destination: "/blocks",
         permanent: false,
       },
+      {
+        // Rail Stage moved from the component catalogue to blocks without a
+        // rename, so preserve links to its former detail page.
+        source: "/components/rail-stage",
+        destination: "/blocks/rail-stage",
+        permanent: false,
+      },
       ...renamedRegistryItems.flatMap(([from, to]) => [
         {
           source: `/components/${from}`,

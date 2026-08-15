@@ -565,20 +565,20 @@
     },
     {
       "name": "rail-stage",
-      "type": "registry:ui",
+      "type": "registry:block",
       "title": "Rail Stage",
-      "description": "A Base UI tab shell that pairs a scalable vertical rail of choices with a single large stage, collapsing to a scrollable strip on small screens.",
+      "description": "A composed content browser that pairs a scalable vertical rail with one focused stage, collapsing to a scrollable strip on small screens.",
       "categories": ["navigation"],
       "meta": {
         "tags": ["tabs", "rail", "gallery", "roving-focus", "arrow-keys"],
-        "effects": ["panel-swap"]
+        "effects": ["panel-swap", "indicator-slide", "reduced-motion"]
       },
       "dependencies": ["@base-ui/react"],
       "files": [
         {
-          "path": "registry/base/ui/rail-stage.tsx",
-          "type": "registry:ui",
-          "target": "components/ui/rail-stage.tsx"
+          "path": "registry/base/blocks/rail-stage.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/rail-stage.tsx"
         }
       ]
     },

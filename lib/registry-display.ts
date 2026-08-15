@@ -110,6 +110,13 @@ const registryDisplayCategories = [
       "Content-agnostic wrappers that add motion to whatever you nest inside them.",
   },
   {
+    slug: "navigation",
+    kind: "block",
+    label: "Navigation",
+    description:
+      "Composed browsing layouts that pair navigation with a focused content stage.",
+  },
+  {
     slug: "marketing",
     kind: "block",
     label: "Marketing",
@@ -154,7 +161,6 @@ const registryDisplayItemConfigs = [
   { name: "highlight-tabs", category: "navigation" },
   { name: "sliding-list", category: "navigation" },
   { name: "rail-list", category: "navigation" },
-  { name: "rail-stage", category: "navigation", viewport: "wide" },
   { name: "expandable-segmented-tabs", category: "navigation" },
   { name: "expandable-tabs", category: "navigation", viewport: "wide" },
   { name: "navigation-menu", category: "navigation", viewport: "wide" },
@@ -176,6 +182,7 @@ const registryDisplayItemConfigs = [
   { name: "projected-shadow", category: "effect" },
   { name: "staggered-entrance", category: "effect" },
   { name: "context-cursor", category: "effect", viewport: "wide" },
+  { name: "rail-stage", category: "navigation", viewport: "wide" },
   { name: "use-reduced-motion", category: "accessibility" },
   { name: "use-element-height", category: "measurement" },
   { name: "use-element-size-map", category: "measurement", viewport: "wide" },
