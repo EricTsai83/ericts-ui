@@ -18,6 +18,8 @@ export type ProjectedShadowOffset = {
 export type ProjectedShadowProps = React.ComponentProps<"span"> & {
   /** Keep the gathered state active without requiring hover. */
   active?: boolean;
+  /** Enable the layered hover/focus animation. Set false for a neutral target. */
+  animated?: boolean;
   /** Animation duration for release. Numeric values are converted to ms. */
   duration?: ProjectedShadowTimingValue;
   /** Animation duration for gather. Numeric values are converted to ms. */
@@ -45,6 +47,7 @@ export type ProjectedShadowProps = React.ComponentProps<"span"> & {
 export function ProjectedShadow({
   active,
   activeDuration,
+  animated = true,
   children,
   className,
   contactShadowClassName,
@@ -65,7 +68,8 @@ export function ProjectedShadow({
   return (
     <span
       data-slot="projected-shadow"
-      data-active={active ? "" : undefined}
+      data-active={animated && active ? "" : undefined}
+      data-animated={animated ? "" : undefined}
       className={cn(
         "projected-shadow relative inline-flex items-center justify-center",
         className,
@@ -82,7 +86,7 @@ export function ProjectedShadow({
       )}
       {...props}
     >
-      {showProjectedShadow ? (
+      {animated && showProjectedShadow ? (
         <span
           aria-hidden="true"
           data-slot="projected-shadow-projected"
@@ -95,7 +99,7 @@ export function ProjectedShadow({
         </span>
       ) : null}
 
-      {showContactShadow ? (
+      {animated && showContactShadow ? (
         <span
           aria-hidden="true"
           data-slot="projected-shadow-contact"

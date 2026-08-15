@@ -390,7 +390,7 @@
       "name": "projected-shadow",
       "type": "registry:ui",
       "title": "Projected Shadow",
-      "description": "A CSS-powered primitive that layers an element with projected and contact shadows, then gathers them on hover or active state.",
+      "description": "A CSS-powered primitive that layers an element with projected and contact shadows, supports an animation opt-out, and gathers on hover or active state.",
       "categories": ["effect"],
       "meta": {
         "tags": [

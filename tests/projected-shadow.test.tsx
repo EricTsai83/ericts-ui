@@ -29,6 +29,7 @@ describe("ProjectedShadow", () => {
     // Empty-string presence attribute, matching the rest of the registry
     // (HighlightTabs / RailList / SlidingList) so `[data-active]` selectors work.
     expect(root?.dataset.active).toBe("");
+    expect(root?.dataset.animated).toBe("");
     expect(root?.style.getPropertyValue("--projected-shadow-duration")).toBe(
       "140ms",
     );
@@ -54,6 +55,27 @@ describe("ProjectedShadow", () => {
       </ProjectedShadow>,
     );
 
+    expect(
+      container.querySelector("[data-slot='projected-shadow-projected']"),
+    ).toBeNull();
+    expect(
+      container.querySelector("[data-slot='projected-shadow-contact']"),
+    ).toBeNull();
+    expect(screen.getAllByText("Icon")).toHaveLength(1);
+  });
+
+  it("renders a neutral target when animation is disabled", () => {
+    const { container } = render(
+      <ProjectedShadow active animated={false}>
+        <span>Icon</span>
+      </ProjectedShadow>,
+    );
+    const root = container.querySelector<HTMLElement>(
+      "[data-slot='projected-shadow']",
+    );
+
+    expect(root?.dataset.animated).toBeUndefined();
+    expect(root?.dataset.active).toBeUndefined();
     expect(
       container.querySelector("[data-slot='projected-shadow-projected']"),
     ).toBeNull();
