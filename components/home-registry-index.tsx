@@ -1,5 +1,12 @@
-import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+
+import { RegistryKindIcon } from "@/components/registry-kind-icon";
+import {
+  getRegistryKindGroupLabel,
+  getRegistryKindSegment,
+  type RegistryKind,
+} from "@/lib/registry-kind";
+import { cn } from "@/lib/utils";
 
 export type HomeRegistryIndexItem = {
   name: string;
@@ -8,9 +15,14 @@ export type HomeRegistryIndexItem = {
 };
 
 export type HomeRegistryIndexGroup = {
-  /** Group heading; a semantic category for components, a kind for the rest. */
+  /** A semantic category inside one registry kind. */
   label: string;
   items: HomeRegistryIndexItem[];
+};
+
+export type HomeRegistryIndexPart = {
+  kind: RegistryKind;
+  groups: HomeRegistryIndexGroup[];
 };
 
 /**
@@ -31,65 +43,140 @@ export type HomeRegistryIndexGroup = {
  * frame snapped the block down before easing it back.
  */
 export function HomeRegistryIndex({
-  groups,
+  parts,
 }: {
-  groups: HomeRegistryIndexGroup[];
+  parts: HomeRegistryIndexPart[];
 }) {
-  if (groups.length === 0) {
+  if (parts.length === 0) {
     return null;
   }
 
+  const componentPart = parts.find((part) => part.kind === "component");
+  const supportingParts = parts.filter((part) => part.kind !== "component");
+
   return (
-    <section className="flex min-w-0 flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <h2 className="shrink-0 text-xl font-semibold tracking-tight">
-          Registry
+    <section
+      aria-labelledby="registry-index-title"
+      className="relative min-w-0 bg-registry-surface px-5 py-8 text-foreground sm:px-8 sm:py-10 lg:min-h-[calc(100vh-3.5rem)] lg:px-10 lg:py-10 xl:px-12"
+    >
+      <header>
+        <h2
+          id="registry-index-title"
+          className="text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl"
+        >
+          Contents
         </h2>
-        <div className="h-px flex-1 bg-border" />
-      </div>
+      </header>
 
-      <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-        Every component, hook, and block, grouped by what it does. Open one for
-        its docs, live states, and install command.
-      </p>
+      <div className="mt-12 flex flex-col gap-16">
+        {componentPart ? (
+          <RegistryPart part={componentPart} />
+        ) : null}
 
-      {/* Column flow rather than a grid: groups vary from one to nine items, so
-          letting them pack into columns keeps the sheet dense instead of
-          leaving a grid's ragged gaps. */}
-      <div className="columns-1 gap-x-10 sm:columns-2 xl:columns-3">
-        {groups.map((group) => (
-          <div
-            key={group.label}
-            className="mb-7 break-inside-avoid last:mb-0"
-          >
-            <div className="mb-1.5 flex items-baseline justify-between gap-2 border-b pb-2">
-              <h3 className="truncate font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-foreground">
-                {group.label}
-              </h3>
-              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                {group.items.length}
-              </span>
-            </div>
-
-            <ul className="flex flex-col">
-              {group.items.map((item) => (
-                <li key={item.name} className="min-w-0">
-                  <Link
-                    href={item.href}
-                    className="group/item -mx-2 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm leading-5 text-foreground/75 transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span className="truncate">{item.title}</span>
-                    <ArrowUpRight
-                      aria-hidden="true"
-                      className="size-3 shrink-0 -translate-x-1 opacity-0 transition-[opacity,transform] duration-150 group-hover/item:translate-x-0 group-hover/item:opacity-100 group-focus-visible/item:translate-x-0 group-focus-visible/item:opacity-100"
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        {supportingParts.length > 0 ? (
+          <div className="grid gap-16 sm:grid-cols-2 sm:gap-10">
+            {supportingParts.map((part) => (
+              <div key={part.kind} className="min-w-0">
+                <RegistryPart part={part} />
+              </div>
+            ))}
           </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function RegistryPart({
+  part,
+}: {
+  part: HomeRegistryIndexPart;
+}) {
+  const label = getRegistryKindGroupLabel(part.kind);
+
+  return (
+    <section aria-labelledby={`registry-part-${part.kind}`}>
+      <header className="mb-7">
+        <Link
+          href={`/${getRegistryKindSegment(part.kind)}`}
+          className="group inline-flex items-center gap-3 rounded-sm text-foreground transition-colors duration-150 hover:text-foreground/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-registry-surface"
+        >
+          <RegistryKindIcon
+            kind={part.kind}
+            className="size-6 text-muted-foreground transition-colors duration-150 group-hover:text-foreground/65"
+          />
+          <h3
+            id={`registry-part-${part.kind}`}
+            className={cn(
+              "font-semibold tracking-[-0.025em] text-balance",
+              part.kind === "component"
+                ? "text-3xl sm:text-4xl"
+                : "text-2xl sm:text-3xl",
+            )}
+          >
+            {label}
+          </h3>
+        </Link>
+      </header>
+
+      <div
+        className={cn(
+          part.kind === "component"
+            ? "columns-1 gap-x-10 sm:columns-2 2xl:columns-3"
+            : "flex flex-col gap-7",
+        )}
+      >
+        {part.groups.map((group, groupIndex) => (
+          <RegistryGroup
+            key={group.label}
+            group={group}
+            groupIndex={groupIndex}
+            partKind={part.kind}
+          />
         ))}
       </div>
+    </section>
+  );
+}
+
+function RegistryGroup({
+  group,
+  groupIndex,
+  partKind,
+}: {
+  group: HomeRegistryIndexGroup;
+  groupIndex: number;
+  partKind: RegistryKind;
+}) {
+  const headingId = `registry-${partKind}-chapter-${groupIndex + 1}`;
+
+  return (
+    <section
+      aria-labelledby={headingId}
+      className="mb-8 break-inside-avoid last:mb-0"
+    >
+      <h4
+        id={headingId}
+        className="mb-3 flex items-baseline gap-2 truncate text-base font-semibold tracking-tight"
+      >
+        <span className="font-mono text-xs font-normal text-muted-foreground">
+          {String(groupIndex + 1).padStart(2, "0")}
+        </span>
+        {group.label}
+      </h4>
+
+      <ol className="flex flex-col">
+        {group.items.map((item) => (
+          <li key={item.name} className="min-w-0">
+            <Link
+              href={item.href}
+              className="-mx-2 flex min-h-8 items-center rounded-md px-2 text-sm leading-5 text-foreground/75 transition-colors duration-150 hover:bg-background/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="min-w-0 shrink truncate">{item.title}</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

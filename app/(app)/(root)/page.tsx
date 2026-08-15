@@ -5,14 +5,10 @@ import type { SVGProps } from "react";
 import { HomeHeroMark } from "@/components/home-hero-mark";
 import {
   HomeRegistryIndex,
-  type HomeRegistryIndexGroup,
+  type HomeRegistryIndexPart,
 } from "@/components/home-registry-index";
 import { buttonVariants } from "@/components/ui/button";
-import { getRegistryItemsByCategory } from "@/lib/registry";
-import {
-  getRegistryDisplayItems,
-  getRegistryDisplayNavigationGroups,
-} from "@/lib/registry-display";
+import { getRegistryDisplayNavigationGroups } from "@/lib/registry-display";
 
 const builtOn = [
   {
@@ -38,25 +34,20 @@ const builtOn = [
 ] as const;
 
 export default function Home() {
-  // Components carry enough items to be worth splitting by semantic category;
-  // hooks and blocks are short enough that their own sub-categories would read
-  // as noise, so each collapses to a single kind-labelled group.
-  const indexGroups: HomeRegistryIndexGroup[] = [
-    ...getRegistryDisplayNavigationGroups("component").map((group) => ({
-      label: group.label,
-      items: group.items.map(toIndexItem),
-    })),
-    ...(["hook", "block"] as const).map((kind) => ({
-      label: kind === "hook" ? "Hooks" : "Blocks",
-      items: getRegistryDisplayItems(kind)
-        .filter((item) => item.browsable !== false)
-        .map(toIndexItem),
-    })),
-  ].filter((group) => group.items.length > 0);
-  const componentCount = getRegistryItemsByCategory("ui").length;
-  const hookCount = getRegistryItemsByCategory("hooks").length;
-  const blockCount = getRegistryItemsByCategory("blocks").length;
-
+  // Mirror the registry's shared taxonomy here so components, hooks, and blocks
+  // all expose the same category-level wayfinding as their dedicated pages.
+  const allIndexParts = (["component", "hook", "block"] as const).map(
+    (kind): HomeRegistryIndexPart => ({
+      kind,
+      groups: getRegistryDisplayNavigationGroups(kind).map((group) => ({
+        label: group.label,
+        items: group.items.map(toIndexItem),
+      })),
+    }),
+  );
+  const indexParts = allIndexParts.filter((part) =>
+    part.groups.some((group) => group.items.length > 0),
+  );
   return (
     <main className="isolate min-h-[calc(100vh-3.5rem)] text-foreground">
       <section className="grid lg:grid-cols-[minmax(360px,40vw)_minmax(0,1fr)] lg:items-start">
@@ -98,42 +89,28 @@ export default function Home() {
             <HomeHeroMark />
           </div>
 
-          <div className="relative z-10 flex flex-col gap-7">
-            <div className="flex flex-wrap gap-x-10 gap-y-5">
-              <Stat
-                href="/components"
-                value={componentCount}
-                label="components"
-              />
-              <Stat href="/hooks" value={hookCount} label="hooks" />
-              <Stat href="/blocks" value={blockCount} label="blocks" />
-            </div>
-
-            <div className="flex flex-col gap-2.5">
-              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                Built on
-              </p>
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
-                {builtOn.map(({ label, icon: Icon, iconClassName }) => (
-                  <span
-                    key={label}
-                    className="inline-flex min-w-0 items-center gap-2"
-                  >
-                    <span className="flex size-5 shrink-0 items-center justify-center text-foreground">
-                      <Icon aria-hidden="true" className={iconClassName} />
-                    </span>
-                    <span>{label}</span>
+          <div className="relative z-10 flex flex-col gap-2.5">
+            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              Built on
+            </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
+              {builtOn.map(({ label, icon: Icon, iconClassName }) => (
+                <span
+                  key={label}
+                  className="inline-flex min-w-0 items-center gap-2"
+                >
+                  <span className="flex size-5 shrink-0 items-center justify-center text-foreground">
+                    <Icon aria-hidden="true" className={iconClassName} />
                   </span>
-                ))}
-              </div>
+                  <span>{label}</span>
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="min-w-0 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
-          <div className="mx-auto max-w-6xl">
-            <HomeRegistryIndex groups={indexGroups} />
-          </div>
+        <div className="min-w-0">
+          <HomeRegistryIndex parts={indexParts} />
         </div>
       </section>
     </main>
@@ -195,30 +172,5 @@ function TailwindCssIcon(props: SVGProps<SVGSVGElement>) {
         </clipPath>
       </defs>
     </svg>
-  );
-}
-
-function Stat({
-  href,
-  value,
-  label,
-}: {
-  href: string;
-  value: number;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-label={`View ${value} ${label}`}
-      className="group flex min-w-0 flex-col gap-1.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <span className="font-mono text-3xl font-medium leading-none tabular-nums text-foreground">
-        {value}
-      </span>
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground underline-offset-4 transition-colors group-hover:text-foreground group-hover:underline">
-        {label}
-      </span>
-    </Link>
   );
 }
