@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -60,6 +61,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   router.prefetch.mockClear();
   router.replace.mockClear();
+  window.localStorage.clear();
   window.sessionStorage.clear();
 });
 
@@ -211,6 +213,80 @@ describe("RegistryDemoShell preview navigation", () => {
     });
   });
 
+  it("shows a one-time swipe hint on coarse mobile viewports", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query === MOBILE_SWIPE_HINT_QUERY,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+    renderDemo();
+
+    expect(screen.queryByText("Swipe to browse")).toBeNull();
+
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByText("Swipe to browse")).toBeTruthy();
+
+    fireEvent.touchStart(
+      screen.getByRole("region", { name: "Fullscreen preview canvas" }),
+    );
+    expect(screen.queryByText("Swipe to browse")).toBeNull();
+  });
+
+  it("animates a committed mobile swipe before replacing the route", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query === MOBILE_VIEW_QUERY,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+    const view = renderDemo();
+
+    const canvas = screen.getByRole("region", {
+      name: "Fullscreen preview canvas",
+    });
+
+    swipe(canvas, { from: [180, 120], to: [96, 122] });
+
+    expect(router.replace).not.toHaveBeenCalled();
+    const previewStage = document.querySelector<HTMLElement>(
+      "[data-transition-phase='exiting'][data-transition-direction='next']",
+    );
+
+    expect(previewStage).toBeTruthy();
+    expect(
+      previewStage?.dataset.transitionDirection,
+    ).toBe("next");
+
+    act(() => vi.advanceTimersByTime(150));
+    expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
+      scroll: false,
+    });
+
+    view.rerender(
+      createDemoElement(next, {
+        previous: item,
+        next: afterNext,
+      }),
+    );
+    expect(
+      document.querySelector(
+        "[data-transition-phase='entering'][data-transition-direction='next']",
+      ),
+    ).toBeTruthy();
+
+    act(() => vi.advanceTimersByTime(20));
+    expect(
+      document.querySelector("[data-transition-phase='idle']"),
+    ).toBeTruthy();
+  });
+
   it("does not treat vertical movement as preview navigation", () => {
     renderDemo();
 
@@ -288,6 +364,10 @@ describe("RegistryDemoShell preview navigation", () => {
 function renderDemo() {
   return render(createDemoElement(item, navigation));
 }
+
+const MOBILE_VIEW_QUERY = "(max-width: 639px)";
+const MOBILE_SWIPE_HINT_QUERY =
+  "(max-width: 639px) and (hover: none) and (pointer: coarse)";
 
 function createDemoElement(
   currentItem: RegistryDisplayItem,

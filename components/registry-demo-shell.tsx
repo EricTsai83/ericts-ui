@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, MoveHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
@@ -9,7 +9,9 @@ import {
   type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -46,9 +48,34 @@ export type RegistryDemoNavigationGroup = {
 };
 
 type PreviewNavigationDirection = SwipeNavigationDirection;
+type PreviewTransition =
+  | { phase: "idle"; direction: null }
+  | {
+      phase: "entering" | "exiting";
+      direction: PreviewNavigationDirection;
+    };
+
+type PendingPreviewTransition = {
+  direction: PreviewNavigationDirection;
+  targetItemName: string;
+};
+
+const IDLE_PREVIEW_TRANSITION: PreviewTransition = {
+  phase: "idle",
+  direction: null,
+};
+const MOBILE_VIEW_QUERY = "(max-width: 639px)";
+const MOBILE_SWIPE_HINT_QUERY =
+  "(max-width: 639px) and (hover: none) and (pointer: coarse)";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const SWIPE_HINT_STORAGE_KEY = "ericts-ui:fullscreen-swipe-hint:v1";
+const SWIPE_HINT_DELAY = 600;
+const SWIPE_HINT_DURATION = 2800;
+const SWIPE_EXIT_DURATION = 150;
 
 let navigationPanelOpenMemory = false;
 let pressedNavigationDirectionMemory: PreviewNavigationDirection | null = null;
+let pendingPreviewTransitionMemory: PendingPreviewTransition | null = null;
 
 export function RegistryDemoShell({
   item,
@@ -68,6 +95,14 @@ export function RegistryDemoShell({
     useState<PreviewNavigationDirection | null>(
       () => pressedNavigationDirectionMemory,
     );
+  const [previewTransition, setPreviewTransition] =
+    useState<PreviewTransition>(IDLE_PREVIEW_TRANSITION);
+  const incomingPreviewTransition = getIncomingPreviewTransition(item.name);
+  const visiblePreviewTransition =
+    incomingPreviewTransition.phase === "entering"
+      ? incomingPreviewTransition
+      : previewTransition;
+  const swipeNavigationTimeoutRef = useRef<number | null>(null);
   const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
     sourceItemName: string;
     selectedItemName: string;
@@ -113,6 +148,44 @@ export function RegistryDemoShell({
     getTarget: (container) =>
       container.querySelector<HTMLElement>("[aria-current='page']"),
   });
+  const { dismiss: dismissSwipeHint, visible: swipeHintVisible } =
+    useMobileSwipeHint(Boolean(navigation.previous || navigation.next));
+
+  useLayoutEffect(() => {
+    const incomingTransition = getIncomingPreviewTransition(item.name);
+
+    if (incomingTransition.phase !== "entering") {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      if (pendingPreviewTransitionMemory?.targetItemName === item.name) {
+        pendingPreviewTransitionMemory = null;
+      }
+      setPreviewTransition({ phase: "idle", direction: null });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [item.name]);
+
+  const cancelPendingSwipeNavigation = useCallback(() => {
+    if (swipeNavigationTimeoutRef.current !== null) {
+      window.clearTimeout(swipeNavigationTimeoutRef.current);
+      swipeNavigationTimeoutRef.current = null;
+    }
+
+    pendingPreviewTransitionMemory = null;
+    setPreviewTransition(IDLE_PREVIEW_TRANSITION);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (swipeNavigationTimeoutRef.current !== null) {
+        window.clearTimeout(swipeNavigationTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const selectNavigationItem = useCallback(
     (nextItem: RegistryDemoNavigationItem) => {
@@ -132,12 +205,66 @@ export function RegistryDemoShell({
   }, []);
 
   const navigatePrevious = useCallback(() => {
+    cancelPendingSwipeNavigation();
     replaceNavigationItem(router, navigation.previous, selectNavigationItem);
-  }, [navigation.previous, router, selectNavigationItem]);
+  }, [
+    cancelPendingSwipeNavigation,
+    navigation.previous,
+    router,
+    selectNavigationItem,
+  ]);
 
   const navigateNext = useCallback(() => {
+    cancelPendingSwipeNavigation();
     replaceNavigationItem(router, navigation.next, selectNavigationItem);
-  }, [navigation.next, router, selectNavigationItem]);
+  }, [
+    cancelPendingSwipeNavigation,
+    navigation.next,
+    router,
+    selectNavigationItem,
+  ]);
+
+  const navigateFromSwipe = useCallback(
+    (
+      direction: PreviewNavigationDirection,
+      nextItem: RegistryDemoNavigationItem | undefined,
+    ) => {
+      if (!nextItem) {
+        return;
+      }
+
+      dismissSwipeHint();
+
+      if (!shouldAnimateMobileSwipeNavigation()) {
+        replaceNavigationItem(router, nextItem, selectNavigationItem);
+        return;
+      }
+
+      if (swipeNavigationTimeoutRef.current !== null) {
+        window.clearTimeout(swipeNavigationTimeoutRef.current);
+      }
+
+      selectNavigationItem(nextItem);
+      setPreviewTransition({ phase: "exiting", direction });
+      swipeNavigationTimeoutRef.current = window.setTimeout(() => {
+        swipeNavigationTimeoutRef.current = null;
+        pendingPreviewTransitionMemory = {
+          direction,
+          targetItemName: nextItem.name,
+        };
+        router.replace(nextItem.viewHref, { scroll: false });
+      }, SWIPE_EXIT_DURATION);
+    },
+    [dismissSwipeHint, router, selectNavigationItem],
+  );
+
+  const navigatePreviousFromSwipe = useCallback(() => {
+    navigateFromSwipe("previous", navigation.previous);
+  }, [navigateFromSwipe, navigation.previous]);
+
+  const navigateNextFromSwipe = useCallback(() => {
+    navigateFromSwipe("next", navigation.next);
+  }, [navigateFromSwipe, navigation.next]);
 
   const clearNavigationFeedback = useCallback(() => {
     pressedNavigationDirectionMemory = null;
@@ -167,9 +294,10 @@ export function RegistryDemoShell({
   );
 
   const exitFullscreen = useCallback(() => {
+    cancelPendingSwipeNavigation();
     clearNavigationFeedback();
     router.replace(item.href, { scroll: false });
-  }, [clearNavigationFeedback, item.href, router]);
+  }, [cancelPendingSwipeNavigation, clearNavigationFeedback, item.href, router]);
 
   const toggleNavigationPanelOpen = useCallback(() => {
     setPanelOpen((current) => {
@@ -193,8 +321,8 @@ export function RegistryDemoShell({
   );
 
   const previewCanvasRef = useSwipeNavigation<HTMLElement>({
-    onPrevious: navigatePrevious,
-    onNext: navigateNext,
+    onPrevious: navigatePreviousFromSwipe,
+    onNext: navigateNextFromSwipe,
     hasPrevious: Boolean(navigation.previous),
     hasNext: Boolean(navigation.next),
     disabled: panelOpen,
@@ -351,14 +479,18 @@ export function RegistryDemoShell({
         item={item}
         navigation={navigation}
         activeDirection={pressedNavigationDirection}
+        previewTransition={visiblePreviewTransition}
+        swipeHintVisible={swipeHintVisible}
+        onDismissSwipeHint={dismissSwipeHint}
         onSelect={selectNavigationItem}
-        onNavigatePrevious={navigatePrevious}
-        onNavigateNext={navigateNext}
+        onNavigatePrevious={navigatePreviousFromSwipe}
+        onNavigateNext={navigateNextFromSwipe}
       />
 
       <section
         ref={previewCanvasRef}
         aria-label="Fullscreen preview canvas"
+        onTouchStartCapture={dismissSwipeHint}
         className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8"
       >
         <div
@@ -366,9 +498,16 @@ export function RegistryDemoShell({
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[56px_56px] opacity-30 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
         />
         <div
+          data-transition-direction={
+            visiblePreviewTransition.direction ?? undefined
+          }
+          data-transition-phase={visiblePreviewTransition.phase}
           className={cn(
-            "z-10 flex w-full min-w-0 items-center justify-center",
+            "z-10 flex w-full min-w-0 items-center justify-center transition-[transform,opacity] motion-reduce:transform-none",
             getViewportClassName(item.viewport),
+            visiblePreviewTransition.phase !== "idle" &&
+              "will-change-[transform,opacity]",
+            getPreviewTransitionClassName(visiblePreviewTransition),
           )}
         >
           {/* Sit replay/other preview controls to the left of the fixed
@@ -390,6 +529,9 @@ function PreviewNavigationDock({
   item,
   navigation,
   activeDirection,
+  previewTransition,
+  swipeHintVisible,
+  onDismissSwipeHint,
   onSelect,
   onNavigatePrevious,
   onNavigateNext,
@@ -397,6 +539,9 @@ function PreviewNavigationDock({
   item: RegistryDisplayItem;
   navigation: RegistryDemoNavigation;
   activeDirection: PreviewNavigationDirection | null;
+  previewTransition: PreviewTransition;
+  swipeHintVisible: boolean;
+  onDismissSwipeHint: () => void;
   onSelect: (item: RegistryDemoNavigationItem) => void;
   onNavigatePrevious: () => void;
   onNavigateNext: () => void;
@@ -409,7 +554,12 @@ function PreviewNavigationDock({
   });
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-30 -translate-x-1/2">
+    <div
+      className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-30 -translate-x-1/2"
+      onTouchStartCapture={onDismissSwipeHint}
+    >
+      {swipeHintVisible ? <MobileSwipeHint navigation={navigation} /> : null}
+
       <nav
         ref={navigationRef}
         aria-label="Preview navigation"
@@ -424,9 +574,22 @@ function PreviewNavigationDock({
 
         <div
           aria-live="polite"
-          className="flex h-10 min-w-0 flex-1 items-center justify-center px-3 sm:h-9"
+          className="flex h-10 min-w-0 flex-1 items-center justify-center overflow-hidden px-3 sm:h-9"
         >
-          <span className="truncate text-sm font-medium">{item.title}</span>
+          <span
+            data-transition-direction={
+              previewTransition.direction ?? undefined
+            }
+            data-transition-phase={previewTransition.phase}
+            className={cn(
+              "truncate text-sm font-medium transition-[transform,opacity] motion-reduce:transform-none",
+              previewTransition.phase !== "idle" &&
+                "will-change-[transform,opacity]",
+              getTitleTransitionClassName(previewTransition),
+            )}
+          >
+            {item.title}
+          </span>
         </div>
 
         <PreviewNavigationLink
@@ -436,6 +599,33 @@ function PreviewNavigationDock({
           onSelect={onSelect}
         />
       </nav>
+    </div>
+  );
+}
+
+function MobileSwipeHint({
+  navigation,
+}: {
+  navigation: RegistryDemoNavigation;
+}) {
+  const hasPrevious = Boolean(navigation.previous);
+  const hasNext = Boolean(navigation.next);
+  const label = hasPrevious
+    ? hasNext
+      ? "Swipe to browse"
+      : "Swipe right for previous"
+    : "Swipe left for next";
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 supports-backdrop-filter:bg-background/55 sm:hidden"
+    >
+      <MoveHorizontal
+        aria-hidden="true"
+        className="fullscreen-swipe-hint-icon size-3.5"
+      />
+      <span>{label}</span>
     </div>
   );
 }
@@ -642,6 +832,141 @@ function findNavigationItem(
   }
 
   return null;
+}
+
+function useMobileSwipeHint(enabled: boolean) {
+  const [visible, setVisible] = useState(false);
+  const dismiss = useCallback(() => {
+    setVisible(false);
+    writeSwipeHintSeen();
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || readSwipeHintSeen()) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia?.(MOBILE_SWIPE_HINT_QUERY);
+
+    if (!mediaQuery) {
+      return;
+    }
+
+    let showTimeout: number | null = null;
+    let hideTimeout: number | null = null;
+
+    function clearTimers() {
+      if (showTimeout !== null) {
+        window.clearTimeout(showTimeout);
+        showTimeout = null;
+      }
+      if (hideTimeout !== null) {
+        window.clearTimeout(hideTimeout);
+        hideTimeout = null;
+      }
+    }
+
+    function syncHint() {
+      clearTimers();
+
+      if (!mediaQuery.matches || readSwipeHintSeen()) {
+        setVisible(false);
+        return;
+      }
+
+      showTimeout = window.setTimeout(() => {
+        if (readSwipeHintSeen()) {
+          return;
+        }
+
+        setVisible(true);
+        writeSwipeHintSeen();
+        hideTimeout = window.setTimeout(() => {
+          setVisible(false);
+        }, SWIPE_HINT_DURATION);
+      }, SWIPE_HINT_DELAY);
+    }
+
+    syncHint();
+    mediaQuery.addEventListener?.("change", syncHint);
+
+    return () => {
+      clearTimers();
+      mediaQuery.removeEventListener?.("change", syncHint);
+    };
+  }, [enabled]);
+
+  return { dismiss, visible };
+}
+
+function getIncomingPreviewTransition(itemName: string): PreviewTransition {
+  if (pendingPreviewTransitionMemory?.targetItemName !== itemName) {
+    return IDLE_PREVIEW_TRANSITION;
+  }
+
+  return {
+    phase: "entering",
+    direction: pendingPreviewTransitionMemory.direction,
+  };
+}
+
+function getPreviewTransitionClassName(transition: PreviewTransition) {
+  if (transition.phase === "exiting") {
+    return cn(
+      "opacity-30 duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:translate-x-0 motion-reduce:opacity-0",
+      transition.direction === "next" ? "-translate-x-10" : "translate-x-10",
+    );
+  }
+
+  if (transition.phase === "entering") {
+    return cn(
+      "opacity-40 duration-0 motion-reduce:translate-x-0 motion-reduce:opacity-0",
+      transition.direction === "next" ? "translate-x-8" : "-translate-x-8",
+    );
+  }
+
+  return "translate-x-0 opacity-100 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-150";
+}
+
+function getTitleTransitionClassName(transition: PreviewTransition) {
+  if (transition.phase === "exiting") {
+    return cn(
+      "opacity-0 duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
+      transition.direction === "next" ? "-translate-x-2" : "translate-x-2",
+    );
+  }
+
+  if (transition.phase === "entering") {
+    return cn(
+      "opacity-0 duration-0",
+      transition.direction === "next" ? "translate-x-2" : "-translate-x-2",
+    );
+  }
+
+  return "translate-x-0 opacity-100 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-150";
+}
+
+function shouldAnimateMobileSwipeNavigation() {
+  return (
+    window.matchMedia?.(MOBILE_VIEW_QUERY).matches === true &&
+    window.matchMedia?.(REDUCED_MOTION_QUERY).matches !== true
+  );
+}
+
+function readSwipeHintSeen() {
+  try {
+    return window.localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === "seen";
+  } catch {
+    return false;
+  }
+}
+
+function writeSwipeHintSeen() {
+  try {
+    window.localStorage.setItem(SWIPE_HINT_STORAGE_KEY, "seen");
+  } catch {
+    // Storage is optional; the hint still dismisses for the current mount.
+  }
 }
 
 function getNavigationGroupsWithFallback(
