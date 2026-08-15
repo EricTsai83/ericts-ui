@@ -229,14 +229,18 @@ const hookUsageSnippets: Record<string, ComponentCodeFile[]> = {
       language: "tsx",
       source: `"use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
+import {
+  type SwipeNavigationProgress,
+  useSwipeNavigation,
+} from "@/hooks/use-swipe-navigation";
 
 const pages = ["Overview", "Activity", "Settings"];
 
 export function SwipePages() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const swipeProgressRef = useRef<HTMLOutputElement>(null);
 
   const previous = useCallback(() => {
     setActiveIndex((index) => Math.max(0, index - 1));
@@ -246,6 +250,17 @@ export function SwipePages() {
     setActiveIndex((index) => Math.min(pages.length - 1, index + 1));
   }, []);
 
+  const reportSwipeProgress = useCallback(
+    (swipe: SwipeNavigationProgress | null) => {
+      if (!swipeProgressRef.current) return;
+
+      swipeProgressRef.current.textContent = swipe
+        ? "Swipe " + Math.round(swipe.progress * 100) + "%"
+        : "Ready";
+    },
+    [],
+  );
+
   const swipeRef = useSwipeNavigation<HTMLDivElement>({
     onPrevious: previous,
     onNext: next,
@@ -253,8 +268,11 @@ export function SwipePages() {
     hasNext: activeIndex < pages.length - 1,
     ignoreOwnedGestures: true,
     // Tune how far the surface follows the finger.
-    feedbackDistance: 40,
-    feedbackResistance: 0.45,
+    feedback: {
+      distance: 40,
+      resistance: 0.45,
+    },
+    onSwipeProgress: reportSwipeProgress,
   });
 
   return (
@@ -271,6 +289,10 @@ export function SwipePages() {
           Next
         </button>
       </div>
+
+      <output ref={swipeProgressRef} aria-live="polite">
+        Ready
+      </output>
 
       <div ref={swipeRef} className="min-h-64 p-6">
         <h2>{pages[activeIndex]}</h2>

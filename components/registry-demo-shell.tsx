@@ -272,8 +272,10 @@ export function RegistryDemoShell({
     disabled: panelOpen,
     ignoreOwnedGestures: true,
     onIntentChange: handleSwipeIntentChange,
-    feedbackDistance: 48,
-    feedbackResistance: 0.5,
+    feedback: {
+      distance: 48,
+      resistance: 0.5,
+    },
   });
 
   useEffect(() => {

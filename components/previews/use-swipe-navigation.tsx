@@ -45,6 +45,10 @@ export default function Preview() {
     hasPrevious,
     hasNext,
     ignoreOwnedGestures: true,
+    feedback: {
+      distance: 24,
+      resistance: 0.3,
+    },
   });
 
   return (

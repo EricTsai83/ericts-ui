@@ -997,7 +997,7 @@
       "name": "use-swipe-navigation",
       "type": "registry:hook",
       "title": "useSwipeNavigation",
-      "description": "A touch-first React hook for previous and next navigation with direction locking, velocity thresholds, gesture ownership, and reduced-motion feedback.",
+      "description": "A touch-first React hook for previous and next navigation with configurable feedback, live gesture progress, direction locking, ownership, and reduced-motion support.",
       "categories": ["motion"],
       "meta": {
         "tags": [
@@ -1006,7 +1006,9 @@
           "previous-next",
           "direction-lock",
           "velocity",
-          "gesture-ownership"
+          "gesture-ownership",
+          "gesture-progress",
+          "custom-feedback"
         ],
         "effects": ["drag-feedback", "edge-resistance", "reduced-motion"]
       },
