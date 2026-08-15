@@ -63,8 +63,8 @@ export default function Home() {
                 Motion-First Components
               </h1>
               <p className="max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
-                Components, hooks, and blocks for any shadcn/ui project. Each
-                installs as source, so the timing stays yours to tune.
+                Components, hooks, and blocks for any shadcn/ui project. The
+                code goes into your repo, so you can change anything.
               </p>
             </div>
 
