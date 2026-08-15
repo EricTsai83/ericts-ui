@@ -49,7 +49,7 @@ function StageHeader({
   status: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-4">
+    <div className="flex w-full min-w-0 items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
           Northstar / Spring 2026
