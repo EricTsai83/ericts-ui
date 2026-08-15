@@ -224,7 +224,7 @@
       "name": "expandable-slider",
       "type": "registry:ui",
       "title": "Expandable Slider",
-      "description": "A composable icon button that grows into a wider button on hover, focus, or drag, revealing a draggable track inside the same surface.",
+      "description": "A composable slider that stays expanded on mobile and grows from an icon button on desktop hover, focus, or drag.",
       "categories": ["form"],
       "meta": {
         "tags": [

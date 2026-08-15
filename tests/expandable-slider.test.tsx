@@ -22,6 +22,7 @@ const THUMB_SIZE = 12;
 const COLLAPSE_DELAY = 300;
 /** Track width plus its lead and tail insets. */
 const PANEL_WIDTH = "88px";
+const PANEL_WIDTH_PROPERTY = "--expandable-slider-panel-width";
 
 function advanceTimers(ms: number) {
   act(() => {
@@ -84,12 +85,12 @@ describe("ExpandableSlider", () => {
     const { root, panel } = renderSlider({ onExpandedChange });
 
     expect(root.dataset.expanded).toBe("false");
-    expect(panel.style.width).toBe("0px");
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
+    expect(panel.className).toContain("sm:w-0");
 
     fireEvent.pointerOver(root);
 
     expect(root.dataset.expanded).toBe("true");
-    expect(panel.style.width).toBe(PANEL_WIDTH);
     expect(onExpandedChange).toHaveBeenCalledWith(true);
 
     fireEvent.pointerOut(root);
@@ -100,8 +101,24 @@ describe("ExpandableSlider", () => {
 
     advanceTimers(1);
     expect(root.dataset.expanded).toBe("false");
-    expect(panel.style.width).toBe("0px");
     expect(onExpandedChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it("stays visually expanded below the sm breakpoint from first paint", () => {
+    const { root, panel, thumb } = renderSlider();
+
+    expect(root.dataset.expanded).toBe("false");
+    expect(root.className).toContain("border-border");
+    expect(root.className).toContain("bg-background");
+    expect(root.className).toContain("shadow-xs");
+    expect(root.className).toContain("sm:border-transparent");
+    expect(panel.className).toContain("w-(--expandable-slider-panel-width)");
+    expect(panel.className).toContain(
+      "sm:group-data-[expanded=true]/expandable-slider:w-(--expandable-slider-panel-width)",
+    );
+    expect(thumb.className).toContain(
+      "sm:group-data-[expanded=false]/expandable-slider:scale-0",
+    );
   });
 
   it("cancels a pending collapse when the pointer comes back", () => {
@@ -218,15 +235,15 @@ describe("ExpandableSlider", () => {
     expect(slider.getAttribute("aria-orientation")).toBe("horizontal");
   });
 
-  it("stays a ghost until it expands, without resizing its box", () => {
+  it("keeps the desktop surface transparent until it expands", () => {
     const { root } = renderSlider();
 
-    // The border is always present so gaining a visible one costs no layout.
-    expect(root.className).toContain("border-transparent");
-    expect(root.className).toContain("data-[expanded=true]:bg-background");
-    expect(root.className).toContain("data-[expanded=true]:border-border");
-    expect(root.className).toContain("data-[expanded=true]:shadow-xs");
-    expect(root.className).not.toMatch(/(?<!\]:)shadow-xs/);
+    expect(root.className).toContain("sm:border-transparent");
+    expect(root.className).toContain("sm:bg-transparent");
+    expect(root.className).toContain("sm:shadow-none");
+    expect(root.className).toContain("sm:data-[expanded=true]:bg-background");
+    expect(root.className).toContain("sm:data-[expanded=true]:border-border");
+    expect(root.className).toContain("sm:data-[expanded=true]:shadow-xs");
   });
 
   it("puts the slider on the full-height region, not the hairline rail", () => {
@@ -330,7 +347,7 @@ describe("ExpandableSlider", () => {
   it("honours a controlled expanded state over hover", () => {
     const { root, panel } = renderSlider({ expanded: true });
 
-    expect(panel.style.width).toBe(PANEL_WIDTH);
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
 
     fireEvent.pointerOut(root);
 
@@ -389,7 +406,7 @@ describe("ExpandableSlider", () => {
     // The lead inset sits beside the trigger, so the sides swap.
     expect(slider.style.marginLeft).toBe("12px");
     expect(slider.style.marginRight).toBe("4px");
-    expect(panel.style.width).toBe(PANEL_WIDTH);
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
   });
 
   describe("composition", () => {

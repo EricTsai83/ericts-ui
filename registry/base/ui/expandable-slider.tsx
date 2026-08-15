@@ -81,7 +81,7 @@ export type ExpandableSliderProps = Omit<
   label: string;
   /** Spoken value, e.g. `(value) => `${value}%``. */
   formatValueText?: (value: number) => string;
-  /** Controlled expansion; omit to expand on hover, focus, and drag. */
+  /** Controlled desktop expansion; mobile viewports stay visually expanded. */
   expanded?: boolean;
   /** Called after the expanded state changes. */
   onExpandedChange?: (expanded: boolean) => void;
@@ -95,7 +95,9 @@ export type ExpandableSliderProps = Omit<
 /**
  * Owns the value, the expansion state, and the pill surface. Compose the
  * revealed content from `ExpandableSliderTrigger` and `ExpandableSliderTrack`;
- * the track grows toward whichever side it is written on.
+ * the track grows toward whichever side it is written on. Below the `sm`
+ * breakpoint, the surface stays expanded so touch users can reach the slider
+ * without a hover-only reveal step.
  */
 export function ExpandableSlider({
   value,
@@ -257,14 +259,13 @@ export function ExpandableSlider({
         data-expanded={isExpanded}
         data-disabled={disabled || undefined}
         className={cn(
-          // Collapsed it reads as a ghost icon button; the surface materialises
-          // with the expansion. The border stays present but transparent so the
-          // box never resizes when it does. Surface and width share the panel's
-          // timing so the two read as one gesture.
-          "group/expandable-slider inline-flex w-fit items-center rounded-full border border-transparent bg-clip-padding",
+          // Mobile is expanded from first paint; desktop starts as a ghost icon
+          // button and materialises on interaction. Keeping this responsive
+          // branch in CSS avoids a matchMedia hydration flash.
+          "group/expandable-slider inline-flex w-fit items-center rounded-full border border-border bg-background bg-clip-padding shadow-xs",
           "transition-[background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0,0,0.2,1)] motion-reduce:transition-none",
-          "data-[expanded=true]:border-border data-[expanded=true]:bg-background data-[expanded=true]:shadow-xs",
-          "dark:data-[expanded=true]:border-input dark:data-[expanded=true]:bg-input/30",
+          "sm:border-transparent sm:bg-transparent sm:shadow-none sm:data-[expanded=true]:border-border sm:data-[expanded=true]:bg-background sm:data-[expanded=true]:shadow-xs",
+          "dark:border-input dark:bg-input/30 sm:dark:border-transparent sm:dark:bg-transparent sm:dark:data-[expanded=true]:border-input sm:dark:data-[expanded=true]:bg-input/30",
           // Focus lives on the children, but the ring belongs to the surface:
           // the panel clips its own content, so a child ring would be cut off.
           "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
@@ -371,7 +372,6 @@ export function ExpandableSliderTrack({
     commitValue,
     disabled,
     dragging,
-    expanded,
     label,
     max,
     min,
@@ -400,12 +400,15 @@ export function ExpandableSliderTrack({
     <div
       data-slot="expandable-slider-panel"
       className={cn(
-        "flex h-full items-center overflow-hidden transition-[width] duration-200 ease-[cubic-bezier(0,0,0.2,1)] will-change-[width] motion-reduce:transition-none",
+        "flex h-full w-(--expandable-slider-panel-width) items-center overflow-hidden transition-[width] duration-200 ease-[cubic-bezier(0,0,0.2,1)] will-change-[width] motion-reduce:transition-none",
+        "sm:w-0 sm:group-data-[expanded=true]/expandable-slider:w-(--expandable-slider-panel-width)",
         align === "start" ? "justify-start" : "justify-end",
       )}
-      style={{
-        width: expanded ? trackWidth + leadInset + tailInset : 0,
-      }}
+      style={
+        {
+          "--expandable-slider-panel-width": `${trackWidth + leadInset + tailInset}px`,
+        } as React.CSSProperties
+      }
     >
       <div
         role="slider"
@@ -565,7 +568,7 @@ export function ExpandableSliderRange({
 
 export type ExpandableSliderThumbProps = React.ComponentProps<"div">;
 
-/** The handle. It collapses with the surface so it is never clipped mid-reveal. */
+/** The handle. On desktop, it collapses with the surface to avoid clipping. */
 export function ExpandableSliderThumb({
   className,
   ...props
@@ -576,7 +579,7 @@ export function ExpandableSliderThumb({
       className={cn(
         "absolute top-1/2 start-(--expandable-slider-thumb-offset) size-(--expandable-slider-thumb-size) -translate-y-1/2 scale-100 rounded-full bg-primary shadow-sm",
         "transition-transform duration-200 ease-[cubic-bezier(0,0,0.2,1)] motion-reduce:transition-none",
-        "group-data-[expanded=false]/expandable-slider:scale-0",
+        "sm:group-data-[expanded=false]/expandable-slider:scale-0",
         className,
       )}
       {...props}
