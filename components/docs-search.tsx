@@ -119,7 +119,7 @@ export function DocsSearchDialog({
         <DialogOverlay className="bg-black/20 backdrop-blur-[2px] dark:bg-black/45" />
         <DialogPrimitive.Popup
           data-slot="dialog-content"
-          className="fixed left-1/2 top-4 z-50 w-[calc(100%-1rem)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-xl border-none bg-background bg-clip-padding p-2 pb-11 text-sm text-foreground opacity-100 shadow-2xl shadow-black/20 ring-4 ring-neutral-200/80 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0 dark:bg-neutral-900 dark:shadow-black/50 dark:ring-neutral-800 md:top-[calc(50%-250px)]"
+          className="fixed left-1/2 top-4 z-50 w-[calc(100%-1rem)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-xl border-none bg-background bg-clip-padding p-2 pt-3 pb-11 text-sm text-foreground opacity-100 shadow-2xl shadow-black/20 ring-4 ring-neutral-200/80 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0 dark:bg-neutral-900 dark:shadow-black/50 dark:ring-neutral-800 md:top-[calc(50%-250px)]"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Search documentation</DialogTitle>
@@ -129,7 +129,7 @@ export function DocsSearchDialog({
           </DialogHeader>
           <Command
             shouldFilter={false}
-            className="rounded-none bg-transparent p-0 **:data-[slot=command-input]:h-9! **:data-[slot=command-input]:py-0 **:data-[slot=command-input-wrapper]:p-0 **:data-[slot=command-input-wrapper]:pb-0 **:data-[slot=input-group]:mb-0 **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md! **:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50"
+            className="rounded-none! bg-transparent p-0 **:data-[slot=command-input]:h-9! **:data-[slot=command-input]:py-0 **:data-[slot=command-input-wrapper]:p-0 **:data-[slot=command-input-wrapper]:pb-0 **:data-[slot=input-group]:mb-0 **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md! **:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50"
           >
             <div className="relative mb-1">
               <CommandInput
