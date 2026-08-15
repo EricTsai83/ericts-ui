@@ -333,13 +333,22 @@ export function RegistryItemsBrowser({
           {items.length > 0 ? (
             filteredItems.length > 0 ? (
               browseMode === "category" ? (
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-10">
                   {groupedItems.map((group) => (
                     <section
                       key={group.category}
-                      className="flex flex-col gap-4"
+                      className="flex flex-col gap-5"
                     >
-                      <h3 className="border-b pb-2 text-base font-semibold">
+                      {/*
+                       * A step *above* the item titles it collects. At
+                       * `text-base` against `text-lg` items the heading was the
+                       * smallest type in its own section, so a category read as
+                       * a caption on the first row rather than as the rank above
+                       * every row under it. Sits one step below the page title,
+                       * which keeps the page → category → item order legible by
+                       * size alone.
+                       */}
+                      <h3 className="border-b pb-2 text-xl font-semibold tracking-tight">
                         {group.label}
                       </h3>
                       <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -404,7 +413,14 @@ function RegistryItemLink({
       href={item.href}
       className="group flex min-w-0 flex-col gap-1 rounded-sm underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span className="text-lg font-medium text-foreground transition-colors group-hover:text-muted-foreground group-hover:underline">
+      {/*
+       * `text-base`, not `text-lg`. An item is the leaf of the list, so it
+       * should be the smallest heading on the page — sized above its own
+       * metadata line and below the category heading it sits under. It is one
+       * size in both arrangements deliberately: toggling Alphabetical against
+       * Category regroups the same items and must not also resize them.
+       */}
+      <span className="text-base font-medium text-foreground transition-colors group-hover:text-muted-foreground group-hover:underline">
         {getDisplayName(item)}
       </span>
       {metadata.length > 0 ? (
