@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             className="hidden h-full items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-accent-foreground lg:mr-5 lg:flex lg:min-w-28"
           >
             <LogoIcon className="block size-5 shrink-0" aria-hidden="true" />
-            <span>ericts/ui</span>
+            <span className="text-base">ericts/ui</span>
           </Link>
           <nav className="hidden items-center gap-1 text-sm font-medium text-foreground lg:flex">
             {primaryNavItems.map((item) => (

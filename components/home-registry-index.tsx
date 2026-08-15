@@ -102,8 +102,8 @@ function RegistryPart({ part }: { part: HomeRegistryIndexPart }) {
        * `inline-flex`, so the link is only as wide as its own text. Stretching
        * it across the row would put most of the hit area over empty surface,
        * and the arrow would land at the far right, unattached to the title it
-       * points at. The arrow keeps its slot in flow at rest and only animates
-       * opacity and offset, so revealing it cannot reflow the row.
+       * points at. The arrow keeps its slot in flow at rest and only fades in,
+       * so revealing it cannot reflow the row.
        */}
       <Link
         href={`/${getRegistryKindSegment(part.kind)}`}
@@ -121,7 +121,7 @@ function RegistryPart({ part }: { part: HomeRegistryIndexPart }) {
         </h3>
         <ArrowRight
           aria-hidden="true"
-          className="size-4 shrink-0 opacity-0 transition duration-150 group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
+          className="size-4 shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
         />
       </Link>
 
@@ -197,12 +197,12 @@ function RegistryGroup({
                * `ml-auto` puts the arrow on the row's trailing edge, which the
                * row's `-mx-2 px-2` lands exactly under the right terminus of the
                * category heading's rule — so the whole column shares one right
-               * margin. It keeps its slot in flow at rest and only animates
-               * opacity and offset, so revealing it cannot reflow the row.
+               * margin. It keeps its slot in flow at rest and only fades in,
+               * so revealing it cannot reflow the row.
                */}
               <ArrowRight
                 aria-hidden="true"
-                className="ml-auto size-3.5 shrink-0 text-muted-foreground opacity-0 transition duration-150 group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
+                className="ml-auto size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
               />
             </Link>
           </li>
