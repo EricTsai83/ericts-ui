@@ -23,16 +23,22 @@ export type UseSwipeNavigationOptions = {
   disabled?: boolean;
   ignoreOwnedGestures?: boolean;
   onIntentChange?: (direction: SwipeNavigationDirection | null) => void;
+  /** Minimum horizontal travel, in pixels, before a swipe navigates. */
   distanceThreshold?: number;
+  /** Minimum pixels per millisecond for a shorter flick to navigate. */
   velocityThreshold?: number;
   directionLockThreshold?: number;
+  /** Maximum visual travel, in pixels, while the surface follows the finger. */
   feedbackDistance?: number;
+  /** Multiplier applied to finger travel while navigation is available. */
+  feedbackResistance?: number;
 };
 
 const DEFAULT_DISTANCE_THRESHOLD = 52;
 const DEFAULT_VELOCITY_THRESHOLD = 0.35;
 const DEFAULT_DIRECTION_LOCK_THRESHOLD = 8;
 const DEFAULT_FEEDBACK_DISTANCE = 16;
+const DEFAULT_FEEDBACK_RESISTANCE = 0.2;
 const OWNED_GESTURE_SELECTOR = [
   "input",
   "textarea",
@@ -62,6 +68,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
   velocityThreshold = DEFAULT_VELOCITY_THRESHOLD,
   directionLockThreshold = DEFAULT_DIRECTION_LOCK_THRESHOLD,
   feedbackDistance = DEFAULT_FEEDBACK_DISTANCE,
+  feedbackResistance = DEFAULT_FEEDBACK_RESISTANCE,
 }: UseSwipeNavigationOptions) {
   const elementRef = useRef<T>(null);
   const swipeStateRef = useRef<SwipeState | null>(null);
@@ -202,7 +209,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
 
       const direction = getDirection(deltaX);
       const available = direction === "previous" ? hasPrevious : hasNext;
-      const resistance = available ? 0.2 : 0.08;
+      const resistance = available ? feedbackResistance : 0.08;
       const maximumDistance = available
         ? feedbackDistance
         : Math.min(feedbackDistance, 8);
@@ -248,14 +255,17 @@ export function useSwipeNavigation<T extends HTMLElement>({
         Math.abs(deltaX) >= directionLockThreshold;
       swipeStateRef.current = null;
       updateIntent(null);
-      resetSwipePosition();
 
       if (navigates) {
+        clearFeedbackStyles();
+
         if (direction === "previous") {
           onPrevious();
         } else {
           onNext();
         }
+      } else {
+        resetSwipePosition();
       }
 
       if (suppressClickRef.current) {
@@ -309,6 +319,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
     disabled,
     distanceThreshold,
     feedbackDistance,
+    feedbackResistance,
     hasNext,
     hasPrevious,
     ignoreOwnedGestures,

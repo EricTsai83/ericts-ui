@@ -236,56 +236,92 @@ describe("RegistryDemoShell preview navigation", () => {
     expect(screen.queryByText("Swipe to browse")).toBeNull();
   });
 
-  it("animates a committed mobile swipe before replacing the route", () => {
-    vi.useFakeTimers();
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn((query: string) => ({
-        matches: query === MOBILE_VIEW_QUERY,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      })),
-    );
-    const view = renderDemo();
-
+  it("tracks a fullscreen swipe further and navigates immediately on release", () => {
+    renderDemo();
     const canvas = screen.getByRole("region", {
       name: "Fullscreen preview canvas",
     });
+    const start = createTouch(1, 180, 120);
+    const end = createTouch(1, 96, 122);
 
-    swipe(canvas, { from: [180, 120], to: [96, 122] });
-
-    expect(router.replace).not.toHaveBeenCalled();
-    const previewStage = document.querySelector<HTMLElement>(
-      "[data-transition-phase='exiting'][data-transition-direction='next']",
+    fireEvent(
+      canvas,
+      createTouchEvent("touchstart", {
+        touches: [start],
+        changedTouches: [start],
+      }),
     );
+    fireEvent(
+      canvas,
+      createTouchEvent("touchmove", {
+        touches: [end],
+        changedTouches: [end],
+      }),
+    );
+    expect(canvas.style.transform).toBe("translate3d(-42px, 0, 0)");
+    expect(router.replace).not.toHaveBeenCalled();
 
-    expect(previewStage).toBeTruthy();
-    expect(
-      previewStage?.dataset.transitionDirection,
-    ).toBe("next");
-
-    act(() => vi.advanceTimersByTime(150));
+    fireEvent(
+      canvas,
+      createTouchEvent("touchend", {
+        touches: [],
+        changedTouches: [end],
+      }),
+    );
+    expect(canvas.style.transform).toBe("");
     expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
       scroll: false,
     });
-
-    view.rerender(
-      createDemoElement(next, {
-        previous: item,
-        next: afterNext,
-      }),
-    );
-    expect(
-      document.querySelector(
-        "[data-transition-phase='entering'][data-transition-direction='next']",
-      ),
-    ).toBeTruthy();
-
-    act(() => vi.advanceTimersByTime(20));
-    expect(
-      document.querySelector("[data-transition-phase='idle']"),
-    ).toBeTruthy();
   });
+
+  it.each([
+    {
+      direction: "next",
+      from: [180, 120] as [number, number],
+      to: [96, 122] as [number, number],
+      target: next,
+      targetNavigation: { previous: item, next: afterNext },
+      transformClass: "[transform:translate3d(12px,0,0)]",
+    },
+    {
+      direction: "previous",
+      from: [96, 120] as [number, number],
+      to: [180, 118] as [number, number],
+      target: previous,
+      targetNavigation: { next: item },
+      transformClass: "[transform:translate3d(-12px,0,0)]",
+    },
+  ])(
+    "enters the $direction preview subtly from its spatial direction",
+    ({ direction, from, to, target, targetNavigation, transformClass }) => {
+      vi.useFakeTimers();
+      const view = renderDemo();
+
+      swipe(
+        screen.getByRole("region", { name: "Fullscreen preview canvas" }),
+        { from, to },
+      );
+      expect(router.replace).toHaveBeenCalledWith(target.viewHref, {
+        scroll: false,
+      });
+
+      view.rerender(createDemoElement(target, targetNavigation));
+      const previewStage = document.querySelector<HTMLElement>(
+        `[data-swipe-entrance='${direction}']`,
+      );
+
+      expect(previewStage).toBeTruthy();
+      expect(previewStage?.classList.contains(transformClass)).toBe(true);
+
+      act(() => vi.advanceTimersByTime(20));
+      expect(previewStage?.hasAttribute("data-swipe-entrance")).toBe(false);
+      expect(
+        previewStage?.classList.contains(
+          "[transform:translate3d(0,0,0)]",
+        ),
+      ).toBe(true);
+    },
+  );
 
   it("does not treat vertical movement as preview navigation", () => {
     renderDemo();
@@ -365,7 +401,6 @@ function renderDemo() {
   return render(createDemoElement(item, navigation));
 }
 
-const MOBILE_VIEW_QUERY = "(max-width: 639px)";
 const MOBILE_SWIPE_HINT_QUERY =
   "(max-width: 639px) and (hover: none) and (pointer: coarse)";
 

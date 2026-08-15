@@ -252,6 +252,9 @@ export function SwipePages() {
     hasPrevious: activeIndex > 0,
     hasNext: activeIndex < pages.length - 1,
     ignoreOwnedGestures: true,
+    // Tune how far the surface follows the finger.
+    feedbackDistance: 40,
+    feedbackResistance: 0.45,
   });
 
   return (
