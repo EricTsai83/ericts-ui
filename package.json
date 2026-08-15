@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "skills:update": "pnpm dlx skills@latest update --project --yes",
     "build": "pnpm registry:build && next build",
     "start": "next start",
     "display:check": "node scripts/validate-registry-display.mjs",
