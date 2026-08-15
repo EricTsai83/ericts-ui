@@ -223,6 +223,65 @@ function getHookUsageSnippets(name: string) {
 }
 
 const hookUsageSnippets: Record<string, ComponentCodeFile[]> = {
+  "use-swipe-navigation": [
+    {
+      name: "swipe-pages.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useCallback, useState } from "react";
+
+import { useSwipeNavigation } from "@/hooks/use-swipe-navigation";
+
+const pages = ["Overview", "Activity", "Settings"];
+
+export function SwipePages() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const previous = useCallback(() => {
+    setActiveIndex((index) => Math.max(0, index - 1));
+  }, []);
+
+  const next = useCallback(() => {
+    setActiveIndex((index) => Math.min(pages.length - 1, index + 1));
+  }, []);
+
+  const swipeRef = useSwipeNavigation<HTMLDivElement>({
+    onPrevious: previous,
+    onNext: next,
+    hasPrevious: activeIndex > 0,
+    hasNext: activeIndex < pages.length - 1,
+    ignoreOwnedGestures: true,
+  });
+
+  return (
+    <section>
+      <div className="flex items-center justify-between">
+        <button onClick={previous} disabled={activeIndex === 0}>
+          Previous
+        </button>
+        <span>{activeIndex + 1} of {pages.length}</span>
+        <button
+          onClick={next}
+          disabled={activeIndex === pages.length - 1}
+        >
+          Next
+        </button>
+      </div>
+
+      <div ref={swipeRef} className="min-h-64 p-6">
+        <h2>{pages[activeIndex]}</h2>
+
+        {/* Inputs, sliders, horizontal scrollers, and explicitly marked
+            regions keep their own horizontal gestures. */}
+        <input type="range" aria-label="Volume" />
+        <div data-swipe-navigation="ignore">Your draggable control</div>
+      </div>
+    </section>
+  );
+}`,
+    },
+  ],
   "use-scroll-progress": [
     {
       name: "scroll-progress-meter.tsx",

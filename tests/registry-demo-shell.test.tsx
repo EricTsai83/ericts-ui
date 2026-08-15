@@ -34,7 +34,17 @@ vi.mock("fumadocs-ui/provider/base", () => ({
 vi.mock("@/components/registry-preview", () => ({
   PreviewCornerSlotProvider: ({ children }: { children: React.ReactNode }) =>
     children,
-  RegistryPreview: () => null,
+  RegistryPreview: () => (
+    <div data-testid="preview-content">
+      <div
+        role="slider"
+        aria-label="Demo slider"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={50}
+      />
+    </div>
+  ),
 }));
 
 const item = createDisplayItem("current", "Current Preview");
@@ -47,6 +57,7 @@ afterEach(() => {
   fireEvent.blur(window);
   cleanup();
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   router.prefetch.mockClear();
   router.replace.mockClear();
   window.sessionStorage.clear();
@@ -153,6 +164,8 @@ describe("RegistryDemoShell preview navigation", () => {
     fireEvent.click(menuTrigger);
     expect(menuTrigger.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("link", { name: "Current Preview" })).toBeTruthy();
+    fireEvent.click(menuTrigger);
+    expect(menuTrigger.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("shows the current preview title as a non-interactive dock label", () => {
@@ -172,37 +185,103 @@ describe("RegistryDemoShell preview navigation", () => {
       name: "Preview navigation",
     });
 
-    fireEvent(
-      switcher,
-      createPointerEvent("pointerdown", {
-        pointerId: 1,
-        pointerType: "touch",
-        clientX: 180,
-        clientY: 24,
-      }),
-    );
-    fireEvent(
-      switcher,
-      createPointerEvent("pointermove", {
-        pointerId: 1,
-        pointerType: "touch",
-        clientX: 96,
-        clientY: 26,
-      }),
-    );
-    fireEvent(
-      switcher,
-      createPointerEvent("pointerup", {
-        pointerId: 1,
-        pointerType: "touch",
-        clientX: 96,
-        clientY: 26,
-      }),
-    );
+    swipe(switcher, { from: [180, 24], to: [96, 26] });
 
     expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
       scroll: false,
     });
+  });
+
+  it("switches previews when the fullscreen canvas is swiped horizontally", () => {
+    renderDemo();
+
+    const canvas = screen.getByRole("region", {
+      name: "Fullscreen preview canvas",
+    });
+
+    swipe(canvas, { from: [180, 120], to: [96, 122] });
+    expect(router.replace).toHaveBeenLastCalledWith(next.viewHref, {
+      scroll: false,
+    });
+
+    router.replace.mockClear();
+    swipe(canvas, { from: [96, 120], to: [180, 118] });
+    expect(router.replace).toHaveBeenLastCalledWith(previous.viewHref, {
+      scroll: false,
+    });
+  });
+
+  it("does not treat vertical movement as preview navigation", () => {
+    renderDemo();
+
+    const canvas = screen.getByRole("region", {
+      name: "Fullscreen preview canvas",
+    });
+
+    swipe(canvas, { from: [120, 80], to: [124, 180] });
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("keeps swipe navigation without motion feedback for reduced motion", () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches: true }),
+    );
+    renderDemo();
+
+    const canvas = screen.getByRole("region", {
+      name: "Fullscreen preview canvas",
+    });
+    const start = createTouch(1, 180, 120);
+    const end = createTouch(1, 96, 122);
+
+    fireEvent(
+      canvas,
+      createTouchEvent("touchstart", {
+        touches: [start],
+        changedTouches: [start],
+      }),
+    );
+    fireEvent(
+      canvas,
+      createTouchEvent("touchmove", {
+        touches: [end],
+        changedTouches: [end],
+      }),
+    );
+    expect(canvas.style.transform).toBe("");
+
+    fireEvent(
+      canvas,
+      createTouchEvent("touchend", {
+        touches: [],
+        changedTouches: [end],
+      }),
+    );
+    expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
+      scroll: false,
+    });
+  });
+
+  it("allows swiping from ordinary preview content", () => {
+    renderDemo();
+
+    swipe(screen.getByTestId("preview-content"), {
+      from: [180, 120],
+      to: [96, 122],
+    });
+    expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
+      scroll: false,
+    });
+  });
+
+  it("leaves horizontal gestures owned by preview controls alone", () => {
+    renderDemo();
+
+    const slider = screen.getByRole("slider", { name: "Demo slider" });
+
+    swipe(slider, { from: [180, 120], to: [96, 122] });
+    expect(router.replace).not.toHaveBeenCalled();
   });
 });
 
@@ -247,23 +326,58 @@ function createDisplayItem(
   };
 }
 
-function createPointerEvent(
+function swipe(
+  element: Element,
+  { from, to }: { from: [number, number]; to: [number, number] },
+) {
+  fireEvent(
+    element,
+    createTouchEvent("touchstart", {
+      touches: [createTouch(1, from[0], from[1])],
+      changedTouches: [createTouch(1, from[0], from[1])],
+    }),
+  );
+  fireEvent(
+    element,
+    createTouchEvent("touchmove", {
+      touches: [createTouch(1, to[0], to[1])],
+      changedTouches: [createTouch(1, to[0], to[1])],
+    }),
+  );
+  fireEvent(
+    element,
+    createTouchEvent("touchend", {
+      touches: [],
+      changedTouches: [createTouch(1, to[0], to[1])],
+    }),
+  );
+}
+
+function createTouch(identifier: number, clientX: number, clientY: number) {
+  return { identifier, clientX, clientY };
+}
+
+function createTouchEvent(
   type: string,
   properties: {
-    pointerId: number;
-    pointerType: string;
-    clientX: number;
-    clientY: number;
+    touches: Array<ReturnType<typeof createTouch>>;
+    changedTouches: Array<ReturnType<typeof createTouch>>;
   },
 ) {
   const event = new Event(type, { bubbles: true, cancelable: true });
 
   Object.defineProperties(event, {
-    pointerId: { value: properties.pointerId },
-    pointerType: { value: properties.pointerType },
-    clientX: { value: properties.clientX },
-    clientY: { value: properties.clientY },
+    touches: { value: createTouchList(properties.touches) },
+    changedTouches: { value: createTouchList(properties.changedTouches) },
   });
 
   return event;
+}
+
+function createTouchList(touches: Array<ReturnType<typeof createTouch>>) {
+  return {
+    ...touches,
+    length: touches.length,
+    item: (index: number) => touches[index] ?? null,
+  };
 }

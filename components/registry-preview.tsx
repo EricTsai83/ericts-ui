@@ -56,6 +56,7 @@ const previews: Record<string, PreviewComponent> = {
   "use-element-size-map": dynamic(() => import("@/components/previews/use-element-size-map")),
   "use-scroll-anchor": dynamic(() => import("@/components/previews/use-scroll-anchor")),
   "use-scroll-progress": dynamic(() => import("@/components/previews/use-scroll-progress")),
+  "use-swipe-navigation": dynamic(() => import("@/components/previews/use-swipe-navigation")),
   "use-sequence-player": dynamic(() => import("@/components/previews/use-sequence-player")),
   "scroll-expand": dynamic(() => import("@/components/previews/scroll-expand")),
   "ripple-scene": dynamic(() => import("@/components/previews/ripple-scene")),

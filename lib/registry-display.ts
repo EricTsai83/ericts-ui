@@ -131,7 +131,8 @@ const registryDisplayCategories = [
     slug: "motion",
     kind: "hook",
     label: "Motion",
-    description: "Hooks that drive scroll-linked and eased movement.",
+    description:
+      "Hooks that drive scroll-linked, gesture-linked, and eased movement.",
   },
 ] as const satisfies readonly RegistryDisplayCategory[];
 
@@ -180,6 +181,7 @@ const registryDisplayItemConfigs = [
   { name: "use-element-size-map", category: "measurement", viewport: "wide" },
   { name: "use-scroll-anchor", category: "motion" },
   { name: "use-scroll-progress", category: "motion" },
+  { name: "use-swipe-navigation", category: "motion" },
   { name: "use-sequence-player", category: "motion" },
   { name: "scroll-expand", category: "marketing", viewport: "full" },
   { name: "ripple-scene", category: "marketing", viewport: "full" },

@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useTheme } from "fumadocs-ui/provider/base";
 import {
-  type MouseEvent,
-  type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -20,6 +18,10 @@ import {
   RegistryPreview,
 } from "@/components/registry-preview";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  type SwipeNavigationDirection,
+  useSwipeNavigation,
+} from "@/registry/base/hooks/use-swipe-navigation";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { cn } from "@/lib/utils";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
@@ -43,12 +45,7 @@ export type RegistryDemoNavigationGroup = {
   items: RegistryDemoNavigationItem[];
 };
 
-const SWIPE_DISTANCE_THRESHOLD = 52;
-const SWIPE_VELOCITY_THRESHOLD = 0.35;
-const SWIPE_DIRECTION_LOCK_THRESHOLD = 8;
-const SWIPE_FEEDBACK_DISTANCE = 16;
-
-type PreviewNavigationDirection = "previous" | "next";
+type PreviewNavigationDirection = SwipeNavigationDirection;
 
 let navigationPanelOpenMemory = false;
 let pressedNavigationDirectionMemory: PreviewNavigationDirection | null = null;
@@ -183,6 +180,27 @@ export function RegistryDemoShell({
       return open;
     });
   }, []);
+
+  const handleSwipeIntentChange = useCallback(
+    (direction: PreviewNavigationDirection | null) => {
+      if (direction) {
+        showNavigationFeedback(direction);
+      } else {
+        clearNavigationFeedback();
+      }
+    },
+    [clearNavigationFeedback, showNavigationFeedback],
+  );
+
+  const previewCanvasRef = useSwipeNavigation<HTMLElement>({
+    onPrevious: navigatePrevious,
+    onNext: navigateNext,
+    hasPrevious: Boolean(navigation.previous),
+    hasNext: Boolean(navigation.next),
+    disabled: panelOpen,
+    ignoreOwnedGestures: true,
+    onIntentChange: handleSwipeIntentChange,
+  });
 
   useEffect(() => {
     for (const href of prefetchHrefs) {
@@ -338,7 +356,11 @@ export function RegistryDemoShell({
         onNavigateNext={navigateNext}
       />
 
-      <section className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8">
+      <section
+        ref={previewCanvasRef}
+        aria-label="Fullscreen preview canvas"
+        className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8"
+      >
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[56px_56px] opacity-30 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
@@ -364,14 +386,6 @@ export function RegistryDemoShell({
   );
 }
 
-type PreviewNavigationDockSwipeState = {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  startedAt: number;
-  axis: "pending" | "horizontal" | "vertical";
-};
-
 function PreviewNavigationDock({
   item,
   navigation,
@@ -387,174 +401,18 @@ function PreviewNavigationDock({
   onNavigatePrevious: () => void;
   onNavigateNext: () => void;
 }) {
-  const navigationRef = useRef<HTMLElement>(null);
-  const swipeStateRef = useRef<PreviewNavigationDockSwipeState | null>(null);
-  const suppressClickRef = useRef(false);
-  const resetTimeoutRef = useRef<number | null>(null);
-
-  const resetSwipePosition = useCallback(() => {
-    const element = navigationRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const reduceMotion =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-
-    element.style.transition = reduceMotion
-      ? "none"
-      : "transform 140ms cubic-bezier(0.16, 1, 0.3, 1)";
-    element.style.transform = "translate3d(0, 0, 0)";
-
-    if (resetTimeoutRef.current !== null) {
-      window.clearTimeout(resetTimeoutRef.current);
-    }
-
-    resetTimeoutRef.current = window.setTimeout(() => {
-      element.style.removeProperty("transition");
-      element.style.removeProperty("transform");
-      element.style.removeProperty("will-change");
-      resetTimeoutRef.current = null;
-    }, reduceMotion ? 0 : 160);
-  }, [navigationRef]);
-
-  useEffect(
-    () => () => {
-      if (resetTimeoutRef.current !== null) {
-        window.clearTimeout(resetTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
-  const handlePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
-      if (event.pointerType !== "touch") {
-        return;
-      }
-
-      swipeStateRef.current = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        startedAt: performance.now(),
-        axis: "pending",
-      };
-      event.currentTarget.style.transition = "none";
-      event.currentTarget.style.willChange = "transform";
-    },
-    [],
-  );
-
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
-      const state = swipeStateRef.current;
-
-      if (!state || state.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const deltaX = event.clientX - state.startX;
-      const deltaY = event.clientY - state.startY;
-
-      if (
-        state.axis === "pending" &&
-        Math.max(Math.abs(deltaX), Math.abs(deltaY)) >=
-          SWIPE_DIRECTION_LOCK_THRESHOLD
-      ) {
-        const axis =
-          Math.abs(deltaX) > Math.abs(deltaY) * 1.25
-            ? "horizontal"
-            : "vertical";
-
-        state.axis = axis;
-
-        if (axis === "horizontal") {
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-        }
-      }
-
-      if (state.axis !== "horizontal") {
-        return;
-      }
-
-      event.preventDefault();
-      const feedbackX = Math.max(
-        -SWIPE_FEEDBACK_DISTANCE,
-        Math.min(SWIPE_FEEDBACK_DISTANCE, deltaX * 0.2),
-      );
-      event.currentTarget.style.transform = `translate3d(${feedbackX}px, 0, 0)`;
-    },
-    [],
-  );
-
-  const finishPointer = useCallback(
-    (event: ReactPointerEvent<HTMLElement>, cancelled: boolean) => {
-      const state = swipeStateRef.current;
-
-      if (!state || state.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const deltaX = event.clientX - state.startX;
-      const elapsed = Math.max(performance.now() - state.startedAt, 1);
-      const velocity = Math.abs(deltaX) / elapsed;
-      const navigates =
-        !cancelled &&
-        state.axis === "horizontal" &&
-        (Math.abs(deltaX) >= SWIPE_DISTANCE_THRESHOLD ||
-          (Math.abs(deltaX) >= SWIPE_DISTANCE_THRESHOLD / 2 &&
-            velocity >= SWIPE_VELOCITY_THRESHOLD));
-
-      suppressClickRef.current =
-        state.axis === "horizontal" &&
-        Math.abs(deltaX) >= SWIPE_DIRECTION_LOCK_THRESHOLD;
-      swipeStateRef.current = null;
-
-      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-
-      resetSwipePosition();
-
-      if (navigates) {
-        if (deltaX > 0) {
-          onNavigatePrevious();
-        } else {
-          onNavigateNext();
-        }
-      }
-
-      if (suppressClickRef.current) {
-        window.setTimeout(() => {
-          suppressClickRef.current = false;
-        }, 0);
-      }
-    },
-    [onNavigateNext, onNavigatePrevious, resetSwipePosition],
-  );
-
-  const handleClickCapture = useCallback((event: MouseEvent<HTMLElement>) => {
-    if (!suppressClickRef.current) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    suppressClickRef.current = false;
-  }, []);
+  const navigationRef = useSwipeNavigation<HTMLElement>({
+    onPrevious: onNavigatePrevious,
+    onNext: onNavigateNext,
+    hasPrevious: Boolean(navigation.previous),
+    hasNext: Boolean(navigation.next),
+  });
 
   return (
     <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-30 -translate-x-1/2">
       <nav
         ref={navigationRef}
         aria-label="Preview navigation"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={(event) => finishPointer(event, false)}
-        onPointerCancel={(event) => finishPointer(event, true)}
-        onClickCapture={handleClickCapture}
         className="relative isolate flex w-[min(22rem,calc(100vw-1.5rem))] touch-pan-y overflow-hidden rounded-lg border border-foreground/10 bg-background/80 text-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 supports-backdrop-filter:bg-background/55"
       >
         <PreviewNavigationLink
@@ -819,7 +677,7 @@ function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
   }
 }
 
-function shouldIgnoreModifiedClick(event: MouseEvent<HTMLElement>) {
+function shouldIgnoreModifiedClick(event: ReactMouseEvent<HTMLElement>) {
   return (
     event.defaultPrevented ||
     event.metaKey ||

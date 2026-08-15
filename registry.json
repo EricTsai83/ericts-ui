@@ -994,6 +994,31 @@
       ]
     },
     {
+      "name": "use-swipe-navigation",
+      "type": "registry:hook",
+      "title": "useSwipeNavigation",
+      "description": "A touch-first React hook for previous and next navigation with direction locking, velocity thresholds, gesture ownership, and reduced-motion feedback.",
+      "categories": ["motion"],
+      "meta": {
+        "tags": [
+          "swipe",
+          "touch-gesture",
+          "previous-next",
+          "direction-lock",
+          "velocity",
+          "gesture-ownership"
+        ],
+        "effects": ["drag-feedback", "edge-resistance", "reduced-motion"]
+      },
+      "files": [
+        {
+          "path": "registry/base/hooks/use-swipe-navigation.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-swipe-navigation.ts"
+        }
+      ]
+    },
+    {
       "name": "use-sequence-player",
       "type": "registry:hook",
       "title": "useSequencePlayer",
