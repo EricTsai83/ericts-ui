@@ -14,21 +14,24 @@ import { cn } from "@/lib/utils";
 
 type FeedbackState = "idle" | "loading" | "success";
 
-const INSTANT_TRANSITION = { duration: 0 } as const;
+const INSTANT_LAYOUT_TRANSITION = { duration: 0 } as const;
+const LAYOUT_TRANSITION = {
+  duration: 0.25,
+  ease: [0.77, 0, 0.175, 1],
+} as const;
 const CONTENT_TRANSITION = {
-  type: "spring",
-  duration: 0.4,
-  bounce: 0,
+  duration: 0.2,
+  ease: [0.23, 1, 0.32, 1],
 } as const;
 const SUBMIT_TRANSITION = {
-  type: "spring",
-  duration: 0.3,
-  bounce: 0,
+  duration: 0.2,
+  ease: [0.23, 1, 0.32, 1],
 } as const;
-// Stable dependencies skip layout measurement while typing. Keeping the two
-// values different still lets Motion promote between the shared elements.
-const TRIGGER_LAYOUT_DEPENDENCY = "trigger";
-const POPOVER_LAYOUT_DEPENDENCY = "popover";
+const REDUCED_MOTION_TRANSITION = {
+  duration: 0.2,
+  ease: [0.23, 1, 0.32, 1],
+} as const;
+const REDUCED_MOTION_HIDDEN = { opacity: 0 } as const;
 
 export type FeedbackPopoverProps = Omit<
   React.ComponentProps<"div">,
@@ -250,14 +253,14 @@ export function FeedbackPopover({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePopover, formState, isOpen, submitFeedback]);
 
-  // Match the reference: the popover morph uses Motion's default layout transition
-  // (tween, 0.45s, ease [0.4, 0, 0.1, 1]) by leaving `transition` undefined.
-  const layoutTransition = shouldReduceMotion ? INSTANT_TRANSITION : undefined;
+  const layoutTransition = shouldReduceMotion
+    ? INSTANT_LAYOUT_TRANSITION
+    : LAYOUT_TRANSITION;
   const contentTransition = shouldReduceMotion
-    ? INSTANT_TRANSITION
+    ? REDUCED_MOTION_TRANSITION
     : CONTENT_TRANSITION;
   const submitTransition = shouldReduceMotion
-    ? INSTANT_TRANSITION
+    ? REDUCED_MOTION_TRANSITION
     : SUBMIT_TRANSITION;
 
   return (
@@ -274,7 +277,6 @@ export function FeedbackPopover({
           ref={triggerRef}
           type="button"
           layoutId="feedback-popover-wrapper"
-          layoutDependency={TRIGGER_LAYOUT_DEPENDENCY}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={isOpen ? reactId : undefined}
@@ -288,7 +290,6 @@ export function FeedbackPopover({
         >
           <motion.span
             layoutId="feedback-popover-title"
-            layoutDependency={TRIGGER_LAYOUT_DEPENDENCY}
             transition={layoutTransition}
             className="leading-6"
           >
@@ -303,7 +304,6 @@ export function FeedbackPopover({
               id={reactId}
               ref={popoverRef}
               layoutId="feedback-popover-wrapper"
-              layoutDependency={POPOVER_LAYOUT_DEPENDENCY}
               role="dialog"
               aria-labelledby={titleId}
               aria-describedby={
@@ -316,7 +316,6 @@ export function FeedbackPopover({
               <motion.span
                 id={titleId}
                 layoutId="feedback-popover-title"
-                layoutDependency={POPOVER_LAYOUT_DEPENDENCY}
                 transition={layoutTransition}
                 data-state={formState}
                 data-has-feedback={feedback ? "true" : "false"}
@@ -331,7 +330,7 @@ export function FeedbackPopover({
                     key="success"
                     initial={
                       shouldReduceMotion
-                        ? false
+                        ? REDUCED_MOTION_HIDDEN
                         : {
                             opacity: 0,
                             transform: "translateY(-32px)",
@@ -345,7 +344,7 @@ export function FeedbackPopover({
                     }}
                     exit={
                       shouldReduceMotion
-                        ? undefined
+                        ? REDUCED_MOTION_HIDDEN
                         : {
                             opacity: 0,
                             transform: "translateY(8px)",
@@ -378,7 +377,7 @@ export function FeedbackPopover({
                     key="form"
                     exit={
                       shouldReduceMotion
-                        ? undefined
+                        ? REDUCED_MOTION_HIDDEN
                         : {
                             opacity: 0,
                             transform: "translateY(8px)",
@@ -425,7 +424,7 @@ export function FeedbackPopover({
                             key={formState}
                             initial={
                               shouldReduceMotion
-                                ? false
+                                ? REDUCED_MOTION_HIDDEN
                                 : {
                                     opacity: 0,
                                     transform: "translateY(-25px)",
@@ -437,7 +436,7 @@ export function FeedbackPopover({
                             }}
                             exit={
                               shouldReduceMotion
-                                ? undefined
+                                ? REDUCED_MOTION_HIDDEN
                                 : {
                                     opacity: 0,
                                     transform: "translateY(25px)",

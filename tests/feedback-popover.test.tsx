@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { act } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -14,6 +16,21 @@ function createDeferred<T>() {
 }
 
 describe("FeedbackPopover", () => {
+  it("keeps shared-layout measurement enabled for production transitions", () => {
+    // jsdom has no layout engine, so guard the source of the production-only
+    // regression: a static layoutDependency prevented Motion from taking the
+    // trigger snapshot that the shared layout transition needs.
+    const source = readFileSync(
+      path.join(
+        process.cwd(),
+        "registry/base/ui/feedback-popover.tsx",
+      ),
+      "utf8",
+    );
+
+    expect(source).not.toContain("layoutDependency=");
+  });
+
   it("does not invoke onOpenChange after unmount mid-submit", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.useFakeTimers();
