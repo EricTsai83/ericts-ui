@@ -30,6 +30,13 @@ export type ProjectedShadowProps = React.ComponentProps<"span"> & {
   projectedShadowBlur?: ProjectedShadowLengthValue;
   /** Resting offset for the far projected shadow. */
   projectedShadowOffset?: ProjectedShadowOffset;
+  /**
+   * Keep the wrapped content selectable on touch. Off by default, because the
+   * press that gathers the layers would otherwise raise iOS's selection menu
+   * partway through. Turn it on when wrapping copy rather than a mark, and
+   * accept that a long press interrupts the gather.
+   */
+  selectable?: boolean;
   /** Optional decorative content for the shadow layers. Defaults to children. */
   shadow?: React.ReactNode;
   /** Classes applied to the visible animated child wrapper. */
@@ -56,6 +63,7 @@ export function ProjectedShadow({
   projectedShadowClassName,
   projectedShadowBlur,
   projectedShadowOffset,
+  selectable,
   shadow,
   showContactShadow = true,
   showProjectedShadow = true,
@@ -70,6 +78,7 @@ export function ProjectedShadow({
       data-slot="projected-shadow"
       data-active={animated && active ? "" : undefined}
       data-animated={animated ? "" : undefined}
+      data-selectable={selectable ? "" : undefined}
       className={cn(
         "projected-shadow relative inline-flex items-center justify-center",
         className,

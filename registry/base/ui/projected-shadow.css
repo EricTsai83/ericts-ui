@@ -46,9 +46,13 @@
 }
 
 /* Promote only while the gather can actually run. Three layers per instance,
-   permanently promoted, is real GPU memory in a grid of these. */
+   permanently promoted, is real GPU memory in a grid of these. `:active` is
+   free to list here even though only touch gathers on it: a mouse press
+   implies hover and a keyboard press implies focus, so on those devices the
+   layer is already promoted by the time this matches. */
 .projected-shadow[data-animated]:hover .projected-shadow-layer,
 .projected-shadow[data-animated]:focus-within .projected-shadow-layer,
+.projected-shadow[data-animated]:active .projected-shadow-layer,
 .projected-shadow[data-animated][data-active] .projected-shadow-layer {
   will-change: transform, opacity;
 }
@@ -150,6 +154,63 @@
   }
 
   .projected-shadow[data-animated]:hover .projected-shadow-target {
+    transform: translate3d(
+        var(--projected-shadow-target-active-x),
+        var(--projected-shadow-target-active-y),
+        0
+      )
+      scale(var(--projected-shadow-target-active-scale))
+      rotate(var(--projected-shadow-target-active-rotate));
+  }
+}
+
+/* Touch parity: a press stands in for the hover the device cannot deliver,
+   so the gather is reachable without the consumer wiring up `active`.
+   `cursor: pointer` is the signal Safari uses to decide an element is
+   clickable and therefore eligible for `:active`; where there is no hover
+   there is no cursor, so declaring it costs nothing visually. */
+@media (hover: none) {
+  .projected-shadow[data-animated] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The callout and selection suppressions keep a press-and-hold from turning
+     into iOS's text selection menu halfway through the gather. They inherit
+     into whatever is wrapped, so a consumer wrapping real copy rather than a
+     mark opts back out with `selectable` and accepts the interruption. */
+  .projected-shadow[data-animated]:not([data-selectable]) {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  .projected-shadow[data-animated]:active .projected-shadow-layer {
+    transition-duration: var(--projected-shadow-active-duration);
+  }
+
+  .projected-shadow[data-animated]:active .projected-shadow-projected {
+    opacity: var(--projected-shadow-projected-active-opacity);
+    transform: translate3d(
+        var(--projected-shadow-projected-active-x),
+        var(--projected-shadow-projected-active-y),
+        0
+      )
+      scale(var(--projected-shadow-projected-active-scale))
+      rotate(var(--projected-shadow-projected-active-rotate));
+  }
+
+  .projected-shadow[data-animated]:active .projected-shadow-contact {
+    opacity: var(--projected-shadow-contact-active-opacity);
+    transform: translate3d(
+        var(--projected-shadow-contact-active-x),
+        var(--projected-shadow-contact-active-y),
+        0
+      )
+      scale(var(--projected-shadow-contact-active-scale))
+      rotate(var(--projected-shadow-contact-active-rotate));
+  }
+
+  .projected-shadow[data-animated]:active .projected-shadow-target {
     transform: translate3d(
         var(--projected-shadow-target-active-x),
         var(--projected-shadow-target-active-y),
