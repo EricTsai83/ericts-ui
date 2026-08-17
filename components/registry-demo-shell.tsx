@@ -432,7 +432,7 @@ export function RegistryDemoShell({
         <div
           data-swipe-entrance={visibleSwipeEntranceDirection ?? undefined}
           className={cn(
-            "z-10 flex w-full min-w-0 items-center justify-center transition-[transform,opacity] motion-reduce:[transform:translate3d(0,0,0)]",
+            "z-10 flex w-full min-w-0 items-center justify-center transition-[transform,opacity] motion-reduce:transform-[translate3d(0,0,0)]",
             getViewportClassName(item.viewport),
             getSwipeEntranceClassName(visibleSwipeEntranceDirection),
           )}
@@ -509,11 +509,7 @@ function PreviewNavigationDock({
           aria-live="polite"
           className="flex h-10 min-w-0 flex-1 items-center justify-center overflow-hidden px-3 sm:h-9"
         >
-          <span
-            className="truncate text-sm font-medium"
-          >
-            {item.title}
-          </span>
+          <span className="truncate text-sm font-medium">{item.title}</span>
         </div>
 
         <PreviewNavigationLink

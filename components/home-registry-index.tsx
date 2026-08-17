@@ -190,7 +190,7 @@ function RegistryGroup({
           <li key={item.name} className="min-w-0">
             <Link
               href={item.href}
-              className="group -mx-2 flex min-h-8 items-center gap-3 rounded-md px-2 text-sm leading-5 text-foreground/75 transition-colors duration-150 hover:bg-background/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group -mx-2 flex min-h-8 items-center gap-3 rounded-md px-2 text-sm leading-5 text-foreground transition-colors duration-150 hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span className="min-w-0 shrink truncate">{item.title}</span>
               {/*
