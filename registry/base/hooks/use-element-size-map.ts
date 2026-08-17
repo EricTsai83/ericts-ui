@@ -13,15 +13,31 @@ export type ElementSize = {
  * Use it when an animated shell, indicator, toolbar, or floating panel needs to
  * move toward the measured width/height of whichever keyed element is active.
  *
+ * The measured copies have to lay out at their natural size, so give their
+ * container `size-0 overflow-clip`. `invisible` alone only skips painting: the
+ * copies keep their boxes, and a set of them wider than the viewport hands the
+ * page a horizontal scrollbar on a phone. Clipping stops the overflow
+ * propagating and leaves each child's own layout, and so every measurement,
+ * untouched. `overflow: clip` over `hidden` because it does not turn the
+ * container into a scroll container; it needs Safari 16, and below that the
+ * declaration is dropped and the horizontal scrollbar comes back.
+ *
+ * A zero-sized container also means percentage widths on the copies resolve
+ * against nothing. Size them intrinsically (`w-max`) or against the viewport,
+ * or against a container query on an ancestor that has a width.
+ *
  * @example
  *   const { setMeasureRef, sizes } = useElementSizeMap<HTMLDivElement>();
  *   const activeSize = sizes[activeId];
  *
  *   return (
  *     <>
- *       <div aria-hidden className="invisible absolute">
+ *       <div
+ *         aria-hidden
+ *         className="invisible absolute left-0 top-0 size-0 overflow-clip"
+ *       >
  *         {items.map((item) => (
- *           <div key={item.id} ref={setMeasureRef(item.id)}>
+ *           <div key={item.id} ref={setMeasureRef(item.id)} className="w-max">
  *             {item.content}
  *           </div>
  *         ))}

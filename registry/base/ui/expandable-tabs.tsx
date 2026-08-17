@@ -329,39 +329,38 @@ function DockMeasurers({
   ) => (node: HTMLButtonElement | null) => void;
 }) {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none invisible absolute left-0 top-0 flex"
-    >
-      {items.map((item) => (
-        <div key={item.id} className="flex">
-          {(["inactive", "active"] as const).map((state) => {
-            const isActive = state === "active";
+    <MeasurerLayer>
+      <div className="flex w-max">
+        {items.map((item) => (
+          <div key={item.id} className="flex">
+            {(["inactive", "active"] as const).map((state) => {
+              const isActive = state === "active";
 
-            return (
-              <button
-                key={state}
-                ref={setButtonMeasureRef(buttonSizeId(item.id, state))}
-                type="button"
-                tabIndex={-1}
-                className={cn(
-                  "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
-                  isActive && "justify-start pl-2.5 pr-4",
-                  classNames?.tab,
-                  isActive && classNames?.activeTab,
-                )}
-              >
-                <DockButtonContent
-                  item={item}
-                  showLabel={isActive}
-                  classNames={classNames}
-                />
-              </button>
-            );
-          })}
-        </div>
-      ))}
-    </div>
+              return (
+                <button
+                  key={state}
+                  ref={setButtonMeasureRef(buttonSizeId(item.id, state))}
+                  type="button"
+                  tabIndex={-1}
+                  className={cn(
+                    "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
+                    isActive && "justify-start pl-2.5 pr-4",
+                    classNames?.tab,
+                    isActive && classNames?.activeTab,
+                  )}
+                >
+                  <DockButtonContent
+                    item={item}
+                    showLabel={isActive}
+                    classNames={classNames}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </MeasurerLayer>
   );
 }
 
@@ -375,14 +374,13 @@ function PanelMeasurers({
   setPanelMeasureRef: (id: string) => (node: HTMLDivElement | null) => void;
 }) {
   return (
-    <>
+    <MeasurerLayer>
       {items.filter(hasPanel).map((item) => (
         <div
           key={item.id}
           ref={setPanelMeasureRef(item.id)}
-          aria-hidden
           className={cn(
-            "pointer-events-none invisible absolute left-0 top-0 w-max px-2 pt-2",
+            "absolute left-0 top-0 w-max px-2 pt-2",
             classNames?.panel,
           )}
           style={{ paddingBottom: BAR_H + PANEL_DOCK_GAP }}
@@ -392,7 +390,30 @@ function PanelMeasurers({
           </div>
         </div>
       ))}
-    </>
+    </MeasurerLayer>
+  );
+}
+
+/**
+ * Holds the off-screen copies the dock measures itself against.
+ *
+ * These copies lay out at their natural width — that is the whole point — but
+ * `invisible` only skips painting, so without containment their boxes still
+ * widen every scroll ancestor and hand the page a horizontal scrollbar on a
+ * phone. A zero-sized `overflow-clip` box stops the overflow propagating while
+ * leaving the children's own layout, and therefore every measurement taken
+ * from them, exactly as it was. `clip` rather than `hidden` so the box does not
+ * become a scroll container; it needs Safari 16, below which the declaration is
+ * dropped and the scrollbar returns.
+ */
+function MeasurerLayer({ children }: { children: ReactNode }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none invisible absolute left-0 top-0 size-0 overflow-clip"
+    >
+      {children}
+    </div>
   );
 }
 

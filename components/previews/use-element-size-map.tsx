@@ -24,6 +24,11 @@ type ElementSizeMapPanelData = {
   footer?: string;
 };
 
+// Each panel is measured off-screen inside a zero-sized wrapper, so a
+// percentage width would resolve against nothing. `cqw` reads the demo root
+// instead, which is already inside whatever padding the page and the preview
+// card impose — so these stay correct if either one changes, which a viewport
+// clamp minus a hard-coded inset would not.
 const elementSizeMapPanels: ElementSizeMapPanelData[] = [
   {
     id: "compact",
@@ -31,7 +36,7 @@ const elementSizeMapPanels: ElementSizeMapPanelData[] = [
     title: "Inbox",
     meta: "Focused triage",
     badge: "3",
-    className: "w-56",
+    className: "w-[min(14rem,100cqw)]",
     rows: [
       { label: "Mentions", value: "12" },
       { label: "Assigned", value: "4" },
@@ -44,7 +49,7 @@ const elementSizeMapPanels: ElementSizeMapPanelData[] = [
     title: "Campaign health",
     meta: "Live segments",
     badge: "Live",
-    className: "w-72",
+    className: "w-[min(18rem,100cqw)]",
     rows: [
       { label: "Activation", value: "68%" },
       { label: "Retention", value: "41%" },
@@ -59,7 +64,7 @@ const elementSizeMapPanels: ElementSizeMapPanelData[] = [
     title: "Launch plan",
     meta: "Final sequence",
     badge: "6",
-    className: "w-64",
+    className: "w-[min(16rem,100cqw)]",
     rows: [
       { label: "Freeze scope", value: "Done" },
       { label: "Notify beta", value: "9:00" },
@@ -86,7 +91,7 @@ export default function Preview() {
   const activeSize = sizes[activePanel.id] ?? elementSizeMapFallbackSize;
 
   return (
-    <div className="relative mx-auto flex w-full max-w-xl flex-col items-center gap-4">
+    <div className="@container relative mx-auto flex w-full max-w-xl flex-col items-center gap-4">
       <DemoSegmentedControl
         label="Measured panel"
         items={elementSizeMapPanels}
@@ -96,7 +101,7 @@ export default function Preview() {
 
       <div
         aria-hidden
-        className="pointer-events-none invisible absolute left-0 top-0"
+        className="pointer-events-none invisible absolute left-0 top-0 size-0 overflow-clip"
       >
         {elementSizeMapPanels.map((panel) => (
           <div key={panel.id} ref={setMeasureRef(panel.id)} className="w-max">
