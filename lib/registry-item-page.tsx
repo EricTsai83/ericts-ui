@@ -65,7 +65,7 @@ export async function RegistryItemPage({
   const segment = getRegistryKindSegment(kind);
 
   return (
-    <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-6 py-10 sm:px-8 lg:px-10">
+    <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8 lg:px-10">
       <header className="flex max-w-3xl flex-col gap-5">
         <Link
           href={`/${segment}`}

@@ -11,7 +11,9 @@ export default function Preview() {
     useState(false);
 
   return (
-    <div className="grid grid-cols-[max-content_auto] items-center justify-items-start gap-x-4 gap-y-5">
+    // `minmax(0, max-content)` keeps the one-line layout wherever it fits and
+    // lets the label column wrap instead of pushing the switch off a phone.
+    <div className="grid grid-cols-[minmax(0,max-content)_auto] items-center justify-items-start gap-x-4 gap-y-5">
       <span className="text-sm font-medium">Large · With text · Elastic</span>
       <AdaptiveSwitch
         checked={largeElasticTextEnabled}

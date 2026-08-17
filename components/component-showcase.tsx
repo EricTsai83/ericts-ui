@@ -139,7 +139,7 @@ function HookPreview({
           {demoVariants.map((variant) => (
             <TabsContent key={variant.value} value={variant.value}>
               <div className="relative overflow-hidden rounded-xl border bg-background">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <PreviewCornerSlotProvider
                     className={
                       fullscreenHref ? "right-13 top-3" : "right-3 top-3"
@@ -155,7 +155,7 @@ function HookPreview({
         </Tabs>
       ) : (
         <div className="relative overflow-hidden rounded-xl border bg-background">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <PreviewCornerSlotProvider
               className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
             >
@@ -340,7 +340,7 @@ function ComponentPreviewCard({
             </TabsList>
           </div>
         ) : null}
-        <div className="relative flex min-h-[288px] items-center justify-center p-10">
+        <div className="relative flex min-h-[288px] items-center justify-center p-4 sm:p-10">
           <PreviewCornerSlotProvider
             className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
           >
