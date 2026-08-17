@@ -389,7 +389,9 @@ function ComponentPreviewCard({
  * row would land on top of it — and move to its left from `sm` up.
  */
 function getPreviewCornerSlot(fullscreenHref?: string) {
-  return fullscreenHref ? "right-3 top-13 sm:right-13 sm:top-3" : "right-3 top-3";
+  return fullscreenHref
+    ? "absolute right-3 top-13 sm:right-13 sm:top-3"
+    : "absolute right-3 top-3";
 }
 
 function PreviewFullscreenAction({ href }: { href?: string }) {

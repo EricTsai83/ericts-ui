@@ -81,6 +81,8 @@ export function RegistryDemoShell({
       () => pressedNavigationDirectionMemory,
     );
   const [, setSwipeEntranceRevision] = useState(0);
+  const [previewCornerSlot, setPreviewCornerSlot] =
+    useState<HTMLDivElement | null>(null);
   const visibleSwipeEntranceDirection =
     getPendingSwipeEntranceDirection(item.name);
   const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
@@ -440,6 +442,11 @@ export function RegistryDemoShell({
         onTouchStartCapture={dismissSwipeHint}
         className="relative flex flex-1 items-center justify-center overflow-auto p-5 sm:p-8"
       >
+        {/* Mount point for the preview's own corner controls, kept outside the
+            transformed wrapper below so their offsets resolve against the
+            viewport instead of the demo's box. `contents` keeps it out of the
+            canvas layout. */}
+        <div ref={setPreviewCornerSlot} className="contents" />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[56px_56px] opacity-30 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
@@ -452,13 +459,13 @@ export function RegistryDemoShell({
             getSwipeEntranceClassName(visibleSwipeEntranceDirection),
           )}
         >
-          {/* Sit replay/other preview controls to the left of the fixed
-              navigation toggle so they line up side by side. Note the
-              swipe-entrance transform below makes this wrapper the containing
-              block for the control, so these offsets resolve against the demo's
-              own box — they only reach the canvas corner for `viewport: full`
-              items, which stretch to it. */}
-          <PreviewCornerSlotProvider className="right-13 top-3 sm:right-14 sm:top-4">
+          {/* Keep replay/other preview controls clear of the fixed navigation
+              toggle: stacked below it at phone widths, where the demo spans the
+              canvas, and beside it from `sm` up. */}
+          <PreviewCornerSlotProvider
+            className="fixed right-3 top-13 sm:right-14 sm:top-4"
+            container={previewCornerSlot}
+          >
             <RegistryPreview
               name={item.name}
               variant={variant}
