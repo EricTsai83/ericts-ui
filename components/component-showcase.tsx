@@ -141,9 +141,7 @@ function HookPreview({
               <div className="relative overflow-hidden rounded-xl border bg-background">
                 <div className="p-4 sm:p-6">
                   <PreviewCornerSlotProvider
-                    className={
-                      fullscreenHref ? "right-13 top-3" : "right-3 top-3"
-                    }
+                    className={getPreviewCornerSlot(fullscreenHref)}
                   >
                     <RegistryPreview name={name} variant={variant.value} />
                   </PreviewCornerSlotProvider>
@@ -157,7 +155,7 @@ function HookPreview({
         <div className="relative overflow-hidden rounded-xl border bg-background">
           <div className="p-4 sm:p-6">
             <PreviewCornerSlotProvider
-              className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+              className={getPreviewCornerSlot(fullscreenHref)}
             >
               <RegistryPreview
                 name={name}
@@ -342,7 +340,7 @@ function ComponentPreviewCard({
         ) : null}
         <div className="relative flex min-h-[288px] items-center justify-center p-4 sm:p-10">
           <PreviewCornerSlotProvider
-            className={fullscreenHref ? "right-13 top-3" : "right-3 top-3"}
+            className={getPreviewCornerSlot(fullscreenHref)}
           >
             {hasMultipleVariants ? (
               variants.map((variant) => (
@@ -382,6 +380,16 @@ function ComponentPreviewCard({
       </Tabs>
     </section>
   );
+}
+
+/**
+ * Slot for a preview's own corner controls. The fullscreen link owns the
+ * top-right corner, so those controls stack directly below it on phone widths —
+ * a demo there usually spans the whole canvas, and a second control on the same
+ * row would land on top of it — and move to its left from `sm` up.
+ */
+function getPreviewCornerSlot(fullscreenHref?: string) {
+  return fullscreenHref ? "right-3 top-13 sm:right-13 sm:top-3" : "right-3 top-3";
 }
 
 function PreviewFullscreenAction({ href }: { href?: string }) {

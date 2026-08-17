@@ -312,7 +312,7 @@ export function FeedbackPopover({
                 transition={layoutTransition}
                 data-state={formState}
                 data-has-feedback={feedback ? "true" : "false"}
-                className="pointer-events-none absolute left-3 top-3 text-sm font-medium leading-6 text-muted-foreground data-[has-feedback=true]:opacity-0! data-[state=success]:opacity-0!"
+                className="pointer-events-none absolute left-3 top-3 text-base font-medium leading-6 text-muted-foreground data-[has-feedback=true]:opacity-0! data-[state=success]:opacity-0! sm:text-sm"
               >
                 {textareaLabel}
               </motion.span>
@@ -387,6 +387,9 @@ export function FeedbackPopover({
                     <label htmlFor={`${reactId}-textarea`} className="sr-only">
                       {textareaLabel}
                     </label>
+                    {/* 16px below `sm`: iOS Safari zooms the whole page in when
+                        a smaller field takes focus, and `autoFocus` makes that
+                        happen the moment the popover opens. */}
                     <textarea
                       id={`${reactId}-textarea`}
                       autoFocus
@@ -394,7 +397,7 @@ export function FeedbackPopover({
                       value={feedback}
                       disabled={formState === "loading"}
                       onChange={(event) => setFeedback(event.target.value)}
-                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-sm leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-base leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                     />
 
                     <div className="relative flex items-center justify-end border-t border-dashed bg-muted/30 px-3 py-2.5">

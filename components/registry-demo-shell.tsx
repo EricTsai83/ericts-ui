@@ -453,7 +453,11 @@ export function RegistryDemoShell({
           )}
         >
           {/* Sit replay/other preview controls to the left of the fixed
-              navigation toggle so they line up side by side. */}
+              navigation toggle so they line up side by side. Note the
+              swipe-entrance transform below makes this wrapper the containing
+              block for the control, so these offsets resolve against the demo's
+              own box — they only reach the canvas corner for `viewport: full`
+              items, which stretch to it. */}
           <PreviewCornerSlotProvider className="right-13 top-3 sm:right-14 sm:top-4">
             <RegistryPreview
               name={item.name}

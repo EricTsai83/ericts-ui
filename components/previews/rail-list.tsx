@@ -11,11 +11,13 @@ const chapters: RailListItem[] = [
   { value: "gallery", label: "Gallery" },
 ];
 
+// Kept within a few characters of each other so every summary wraps to the same
+// number of lines at phone widths — an uneven set moves the rail on selection.
 const summaries: Record<string, string> = {
   overview: "Where the collection starts and what holds it together.",
-  process: "Sketches, samples, and the sequence between them.",
-  materials: "Sourcing notes and the palette they arrived in.",
-  gallery: "The finished pieces, photographed in daylight.",
+  process: "Sketches, samples, and the sequence that connects them.",
+  materials: "Sourcing notes and the palette each material arrived in.",
+  gallery: "The finished pieces, each photographed in daylight.",
 };
 
 export default function Preview() {

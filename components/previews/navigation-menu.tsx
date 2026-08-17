@@ -14,6 +14,8 @@ import {
   navigationMenuTriggerStyle,
 } from "@/registry/base/ui/navigation-menu";
 
+// Both menus stay short on purpose: the panel stacks into a single column at
+// phone widths, so every extra row is another screenful of demo content.
 const componentItems = [
   {
     title: "Interactive primitives",
@@ -22,10 +24,6 @@ const componentItems = [
   {
     title: "Motion patterns",
     description: "Feedback, layout changes, and state transitions.",
-  },
-  {
-    title: "Client hooks",
-    description: "Small utilities for preferences and browser behavior.",
   },
 ];
 
@@ -46,14 +44,6 @@ const resourceItems = [
     title: "Changelog",
     description: "Track updates before pulling a component again.",
   },
-  {
-    title: "Design notes",
-    description: "Understand interaction and accessibility decisions.",
-  },
-  {
-    title: "Support",
-    description: "Find setup, theming, and troubleshooting docs.",
-  },
 ];
 
 export default function Preview() {
@@ -65,7 +55,7 @@ export default function Preview() {
             <NavigationMenuTrigger>Components</NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul className="grid w-[min(31rem,calc(100vw-2rem))] gap-2 p-3 sm:grid-cols-[0.8fr_1fr]">
-                <li className="sm:row-span-3">
+                <li className="sm:row-span-2">
                   <NavigationMenuLink
                     href="#"
                     className="flex h-full min-h-44 flex-col justify-end rounded-md bg-primary p-5 text-primary-foreground hover:bg-primary/90 focus-visible:bg-primary/90"

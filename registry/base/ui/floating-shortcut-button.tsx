@@ -574,7 +574,10 @@ export function FloatingShortcutButton({
             onClick={handleTriggerClick}
             onKeyDown={handleTriggerKeyDown}
             className={cn(
-              "relative origin-center rounded-full p-0 no-underline",
+              // `touch-manipulation` opts out of double-tap-to-zoom, which is
+              // what makes mobile browsers hold a tap for ~300ms before firing
+              // click — the menu would otherwise open a beat after the press.
+              "relative origin-center touch-manipulation rounded-full p-0 no-underline",
               classNames?.trigger,
               triggerClassName,
             )}
@@ -728,7 +731,7 @@ export function FloatingShortcutAction({
         aria-label={label}
         onClick={handleClick}
         className={cn(
-          "rounded-full border-border bg-card text-card-foreground shadow-sm transition-[transform,background-color] ease-out hover:bg-accent active:scale-[var(--floating-shortcut-press-scale)] active:bg-accent/70 disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none",
+          "touch-manipulation rounded-full border-border bg-card text-card-foreground shadow-sm transition-[transform,background-color] ease-out hover:bg-accent active:scale-[var(--floating-shortcut-press-scale)] active:bg-accent/70 disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none",
           context?.classNames?.actionButton,
           className,
         )}

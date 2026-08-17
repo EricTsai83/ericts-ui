@@ -10,8 +10,10 @@ import { cn } from "@/lib/utils";
  * Where a preview's own corner controls (e.g. the replay button) should sit, as
  * Tailwind top/right classes. Surrounding chrome that pins its own control to
  * the preview's top-right corner — the fullscreen link on a component page, the
- * navigation toggle in fullscreen — provides a slot to the left of it so the two
- * sit side by side instead of stacking. Defaults to the corner itself.
+ * navigation toggle in fullscreen — provides a slot clear of it. On a component
+ * page that slot drops below the fullscreen link at phone widths, where a demo
+ * spans the whole card and a second control on the same row would sit on top of
+ * it, and moves beside it from `sm` up. Defaults to the corner itself.
  */
 const PreviewCornerSlotContext = createContext("right-3 top-3");
 
