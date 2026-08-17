@@ -158,6 +158,7 @@ const registryDisplayItemConfigs = [
   { name: "floating-select", category: "form" },
   { name: "adaptive-switch", category: "form" },
   { name: "expandable-slider", category: "form" },
+  { name: "nav-link", category: "navigation" },
   { name: "highlight-tabs", category: "navigation" },
   { name: "sliding-list", category: "navigation" },
   { name: "rail-list", category: "navigation" },

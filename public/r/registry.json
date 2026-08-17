@@ -489,6 +489,35 @@
       ]
     },
     {
+      "name": "nav-link",
+      "type": "registry:ui",
+      "title": "Nav Link",
+      "description": "Adds active, exact, and pending route state to Next.js App Router links, with typed routes, nested matching, and Cache Components support.",
+      "categories": ["navigation"],
+      "meta": {
+        "tags": [
+          "nextjs-only",
+          "nextjs",
+          "app-router",
+          "active-link",
+          "pending-state",
+          "nested-routes",
+          "render-props",
+          "aria-current",
+          "typed-routes",
+          "cache-components"
+        ],
+        "effects": ["active-state", "pending-state"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/nav-link.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/nav-link.tsx"
+        }
+      ]
+    },
+    {
       "name": "highlight-tabs",
       "type": "registry:ui",
       "title": "Highlight Tabs",

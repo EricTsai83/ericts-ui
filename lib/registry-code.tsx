@@ -67,6 +67,10 @@ export async function getRegistryMotionApiSnippets(name: string) {
   return highlightCodeFiles(motionApiReducedMotionSnippets, true);
 }
 
+export async function getRegistryGuideSnippets(name: string) {
+  return highlightCodeFiles(registryGuideSnippets[name] ?? [], true);
+}
+
 function getCodeLanguage(filePath: string): ComponentCodeFile["language"] {
   if (filePath.endsWith(".css")) {
     return "css";
@@ -429,6 +433,110 @@ export function MorphingPanel({
         {activePanel.content}
       </motion.div>
     </div>
+  );
+}`,
+    },
+  ],
+};
+
+const registryGuideSnippets: Record<string, ComponentCodeFile[]> = {
+  "nav-link": [
+    {
+      name: "sidebar-nav.tsx",
+      language: "tsx",
+      source: `import { NavLink } from "@/components/ui/nav-link";
+
+const link =
+  "block rounded-md px-3 py-2 text-muted-foreground data-active:bg-muted data-active:font-medium data-active:text-foreground";
+
+export function SidebarNav() {
+  return (
+    <nav aria-label="Dashboard">
+      {/* Leaf pages. Active only on their own route. */}
+      <NavLink href="/dashboard" className={link}>
+        Overview
+      </NavLink>
+      <NavLink href="/dashboard/settings" className={link}>
+        Settings
+      </NavLink>
+
+      {/* Section. Opts in to staying active on /dashboard/projects/[id]. */}
+      <NavLink href="/dashboard/projects" match="prefix" className={link}>
+        Projects
+      </NavLink>
+    </nav>
+  );
+}`,
+    },
+    {
+      name: "match-modes.tsx",
+      language: "tsx",
+      source: `// Default. Active only on its own route.
+<NavLink href="/dashboard/projects">Projects</NavLink>
+
+//   /dashboard/projects          isActive, isExact
+//   /dashboard/projects/acme     inactive
+//   /dashboard/projects-archive  inactive
+
+// Opt in to prefix for a section link.
+<NavLink href="/dashboard/projects" match="prefix">
+  {({ isActive, isExact }) => (
+    <>
+      Projects
+      {isActive && !isExact ? <ChevronRight /> : null}
+    </>
+  )}
+</NavLink>
+
+//   /dashboard/projects          isActive, isExact   aria-current="page"
+//   /dashboard/projects/acme     isActive            aria-current="location"
+//   /dashboard/projects-archive  inactive (whole segments only)`,
+    },
+    {
+      name: "pending-link.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { LoaderCircle } from "lucide-react";
+
+import { NavLink } from "@/components/ui/nav-link";
+import { cn } from "@/lib/utils";
+
+export function ReportsLink() {
+  return (
+    <NavLink href="/reports" prefetch={false}>
+      {({ isPending }) => (
+        <>
+          <span>Reports</span>
+          <LoaderCircle
+            aria-hidden="true"
+            className={cn(
+              "size-4 opacity-0 transition-opacity duration-150",
+              isPending &&
+                "animate-spin opacity-100 delay-150 motion-reduce:animate-none motion-reduce:transition-none",
+            )}
+          />
+        </>
+      )}
+    </NavLink>
+  );
+}`,
+    },
+    {
+      name: "app/layout.tsx",
+      language: "tsx",
+      source: `import { NavLinkScript } from "@/components/ui/nav-link";
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <NavLinkScript />
+      </body>
+    </html>
   );
 }`,
     },

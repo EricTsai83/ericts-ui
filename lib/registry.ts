@@ -79,6 +79,7 @@ function getSearchTerms(item: RegistrySourceItem, category: string) {
     item.title,
     category,
     ...(item.categories ?? []),
+    ...(item.meta?.tags ?? []),
     ...(item.meta?.effects ?? []),
     ...(cssOnly
       ? ["css-only alternative", "css alternative", "css-only", "css version"]

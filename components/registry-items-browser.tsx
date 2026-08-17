@@ -130,6 +130,7 @@ function getItemMetadata(
     // Reading the slug here instead is what let a card labelled "drawer" sit
     // under an "Overlays" heading.
     includeCategory ? (item.groupLabel ?? item.categories?.[0]) : undefined,
+    item.meta?.tags?.includes("nextjs-only") ? "Next.js only" : undefined,
     item.meta?.effects?.[0],
     item.hasCssOnly || item.meta?.cssOnly
       ? "CSS-only alternative"

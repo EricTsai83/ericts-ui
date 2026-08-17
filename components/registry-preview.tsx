@@ -36,6 +36,7 @@ const previews: Record<string, PreviewComponent> = {
   "expandable-slider": dynamic(() => import("@/components/previews/expandable-slider")),
   "expandable-toolbar": dynamic(() => import("@/components/previews/expandable-toolbar")),
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
+  "nav-link": dynamic(() => import("@/components/previews/nav-link")),
   "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
   "sliding-list": dynamic(() => import("@/components/previews/sliding-list")),
   "rail-list": dynamic(() => import("@/components/previews/rail-list")),

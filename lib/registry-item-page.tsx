@@ -1,12 +1,19 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ComponentShowcase } from "@/components/component-showcase";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   getRegistryCodeModel,
+  getRegistryGuideSnippets,
   getRegistryMotionApiSnippets,
 } from "@/lib/registry-code";
 import { getRegistryDisplayItem } from "@/lib/registry-display";
@@ -60,9 +67,11 @@ export async function RegistryItemPage({
 
   const codeModel = await getRegistryCodeModel(item);
   const badges = getRegistryItemBadges(item);
+  const guideSnippets = await getRegistryGuideSnippets(item.name);
   const motionApiSnippets = await getRegistryMotionApiSnippets(item.name);
   const displayItem = getRegistryDisplayItem(item.name);
   const segment = getRegistryKindSegment(kind);
+  const isNextJsOnly = item.meta?.tags?.includes("nextjs-only") ?? false;
 
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8 lg:px-10">
@@ -87,20 +96,28 @@ export async function RegistryItemPage({
               {item.description}
             </p>
           ) : null}
-          {badges.visible.length > 0 ? (
+          {isNextJsOnly ? (
+            <Alert variant="warning" className="mt-1">
+              <TriangleAlert aria-hidden="true" />
+              <AlertTitle>Next.js App Router only</AlertTitle>
+              <AlertDescription>
+                Built on <code>next/link</code> and{" "}
+                <code>next/navigation</code>. Not compatible with the Pages
+                Router or other frameworks.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          {!isNextJsOnly && badges.visible.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {badges.visible.map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
-                >
+                <Badge key={badge} variant="secondary">
                   {badge}
-                </span>
+                </Badge>
               ))}
               {badges.hiddenCount > 0 ? (
-                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                <Badge variant="secondary">
                   +{badges.hiddenCount}
-                </span>
+                </Badge>
               ) : null}
             </div>
           ) : null}
@@ -114,6 +131,7 @@ export async function RegistryItemPage({
         targetPath={codeModel.targetPath}
         dependencies={codeModel.dependencies}
         registryDependencies={item.registryDependencies}
+        guideSnippets={guideSnippets}
         motionApiSnippets={motionApiSnippets}
         fullscreenHref={displayItem?.viewHref}
       />

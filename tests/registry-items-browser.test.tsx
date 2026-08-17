@@ -13,6 +13,7 @@ const items = [
     categories: ["button"],
     groupCategory: "button",
     groupLabel: "Button",
+    meta: { tags: ["nextjs-only"] },
     href: "/components/zulu-button",
   },
   {
@@ -203,6 +204,12 @@ describe("RegistryItemsBrowser group order", () => {
 });
 
 describe("RegistryItemsBrowser category labels", () => {
+  it("surfaces framework-only tags in the item metadata", () => {
+    renderBrowser();
+
+    expect(screen.getByText("Button / Next.js only")).toBeTruthy();
+  });
+
   it("labels a card with the same taxonomy as the group headings", () => {
     renderBrowser();
 

@@ -126,3 +126,119 @@ describe("ComponentShowcase manual installation", () => {
     expect(screen.getByText("pnpm add lucide-react")).toBeTruthy();
   });
 });
+
+describe("ComponentShowcase component guides", () => {
+  const navLinkSnippets = [
+    {
+      name: "sidebar-nav.tsx",
+      language: "tsx" as const,
+      source: "<NavLink />",
+      highlighted: <pre>Sidebar example</pre>,
+    },
+    {
+      name: "match-modes.tsx",
+      language: "tsx" as const,
+      source: '<NavLink match="prefix" />',
+      highlighted: <pre>Match modes example</pre>,
+    },
+    {
+      name: "pending-link.tsx",
+      language: "tsx" as const,
+      source: "<NavLink>{({ isPending }) => null}</NavLink>",
+      highlighted: <pre>Pending example</pre>,
+    },
+    {
+      name: "app/layout.tsx",
+      language: "tsx" as const,
+      source: "<NavLinkScript />",
+      highlighted: <pre>First paint example</pre>,
+    },
+  ];
+
+  it("renders no guide for an item without one", () => {
+    render(
+      <ComponentShowcase
+        name="example-item"
+        codeVariants={[]}
+        targetPath="components/ui/example-item.tsx"
+      />,
+    );
+
+    expect(screen.queryByText("Why not just next/link?")).toBeNull();
+  });
+
+  it("frames NavLink as three navigation-state pain points", () => {
+    render(
+      <ComponentShowcase
+        name="nav-link"
+        codeVariants={[]}
+        targetPath="components/ui/nav-link.tsx"
+        guideSnippets={navLinkSnippets}
+      />,
+    );
+
+    for (const heading of [
+      "Why not just next/link?",
+      "Link does not know if it is the current location",
+      "The current page can also belong to a parent section",
+      "A slow navigation gives no feedback",
+      "State it exposes",
+      "Design notes",
+    ]) {
+      expect(screen.getByRole("heading", { name: heading })).toBeTruthy();
+    }
+
+    // The sections the earlier draft padded the page with.
+    expect(screen.queryByText("How the code maps to those problems")).toBeNull();
+    expect(screen.queryByText("Performance and boundaries")).toBeNull();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("places each guide snippet by name, not by array order", () => {
+    render(
+      <ComponentShowcase
+        name="nav-link"
+        codeVariants={[]}
+        targetPath="components/ui/nav-link.tsx"
+        guideSnippets={[...navLinkSnippets].reverse()}
+      />,
+    );
+
+    const sections = [
+      ["Link does not know if it is the current location", "Sidebar example"],
+      ["The current page can also belong to a parent section", "Match modes example"],
+      ["A slow navigation gives no feedback", "Pending example"],
+      ["Design notes", "First paint example"],
+    ] as const;
+
+    for (const [heading, snippet] of sections) {
+      const article = screen
+        .getByRole("heading", { name: heading })
+        .closest("article");
+
+      expect(article).not.toBeNull();
+      expect(within(article!).getByText(snippet)).toBeTruthy();
+    }
+  });
+
+  it("keeps guide prose at full contrast and inline code on a muted chip", () => {
+    render(
+      <ComponentShowcase
+        name="nav-link"
+        codeVariants={[]}
+        targetPath="components/ui/nav-link.tsx"
+        guideSnippets={navLinkSnippets}
+      />,
+    );
+
+    const prose = screen.getByText(/never reports a wait/);
+
+    expect(prose.className).toContain("text-foreground");
+    expect(prose.className).not.toContain("text-muted-foreground");
+    expect(
+      screen
+        .getAllByText("usePathname()")
+        .every((term) => term.className.includes("bg-muted")),
+    ).toBe(true);
+  });
+});

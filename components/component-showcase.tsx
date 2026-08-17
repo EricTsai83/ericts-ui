@@ -4,7 +4,9 @@ import { Atom, Maximize2, Terminal } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
+import { RegistryGuide } from "@/components/registry-guide";
 import { RegistryInstallCommand } from "@/components/registry-install-command";
+import { CodeSnippet, InlineCode } from "@/components/registry-prose";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CopyButton } from "@/registry/base/ui/copy-button";
@@ -47,6 +49,7 @@ type ComponentShowcaseProps = {
   targetPath: string;
   dependencies?: string[];
   registryDependencies?: string[];
+  guideSnippets?: ComponentCodeFile[];
   motionApiSnippets?: ComponentCodeFile[];
   fullscreenHref?: string;
 };
@@ -58,6 +61,7 @@ export function ComponentShowcase({
   targetPath,
   dependencies = [],
   registryDependencies = [],
+  guideSnippets = [],
   motionApiSnippets = [],
   fullscreenHref,
 }: ComponentShowcaseProps) {
@@ -88,6 +92,7 @@ export function ComponentShowcase({
         codeVariants={codeVariants}
         fullscreenHref={fullscreenHref}
       />
+      <RegistryGuide name={name} snippets={guideSnippets} />
       <InstallationPanel
         name={name}
         targetPath={targetPath}
@@ -122,7 +127,7 @@ function HookPreview({
           <h2 className="text-2xl font-semibold tracking-tight">
             {config.title}
           </h2>
-          <p className="text-sm leading-6 text-muted-foreground">
+          <p className="text-sm leading-6 text-foreground">
             {config.description}
           </p>
         </div>
@@ -250,7 +255,7 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Why this hook matters",
     description: (
       <>
-        <code className="font-mono text-foreground">useReducedMotion</code> lets
+        <InlineCode>useReducedMotion</InlineCode> lets
         a component respect the user&apos;s{" "}
         <a
           href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion"
@@ -271,7 +276,7 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Animate to real content height",
     description: (
       <>
-        <code className="font-mono text-foreground">useElementHeight</code>{" "}
+        <InlineCode>useElementHeight</InlineCode>{" "}
         measures one rendered element and gives a container a stable pixel
         height to animate toward. It is the right fit for accordions,
         collapsibles, step flows, drawers, and panels where the width is fixed
@@ -283,7 +288,7 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Measure multiple layouts before they become active",
     description: (
       <>
-        <code className="font-mono text-foreground">useElementSizeMap</code>{" "}
+        <InlineCode>useElementSizeMap</InlineCode>{" "}
         stores width and height by key, so a component can animate an outer
         shell, highlight, toolbar, or floating panel toward the measured size of
         the selected item. It is useful when inactive content still needs to
@@ -595,7 +600,7 @@ function InstallationPanel({
       <div className="flex max-w-3xl flex-col gap-2">
         <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
         {hasCssOnlyVariant ? (
-          <p className="text-sm leading-6 text-muted-foreground">
+          <p className="text-sm leading-6 text-foreground">
             The command installs the Motion version. The CSS-only source is
             available above as a manual copy-paste variant when you want to
             avoid the animation dependency.
@@ -639,7 +644,7 @@ function InstallationPanel({
 
 function CssOnlyCommandNote() {
   return (
-    <div className="max-w-3xl text-sm leading-6 text-muted-foreground">
+    <div className="max-w-3xl text-sm leading-6 text-foreground">
       <p>
         This command installs the Motion version. For CSS-only, use Manual and
         select the CSS only code variant.
@@ -659,27 +664,25 @@ function UseReducedMotionInstallationNotes({
     <section className="flex max-w-3xl flex-col gap-6 border-t pt-6">
       <div className="flex flex-col gap-2">
         <h3 className="text-base font-semibold">Choose the right trade-off</h3>
-        <p className="text-sm leading-6 text-muted-foreground">
+        <p className="text-sm leading-6 text-foreground">
           The local hook does one job: it reads{" "}
-          <code className="font-mono text-foreground">
-            prefers-reduced-motion
-          </code>{" "}
-          with <code className="font-mono text-foreground">matchMedia</code>,
+          <InlineCode>prefers-reduced-motion</InlineCode> with{" "}
+          <InlineCode>matchMedia</InlineCode>,
           syncs the current value after mount, and removes its change listener
           during cleanup. That gives components the same reduced-motion branch
           point as Motion&apos;s{" "}
-          <code className="font-mono text-foreground">useReducedMotion</code>{" "}
+          <InlineCode>useReducedMotion</InlineCode>{" "}
           hook, without installing Motion or adding its bundle weight.
         </p>
       </div>
-      <article className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground">
+      <article className="flex flex-col gap-3 text-sm leading-6 text-foreground">
         <h4 className="text-base font-semibold text-foreground">
           Using Motion
         </h4>
         <p>
           If Motion already drives the component&apos;s animations, use
           Motion&apos;s{" "}
-          <code className="font-mono text-foreground">useReducedMotion</code>{" "}
+          <InlineCode>useReducedMotion</InlineCode>{" "}
           instead. It keeps the decision inside the same API you use for
           variants, transitions, and animated values, which is usually clearer
           than mixing in a separate local hook.
@@ -689,7 +692,7 @@ function UseReducedMotionInstallationNotes({
         ) : null}
         <p>
           For a larger Motion tree, set the preference once with{" "}
-          <code className="font-mono text-foreground">MotionConfig</code>. This
+          <InlineCode>MotionConfig</InlineCode>. This
           is useful when a parent should make every Motion child follow the
           user&apos;s device preference by default.
         </p>
@@ -699,10 +702,6 @@ function UseReducedMotionInstallationNotes({
       </article>
     </section>
   );
-}
-
-function CodeSnippet({ snippet }: { snippet: ComponentCodeFile }) {
-  return <div className="min-w-0 [&_figure]:my-0">{snippet.highlighted}</div>;
 }
 
 function ManualInstall({
@@ -723,12 +722,12 @@ function ManualInstall({
     <div className="flex max-w-3xl flex-col gap-6 text-sm">
       <div className="flex flex-col gap-2">
         <h3 className="text-base font-semibold">Manual installation</h3>
-        <p className="leading-6 text-muted-foreground">
+        <p className="leading-6 text-foreground">
           Use this path when you want to review the source before adding it, or
           when the registry command is not available in your environment.
         </p>
         {hasCssOnlyVariant ? (
-          <p className="leading-6 text-muted-foreground">
+          <p className="leading-6 text-foreground">
             For CSS-only, select the CSS only code variant above before copying
             files.
           </p>
@@ -864,7 +863,7 @@ function CssOnlyPackageDependencyNote({
           isPackageManagerReady={isPackageManagerReady}
         />
       ) : (
-        <p className="leading-6 text-muted-foreground">
+        <p className="leading-6 text-foreground">
           No package command is needed for the CSS-only source after the
           shadcn/ui dependencies are installed.
         </p>
@@ -958,7 +957,7 @@ function ManualInstallStep({
       </span>
       <div className="min-w-0">
         <div className="font-medium">{title}</div>
-        <div className="mt-1 leading-6 text-muted-foreground">
+        <div className="mt-1 leading-6 text-foreground">
           {description}
         </div>
         {command ? (
