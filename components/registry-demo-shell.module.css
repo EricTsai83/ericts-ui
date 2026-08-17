@@ -1,0 +1,35 @@
+/* The swipe hint's arrows: a `@keyframes` pair can't be expressed as Tailwind
+   utilities, and only this component uses them, so they live beside it rather
+   than in the global stylesheet. */
+
+.arrow {
+  animation: swipe-hint 1400ms cubic-bezier(0.4, 0, 0.2, 1) 200ms infinite both;
+}
+
+.pointsLeft {
+  --swipe-hint-shift: -0.1875rem;
+}
+
+.pointsRight {
+  --swipe-hint-shift: 0.1875rem;
+}
+
+/* The pair drifts outward together, so the pull reads as an axis rather than a
+   direction, and the trail brightens as it travels. */
+@keyframes swipe-hint {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0);
+  }
+  45% {
+    opacity: 1;
+    transform: translate3d(var(--swipe-hint-shift, 0), 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    animation: none;
+  }
+}

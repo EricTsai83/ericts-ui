@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, MoveHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
@@ -9,11 +9,15 @@ import {
   type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
+import { useFullscreenSession } from "@/components/fullscreen-session";
+import styles from "@/components/registry-demo-shell.module.css";
 import {
   PreviewCornerSlotProvider,
   RegistryPreview,
@@ -47,20 +51,14 @@ export type RegistryDemoNavigationGroup = {
 };
 
 type PreviewNavigationDirection = SwipeNavigationDirection;
-type PendingSwipeEntrance = {
-  direction: PreviewNavigationDirection;
-  targetItemName: string;
-};
+type SwipeHintPhase = "hidden" | "shown" | "leaving";
 
 const MOBILE_SWIPE_HINT_QUERY =
   "(max-width: 639px) and (hover: none) and (pointer: coarse)";
-const SWIPE_HINT_STORAGE_KEY = "ericts-ui:fullscreen-swipe-hint:v1";
 const SWIPE_HINT_DELAY = 600;
-const SWIPE_HINT_DURATION = 2800;
-
-let navigationPanelOpenMemory = false;
-let pressedNavigationDirectionMemory: PreviewNavigationDirection | null = null;
-let pendingSwipeEntranceMemory: PendingSwipeEntrance | null = null;
+const SWIPE_HINT_DURATION = 4500;
+// Keep in step with the hint's `duration-150` fade-out.
+const SWIPE_HINT_FADE_OUT = 150;
 
 export function RegistryDemoShell({
   item,
@@ -75,16 +73,20 @@ export function RegistryDemoShell({
 }) {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
-  const [panelOpen, setPanelOpen] = useState(() => navigationPanelOpenMemory);
-  const [pressedNavigationDirection, setPressedNavigationDirection] =
-    useState<PreviewNavigationDirection | null>(
-      () => pressedNavigationDirectionMemory,
-    );
-  const [, setSwipeEntranceRevision] = useState(0);
+  const {
+    navigationPanelOpen: panelOpen,
+    setNavigationPanelOpen: setPanelOpen,
+    pressedNavigationDirection,
+    setPressedNavigationDirection,
+    pendingSwipeEntrance,
+    setPendingSwipeEntrance,
+  } = useFullscreenSession();
   const [previewCornerSlot, setPreviewCornerSlot] =
     useState<HTMLDivElement | null>(null);
   const visibleSwipeEntranceDirection =
-    getPendingSwipeEntranceDirection(item.name);
+    pendingSwipeEntrance?.targetItemName === item.name
+      ? pendingSwipeEntrance.direction
+      : null;
   const [navigationSelectionIntent, setNavigationSelectionIntent] = useState<{
     sourceItemName: string;
     selectedItemName: string;
@@ -130,38 +132,31 @@ export function RegistryDemoShell({
     getTarget: (container) =>
       container.querySelector<HTMLElement>("[aria-current='page']"),
   });
-  const { dismiss: dismissSwipeHint, visible: swipeHintVisible } =
-    useMobileSwipeHint(Boolean(navigation.previous || navigation.next));
+  const {
+    dismiss: dismissSwipeHint,
+    leaving: swipeHintLeaving,
+    visible: swipeHintVisible,
+  } = useMobileSwipeHint(Boolean(navigation.previous || navigation.next));
 
+  // The preview lands offset by the direction it came from; release it on the
+  // next frame so it glides to rest.
   useLayoutEffect(() => {
-    const pendingEntrance = pendingSwipeEntranceMemory;
-
-    if (!pendingEntrance) {
+    // Only the preview being entered releases it; on the outgoing preview this
+    // is the move that was just queued, which is not ours to clear.
+    if (pendingSwipeEntrance?.targetItemName !== item.name) {
       return;
     }
 
-    if (pendingEntrance.targetItemName !== item.name) {
-      pendingSwipeEntranceMemory = null;
-      return;
-    }
-
-    const { direction } = pendingEntrance;
     const frame = window.requestAnimationFrame(() => {
-      if (
-        pendingSwipeEntranceMemory?.targetItemName === item.name &&
-        pendingSwipeEntranceMemory.direction === direction
-      ) {
-        pendingSwipeEntranceMemory = null;
-      }
-      setSwipeEntranceRevision((revision) => revision + 1);
+      setPendingSwipeEntrance(null);
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [item.name]);
+  }, [item.name, pendingSwipeEntrance, setPendingSwipeEntrance]);
 
   const selectNavigationItem = useCallback(
     (nextItem: RegistryDemoNavigationItem) => {
-      pendingSwipeEntranceMemory = null;
+      setPendingSwipeEntrance(null);
       flushSync(() => {
         setNavigationSelectionIntent({
           sourceItemName: item.name,
@@ -169,13 +164,8 @@ export function RegistryDemoShell({
         });
       });
     },
-    [item.name],
+    [item.name, setPendingSwipeEntrance],
   );
-
-  const setNavigationPanelOpen = useCallback((open: boolean) => {
-    navigationPanelOpenMemory = open;
-    setPanelOpen(open);
-  }, []);
 
   const navigatePrevious = useCallback(() => {
     replaceNavigationItem(router, navigation.previous, selectNavigationItem);
@@ -196,13 +186,13 @@ export function RegistryDemoShell({
 
       dismissSwipeHint();
       selectNavigationItem(nextItem);
-      pendingSwipeEntranceMemory = {
+      setPendingSwipeEntrance({
         direction,
         targetItemName: nextItem.name,
-      };
+      });
       router.replace(nextItem.viewHref, { scroll: false });
     },
-    [dismissSwipeHint, router, selectNavigationItem],
+    [dismissSwipeHint, router, selectNavigationItem, setPendingSwipeEntrance],
   );
 
   const navigatePreviousFromSwipe = useCallback(() => {
@@ -214,30 +204,23 @@ export function RegistryDemoShell({
   }, [navigateFromSwipe, navigation.next]);
 
   const clearNavigationFeedback = useCallback(() => {
-    pressedNavigationDirectionMemory = null;
     setPressedNavigationDirection(null);
-  }, []);
+  }, [setPressedNavigationDirection]);
 
   const showNavigationFeedback = useCallback(
     (direction: PreviewNavigationDirection) => {
-      pressedNavigationDirectionMemory = direction;
       setPressedNavigationDirection(direction);
     },
-    [],
+    [setPressedNavigationDirection],
   );
 
   const releaseNavigationFeedback = useCallback(
     (direction: PreviewNavigationDirection) => {
-      if (pressedNavigationDirectionMemory !== direction) {
-        return;
-      }
-
-      pressedNavigationDirectionMemory = null;
       setPressedNavigationDirection((currentDirection) =>
         currentDirection === direction ? null : currentDirection,
       );
     },
-    [],
+    [setPressedNavigationDirection],
   );
 
   const exitFullscreen = useCallback(() => {
@@ -246,14 +229,8 @@ export function RegistryDemoShell({
   }, [clearNavigationFeedback, item.href, router]);
 
   const toggleNavigationPanelOpen = useCallback(() => {
-    setPanelOpen((current) => {
-      const open = !current;
-
-      navigationPanelOpenMemory = open;
-
-      return open;
-    });
-  }, []);
+    setPanelOpen((current) => !current);
+  }, [setPanelOpen]);
 
   const handleSwipeIntentChange = useCallback(
     (direction: PreviewNavigationDirection | null) => {
@@ -395,7 +372,7 @@ export function RegistryDemoShell({
         openLabel="Open navigation map"
         closeLabel="Collapse navigation map"
         closeOnEscape={false}
-        onOpenChange={setNavigationPanelOpen}
+        onOpenChange={setPanelOpen}
         aria-label="Component navigation"
       >
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
@@ -430,6 +407,7 @@ export function RegistryDemoShell({
         navigation={navigation}
         activeDirection={pressedNavigationDirection}
         swipeHintVisible={swipeHintVisible}
+        swipeHintLeaving={swipeHintLeaving}
         onDismissSwipeHint={dismissSwipeHint}
         onSelect={selectNavigationItem}
         onNavigatePrevious={navigatePreviousFromSwipe}
@@ -483,6 +461,7 @@ function PreviewNavigationDock({
   navigation,
   activeDirection,
   swipeHintVisible,
+  swipeHintLeaving,
   onDismissSwipeHint,
   onSelect,
   onNavigatePrevious,
@@ -492,6 +471,7 @@ function PreviewNavigationDock({
   navigation: RegistryDemoNavigation;
   activeDirection: PreviewNavigationDirection | null;
   swipeHintVisible: boolean;
+  swipeHintLeaving: boolean;
   onDismissSwipeHint: () => void;
   onSelect: (item: RegistryDemoNavigationItem) => void;
   onNavigatePrevious: () => void;
@@ -509,7 +489,9 @@ function PreviewNavigationDock({
       className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-30 -translate-x-1/2"
       onTouchStartCapture={onDismissSwipeHint}
     >
-      {swipeHintVisible ? <MobileSwipeHint navigation={navigation} /> : null}
+      {swipeHintVisible ? (
+        <MobileSwipeHint navigation={navigation} leaving={swipeHintLeaving} />
+      ) : null}
 
       <nav
         ref={navigationRef}
@@ -547,8 +529,10 @@ function PreviewNavigationDock({
 
 function MobileSwipeHint({
   navigation,
+  leaving,
 }: {
   navigation: RegistryDemoNavigation;
+  leaving: boolean;
 }) {
   const hasPrevious = Boolean(navigation.previous);
   const hasNext = Boolean(navigation.next);
@@ -561,14 +545,67 @@ function MobileSwipeHint({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 supports-backdrop-filter:bg-background/55 sm:hidden"
+      className={cn(
+        "pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-150 ease-out supports-backdrop-filter:bg-background/55 motion-reduce:transition-none sm:hidden",
+        leaving ? "opacity-0" : "opacity-100",
+      )}
     >
-      <MoveHorizontal
-        aria-hidden="true"
-        className="fullscreen-swipe-hint-icon size-3.5"
-      />
+      {/* The arrows trace the gesture rather than the destination: each one
+          points the way the finger travels, so it reads with the label. */}
+      {hasNext ? <SwipeHintArrow pointing="left" /> : null}
       <span>{label}</span>
+      {hasPrevious ? <SwipeHintArrow pointing="right" /> : null}
     </div>
+  );
+}
+
+/** A tapered motion trail — a chevron head pulled out of a fading tail. */
+function SwipeHintArrow({ pointing }: { pointing: "left" | "right" }) {
+  const trailId = useId();
+
+  return (
+    <span
+      className={cn(
+        "flex shrink-0",
+        styles.arrow,
+        pointing === "left" ? styles.pointsLeft : styles.pointsRight,
+      )}
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 12"
+        fill="none"
+        className={cn("h-3 w-6", pointing === "left" && "-scale-x-100")}
+      >
+        <path
+          d="M3 6h10.5"
+          stroke={`url(#${trailId})`}
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
+        <path
+          d="M14 1.5 19.5 6 14 10.5"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <defs>
+          <linearGradient
+            id={trailId}
+            x1="1.5"
+            y1="6"
+            x2="15"
+            y2="6"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="currentColor" stopOpacity="0" />
+            <stop offset="0.6" stopColor="currentColor" stopOpacity="0.4" />
+            <stop offset="1" stopColor="currentColor" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </span>
   );
 }
 
@@ -777,14 +814,41 @@ function findNavigationItem(
 }
 
 function useMobileSwipeHint(enabled: boolean) {
-  const [visible, setVisible] = useState(false);
-  const dismiss = useCallback(() => {
-    setVisible(false);
-    writeSwipeHintSeen();
+  const { swipeHintSpent, spendSwipeHint } = useFullscreenSession();
+  // "leaving" keeps the hint mounted for its fade-out.
+  const [phase, setPhase] = useState<SwipeHintPhase>("hidden");
+  // Mirrors the session flag so the timers below can read it without the effect
+  // restarting on the very update it makes.
+  const spentRef = useRef(swipeHintSpent);
+
+  const spend = useCallback(() => {
+    spentRef.current = true;
+    spendSwipeHint();
+  }, [spendSwipeHint]);
+
+  const startLeaving = useCallback(() => {
+    setPhase((current) => (current === "shown" ? "leaving" : current));
   }, []);
 
+  const dismiss = useCallback(() => {
+    spend();
+    startLeaving();
+  }, [spend, startLeaving]);
+
   useEffect(() => {
-    if (!enabled || readSwipeHintSeen()) {
+    if (phase !== "leaving") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setPhase("hidden");
+    }, SWIPE_HINT_FADE_OUT);
+
+    return () => window.clearTimeout(timeout);
+  }, [phase]);
+
+  useEffect(() => {
+    if (!enabled || spentRef.current) {
       return;
     }
 
@@ -811,21 +875,19 @@ function useMobileSwipeHint(enabled: boolean) {
     function syncHint() {
       clearTimers();
 
-      if (!mediaQuery.matches || readSwipeHintSeen()) {
-        setVisible(false);
+      if (!mediaQuery.matches || spentRef.current) {
+        startLeaving();
         return;
       }
 
       showTimeout = window.setTimeout(() => {
-        if (readSwipeHintSeen()) {
+        if (spentRef.current) {
           return;
         }
 
-        setVisible(true);
-        writeSwipeHintSeen();
-        hideTimeout = window.setTimeout(() => {
-          setVisible(false);
-        }, SWIPE_HINT_DURATION);
+        setPhase("shown");
+        spend();
+        hideTimeout = window.setTimeout(startLeaving, SWIPE_HINT_DURATION);
       }, SWIPE_HINT_DELAY);
     }
 
@@ -836,17 +898,9 @@ function useMobileSwipeHint(enabled: boolean) {
       clearTimers();
       mediaQuery.removeEventListener?.("change", syncHint);
     };
-  }, [enabled]);
+  }, [enabled, spend, startLeaving]);
 
-  return { dismiss, visible };
-}
-
-function getPendingSwipeEntranceDirection(itemName: string) {
-  if (pendingSwipeEntranceMemory?.targetItemName !== itemName) {
-    return null;
-  }
-
-  return pendingSwipeEntranceMemory.direction;
+  return { dismiss, leaving: phase === "leaving", visible: phase !== "hidden" };
 }
 
 function getSwipeEntranceClassName(
@@ -862,22 +916,6 @@ function getSwipeEntranceClassName(
       ? "[transform:translate3d(12px,0,0)]"
       : "[transform:translate3d(-12px,0,0)]",
   );
-}
-
-function readSwipeHintSeen() {
-  try {
-    return window.localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === "seen";
-  } catch {
-    return false;
-  }
-}
-
-function writeSwipeHintSeen() {
-  try {
-    window.localStorage.setItem(SWIPE_HINT_STORAGE_KEY, "seen");
-  } catch {
-    // Storage is optional; the hint still dismisses for the current mount.
-  }
 }
 
 function getNavigationGroupsWithFallback(

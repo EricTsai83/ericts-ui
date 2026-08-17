@@ -10,6 +10,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { FullscreenSessionProvider } from "@/components/fullscreen-session";
 import {
   RegistryDemoShell,
   type RegistryDemoNavigation,
@@ -23,6 +24,15 @@ const router = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+}));
+
+vi.mock("@/components/registry-demo-shell.module.css", () => ({
+  default: new Proxy(
+    {},
+    {
+      get: (_target, property) => String(property),
+    },
+  ),
 }));
 
 vi.mock("fumadocs-ui/provider/base", () => ({
@@ -138,8 +148,7 @@ describe("RegistryDemoShell preview navigation", () => {
     const view = renderDemo();
 
     fireEvent.keyDown(window, { key: "ArrowRight" });
-    view.unmount();
-    render(
+    view.rerender(
       createDemoElement(next, {
         previous: item,
         next: afterNext,
@@ -168,6 +177,40 @@ describe("RegistryDemoShell preview navigation", () => {
     expect(screen.getByRole("link", { name: "Current Preview" })).toBeTruthy();
     fireEvent.click(menuTrigger);
     expect(menuTrigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("keeps the navigation map open while browsing inside fullscreen", () => {
+    const view = renderDemo();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+    swipe(screen.getByRole("navigation", { name: "Preview navigation" }), {
+      from: [180, 24],
+      to: [96, 26],
+    });
+
+    // Landing on the next preview remounts the shell inside the same session.
+    view.rerender(createDemoElement(next, { previous: item, next: afterNext }));
+
+    expect(
+      screen
+        .getByRole("button", { name: "Collapse navigation map" })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
+  });
+
+  it("collapses the navigation map on the next entry into fullscreen", () => {
+    const view = renderDemo();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+
+    view.unmount();
+    renderDemo();
+
+    expect(
+      screen
+        .getByRole("button", { name: "Open navigation map" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
   });
 
   it("shows the current preview title as a non-interactive dock label", () => {
@@ -213,16 +256,9 @@ describe("RegistryDemoShell preview navigation", () => {
     });
   });
 
-  it("shows a one-time swipe hint on coarse mobile viewports", () => {
+  it("shows a swipe hint on coarse mobile viewports", () => {
     vi.useFakeTimers();
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn((query: string) => ({
-        matches: query === MOBILE_SWIPE_HINT_QUERY,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      })),
-    );
+    stubCoarseMobileViewport();
     renderDemo();
 
     expect(screen.queryByText("Swipe to browse")).toBeNull();
@@ -233,6 +269,64 @@ describe("RegistryDemoShell preview navigation", () => {
     fireEvent.touchStart(
       screen.getByRole("region", { name: "Fullscreen preview canvas" }),
     );
+    expect(getSwipeHint()?.classList.contains("opacity-0")).toBe(true);
+
+    act(() => vi.advanceTimersByTime(150));
+    expect(getSwipeHint()).toBeNull();
+  });
+
+  it("leaves the swipe hint up long enough to be read, then fades it out", () => {
+    vi.useFakeTimers();
+    stubCoarseMobileViewport();
+    renderDemo();
+
+    act(() => vi.advanceTimersByTime(600));
+    act(() => vi.advanceTimersByTime(4499));
+    expect(getSwipeHint()?.classList.contains("opacity-100")).toBe(true);
+
+    // The hint stays mounted at zero opacity for the length of its fade-out.
+    act(() => vi.advanceTimersByTime(1));
+    expect(getSwipeHint()?.classList.contains("opacity-0")).toBe(true);
+
+    act(() => vi.advanceTimersByTime(150));
+    expect(getSwipeHint()).toBeNull();
+  });
+
+  it("shows the swipe hint again on the next entry into fullscreen", () => {
+    vi.useFakeTimers();
+    stubCoarseMobileViewport();
+    const view = renderDemo();
+
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByText("Swipe to browse")).toBeTruthy();
+
+    view.unmount();
+    renderDemo();
+
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByText("Swipe to browse")).toBeTruthy();
+  });
+
+  it("keeps the swipe hint quiet while browsing inside fullscreen", () => {
+    vi.useFakeTimers();
+    stubCoarseMobileViewport();
+    const view = renderDemo();
+
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByText("Swipe to browse")).toBeTruthy();
+
+    swipe(screen.getByRole("region", { name: "Fullscreen preview canvas" }), {
+      from: [180, 120],
+      to: [96, 122],
+    });
+    expect(router.replace).toHaveBeenCalledWith(next.viewHref, {
+      scroll: false,
+    });
+
+    // Landing on the next preview remounts the shell inside the same session.
+    view.rerender(createDemoElement(next, { previous: item, next: afterNext }));
+
+    act(() => vi.advanceTimersByTime(600));
     expect(screen.queryByText("Swipe to browse")).toBeNull();
   });
 
@@ -404,23 +498,45 @@ function renderDemo() {
 const MOBILE_SWIPE_HINT_QUERY =
   "(max-width: 639px) and (hover: none) and (pointer: coarse)";
 
+function getSwipeHint() {
+  return screen.queryByText("Swipe to browse")?.parentElement ?? null;
+}
+
+function stubCoarseMobileViewport() {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({
+      matches: query === MOBILE_SWIPE_HINT_QUERY,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
+}
+
+/**
+ * Mirrors the route: the session provider stays mounted across previews while
+ * the shell below it is replaced, so `key` remounts the shell on every move.
+ */
 function createDemoElement(
   currentItem: RegistryDisplayItem,
   currentNavigation: RegistryDemoNavigation,
 ) {
   return (
-    <RegistryDemoShell
-      item={currentItem}
-      navigation={currentNavigation}
-      navigationGroups={[
-        {
-          category: "animation",
-          label: "Animation",
-          items: [previous, item, next, afterNext],
-        },
-      ]}
-      variant="motion"
-    />
+    <FullscreenSessionProvider>
+      <RegistryDemoShell
+        key={currentItem.name}
+        item={currentItem}
+        navigation={currentNavigation}
+        navigationGroups={[
+          {
+            category: "animation",
+            label: "Animation",
+            items: [previous, item, next, afterNext],
+          },
+        ]}
+        variant="motion"
+      />
+    </FullscreenSessionProvider>
   );
 }
 

@@ -170,29 +170,6 @@
     background-size: 256px 256px;
   }
 
-  .fullscreen-swipe-hint-icon {
-    animation: fullscreen-swipe-hint 600ms
-      cubic-bezier(0.77, 0, 0.175, 1) 200ms 1 both;
-  }
-}
-
-@keyframes fullscreen-swipe-hint {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  30% {
-    transform: translate3d(-0.25rem, 0, 0);
-  }
-  70% {
-    transform: translate3d(0.25rem, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fullscreen-swipe-hint-icon {
-    animation: none;
-  }
 }
 
 @layer base {
