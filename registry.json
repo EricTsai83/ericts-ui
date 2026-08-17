@@ -426,7 +426,7 @@
       "name": "otp-input",
       "type": "registry:ui",
       "title": "OTP Input",
-      "description": "A fixed-slot one-time passcode input with paste, autofill, error shake, and animated success feedback.",
+      "description": "A fixed-slot one-time passcode input with paste, autofill, an error shake, and a staggered success wave.",
       "categories": ["form"],
       "meta": {
         "tags": [
@@ -438,7 +438,13 @@
           "input",
           "feedback"
         ],
-        "effects": ["digit-roll", "error-shake", "svg-draw", "success-state"]
+        "effects": [
+          "digit-roll",
+          "error-shake",
+          "success-state",
+          "stagger",
+          "settle"
+        ]
       },
       "cssVars": {
         "light": {
@@ -448,9 +454,6 @@
           "ericts-success": "oklch(0.696 0.17 162.48)"
         }
       },
-      "registryDependencies": [
-        "https://ui.ericts.com/r/check-mark.json"
-      ],
       "dependencies": ["motion"],
       "files": [
         {

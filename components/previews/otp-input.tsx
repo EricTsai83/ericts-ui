@@ -93,6 +93,10 @@ export default function Preview() {
         status={status}
         disabled={isVerifying || isLocked}
         errorMessage={errorMessage}
+        // Success is a colour change plus the wave, and reduced motion removes
+        // the wave. This line is what carries it in that case, and it is what
+        // the live region announces.
+        successMessage="Code verified."
       />
 
       <div
@@ -118,11 +122,18 @@ export default function Preview() {
         >
           Paste expired code
         </Button>
-        {status === "success" || isLocked ? (
-          <Button type="button" variant="ghost" size="sm" onClick={reset}>
-            Reset
-          </Button>
-        ) : null}
+        {/* Mounting Reset only once there is something to reset grew this row
+            by a line on a phone and slid the whole demo up by 23px. It stays
+            mounted and reserves its slot instead. */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={status !== "success" && !isLocked}
+          onClick={reset}
+        >
+          Reset
+        </Button>
       </div>
     </div>
   );

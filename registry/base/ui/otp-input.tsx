@@ -5,10 +5,10 @@ import {
   AnimatePresence,
   animate,
   motion,
+  stagger,
   useReducedMotion,
 } from "motion/react";
 
-import { CheckMark } from "@/components/ui/check-mark";
 import { cn } from "@/lib/utils";
 
 export type OTPStatus = "idle" | "error" | "success";
@@ -32,11 +32,18 @@ export interface OTPInputProps
   label?: string;
   /** Helper text shown below the slots while idle. */
   hint?: string;
-  /** Message shown below the slots when status is "success". */
+  /**
+   * Message shown below the slots when status is "success".
+   *
+   * Success is otherwise carried by a colour change and a motion cue, and
+   * motion is the first thing `prefers-reduced-motion` removes. This string is
+   * what is left, and it is what the live region announces — pass it whenever
+   * the field can reach "success".
+   */
   successMessage?: string;
   /** Message shown below the slots when status is "error". */
   errorMessage?: string;
-  /** External validation feedback. "error" shakes, "success" draws a check. */
+  /** External validation feedback. "error" shakes, "success" runs the wave. */
   status?: OTPStatus;
   /** Render dots instead of the typed digits. */
   mask?: boolean;
@@ -50,11 +57,33 @@ export interface OTPInputProps
   inputRef?: React.Ref<HTMLInputElement>;
   /** Accessible label for the underlying input. */
   "aria-label"?: string;
-  /** Accessible label for the success indicator. */
-  successIndicatorLabel?: string;
 }
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+// Success wave. The first slot answers immediately, so the perceived response
+// is instant however long the tail runs.
+//
+// The lift is what the label spacing below is sized against: a slot travels
+// this far toward the label at the peak, so `gap-2` plus the label's own
+// `mb-2` keeps a hair of clearance there. Raising it means raising that too.
+const SUCCESS_LIFT = -10;
+const SUCCESS_SCALE = 1.04;
+const SUCCESS_DURATION = 0.46;
+const SUCCESS_STAGGER = 0.04;
+
+// A toss, not two moves glued together. The apex sits before the midpoint, so
+// the slot leaves quickly and takes its time coming down, and each half gets
+// the curve that half actually needs: one easing across `[0, lift, 0]` applies
+// itself to both segments, which snaps out of the apex as hard as it snapped
+// into it and reads as a mechanism rather than a hop.
+const SUCCESS_APEX = 0.36;
+// Decelerating into the peak. Gentler than EASE_OUT, which is near-expo and
+// arrives so early that the slot hangs at the top doing nothing.
+const SUCCESS_RISE_EASE = [0.22, 0.61, 0.36, 1] as const;
+// Accelerating out of the peak and landing soft — the part an ease-out cannot
+// express, because it has already spent its speed.
+const SUCCESS_FALL_EASE = [0.4, 0, 0.2, 1] as const;
 
 export function OTPInput({
   length = 6,
@@ -73,7 +102,6 @@ export function OTPInput({
   autoFocus = false,
   inputRef: consumerInputRef,
   "aria-label": ariaLabel = "One-time passcode",
-  successIndicatorLabel = "Code verified",
   className,
   ...props
 }: OTPInputProps) {
@@ -274,6 +302,32 @@ export function OTPInput({
     );
   }, [shouldReduceMotion, status]);
 
+  // The success counterpart, and deliberately the shake's opposite in the same
+  // vocabulary: the row refuses as one body on x, and accepts one slot at a
+  // time on y, replaying the left-to-right order the code was entered in.
+  //
+  // Imperative for the same reason the shake is, and aimed at the slot boxes
+  // rather than the digits inside them: those are Motion components already
+  // driving `y` for their own entrance, and two owners of one property is a
+  // fight rather than an animation.
+  React.useEffect(() => {
+    if (status !== "success" || shouldReduceMotion || !slotsRef.current) return;
+
+    animate(
+      Array.from(slotsRef.current.children),
+      // The scale is what keeps it from reading as a rigid box on a rail. 4% of
+      // a 48px slot is barely two pixels, but a hop that deforms at all is a
+      // hop rather than a translation.
+      { y: [0, SUCCESS_LIFT, 0], scale: [1, SUCCESS_SCALE, 1] },
+      {
+        duration: SUCCESS_DURATION,
+        times: [0, SUCCESS_APEX, 1],
+        ease: [SUCCESS_RISE_EASE, SUCCESS_FALL_EASE],
+        delay: stagger(SUCCESS_STAGGER),
+      },
+    );
+  }, [shouldReduceMotion, status]);
+
   const showSuccess = status === "success";
   const activeIndex = focused && !complete ? activeSlot : -1;
   const message = showSuccess
@@ -293,7 +347,11 @@ export function OTPInput({
       {label ? (
         <label
           htmlFor={`${uid}-input`}
-          className="text-sm font-medium text-foreground"
+          // `mb-2` on top of the container's `gap-2`. The slots rise into this
+          // space on success, and 8px alone left the digits all but touching
+          // the label at the peak. Only the gap above needs it — the wave
+          // moves away from the message row below.
+          className="mb-2 text-sm font-medium text-foreground"
         >
           {label}
         </label>
@@ -334,7 +392,11 @@ export function OTPInput({
           className="absolute inset-0 z-20 h-full w-full cursor-text bg-transparent text-transparent caret-transparent opacity-0 outline-none disabled:cursor-not-allowed"
         />
 
-        <div ref={slotsRef} className="flex items-center gap-2">
+        {/* Six slots at the desktop size need 328px, which no phone has left
+            over once a page and a card have taken their padding. The narrow
+            step drops that to 270px; the tap target is the whole row, so the
+            shorter slots cost nothing in reachability. */}
+        <div ref={slotsRef} className="flex items-center gap-1.5 sm:gap-2">
           {Array.from({ length: slotCount }, (_, index) => {
             const char = visibleSlots[index] ?? "";
             const isActive = index === activeIndex;
@@ -345,8 +407,16 @@ export function OTPInput({
                 key={`${uid}-${index}`}
                 data-active={isActive}
                 data-filled={char !== ""}
+                // The border flip rides the same stagger as the lift, so the
+                // two read as one gesture per slot rather than a wave passing
+                // over six slots that all turned green at once.
+                style={
+                  showSuccess && !shouldReduceMotion
+                    ? { transitionDelay: `${index * SUCCESS_STAGGER * 1000}ms` }
+                    : undefined
+                }
                 className={cn(
-                  "relative grid h-14 w-12 place-items-center overflow-hidden rounded-xl border text-xl font-semibold tabular-nums transition-colors duration-200",
+                  "relative grid h-12 w-10 place-items-center overflow-hidden rounded-xl border text-lg font-semibold tabular-nums transition-colors duration-200 sm:h-14 sm:w-12 sm:text-xl",
                   showSuccess
                     ? "border-ericts-success/60 text-foreground"
                     : status === "error"
@@ -417,15 +487,6 @@ export function OTPInput({
             );
           })}
         </div>
-
-        {showSuccess ? (
-          <CheckMark
-            variant="circle"
-            size="md"
-            label={successIndicatorLabel}
-            className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 text-ericts-success [--check-mark-check-duration:260ms] [--check-mark-shape-duration:420ms]"
-          />
-        ) : null}
       </div>
 
       {hasMessageSlot ? (
