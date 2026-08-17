@@ -7,28 +7,32 @@ import {
   CustomDocsSidebarTrigger,
   useCustomDocsSidebar,
 } from "@/components/docs-sidebar";
+import { MobileDocsNavigation } from "@/components/mobile-docs-navigation";
 import { baseOptions } from "@/lib/layout.shared";
 import { source } from "@/lib/source";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout
-      tree={source.pageTree}
-      containerProps={{
-        className:
-          "md:[--fd-layout-width:1280px] lg:[--fd-sidebar-width:268px]",
-      }}
-      slots={{
-        sidebar: {
-          provider: CustomDocsSidebarProvider,
-          root: CustomDocsSidebar,
-          trigger: CustomDocsSidebarTrigger,
-          useSidebar: useCustomDocsSidebar,
-        },
-      }}
-      {...baseOptions()}
-    >
-      {children}
-    </DocsLayout>
+    <>
+      <MobileDocsNavigation tree={source.pageTree} />
+      <DocsLayout
+        tree={source.pageTree}
+        containerProps={{
+          className:
+            "md:[--fd-layout-width:1280px] lg:[--fd-sidebar-width:268px]",
+        }}
+        slots={{
+          sidebar: {
+            provider: CustomDocsSidebarProvider,
+            root: CustomDocsSidebar,
+            trigger: CustomDocsSidebarTrigger,
+            useSidebar: useCustomDocsSidebar,
+          },
+        }}
+        {...baseOptions()}
+      >
+        {children}
+      </DocsLayout>
+    </>
   );
 }

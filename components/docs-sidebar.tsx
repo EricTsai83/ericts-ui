@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import type { ComponentProps } from "react";
-import { usePathname } from "next/navigation";
 import { useTreeContext } from "fumadocs-ui/contexts/tree";
 import {
   SidebarProvider,
@@ -17,6 +15,7 @@ import {
   type DocsNavItem,
 } from "@/lib/docs-navigation";
 import { cn } from "@/lib/utils";
+import { NavLink } from "@/registry/base/ui/nav-link";
 
 export function CustomDocsSidebarProvider(props: SidebarProviderProps) {
   return <SidebarProvider {...props} />;
@@ -94,31 +93,34 @@ function SidebarLink({
   variant: "desktop" | "mobile";
   onNavigate?: () => void;
 }) {
-  const pathname = usePathname();
-  const active = pathname === item.url;
-
   return (
-    <Link
+    <NavLink
       href={item.url}
-      aria-current={active ? "page" : undefined}
+      match="exact"
       onClick={onNavigate}
-      className={cn(
-        "transition-colors",
-        variant === "desktop" &&
-          "self-start rounded-md px-2 py-1.5 text-foreground hover:bg-accent hover:text-accent-foreground",
-        variant === "desktop" &&
-          active &&
-          "bg-accent font-semibold text-accent-foreground",
-        variant === "mobile" &&
-          "text-2xl font-semibold leading-none text-foreground hover:text-muted-foreground",
-        variant === "mobile" && active && "text-foreground",
-        item.disabled && "pointer-events-none opacity-35",
-      )}
+      className={({ isActive }) =>
+        cn(
+          "transition-colors",
+          variant === "desktop" &&
+            "self-start rounded-md px-2 py-1.5 text-foreground hover:bg-accent hover:text-accent-foreground",
+          variant === "desktop" &&
+            isActive &&
+            "bg-accent font-semibold text-accent-foreground",
+          variant === "mobile" &&
+            "text-2xl font-semibold leading-none text-foreground hover:text-muted-foreground",
+          variant === "mobile" && isActive && "text-foreground",
+          item.disabled && "pointer-events-none opacity-35",
+        )
+      }
     >
-      {item.title}
-      {variant === "mobile" && active ? (
-        <span className="ml-2 inline-block size-2 rounded-full bg-primary align-middle" />
-      ) : null}
-    </Link>
+      {({ isActive }) => (
+        <>
+          {item.title}
+          {variant === "mobile" && isActive ? (
+            <span className="ml-2 inline-block size-2 rounded-full bg-primary align-middle" />
+          ) : null}
+        </>
+      )}
+    </NavLink>
   );
 }

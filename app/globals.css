@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/shadcn.css";
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 
@@ -169,7 +169,23 @@
     background-repeat: repeat;
     background-size: 256px 256px;
   }
+}
 
+.docs-prose {
+  --tw-prose-body: var(--color-fd-foreground);
+}
+
+.docs-prose
+  :where(code):not(
+    :where(pre code, [class~="not-prose"], [class~="not-prose"] *)
+  ) {
+  border: 0;
+  border-radius: 0.35em;
+  background: var(--color-fd-muted);
+  padding: 0.125em 0.3em;
+  font-family: var(--font-geist-mono);
+  font-size: 0.85em;
+  font-weight: 400;
 }
 
 @layer base {

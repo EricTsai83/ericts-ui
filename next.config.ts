@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/docs/:path*.md",
-        destination: "/docs/:path*",
+        destination: "/llm/:path*",
       },
     ];
   },

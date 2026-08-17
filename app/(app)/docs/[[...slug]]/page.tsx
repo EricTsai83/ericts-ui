@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { findNeighbour } from "fumadocs-core/page-tree";
 import {
   DocsBody,
   DocsDescription,
@@ -10,9 +12,13 @@ import {
   TOCProvider,
   TOCPopover,
 } from "fumadocs-ui/layouts/docs/page/slots/toc";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
+import { DocsCopyPage } from "@/components/docs-copy-page";
 import { DocsTableOfContents } from "@/components/docs-toc";
 import { getMDXComponents } from "@/components/mdx";
+import { Button } from "@/components/ui/button";
+import { getSiteUrl } from "@/lib/site-url";
 import { source } from "@/lib/source";
 
 type PageProps = {
@@ -53,6 +59,7 @@ export default async function Page({ params }: PageProps) {
   const hasTableOfContents = page.data.toc.length > 0;
   const shouldReserveTableOfContentsSpace =
     !hasTableOfContents && page.data.full !== true;
+  const neighbours = findNeighbour(source.pageTree, page.url);
 
   return (
     <DocsPage
@@ -69,9 +76,53 @@ export default async function Page({ params }: PageProps) {
       }}
       tableOfContentPopover={{ enabled: false }}
     >
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <div className="flex items-start justify-between gap-4">
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <div className="flex shrink-0 items-center gap-2 pt-0.5">
+          <div className="hidden sm:block">
+            <DocsCopyPage
+              markdownPath={`${page.url}.md`}
+              url={`${getSiteUrl()}${page.url}`}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {neighbours.previous ? (
+              <Button
+                variant="secondary"
+                size="icon-sm"
+                nativeButton={false}
+                className="extend-touch-target size-8 shadow-none md:size-7"
+                render={
+                  <Link
+                    href={neighbours.previous.url}
+                    aria-label={`Previous page: ${String(neighbours.previous.name)}`}
+                  />
+                }
+              >
+                <ArrowLeftIcon aria-hidden="true" />
+              </Button>
+            ) : null}
+            {neighbours.next ? (
+              <Button
+                variant="secondary"
+                size="icon-sm"
+                nativeButton={false}
+                className="extend-touch-target size-8 shadow-none md:size-7"
+                render={
+                  <Link
+                    href={neighbours.next.url}
+                    aria-label={`Next page: ${String(neighbours.next.name)}`}
+                  />
+                }
+              >
+                <ArrowRightIcon aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
       <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
+      <DocsBody className="docs-prose">
         <MDXContent components={getMDXComponents()} />
       </DocsBody>
       {shouldReserveTableOfContentsSpace ? (

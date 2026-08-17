@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { Folder, Root } from "fumadocs-core/page-tree";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +11,10 @@ import {
 } from "@/components/ui/popover";
 import { buildDocsGroups } from "@/lib/docs-navigation";
 import { cn } from "@/lib/utils";
+import {
+  NavLink,
+  type NavLinkMatch,
+} from "@/registry/base/ui/nav-link";
 
 type MobileHeaderMenuProps = {
   tree: Root | Folder;
@@ -26,7 +28,6 @@ export function MobileHeaderMenu({
   className,
 }: MobileHeaderMenuProps) {
   const [open, setOpen] = React.useState(false);
-  const pathname = usePathname();
   const groups = buildDocsGroups(tree);
 
   return (
@@ -85,18 +86,14 @@ export function MobileHeaderMenu({
               Menu
             </div>
             <div className="flex flex-col gap-3">
-              <MobileLink
-                href="/"
-                active={isActivePath(pathname, "/")}
-                onOpenChange={setOpen}
-              >
+              <MobileLink href="/" onOpenChange={setOpen}>
                 Home
               </MobileLink>
               {items.map((item) => (
                 <MobileLink
                   key={`${item.href}-${item.label}`}
                   href={item.href}
-                  active={isActivePath(pathname, item.href)}
+                  match="prefix"
                   onOpenChange={setOpen}
                 >
                   {item.label}
@@ -115,7 +112,7 @@ export function MobileHeaderMenu({
                     <MobileLink
                       key={`${group.title}-${item.url}-${String(item.title)}`}
                       href={item.url}
-                      active={pathname === item.url}
+                      match="exact"
                       onOpenChange={setOpen}
                       className={cn(
                         "flex items-center gap-2",
@@ -137,37 +134,28 @@ export function MobileHeaderMenu({
 
 function MobileLink({
   href,
-  active,
+  match,
   onOpenChange,
   className,
   children,
 }: {
   href: string;
-  active: boolean;
+  match?: NavLinkMatch;
   onOpenChange: (open: boolean) => void;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Link
+    <NavLink
       href={href}
-      aria-current={active ? "page" : undefined}
+      match={match}
       onClick={() => onOpenChange(false)}
       className={cn(
         "flex min-w-0 max-w-full items-center gap-2 wrap-break-word text-2xl font-medium leading-tight text-foreground transition-colors  hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active && "text-foreground",
         className,
       )}
     >
       {children}
-    </Link>
+    </NavLink>
   );
-}
-
-function isActivePath(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === href;
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
 }
