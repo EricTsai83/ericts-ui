@@ -85,6 +85,13 @@ export function MobileHeaderMenu({
               Menu
             </div>
             <div className="flex flex-col gap-3">
+              <MobileLink
+                href="/"
+                active={isActivePath(pathname, "/")}
+                onOpenChange={setOpen}
+              >
+                Home
+              </MobileLink>
               {items.map((item) => (
                 <MobileLink
                   key={`${item.href}-${item.label}`}
