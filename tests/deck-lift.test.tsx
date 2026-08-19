@@ -8,9 +8,13 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CardLift, type CardLiftItem } from "@/registry/base/blocks/card-lift";
+import {
+  DeckLift,
+  deckLiftSwipeTarget,
+  type DeckLiftItem,
+} from "@/registry/base/blocks/deck-lift";
 
-const items: readonly CardLiftItem[] = [
+const items: readonly DeckLiftItem[] = [
   {
     id: "virtual",
     label: "Virtual card",
@@ -25,16 +29,16 @@ const items: readonly CardLiftItem[] = [
   },
 ];
 
-function renderCardLift(props: Partial<React.ComponentProps<typeof CardLift>> = {}) {
+function renderDeckLift(props: Partial<React.ComponentProps<typeof DeckLift>> = {}) {
   return render(
-    <CardLift items={items} sheet={<p>Set up direct deposit</p>} {...props}>
+    <DeckLift items={items} sheet={<p>Set up direct deposit</p>} {...props}>
       <p>Total balance</p>
-    </CardLift>,
+    </DeckLift>,
   );
 }
 
 function getStage(container: HTMLElement) {
-  return container.querySelector<HTMLElement>('[data-slot="card-lift"]')!;
+  return container.querySelector<HTMLElement>('[data-slot="deck-lift"]')!;
 }
 
 function getLayer(container: HTMLElement, slot: string) {
@@ -66,15 +70,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("CardLift", () => {
+describe("DeckLift", () => {
   it("rests with the page live and the cover held out of reach", () => {
-    const { container } = renderCardLift();
+    const { container } = renderDeckLift();
 
     expect(getStage(container).dataset.state).toBe("closed");
-    expect(getLayer(container, "card-lift-page").hasAttribute("inert")).toBe(
+    expect(getLayer(container, "deck-lift-page").hasAttribute("inert")).toBe(
       false,
     );
-    expect(getLayer(container, "card-lift-cover").hasAttribute("inert")).toBe(
+    expect(getLayer(container, "deck-lift-cover").hasAttribute("inert")).toBe(
       true,
     );
     expect(
@@ -85,18 +89,18 @@ describe("CardLift", () => {
   });
 
   it("opens the card that was pressed and covers the page behind it", async () => {
-    const { container } = renderCardLift();
+    const { container } = renderDeckLift();
 
     fireEvent.click(screen.getByRole("button", { name: "Physical card" }));
 
     expect(getStage(container).dataset.state).toBe("open");
-    expect(getLayer(container, "card-lift-page").hasAttribute("inert")).toBe(
+    expect(getLayer(container, "deck-lift-page").hasAttribute("inert")).toBe(
       true,
     );
-    expect(getLayer(container, "card-lift-sheet").hasAttribute("inert")).toBe(
+    expect(getLayer(container, "deck-lift-sheet").hasAttribute("inert")).toBe(
       true,
     );
-    expect(getLayer(container, "card-lift-cover").hasAttribute("inert")).toBe(
+    expect(getLayer(container, "deck-lift-cover").hasAttribute("inert")).toBe(
       false,
     );
 
@@ -109,7 +113,7 @@ describe("CardLift", () => {
   });
 
   it("keeps the deck as one row of tabs, each with its own detail", async () => {
-    renderCardLift();
+    renderDeckLift();
 
     fireEvent.click(screen.getByRole("button", { name: "Virtual card" }));
 
@@ -135,7 +139,7 @@ describe("CardLift", () => {
   });
 
   it("closes on Escape and hands focus back to the open card", async () => {
-    const { container } = renderCardLift();
+    const { container } = renderDeckLift();
 
     const card = screen.getByRole("button", { name: "Virtual card" });
 
@@ -159,7 +163,7 @@ describe("CardLift", () => {
       detail: <p>detail {index}</p>,
     }));
 
-    renderCardLift({ items: deck });
+    renderDeckLift({ items: deck });
 
     // The pile shows two; the rest wait on the last slot, inert rather than
     // hidden, so they are never invisible tab stops.
@@ -182,7 +186,7 @@ describe("CardLift", () => {
   });
 
   it("stops at the ends of the row instead of wrapping around", async () => {
-    renderCardLift();
+    renderDeckLift();
 
     fireEvent.click(screen.getByRole("button", { name: "Virtual card" }));
     fireEvent.keyDown(screen.getAllByRole("tab")[0], { key: "End" });
@@ -205,13 +209,131 @@ describe("CardLift", () => {
     );
   });
 
+  it("orders the layers the way the screen reads, so Tab follows the eye", () => {
+    renderDeckLift();
+
+    fireEvent.click(screen.getByRole("button", { name: "Virtual card" }));
+
+    const before = (first: Element, second: Element) =>
+      Boolean(
+        first.compareDocumentPosition(second) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+
+    const close = screen.getByRole("button", { name: "Close" });
+    const card = screen.getByRole("tab", { name: "Virtual card" });
+    const panel = screen.getByRole("tabpanel");
+
+    // The cards paint over the cover that holds the detail, so `z-index` and the
+    // DOM disagree on purpose. Tab follows the DOM, and it has to read downward.
+    expect(before(close, card)).toBe(true);
+    expect(before(card, panel)).toBe(true);
+  });
+
+  it("starts each card's detail at the top, however the last one was left", async () => {
+    const { container } = renderDeckLift();
+
+    fireEvent.click(screen.getByRole("button", { name: "Virtual card" }));
+
+    // The scroller inside the panel frame, which every card's detail reuses.
+    const scroller = getLayer(container, "deck-lift-detail")
+      .firstElementChild as HTMLElement;
+
+    scroller.scrollTop = 240;
+
+    fireEvent.keyDown(screen.getAllByRole("tab")[0], { key: "ArrowRight" });
+
+    await waitFor(() => {
+      expect(screen.getByRole("tabpanel").textContent).toContain(
+        "Physical card activity",
+      );
+    });
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("lets go of a card that leaves `items` rather than re-opening on it", () => {
+    const { container, rerender } = render(
+      <DeckLift items={items}>
+        <p>Total balance</p>
+      </DeckLift>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Physical card" }));
+    expect(getStage(container).dataset.state).toBe("open");
+
+    rerender(
+      <DeckLift items={[items[0]]}>
+        <p>Total balance</p>
+      </DeckLift>,
+    );
+
+    expect(getStage(container).dataset.state).toBe("closed");
+
+    rerender(
+      <DeckLift items={items}>
+        <p>Total balance</p>
+      </DeckLift>,
+    );
+
+    // The stored id went with the card: it does not come back with it.
+    expect(getStage(container).dataset.state).toBe("closed");
+  });
+
   it("reports selection without latching when the value is controlled", () => {
     const onValueChange = vi.fn();
-    const { container } = renderCardLift({ value: null, onValueChange });
+    const { container } = renderDeckLift({ value: null, onValueChange });
 
     fireEvent.click(screen.getByRole("button", { name: "Virtual card" }));
 
     expect(onValueChange).toHaveBeenCalledWith("virtual", items[0]);
     expect(getStage(container).dataset.state).toBe("closed");
+  });
+});
+
+describe("deckLiftSwipeTarget", () => {
+  const row = { step: 300, activeIndex: 1, count: 4 };
+
+  it("holds the active card when the drag was too short to commit", () => {
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: -60, velocityX: 0 }),
+    ).toBe(1);
+  });
+
+  it("commits a flick that barely moved, on its parting speed alone", () => {
+    // 20px of travel is nothing; 800px/s of it is a flick.
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX: 0 })).toBe(1);
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX: -800 }),
+    ).toBe(2);
+  });
+
+  it("reads a drag to the right as the card before the active one", () => {
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: 120, velocityX: 0 }),
+    ).toBe(0);
+  });
+
+  it("crosses more than one card when the drag covered more than one", () => {
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: -700, velocityX: 0 }),
+    ).toBe(3);
+  });
+
+  it("stops at the ends of the row", () => {
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: -1800, velocityX: -2000 }),
+    ).toBe(3);
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: 1800, velocityX: 2000 }),
+    ).toBe(0);
+  });
+
+  it("holds still before the deck has been measured", () => {
+    // `step` is zero until the first card is measured; a drag then has no card
+    // width to be a share of, and dividing by it would commit on any twitch.
+    expect(
+      deckLiftSwipeTarget({ ...row, step: 0, offsetX: -900, velocityX: -900 }),
+    ).toBe(1);
   });
 });

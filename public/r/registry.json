@@ -1002,13 +1002,13 @@
       ]
     },
     {
-      "name": "card-lift",
+      "name": "deck-lift",
       "type": "registry:block",
-      "title": "Card Lift Wallet",
-      "description": "A phone-scale account screen whose resting card deck lifts to the top, drops the sheet away, and pulls a full page of card detail up behind it.",
+      "title": "Deck Lift",
+      "description": "A screen whose resting card deck lifts to the top, drops the sheet away, and pulls a full page of detail up behind it, then swipes card by card.",
       "categories": ["screen"],
       "meta": {
-        "tags": ["wallet", "cards", "deck", "detail", "swipe", "drag", "mobile", "controlled"],
+        "tags": ["deck", "pile", "cards", "detail", "swipe", "drag", "container-query", "controlled"],
         "effects": ["deck-lift", "cover-rise", "sheet-drop", "card-swipe", "detail-swap", "reduced-motion"]
       },
       "registryDependencies": [
@@ -1017,9 +1017,9 @@
       "dependencies": ["motion"],
       "files": [
         {
-          "path": "registry/base/blocks/card-lift.tsx",
+          "path": "registry/base/blocks/deck-lift.tsx",
           "type": "registry:block",
-          "target": "components/blocks/card-lift.tsx"
+          "target": "components/blocks/deck-lift.tsx"
         }
       ]
     },

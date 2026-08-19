@@ -198,7 +198,7 @@ const registryDisplayItemConfigs = [
   { name: "use-scroll-progress", category: "motion" },
   { name: "use-swipe-navigation", category: "motion" },
   { name: "use-sequence-player", category: "motion" },
-  { name: "card-lift", category: "screen", viewport: "full" },
+  { name: "deck-lift", category: "screen", viewport: "full" },
   { name: "scroll-expand", category: "marketing", viewport: "full" },
   { name: "ripple-scene", category: "marketing", viewport: "full" },
   { name: "vertical-scene", category: "marketing", viewport: "full" },
