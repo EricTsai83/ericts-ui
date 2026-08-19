@@ -1002,6 +1002,28 @@
       ]
     },
     {
+      "name": "card-lift",
+      "type": "registry:block",
+      "title": "Card Lift Wallet",
+      "description": "A phone-scale account screen whose resting card deck lifts to the top, drops the sheet away, and pulls a full page of card detail up behind it.",
+      "categories": ["screen"],
+      "meta": {
+        "tags": ["wallet", "cards", "deck", "detail", "swipe", "drag", "mobile", "controlled"],
+        "effects": ["deck-lift", "cover-rise", "sheet-drop", "card-swipe", "detail-swap", "reduced-motion"]
+      },
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-element-size-map.json"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/blocks/card-lift.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/card-lift.tsx"
+        }
+      ]
+    },
+    {
       "name": "use-scroll-progress",
       "type": "registry:hook",
       "title": "useScrollProgress",

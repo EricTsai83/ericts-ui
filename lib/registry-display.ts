@@ -117,6 +117,13 @@ const registryDisplayCategories = [
       "Composed browsing layouts that pair navigation with a focused content stage.",
   },
   {
+    slug: "screen",
+    kind: "block",
+    label: "App Screens",
+    description:
+      "Whole product screens whose layers — page, sheet, card deck, cover — re-compose together in one move.",
+  },
+  {
     slug: "marketing",
     kind: "block",
     label: "Marketing",
@@ -191,6 +198,7 @@ const registryDisplayItemConfigs = [
   { name: "use-scroll-progress", category: "motion" },
   { name: "use-swipe-navigation", category: "motion" },
   { name: "use-sequence-player", category: "motion" },
+  { name: "card-lift", category: "screen", viewport: "full" },
   { name: "scroll-expand", category: "marketing", viewport: "full" },
   { name: "ripple-scene", category: "marketing", viewport: "full" },
   { name: "vertical-scene", category: "marketing", viewport: "full" },
