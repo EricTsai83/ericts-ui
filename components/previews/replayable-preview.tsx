@@ -18,6 +18,13 @@ type PreviewCornerSlot = {
    */
   className: string;
   /**
+   * The mirror of `className`: the preview's *leading* corner, kept symmetric
+   * with whatever the chrome pins to the trailing one. A demo's own controls
+   * (a device-size switcher, a variant toggle) belong here rather than over the
+   * demo, where they would land on the top-left control of the demo itself.
+   */
+  leadingClassName: string;
+  /**
    * Mount point for the control, when it cannot be positioned where the preview
    * renders it. Fullscreen needs this: the canvas wraps the demo in a
    * transformed element for the swipe entrance, and a transform is the
@@ -29,22 +36,28 @@ type PreviewCornerSlot = {
   container?: HTMLElement | null;
 };
 
+/** Where a preview's own control sits when the chrome does not move it. */
+const DEFAULT_LEADING_CORNER = "absolute left-3 top-3";
+
 const PreviewCornerSlotContext = createContext<PreviewCornerSlot>({
   className: "absolute right-3 top-3",
+  leadingClassName: DEFAULT_LEADING_CORNER,
 });
 
 export function PreviewCornerSlotProvider({
   className,
+  leadingClassName = DEFAULT_LEADING_CORNER,
   container,
   children,
 }: {
   className: string;
+  leadingClassName?: string;
   container?: HTMLElement | null;
   children: ReactNode;
 }) {
   const slot = useMemo<PreviewCornerSlot>(
-    () => ({ className, container }),
-    [className, container],
+    () => ({ className, leadingClassName, container }),
+    [className, leadingClassName, container],
   );
 
   return (
@@ -91,4 +104,23 @@ export function ReplayablePreview({
       {children(replayKey)}
     </>
   );
+}
+
+/**
+ * Puts a preview's own control in the leading corner, mirroring the chrome's
+ * control in the trailing one — and through the same mount point, since a
+ * fullscreen canvas positions its controls against the viewport rather than the
+ * demo's box.
+ */
+export function PreviewLeadingCorner({ children }: { children: ReactNode }) {
+  const slot = useContext(PreviewCornerSlotContext);
+  const control = (
+    <div className={cn("z-10", slot.leadingClassName)}>{children}</div>
+  );
+
+  if (slot.container === undefined) {
+    return control;
+  }
+
+  return slot.container ? createPortal(control, slot.container) : null;
 }

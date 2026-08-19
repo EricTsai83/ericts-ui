@@ -442,6 +442,7 @@ export function RegistryDemoShell({
               canvas, and beside it from `sm` up. */}
           <PreviewCornerSlotProvider
             className="fixed right-3 top-13 sm:right-14 sm:top-4"
+            leadingClassName="fixed left-3 top-3 sm:left-4 sm:top-4"
             container={previewCornerSlot}
           >
             <RegistryPreview

@@ -80,4 +80,7 @@ export function RegistryPreview({
   ) : null;
 }
 
-export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";
+export {
+  PreviewCornerSlotProvider,
+  PreviewLeadingCorner,
+} from "@/components/previews/replayable-preview";
