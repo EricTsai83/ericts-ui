@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   DeckLift,
+  deckLiftDockStep,
   deckLiftSwipeTarget,
   type DeckLiftItem,
 } from "@/registry/base/blocks/deck-lift";
@@ -230,6 +231,21 @@ describe("DeckLift", () => {
     expect(before(card, panel)).toBe(true);
   });
 
+  it("keeps the desktop focus mask over the full card lift", () => {
+    const { container } = renderDeckLift();
+
+    const focus = getLayer(container, "deck-lift-focus");
+    const deck = getLayer(container, "deck-lift-deck");
+
+    // The masked frame must cover the whole stage. If the resting top belongs
+    // to this frame, cards translated into the dock sit outside its mask box
+    // and become completely transparent at the desktop container breakpoint.
+    expect(focus.className).toContain("inset-0");
+    expect(focus.style.top).toBe("");
+    expect(deck.className).toContain("absolute");
+    expect(Number.parseFloat(deck.style.top)).toBeCloseTo(56);
+  });
+
   it("starts each card's detail at the top, however the last one was left", async () => {
     const { container } = renderDeckLift();
 
@@ -320,6 +336,27 @@ describe("deckLiftSwipeTarget", () => {
     ).toBe(3);
   });
 
+  it("is worth one card however hard the flick", () => {
+    // Speed decides whether a gesture commits, not how far it carries. Raw, a
+    // 6000px/s flick is worth two card widths at this step, and rounding took
+    // the row past the card the finger meant.
+    for (const velocityX of [-1200, -2400, -6000, -20000]) {
+      expect(deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX })).toBe(2);
+    }
+
+    expect(deckLiftSwipeTarget({ ...row, offsetX: 20, velocityX: 20000 })).toBe(
+      0,
+    );
+  });
+
+  it("still crosses several cards when the travel, not the speed, asked for it", () => {
+    // Travel stays uncapped: a drag over three cards was aimed at three cards.
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -900, velocityX: 0 })).toBe(3);
+    expect(
+      deckLiftSwipeTarget({ ...row, offsetX: -900, velocityX: 0, count: 8 }),
+    ).toBe(4);
+  });
+
   it("stops at the ends of the row", () => {
     expect(
       deckLiftSwipeTarget({ ...row, offsetX: -1800, velocityX: -2000 }),
@@ -335,5 +372,24 @@ describe("deckLiftSwipeTarget", () => {
     expect(
       deckLiftSwipeTarget({ ...row, step: 0, offsetX: -900, velocityX: -900 }),
     ).toBe(1);
+  });
+});
+
+describe("deckLiftDockStep", () => {
+  it("pulls scaled neighbours into reach when two cards cannot fit", () => {
+    const step = deckLiftDockStep({ stageWidth: 390, cardWidth: 318 });
+
+    // A 318px card at 86% scale leaves 20px inside a 390px stage while keeping
+    // 16px between visible edges, instead of the natural row's roughly 4px.
+    expect(step).toBeCloseTo(311.74);
+    expect(step).toBeLessThan(318 + 10);
+  });
+
+  it("keeps the spacious depth once two cards fit", () => {
+    expect(deckLiftDockStep({ stageWidth: 768, cardWidth: 384 })).toBe(394);
+  });
+
+  it("does not invent a swipe distance before the card is measured", () => {
+    expect(deckLiftDockStep({ stageWidth: 390, cardWidth: 0 })).toBe(0);
   });
 });

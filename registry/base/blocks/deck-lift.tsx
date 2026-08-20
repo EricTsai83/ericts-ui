@@ -67,10 +67,56 @@ const DOCK = {
   top: 56,
   /** Between docked cards, and between the deck and the detail, in px. */
   gap: 10,
+  /** More breathing room between the visible card edges on narrow stages. */
+  narrowGap: 16,
   detailGap: 24,
-  /** How far back the cards either side of the active one sit. */
-  neighbour: 0.96,
+  /**
+   * How much smaller each card is per step away from the active one. Deep
+   * enough that the card being read is plainly the nearest thing on the row:
+   * the pile's own 0.04 a slot left the neighbours all but the same size as the
+   * active card, which read as a flat strip rather than as one card in front of
+   * the others. At 0.14, the immediate neighbours sit at 86% and the next layer
+   * at 72%: enough separation to identify the active card without making the
+   * alternatives look disabled.
+   */
+  recede: 0.14,
+  /**
+   * Steps away before a card stops receding. Without a floor the far end of a
+   * long deck shrinks to nothing, and a deck of thirty would be a different
+   * shape from a deck of three.
+   */
+  depth: 2,
 } as const;
+
+/**
+ * Distance between card centres in the docked row.
+ *
+ * A narrow stage cannot show two full cards, so leaving the centres one full
+ * card apart makes the scaled neighbour almost impossible to tap: at the
+ * default mobile geometry only a few pixels survive the stage clip. There the
+ * step compensates for half of the neighbour's shrink, then keeps a slightly
+ * roomier visible gap between the edges. Once two cards fit, the uncompensated
+ * spacing returns so the extra air can keep expressing depth on tablet and
+ * desktop.
+ *
+ * Exported because jsdom cannot measure the rendered card and stage boxes.
+ */
+export function deckLiftDockStep({
+  stageWidth,
+  cardWidth,
+}: {
+  stageWidth: number;
+  cardWidth: number;
+}) {
+  if (!cardWidth) return 0;
+
+  const naturalStep = cardWidth + DOCK.gap;
+  const narrow = stageWidth > 0 && stageWidth < cardWidth * 2;
+
+  if (!narrow) return naturalStep;
+
+  return cardWidth * (1 - DOCK.recede / 2) + DOCK.narrowGap;
+}
 
 /** The swipe between docked cards. */
 const SWIPE = {
@@ -78,7 +124,28 @@ const SWIPE = {
   threshold: 0.24,
   /** Seconds of flick velocity folded into the drag's travel. */
   velocity: 0.12,
+  /**
+   * Cards the flick alone may be worth. Speed decides *whether* a gesture
+   * commits, not how far it goes: a hard flick from a standstill is one flick
+   * and means the next card, but at 4000px/s its raw contribution is more than
+   * a card and a half, which rounded up to two — the row lurching past the card
+   * the finger clearly meant. Travel stays uncapped, because a drag that
+   * covered three cards was aimed at three cards.
+   */
+  flickReach: 1,
   elastic: 0.12,
+} as const;
+
+/** The page of detail under the docked deck. */
+const DETAIL = {
+  /**
+   * Share of the deck's travel the page under it covers. Under 1, so the page
+   * reads as lying further back than the cards — the same screen following the
+   * deck, rather than a second row moving in lockstep with it. It is the only
+   * number here: the distance and the timing both come off the deck, so the two
+   * layers cannot drift apart when either is re-tuned.
+   */
+  follow: 0.22,
 } as const;
 
 const SPRING = {
@@ -86,7 +153,14 @@ const SPRING = {
   stage: { type: "spring", duration: 0.58, bounce: 0.16 },
   /** The shorter snap between docked cards. */
   snap: { type: "spring", duration: 0.42, bounce: 0.12 },
-  detail: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+  /** The trade of one page of detail for the next. Its *travel* is not here:
+   *  that rides `snap` above, so the page and the cards over it settle as one
+   *  move. This is only the hand-off, and it is deliberately lopsided — the
+   *  leaving page clears out ahead of the arriving one, because two pages of
+   *  the same shape held at half opacity over the same pixels read as a smear
+   *  rather than as one being replaced by the other. */
+  detailLeave: { duration: 0.18, ease: [0.4, 0, 1, 1] },
+  detailArrive: { duration: 0.2, delay: 0.06, ease: [0.22, 1, 0.36, 1] },
   /** Cards joining the lift are there from its first frame; on the way back
    *  they only fade once landed, so the pile never looks like it dissolves. */
   arrive: { duration: 0.12 },
@@ -99,8 +173,9 @@ const SPRING = {
 
 /**
  * Where card `index` sits, in both states — the whole card animation. The pile
- * fans up and back; the docked row lays the same cards out sideways; cards past
- * the pile wait invisibly on its last slot until the lift starts.
+ * fans up and back; the docked row lays the same cards out sideways, receding
+ * with distance from the active card; cards past the pile wait invisibly on its
+ * last slot until the lift starts.
  */
 function cardState({
   open,
@@ -120,11 +195,22 @@ function cardState({
   dockY: number;
 }) {
   if (open) {
+    // Graded by distance rather than by "is this the active card": one card at
+    // full size in an otherwise flat strip reads as a gap in the row, where a
+    // row that keeps receding reads as depth.
+    //
+    // The cards share one grid cell and are held apart by `x` alone, with
+    // `scale` applied about each card's centre. `step` only compensates that
+    // shrink when the stage is too narrow to show two cards; on wider stages
+    // the widening gaps remain part of the depth. Drag uses the same step, so
+    // what the finger crosses and what the row advances never diverge.
+    const away = Math.min(Math.abs(index - activeIndex), DOCK.depth);
+
     return {
       x: index * step,
       y: dockY,
       rotate: 0,
-      scale: index === activeIndex ? 1 : DOCK.neighbour,
+      scale: 1 - away * DOCK.recede,
       opacity: 1,
     };
   }
@@ -142,10 +228,10 @@ function cardState({
 
 /**
  * Which card a finished drag lands on, or `activeIndex` when it was too short
- * to commit. Travel is the finger's distance plus a slice of its parting speed,
- * so a flick that barely moves still commits and one long drag can cross more
- * than one card. Exported because this is the block's only arithmetic that a
- * gesture cannot be trusted to exercise by hand.
+ * to commit. Travel is the finger's distance plus a capped slice of its parting
+ * speed, so a flick that barely moves still commits, a flick however hard is
+ * worth one card, and one long drag can still cross several. Exported so the
+ * velocity arithmetic can be exercised without synthesizing a drag.
  */
 export function deckLiftSwipeTarget({
   offsetX,
@@ -161,7 +247,12 @@ export function deckLiftSwipeTarget({
   activeIndex: number;
   count: number;
 }) {
-  const cards = step ? (offsetX + velocityX * SWIPE.velocity) / step : 0;
+  if (!step) return activeIndex;
+
+  const flick = (velocityX * SWIPE.velocity) / step;
+  const cards =
+    offsetX / step +
+    Math.min(Math.max(flick, -SWIPE.flickReach), SWIPE.flickReach);
 
   if (Math.abs(cards) < SWIPE.threshold) return activeIndex;
 
@@ -174,12 +265,6 @@ export function deckLiftSwipeTarget({
 
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
-
-const detailVariants = {
-  enter: (direction: number) => ({ opacity: 0, x: direction * 24 }),
-  center: { opacity: 1, x: 0 },
-  exit: (direction: number) => ({ opacity: 0, x: direction * -24 }),
-};
 
 /**
  * A screen in three layers — a page of summary values, a raised sheet, and a
@@ -240,9 +325,12 @@ export function DeckLift({
   const reduceMotion = useReducedMotion() === true;
   const reactId = React.useId();
   const panelId = `${reactId}-panel`;
-  const cardId = (id: string) => `${reactId}-card-${id}`;
+  // Stable, so the focus helper built on it can be stable too.
+  const cardId = React.useCallback(
+    (id: string) => `${reactId}-card-${id}`,
+    [reactId],
+  );
   const { setMeasureRef, sizes } = useElementSizeMap<HTMLElement>();
-  const cardNodes = React.useRef(new Map<string, HTMLButtonElement>());
   const stageNode = React.useRef<HTMLDivElement | null>(null);
   const detailScroller = React.useRef<HTMLDivElement | null>(null);
   const dragged = React.useRef(false);
@@ -263,9 +351,11 @@ export function DeckLift({
     setUncontrolled(null);
   }
 
+  const stageWidth = sizes.stage?.width ?? 0;
   const stageHeight = sizes.stage?.height ?? 0;
+  const cardWidth = sizes.card?.width ?? 0;
   const cardHeight = sizes.card?.height ?? 0;
-  const step = (sizes.card?.width ?? 0) + DOCK.gap;
+  const step = deckLiftDockStep({ stageWidth, cardWidth });
   const dockY = stageHeight ? DOCK.top - REST.top * stageHeight : 0;
   const deepestSlot = Math.max(0, Math.floor(pileSize) - 1);
 
@@ -333,7 +423,13 @@ export function DeckLift({
     items.findIndex((item) => item.id === detail.id),
   );
   const activeItem = items[activeIndex];
-  const direction = reduceMotion ? 0 : detail.direction;
+  const direction = detail.direction;
+
+  // One switch over both the lean under a drag and the slide of a swap: they are
+  // the same offset caught at two moments, so reduced motion has to take them
+  // together or the page would leave under the finger and then refuse to come
+  // back. The hand-off itself stays — see `fade` above.
+  const follow = reduceMotion ? 0 : DETAIL.follow;
 
   // The deck's x is a motion value because a drag writes to the same value:
   // after a drag that commits nothing there is no new target for an `animate`
@@ -349,6 +445,53 @@ export function DeckLift({
     const controls = animate(deckX, deckTarget, snapSpring);
     return () => controls.stop();
   }, [deckTarget, deckX, snapSpring]);
+
+  // How far the page of detail is leaning out from under the deck. It only ever
+  // holds a drag: a finger on the cards is a finger on the whole screen, so the
+  // page has to move while the drag is live rather than wait for the release and
+  // then be told what happened. Off the deck's own x rather than the pointer's,
+  // so the constraints and the elastic drag at the ends of the row reach the
+  // page too — and left out of the swap below, which is what keeps the two from
+  // fighting: a drag never changes the active card, so at the moment the swap
+  // starts this value is exactly where the finger left it, and springs home from
+  // there while the new page slides in over it.
+  const detailLean = useMotionValue(0);
+
+  const detailVariants = React.useMemo(() => {
+    const travel = step * follow;
+
+    return {
+      enter: (towards: number) => ({ opacity: 0, x: towards * travel }),
+      center: {
+        opacity: 1,
+        x: 0,
+        transition: { x: snapSpring, opacity: SPRING.detailArrive },
+      },
+      exit: (towards: number) => ({
+        opacity: 0,
+        x: towards * -travel,
+        transition: SPRING.detailLeave,
+      }),
+    };
+  }, [follow, snapSpring, step]);
+
+  /**
+   * Focus a card by id rather than through a map of refs. Holding that map cost
+   * the deck its measurement: a per-card `ref` has to be written inline to
+   * close over the card's id, which makes it a new function every render, so
+   * React re-attaches it on every commit and re-measures the card it is on.
+   * That measurement is `step`, which every position here is built from, so the
+   * churn dragged the whole docked row about under the finger. Every card
+   * already carries a stable `id`; one lookup is enough.
+   */
+  const focusCard = React.useCallback(
+    (id: string) => {
+      const doc = stageNode.current?.ownerDocument ?? document;
+
+      doc.getElementById(cardId(id))?.focus();
+    },
+    [cardId],
+  );
 
   const setOpenValue = React.useCallback(
     (nextId: string | null) => {
@@ -369,9 +512,9 @@ export function DeckLift({
 
       setOpenValue(next.id);
 
-      if (focus) cardNodes.current.get(next.id)?.focus();
+      if (focus) focusCard(next.id);
     },
-    [detail.id, items, setOpenValue],
+    [detail.id, focusCard, items, setOpenValue],
   );
 
   // The detail is one scroller every card reuses, so a card that opens after a
@@ -387,9 +530,9 @@ export function DeckLift({
   const close = React.useCallback(() => {
     // The open card is the element that was pressed to get here, so returning
     // focus to it is the only focus move this block makes.
-    cardNodes.current.get(detail.id)?.focus();
+    focusCard(detail.id);
     setOpenValue(null);
-  }, [detail.id, setOpenValue]);
+  }, [detail.id, focusCard, setOpenValue]);
 
   // Read through a ref: with an inline `onValueChange`, `close` changes identity
   // on every parent render, and the Escape listener must not re-bind that often.
@@ -436,21 +579,41 @@ export function DeckLift({
   };
 
   const onDragEnd = (_event: unknown, info: PanInfo) => {
-    // Every release settles the deck, not only an uncommitted one: a controlled
-    // parent is free to leave `value` alone, and then no new target ever arrives
-    // to pull the deck off the offset the finger left it at. When the parent
-    // does commit, `select` retargets in the same flush and this is absorbed.
-    animate(deckX, deckTargetRef.current, snapSpring);
+    const target = deckLiftSwipeTarget({
+      offsetX: info.offset.x,
+      velocityX: info.velocity.x,
+      step,
+      activeIndex,
+      count: items.length,
+    });
 
-    select(
-      deckLiftSwipeTarget({
-        offsetX: info.offset.x,
-        velocityX: info.velocity.x,
-        step,
-        activeIndex,
-        count: items.length,
-      }),
+    // Every release settles the row, not only an uncommitted one: nothing else
+    // would pull it off the offset the finger left it at.
+    //
+    // Where it settles *to* is the whole difference. Uncontrolled, this
+    // component decides which card wins, so the row is sent straight to it and
+    // the retarget above lands on the same value — one continuous spring. Sent
+    // to the card being left instead, as it was, the row travels back under the
+    // finger's own direction for the render it takes to commit and only then
+    // turns around: a kick on every release that crosses a card, and the whole
+    // reason a swipe felt like it jumped.
+    //
+    // Controlled, that shortcut is not available. The owner may decline the
+    // swipe, and a row already on its way to a card it was never given would be
+    // showing one screen under another's detail — so it goes back to the card on
+    // screen and waits to be told, which is the one case where the kick is the
+    // honest answer.
+    animate(
+      deckX,
+      isControlled ? deckTargetRef.current : -target * step,
+      snapSpring,
     );
+
+    // The same spring, so the page settles with the cards whether or not the
+    // release commits to a new one.
+    animate(detailLean, 0, snapSpring);
+
+    select(target);
 
     // The click that follows a drag has to be swallowed, but the flag has to be
     // gone before the next keyboard activation, which arrives with no pointer
@@ -487,6 +650,9 @@ export function DeckLift({
         // taken from the card this produces. (A `@container` cannot query
         // itself, so this is a clamp rather than container-query breakpoints.)
         "[--deck-lift-card-width:clamp(15rem,calc(100%-4.5rem),24rem)]",
+        // How far from the middle a card is gone. The row stays full width and
+        // fully draggable; this only says how much of it is being presented.
+        "[--deck-lift-focus:var(--deck-lift-card-width)]",
         className,
       )}
       {...props}
@@ -539,90 +705,119 @@ export function DeckLift({
         </div>
       </motion.div>
 
-      {/* The deck: a pile at rest, a swipeable row once open. */}
-      <motion.div
-        data-slot="deck-lift-deck"
-        role={open ? "tablist" : undefined}
-        aria-label={open ? deckLabel : undefined}
-        aria-orientation={open ? "horizontal" : undefined}
-        drag={open && items.length > 1 ? "x" : false}
-        dragElastic={SWIPE.elastic}
-        dragMomentum={false}
-        dragConstraints={{ left: -(items.length - 1) * step, right: 0 }}
-        onPointerDownCapture={() => {
-          dragged.current = false;
-        }}
-        onDragStart={() => {
-          dragged.current = true;
-        }}
-        onDragEnd={onDragEnd}
-        onKeyDown={onDeckKeyDown}
-        initial={false}
-        style={{ x: deckX, top: `${REST.top * 100}%` }}
-        className="pointer-events-none absolute inset-x-0 z-20 grid justify-items-center"
-      >
-        {items.map((item, index) => {
-          const active = open && item.id === detail.id;
-          const waiting = !open && index > deepestSlot;
+      {/* The deck: a pile at rest, a swipeable row once open.
 
-          return (
-            <motion.button
-              key={item.id}
-              id={cardId(item.id)}
-              ref={(node) => {
-                if (node) cardNodes.current.set(item.id, node);
-                else cardNodes.current.delete(item.id);
+          Two boxes, because the mask has to hold still. It lives on this frame
+          rather than on the row, which is translated by `x` — a mask travels
+          with the box it is set on, so one applied to the row would slide off
+          centre along with it. */}
+      <div
+        data-slot="deck-lift-focus"
+        className={cn(
+          // Fill the stage vertically. The cards travel from the resting pile
+          // to the dock, but the desktop mask must not travel or keep the
+          // resting pile's short border box: masked overflow outside that box
+          // is transparent, which made the entire docked deck disappear.
+          "pointer-events-none absolute inset-0 z-20",
+          // Only once the stage has more width than the composition wants. On a
+          // phone the card already fills it and the neighbours see themselves
+          // off; from here up the stage keeps growing while the card stops at
+          // its cap, so the spare width turns into *more cards* rather than a
+          // bigger one — three of them at desktop, none of which says which one
+          // the detail below belongs to. Every other layer here caps its own
+          // width for the same reason; this is the deck's version of that.
+          "@2xl:mask-[linear-gradient(to_right,transparent_calc(50%_-_var(--deck-lift-focus)),black_calc(50%_-_var(--deck-lift-card-width)/2),black_calc(50%_+_var(--deck-lift-card-width)/2),transparent_calc(50%_+_var(--deck-lift-focus)))]",
+        )}
+      >
+        <motion.div
+          data-slot="deck-lift-deck"
+          role={open ? "tablist" : undefined}
+          aria-label={open ? deckLabel : undefined}
+          aria-orientation={open ? "horizontal" : undefined}
+          drag={open && items.length > 1 ? "x" : false}
+          dragElastic={SWIPE.elastic}
+          dragMomentum={false}
+          dragConstraints={{ left: -(items.length - 1) * step, right: 0 }}
+          onPointerDownCapture={() => {
+            dragged.current = false;
+          }}
+          onDragStart={() => {
+            dragged.current = true;
+            // A grab during the spring home takes the page off it. Motion does
+            // this for the value it is dragging; the page's is a second value
+            // riding along, so it has to be told.
+            detailLean.stop();
+          }}
+          onDrag={() => {
+            detailLean.set((deckX.get() - deckTargetRef.current) * follow);
+          }}
+          onDragEnd={onDragEnd}
+          onKeyDown={onDeckKeyDown}
+          initial={false}
+          style={{ x: deckX, top: `${REST.top * 100}%` }}
+          className="absolute inset-x-0 grid justify-items-center"
+        >
+          {items.map((item, index) => {
+            const active = open && item.id === detail.id;
+            const waiting = !open && index > deepestSlot;
+
+            return (
+              <motion.button
+                key={item.id}
+                id={cardId(item.id)}
                 // The deck's geometry is read off the first rendered card.
-                if (index === 0) setMeasureRef("card")(node);
-              }}
-              type="button"
-              aria-label={item.label}
-              role={open ? "tab" : undefined}
-              aria-selected={open ? active : undefined}
-              aria-controls={open ? panelId : undefined}
-              aria-expanded={open ? undefined : false}
-              tabIndex={open && !active ? -1 : 0}
-              inert={waiting}
-              data-slot="deck-lift-card"
-              data-active={active || undefined}
-              onClick={() => {
-                if (dragged.current) return;
-                if (open) select(index);
-                else setOpenValue(item.id);
-              }}
-              initial={false}
-              animate={cardState({
-                open,
-                index,
-                activeIndex,
-                deepestSlot,
-                step,
-                dockY,
-              })}
-              transition={{
-                ...stageSpring,
-                opacity: reduceMotion
-                  ? SPRING.fade
-                  : open
-                    ? SPRING.arrive
-                    : SPRING.leave,
-              }}
-              style={{
-                zIndex:
-                  items.length -
-                  (open ? Math.abs(index - activeIndex) : index),
-                touchAction: open ? "pan-y" : undefined,
-              }}
-              className={cn(
-                "pointer-events-auto aspect-[1.586/1] w-(--deck-lift-card-width) overflow-hidden rounded-2xl text-left outline-none [grid-area:1/1] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                cardClassName,
-              )}
-            >
-              {item.face}
-            </motion.button>
-          );
-        })}
-      </motion.div>
+                // `setMeasureRef` caches per key, so this is the same function
+                // every render and React leaves the subscription alone.
+                ref={index === 0 ? setMeasureRef("card") : undefined}
+                type="button"
+                aria-label={item.label}
+                role={open ? "tab" : undefined}
+                aria-selected={open ? active : undefined}
+                aria-controls={open ? panelId : undefined}
+                aria-expanded={open ? undefined : false}
+                tabIndex={open && !active ? -1 : 0}
+                inert={waiting}
+                data-slot="deck-lift-card"
+                data-active={active || undefined}
+                onClick={() => {
+                  if (dragged.current) return;
+                  if (open) select(index);
+                  else setOpenValue(item.id);
+                }}
+                initial={false}
+                animate={cardState({
+                  open,
+                  index,
+                  activeIndex,
+                  deepestSlot,
+                  step,
+                  dockY,
+                })}
+                transition={{
+                  ...stageSpring,
+                  opacity: reduceMotion
+                    ? SPRING.fade
+                    : open
+                      ? SPRING.arrive
+                      : SPRING.leave,
+                }}
+                style={{
+                  zIndex:
+                    items.length -
+                    (open ? Math.abs(index - activeIndex) : index),
+                  touchAction: open ? "pan-y" : undefined,
+                }}
+                className={cn(
+                  "pointer-events-auto aspect-[1.586/1] w-(--deck-lift-card-width) overflow-hidden rounded-2xl text-left outline-none [grid-area:1/1] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  cardClassName,
+                )}
+              >
+                {item.face}
+              </motion.button>
+            );
+          })}
+        </motion.div>
+      </div>
 
       {/* The cover, rising behind the cards to wipe the page away. */}
       <motion.div
@@ -655,8 +850,15 @@ export function DeckLift({
             ref={detailScroller}
             className="min-h-0 flex-1 overflow-x-clip overflow-y-auto"
           >
-            <div className="relative mx-auto w-full max-w-2xl @5xl:max-w-3xl">
-              <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+            <motion.div
+              style={{ x: detailLean }}
+              className="relative mx-auto w-full max-w-2xl @5xl:max-w-3xl"
+            >
+              <AnimatePresence
+                initial={false}
+                mode="popLayout"
+                custom={direction}
+              >
                 {activeItem ? (
                   <motion.div
                     key={activeItem.id}
@@ -665,13 +867,12 @@ export function DeckLift({
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={reduceMotion ? SPRING.fade : SPRING.detail}
                   >
                     {activeItem.detail}
                   </motion.div>
                 ) : null}
               </AnimatePresence>
-            </div>
+            </motion.div>
           </div>
         </div>
       </motion.div>
