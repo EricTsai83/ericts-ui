@@ -103,6 +103,51 @@ describe("useElementSizeMap", () => {
     );
   });
 
+  it("measures the layout box a ref attaches to, not the painted one", () => {
+    // A `scale()` anywhere up the tree — the element's own animation, a
+    // zoomed-out preview frame — shrinks the painted rect while leaving the
+    // layout box alone. The observer above always reports the layout box, so
+    // this path has to agree with it: a consumer whose ref re-attaches would
+    // otherwise see the size flip between the two on every render, and anything
+    // positioned from that size would jump.
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(320);
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+      width: 224,
+      height: 140,
+    } as DOMRect);
+
+    render(<SizeMapHarness onRender={vi.fn()} />);
+
+    expect(JSON.parse(screen.getByTestId("sizes").textContent ?? "{}")).toEqual({
+      first: { width: 320, height: 200 },
+      second: { width: 320, height: 200 },
+    });
+  });
+
+  it("keeps measuring a ref that holds still across renders", () => {
+    // The hook must not depend on its consumer handing React a new ref callback
+    // every render to stay subscribed — that churn re-measures and re-subscribes
+    // on every commit, which is exactly what a stable ref exists to avoid.
+    const view = render(<SizeMapHarness onRender={vi.fn()} />);
+    const observer = ResizeObserverMock.instances[0];
+    const first = screen.getByTestId("first");
+
+    view.rerender(<SizeMapHarness onRender={vi.fn()} />);
+    view.rerender(<SizeMapHarness onRender={vi.fn()} />);
+
+    expect(observer.observe).toHaveBeenCalledTimes(2);
+    expect(observer.unobserve).not.toHaveBeenCalled();
+
+    act(() => {
+      observer.callback([resizeEntry(first, 512, 256)], observer);
+    });
+
+    expect(
+      JSON.parse(screen.getByTestId("sizes").textContent ?? "{}").first,
+    ).toEqual({ width: 512, height: 256 });
+  });
+
   it("keeps the threshold behavior and unobserves detached elements", () => {
     const onRender = vi.fn();
     const view = render(<SizeMapHarness onRender={onRender} />);

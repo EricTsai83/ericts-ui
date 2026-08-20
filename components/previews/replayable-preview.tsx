@@ -18,12 +18,12 @@ type PreviewCornerSlot = {
    */
   className: string;
   /**
-   * The mirror of `className`: the preview's *leading* corner, kept symmetric
-   * with whatever the chrome pins to the trailing one. A demo's own controls
-   * (a device-size switcher, a variant toggle) belong here rather than over the
-   * demo, where they would land on the top-left control of the demo itself.
+   * Where the preview toolbar pins itself, for the chrome that renders one.
+   * It holds the same corner as `className` — a preview shows one or the
+   * other, never both — but it is a row rather than a single button, so the
+   * chrome states it separately.
    */
-  leadingClassName: string;
+  toolbarClassName: string;
   /**
    * Mount point for the control, when it cannot be positioned where the preview
    * renders it. Fullscreen needs this: the canvas wraps the demo in a
@@ -36,34 +36,68 @@ type PreviewCornerSlot = {
   container?: HTMLElement | null;
 };
 
-/** Where a preview's own control sits when the chrome does not move it. */
-const DEFAULT_LEADING_CORNER = "absolute left-3 top-3";
-
 const PreviewCornerSlotContext = createContext<PreviewCornerSlot>({
   className: "absolute right-3 top-3",
-  leadingClassName: DEFAULT_LEADING_CORNER,
+  toolbarClassName: "absolute right-3 top-3",
 });
+
+/**
+ * The chrome's preview toolbar, when there is one. A demo-owned control —
+ * replay is the only one — joins that row instead of floating in a corner of
+ * its own, so a preview carries one strip of controls rather than one per
+ * owner. Same convention as `container` above: `undefined` means there is no
+ * toolbar, `null` means it has not mounted yet.
+ */
+const PreviewToolbarContext = createContext<HTMLElement | null | undefined>(
+  undefined,
+);
+
+/**
+ * A control the toolbar hosts rather than one floating on its own: flat,
+ * circular, and sized to the toolbar's row, so a portaled control cannot be
+ * told apart from the ones the toolbar renders itself.
+ */
+export const previewToolbarButtonClassName =
+  "inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3.5";
 
 export function PreviewCornerSlotProvider({
   className,
-  leadingClassName = DEFAULT_LEADING_CORNER,
+  toolbarClassName = className,
   container,
   children,
 }: {
   className: string;
-  leadingClassName?: string;
+  toolbarClassName?: string;
   container?: HTMLElement | null;
   children: ReactNode;
 }) {
   const slot = useMemo<PreviewCornerSlot>(
-    () => ({ className, leadingClassName, container }),
-    [className, leadingClassName, container],
+    () => ({ className, toolbarClassName, container }),
+    [className, toolbarClassName, container],
   );
 
   return (
     <PreviewCornerSlotContext.Provider value={slot}>
       {children}
     </PreviewCornerSlotContext.Provider>
+  );
+}
+
+export function usePreviewCornerSlot() {
+  return useContext(PreviewCornerSlotContext);
+}
+
+export function PreviewToolbarProvider({
+  node,
+  children,
+}: {
+  node: HTMLElement | null;
+  children: ReactNode;
+}) {
+  return (
+    <PreviewToolbarContext.Provider value={node}>
+      {children}
+    </PreviewToolbarContext.Provider>
   );
 }
 
@@ -74,28 +108,50 @@ export function ReplayablePreview({
 }) {
   const [replayKey, setReplayKey] = useState(0);
   const slot = useContext(PreviewCornerSlotContext);
-  const control = (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon"
-      aria-label="Replay preview"
-      title="Replay preview"
-      onClick={() => setReplayKey((key) => key + 1)}
-      className={cn("z-10 bg-background/80 backdrop-blur-sm", slot.className)}
-    >
-      <RotateCcw aria-hidden />
-    </Button>
-  );
-  // No `container` prop at all means "leave the control where the preview
-  // renders it". Once a slot opts into a mount point, `null` only means that
-  // node has not mounted yet, so hold the control back for that render.
-  let renderedControl: ReactNode = control;
+  const toolbar = useContext(PreviewToolbarContext);
+  const replay = () => setReplayKey((key) => key + 1);
+  let renderedControl: ReactNode;
 
-  if (slot.container !== undefined) {
-    renderedControl = slot.container
-      ? createPortal(control, slot.container)
-      : null;
+  if (toolbar !== undefined) {
+    // A toolbar is on screen, so the control belongs in it. `null` only means
+    // that row has not mounted yet, so hold the control back for that render.
+    const control = (
+      <button
+        type="button"
+        aria-label="Replay preview"
+        title="Replay preview"
+        onClick={replay}
+        className={previewToolbarButtonClassName}
+      >
+        <RotateCcw aria-hidden />
+      </button>
+    );
+
+    renderedControl = toolbar ? createPortal(control, toolbar) : null;
+  } else {
+    // No `container` prop at all means "leave the control where the preview
+    // renders it". Once a slot opts into a mount point, `null` only means that
+    // node has not mounted yet, so hold the control back for that render.
+    const control = (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        aria-label="Replay preview"
+        title="Replay preview"
+        onClick={replay}
+        className={cn("z-10 bg-background/80 backdrop-blur-sm", slot.className)}
+      >
+        <RotateCcw aria-hidden />
+      </Button>
+    );
+
+    renderedControl =
+      slot.container === undefined
+        ? control
+        : slot.container
+          ? createPortal(control, slot.container)
+          : null;
   }
 
   return (
@@ -104,23 +160,4 @@ export function ReplayablePreview({
       {children(replayKey)}
     </>
   );
-}
-
-/**
- * Puts a preview's own control in the leading corner, mirroring the chrome's
- * control in the trailing one — and through the same mount point, since a
- * fullscreen canvas positions its controls against the viewport rather than the
- * demo's box.
- */
-export function PreviewLeadingCorner({ children }: { children: ReactNode }) {
-  const slot = useContext(PreviewCornerSlotContext);
-  const control = (
-    <div className={cn("z-10", slot.leadingClassName)}>{children}</div>
-  );
-
-  if (slot.container === undefined) {
-    return control;
-  }
-
-  return slot.container ? createPortal(control, slot.container) : null;
 }

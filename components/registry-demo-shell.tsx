@@ -18,6 +18,7 @@ import {
 
 import { useFullscreenSession } from "@/components/fullscreen-session";
 import styles from "@/components/registry-demo-shell.module.css";
+import { PreviewViewportFrame } from "@/components/previews/preview-viewport-frame";
 import {
   PreviewCornerSlotProvider,
   RegistryPreview,
@@ -442,14 +443,27 @@ export function RegistryDemoShell({
               canvas, and beside it from `sm` up. */}
           <PreviewCornerSlotProvider
             className="fixed right-3 top-13 sm:right-14 sm:top-4"
-            leadingClassName="fixed left-3 top-3 sm:left-4 sm:top-4"
+            toolbarClassName="fixed right-3 top-13 sm:right-14 sm:top-4"
             container={previewCornerSlot}
           >
-            <RegistryPreview
-              name={item.name}
-              variant={variant}
-              presentation="fullscreen"
-            />
+            {item.resizable ? (
+              <PreviewViewportFrame
+                defaultDevice={item.resizable}
+                presentation="fullscreen"
+              >
+                <RegistryPreview
+                  name={item.name}
+                  variant={variant}
+                  presentation="fullscreen"
+                />
+              </PreviewViewportFrame>
+            ) : (
+              <RegistryPreview
+                name={item.name}
+                variant={variant}
+                presentation="fullscreen"
+              />
+            )}
           </PreviewCornerSlotProvider>
         </div>
       </section>

@@ -72,6 +72,7 @@ export async function RegistryItemPage({
   const displayItem = getRegistryDisplayItem(item.name);
   const segment = getRegistryKindSegment(kind);
   const isNextJsOnly = item.meta?.tags?.includes("nextjs-only") ?? false;
+  const references = item.meta?.references ?? [];
 
   return (
     <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8 lg:px-10">
@@ -95,6 +96,22 @@ export async function RegistryItemPage({
             <p className="text-base leading-7 text-muted-foreground sm:text-lg">
               {item.description}
             </p>
+          ) : null}
+          {references.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
+              <span>Designed with reference to</span>
+              {references.map((reference) => (
+                <a
+                  key={reference.href}
+                  href={reference.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {reference.label}
+                </a>
+              ))}
+            </div>
           ) : null}
           {isNextJsOnly ? (
             <Alert variant="warning" className="mt-1">
@@ -134,6 +151,7 @@ export async function RegistryItemPage({
         guideSnippets={guideSnippets}
         motionApiSnippets={motionApiSnippets}
         fullscreenHref={displayItem?.viewHref}
+        previewDevice={displayItem?.resizable}
       />
     </main>
   );

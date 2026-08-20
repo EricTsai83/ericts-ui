@@ -78,7 +78,7 @@ export default function Preview() {
     useSequencePlayer({ sequences });
 
   return (
-    <div className="flex w-full max-w-xl flex-col gap-3">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-3">
       <p className="text-center text-sm leading-6 text-muted-foreground">
         One demo plays at a time. Hover a card to take the spotlight; it returns
         to the rotation when you leave.

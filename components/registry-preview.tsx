@@ -29,6 +29,9 @@ const previews: Record<string, PreviewComponent> = {
   "expandable-toggle-button": dynamic(() => import("@/components/previews/expandable-toggle-button")),
   "floating-shortcut-button": dynamic(() => import("@/components/previews/floating-shortcut-button")),
   "play-button": dynamic(() => import("@/components/previews/play-button")),
+  "sliding-play-button": dynamic(
+    () => import("@/components/previews/sliding-play-button"),
+  ),
   "floating-select": dynamic(() => import("@/components/previews/floating-select")),
   "adaptive-switch": dynamic(
     () => import("@/components/previews/adaptive-switch"),
@@ -80,7 +83,4 @@ export function RegistryPreview({
   ) : null;
 }
 
-export {
-  PreviewCornerSlotProvider,
-  PreviewLeadingCorner,
-} from "@/components/previews/replayable-preview";
+export { PreviewCornerSlotProvider } from "@/components/previews/replayable-preview";

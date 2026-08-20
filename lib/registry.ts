@@ -14,6 +14,10 @@ export type RegistryItemMeta = {
   tags?: string[];
   effects?: string[];
   cssOnly?: boolean;
+  references?: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 type RegistrySourceItem = {

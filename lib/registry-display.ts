@@ -6,6 +6,9 @@ import {
 
 export type RegistryDisplayKind = RegistryKind;
 export type RegistryDisplayViewport = "centered" | "wide" | "full";
+/** Kept in step with `PreviewDeviceId`, which this file cannot import: it is
+ *  read on the server, and the frame that owns that type is a client module. */
+export type PreviewDeviceId = "desktop" | "tablet" | "mobile";
 
 /**
  * A display config says where an item sits in this site's navigation. It does
@@ -20,6 +23,15 @@ export type RegistryDisplayItemConfig = {
   browsable?: boolean;
   viewport?: RegistryDisplayViewport;
   defaultVariant?: string;
+  /**
+   * Preview this item inside a resizable device frame, opening at the named
+   * device. Only for items whose layout is driven by their own box — a
+   * `@container` block reacts to the frame exactly as it would to a real
+   * viewport, while anything laid out with `sm:`/`md:` media queries or `dvh`
+   * units cannot see the frame at all and would sit there unchanged while the
+   * toolbar claims to be resizing it.
+   */
+  resizable?: PreviewDeviceId;
 };
 
 export type RegistryDisplayItem = RegistryDisplayItemConfig & {
@@ -161,6 +173,7 @@ const registryDisplayItemConfigs = [
   { name: "status-button", category: "action" },
   { name: "expandable-toggle-button", category: "action" },
   { name: "play-button", category: "action" },
+  { name: "sliding-play-button", category: "action" },
   { name: "otp-input", category: "form" },
   { name: "floating-select", category: "form" },
   { name: "adaptive-switch", category: "form" },
@@ -198,7 +211,12 @@ const registryDisplayItemConfigs = [
   { name: "use-scroll-progress", category: "motion" },
   { name: "use-swipe-navigation", category: "motion" },
   { name: "use-sequence-player", category: "motion" },
-  { name: "deck-lift", category: "screen", viewport: "full" },
+  {
+    name: "deck-lift",
+    category: "screen",
+    viewport: "full",
+    resizable: "mobile",
+  },
   { name: "scroll-expand", category: "marketing", viewport: "full" },
   { name: "ripple-scene", category: "marketing", viewport: "full" },
   { name: "vertical-scene", category: "marketing", viewport: "full" },

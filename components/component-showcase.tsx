@@ -15,6 +15,10 @@ import {
   RegistryPreview,
 } from "@/components/registry-preview";
 import {
+  PreviewViewportFrame,
+  type PreviewDeviceId,
+} from "@/components/previews/preview-viewport-frame";
+import {
   DEFAULT_PACKAGE_MANAGER,
   getPackageInstallCommand,
   getRegistryInstallCommand,
@@ -52,6 +56,8 @@ type ComponentShowcaseProps = {
   guideSnippets?: ComponentCodeFile[];
   motionApiSnippets?: ComponentCodeFile[];
   fullscreenHref?: string;
+  /** Preview inside a resizable device frame, opening at this device. */
+  previewDevice?: PreviewDeviceId;
 };
 
 export function ComponentShowcase({
@@ -64,6 +70,7 @@ export function ComponentShowcase({
   guideSnippets = [],
   motionApiSnippets = [],
   fullscreenHref,
+  previewDevice,
 }: ComponentShowcaseProps) {
   if (type === "registry:hook") {
     return (
@@ -91,6 +98,7 @@ export function ComponentShowcase({
         name={name}
         codeVariants={codeVariants}
         fullscreenHref={fullscreenHref}
+        previewDevice={previewDevice}
       />
       <RegistryGuide name={name} snippets={guideSnippets} />
       <InstallationPanel
@@ -302,10 +310,12 @@ function ComponentPreviewCard({
   name,
   codeVariants,
   fullscreenHref,
+  previewDevice,
 }: {
   name: string;
   codeVariants: ComponentCodeVariant[];
   fullscreenHref?: string;
+  previewDevice?: PreviewDeviceId;
 }) {
   const variants: ComponentCodeVariant[] =
     codeVariants.length > 0
@@ -318,72 +328,122 @@ function ComponentPreviewCard({
           },
         ];
   const hasMultipleVariants = variants.length > 1;
+  const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
   return (
     <section
       data-slot="component-preview"
-      className="group relative min-w-0 max-w-full overflow-hidden rounded-xl border bg-background"
+      className="group relative min-w-0 max-w-full"
     >
-      <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
-        {hasMultipleVariants ? (
-          <div className="flex min-h-12 items-center border-b bg-muted/30 px-3 py-3">
-            <TabsList
-              aria-label="Implementation"
-              className="max-w-full overflow-x-auto shadow-none sm:w-fit"
-            >
-              {variants.map((variant) => (
-                <TabsTrigger
-                  key={variant.value}
-                  value={variant.value}
-                  className="px-3"
-                >
-                  {variant.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-        ) : null}
-        <div className="relative flex min-h-[288px] items-center justify-center p-4 sm:p-10">
-          <PreviewCornerSlotProvider
-            className={getPreviewCornerSlot(fullscreenHref)}
-          >
-            {hasMultipleVariants ? (
-              variants.map((variant) => (
-                <TabsContent
-                  key={variant.value}
-                  value={variant.value}
-                  className="flex w-full items-center justify-center"
-                >
-                  <RegistryPreview name={name} variant={variant.value} />
-                </TabsContent>
-              ))
-            ) : (
-              <TabsContent
-                value={variants[0].value}
-                className="flex w-full items-center justify-center"
+      {/* The toolbar mounts out here rather than inside the card: it is centred
+          on the card's top border, and the card clips its own corners, which
+          would cut the top half of it away. `contents` keeps the mount point
+          out of the layout. */}
+      {previewDevice ? (
+        <div ref={setToolbarSlot} className="contents" />
+      ) : null}
+
+      <div className="min-w-0 max-w-full overflow-hidden rounded-xl border bg-background">
+        <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
+          {hasMultipleVariants ? (
+            <div className="flex min-h-12 items-center border-b bg-muted/30 px-3 py-3">
+              <TabsList
+                aria-label="Implementation"
+                className="max-w-full overflow-x-auto shadow-none sm:w-fit"
               >
-                <RegistryPreview name={name} variant={variants[0].value} />
-              </TabsContent>
+                {variants.map((variant) => (
+                  <TabsTrigger
+                    key={variant.value}
+                    value={variant.value}
+                    className="px-3"
+                  >
+                    {variant.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+          ) : null}
+          <div
+            className={cn(
+              "relative flex items-center justify-center",
+              // A framed preview brings its own canvas — surface, height and
+              // padding — so the card hands it the full width and stays out of
+              // the way. Anything else keeps the card's own centred well.
+              previewDevice ? "" : "min-h-[288px] p-4 sm:p-10",
             )}
-          </PreviewCornerSlotProvider>
-          <PreviewFullscreenAction href={fullscreenHref} />
-        </div>
-        <div
-          data-slot="code"
-          className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
-        >
-          {variants.map((variant) => (
-            <TabsContent
-              key={variant.value}
-              value={variant.value}
-              className="min-w-0"
+          >
+            <PreviewCornerSlotProvider
+              className={getPreviewCornerSlot(fullscreenHref)}
+              // Astride the card's top border, clear of the demo underneath.
+              toolbarClassName="absolute right-4 top-0 -translate-y-1/2"
+              container={previewDevice ? toolbarSlot : undefined}
             >
-              <CodeFileTabs files={variant.files} />
-            </TabsContent>
-          ))}
-        </div>
-      </Tabs>
+              {/* The frame wraps every panel rather than sitting inside one, so
+                  the chosen device survives an implementation switch. */}
+              <PreviewPanelFrame
+                previewDevice={previewDevice}
+                fullscreenHref={fullscreenHref}
+              >
+                {variants.map((variant) => (
+                  <TabsContent
+                    key={variant.value}
+                    value={variant.value}
+                    className={
+                      previewDevice
+                        ? "size-full"
+                        : "flex w-full items-center justify-center"
+                    }
+                  >
+                    <RegistryPreview name={name} variant={variant.value} />
+                  </TabsContent>
+                ))}
+              </PreviewPanelFrame>
+            </PreviewCornerSlotProvider>
+            {previewDevice ? null : (
+              <PreviewFullscreenAction href={fullscreenHref} />
+            )}
+          </div>
+          <div
+            data-slot="code"
+            className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
+          >
+            {variants.map((variant) => (
+              <TabsContent
+                key={variant.value}
+                value={variant.value}
+                className="min-w-0"
+              >
+                <CodeFileTabs files={variant.files} />
+              </TabsContent>
+            ))}
+          </div>
+        </Tabs>
+      </div>
     </section>
+  );
+}
+
+/** The device frame, or nothing at all for a demo that is not framed. */
+function PreviewPanelFrame({
+  previewDevice,
+  fullscreenHref,
+  children,
+}: {
+  previewDevice?: PreviewDeviceId;
+  fullscreenHref?: string;
+  children: ReactNode;
+}) {
+  if (!previewDevice) {
+    return <>{children}</>;
+  }
+
+  return (
+    <PreviewViewportFrame
+      defaultDevice={previewDevice}
+      fullscreenHref={fullscreenHref}
+    >
+      {children}
+    </PreviewViewportFrame>
   );
 }
 

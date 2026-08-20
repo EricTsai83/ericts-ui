@@ -194,6 +194,25 @@ function readElementSize(
     };
   }
 
+  // Layout size, the same box the observer above reports — not a bounding
+  // rect, which is the *painted* one. A `scale()` anywhere up the tree (the
+  // element's own animation, a zoomed preview frame, a browser zoom) makes the
+  // two disagree, and since this path runs when a ref attaches while the
+  // observer path runs a frame later, a consumer would see the size flip
+  // between them on every render. Whole pixels, which `threshold` absorbs.
+  const layout = element as Partial<HTMLElement>;
+
+  if (
+    typeof layout.offsetWidth === "number" &&
+    typeof layout.offsetHeight === "number"
+  ) {
+    return {
+      width: layout.offsetWidth,
+      height: layout.offsetHeight,
+    };
+  }
+
+  // Anything without a layout box of its own — an SVG child, say.
   const rect = element.getBoundingClientRect();
 
   return {

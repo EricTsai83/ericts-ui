@@ -1,18 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Monitor, Smartphone, Tablet } from "lucide-react";
-
-import { PreviewLeadingCorner } from "@/components/registry-preview";
 import { DeckLift, type DeckLiftItem } from "@/registry/base/blocks/deck-lift";
 import { cn } from "@/lib/utils";
-
-/** The block is a container query, so the demo only has to change its width. */
-const views = [
-  { id: "mobile", label: "Mobile", icon: Smartphone, width: "23.5rem" },
-  { id: "tablet", label: "Tablet", icon: Tablet, width: "46rem" },
-  { id: "desktop", label: "Desktop", icon: Monitor, width: "72rem" },
-] as const;
 
 /**
  * Placeholders rather than a finished screen: the demo is here to show the
@@ -113,73 +102,31 @@ function Sheet() {
 /**
  * A share of the stage rather than a content height: the deck rests at 56% of
  * it, so this leaves roughly the top third of the card showing at every size
- * the switcher produces. (Not derived from `--deck-lift-card-width` — that
+ * the preview frame produces. (Not derived from `--deck-lift-card-width` — that
  * clamp holds a percentage, which would resolve against the stage's *height*
  * once it landed in a height calc.)
  */
 const sheetHeight = "h-[36%]";
 
-export default function Preview({
-  presentation = "inline",
-}: {
-  variant: string;
-  presentation?: "inline" | "fullscreen";
-}) {
-  const [view, setView] = useState<(typeof views)[number]["id"]>("mobile");
-  const width = views.find((entry) => entry.id === view)?.width;
-
+/**
+ * The demo fills whatever box the preview frame hands it and lets the block's
+ * own container queries do the rest — the device switcher lives in the preview
+ * chrome, so nothing here knows or cares what size it is being shown at. The
+ * border and the lifted shadow are the device's, not the page's: they are what
+ * make it read as a screen resting on the canvas rather than a panel let into
+ * it.
+ */
+export default function Preview() {
   return (
-    <div
-      className={cn(
-        "flex w-full items-center justify-center",
-        presentation === "fullscreen"
-          ? "h-full"
-          : // Inline, the size switcher floats in the card's corner *over* this
-            // area, so the frame gives that row its height back rather than
-            // tucking its own corner under it.
-            "h-[min(44rem,78svh)] min-h-[36rem] pt-6",
-      )}
+    <DeckLift
+      items={items}
+      sheet={<Sheet />}
+      sheetClassName={sheetHeight}
+      deckLabel="Cards"
+      className="size-full rounded-[1.75rem] border shadow-xl"
+      cardClassName="shadow-lg"
     >
-      {/* The demo's own control takes the preview's leading corner, mirroring
-          the chrome's control in the trailing one. */}
-      <PreviewLeadingCorner>
-        <div
-          role="group"
-          aria-label="Preview size"
-          // 32px tall, the same box as the chrome's icon control it mirrors.
-          className="flex h-8 items-center gap-1 rounded-full border bg-background/80 px-0.5 backdrop-blur-sm"
-        >
-          {views.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              aria-pressed={view === entry.id}
-              onClick={() => setView(entry.id)}
-              className={cn(
-                "inline-flex size-7 items-center justify-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                view === entry.id
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <entry.icon aria-hidden="true" className="size-3.5" />
-              <span className="sr-only">{entry.label}</span>
-            </button>
-          ))}
-        </div>
-      </PreviewLeadingCorner>
-
-      <DeckLift
-        items={items}
-        sheet={<Sheet />}
-        sheetClassName={sheetHeight}
-        deckLabel="Cards"
-        style={{ width }}
-        className="h-full max-w-full rounded-[1.75rem] border shadow-sm transition-[width] duration-300 ease-out motion-reduce:transition-none"
-        cardClassName="shadow-lg"
-      >
-        <Page />
-      </DeckLift>
-    </div>
+      <Page />
+    </DeckLift>
   );
 }
