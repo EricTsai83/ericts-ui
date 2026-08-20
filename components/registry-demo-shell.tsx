@@ -440,10 +440,18 @@ export function RegistryDemoShell({
         >
           {/* Keep replay/other preview controls clear of the fixed navigation
               toggle: stacked below it at phone widths, where the demo spans the
-              canvas, and beside it from `sm` up. */}
+              canvas, and beside it from `sm` up.
+
+              `z-20` is load-bearing, not decoration. The controls mount above
+              in the DOM but the demo's wrapper is painted later, so at an equal
+              layer the wrapper wins the hit test and swallows every click on
+              them — invisibly, since it has nothing of its own to draw. A
+              `viewport: "full"` demo reaches the corner they sit in, so that is
+              exactly where it happened. Above the canvas, below the navigation
+              chrome at `z-30`. */}
           <PreviewCornerSlotProvider
-            className="fixed right-3 top-13 sm:right-14 sm:top-4"
-            toolbarClassName="fixed right-3 top-13 sm:right-14 sm:top-4"
+            className="fixed right-3 top-13 z-20 sm:right-14 sm:top-4"
+            toolbarClassName="fixed right-3 top-13 z-20 sm:right-14 sm:top-4"
             container={previewCornerSlot}
           >
             {item.resizable ? (
