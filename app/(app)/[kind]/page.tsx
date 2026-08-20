@@ -44,7 +44,6 @@ const registryKindPages = {
     // class names and the two layouts stay exactly what they were.
     containerClassName:
       "mx-auto flex min-w-0 w-full max-w-5xl flex-col px-6 py-10 sm:px-8 lg:px-10",
-    fullscreen: true,
   },
   hook: {
     title: "Hooks",
@@ -56,7 +55,6 @@ const registryKindPages = {
     itemLabelPlural: "hooks",
     containerClassName:
       "mx-auto flex w-full max-w-7xl flex-col px-6 py-10 sm:px-8 lg:px-10 xl:px-12",
-    fullscreen: false,
   },
   block: {
     title: "Blocks",
@@ -68,7 +66,6 @@ const registryKindPages = {
     itemLabelPlural: "blocks",
     containerClassName:
       "mx-auto flex w-full max-w-7xl flex-col px-6 py-10 sm:px-8 lg:px-10 xl:px-12",
-    fullscreen: false,
   },
 } as const satisfies Record<RegistryKind, unknown>;
 
@@ -138,9 +135,13 @@ export default async function RegistryKindPage({ params }: PageProps) {
         href: item.href,
       };
     });
-  const fullscreenHref = page.fullscreen
-    ? displayItems.find((item) => item.browsable !== false)?.viewHref
-    : undefined;
+  // Every kind's `/view` previews are built and navigable — the browser walks
+  // one kind at a time — so the entry link is the first browsable item of the
+  // kind, whatever the kind is. Only components used to link here, which was
+  // just the shape of the three route files this page replaced.
+  const fullscreenHref = displayItems.find(
+    (item) => item.browsable !== false,
+  )?.viewHref;
 
   return (
     <main className={page.containerClassName}>

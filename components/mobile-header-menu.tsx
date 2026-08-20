@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import type { Folder, Root } from "fumadocs-core/page-tree";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { buildDocsGroups } from "@/lib/docs-navigation";
 import { cn } from "@/lib/utils";
 import {
   NavLink,
@@ -17,18 +15,15 @@ import {
 } from "@/registry/base/ui/nav-link";
 
 type MobileHeaderMenuProps = {
-  tree: Root | Folder;
   items: readonly { href: string; label: string }[];
   className?: string;
 };
 
 export function MobileHeaderMenu({
-  tree,
   items,
   className,
 }: MobileHeaderMenuProps) {
   const [open, setOpen] = React.useState(false);
-  const groups = buildDocsGroups(tree);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -80,7 +75,7 @@ export function MobileHeaderMenu({
         side="bottom"
         sideOffset={14}
       >
-        <div className="flex min-h-full min-w-0 flex-col gap-12 px-6 py-6">
+        <div className="flex min-h-full min-w-0 flex-col px-6 py-6">
           <div className="flex flex-col gap-4">
             <div className="text-sm font-medium text-muted-foreground">
               Menu
@@ -100,31 +95,6 @@ export function MobileHeaderMenu({
                 </MobileLink>
               ))}
             </div>
-          </div>
-          <div className="flex flex-col gap-8">
-            {groups.map((group) => (
-              <div key={group.title} className="flex flex-col gap-4">
-                <div className="text-sm font-medium text-muted-foreground">
-                  {group.title}
-                </div>
-                <div className="flex flex-col gap-3">
-                  {group.items.map((item) => (
-                    <MobileLink
-                      key={`${group.title}-${item.url}-${String(item.title)}`}
-                      href={item.url}
-                      match="exact"
-                      onOpenChange={setOpen}
-                      className={cn(
-                        "flex items-center gap-2",
-                        item.disabled && "pointer-events-none opacity-35",
-                      )}
-                    >
-                      {item.title}
-                    </MobileLink>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </PopoverContent>
