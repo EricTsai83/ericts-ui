@@ -139,13 +139,19 @@ const SWIPE = {
 /** The page of detail under the docked deck. */
 const DETAIL = {
   /**
-   * Share of the deck's travel the page under it covers. Under 1, so the page
-   * reads as lying further back than the cards — the same screen following the
-   * deck, rather than a second row moving in lockstep with it. It is the only
-   * number here: the distance and the timing both come off the deck, so the two
-   * layers cannot drift apart when either is re-tuned.
+   * Share of the deck's travel a page of detail covers as it is swapped out for
+   * the next. Under 1, so the page reads as lying further back than the cards —
+   * the same screen trailing the deck, rather than a second row moving in
+   * lockstep with it. It is the only number here: the distance and the timing
+   * both come off the deck, so the two layers cannot drift apart when either is
+   * re-tuned.
+   *
+   * It is spent on the *swap* and nothing else. A live drag leaves the page
+   * alone: the cards are the thing under the finger, and text sliding around
+   * beneath them turns every hesitant half-swipe into a page that will not hold
+   * still long enough to be read.
    */
-  follow: 0.22,
+  swapTravel: 0.22,
 } as const;
 
 const SPRING = {
@@ -425,11 +431,9 @@ export function DeckLift({
   const activeItem = items[activeIndex];
   const direction = detail.direction;
 
-  // One switch over both the lean under a drag and the slide of a swap: they are
-  // the same offset caught at two moments, so reduced motion has to take them
-  // together or the page would leave under the finger and then refuse to come
-  // back. The hand-off itself stays — see `fade` above.
-  const follow = reduceMotion ? 0 : DETAIL.follow;
+  // Reduced motion drops the swap's travel and keeps its hand-off — see `fade`
+  // above.
+  const swapTravel = reduceMotion ? 0 : DETAIL.swapTravel;
 
   // The deck's x is a motion value because a drag writes to the same value:
   // after a drag that commits nothing there is no new target for an `animate`
@@ -446,19 +450,13 @@ export function DeckLift({
     return () => controls.stop();
   }, [deckTarget, deckX, snapSpring]);
 
-  // How far the page of detail is leaning out from under the deck. It only ever
-  // holds a drag: a finger on the cards is a finger on the whole screen, so the
-  // page has to move while the drag is live rather than wait for the release and
-  // then be told what happened. Off the deck's own x rather than the pointer's,
-  // so the constraints and the elastic drag at the ends of the row reach the
-  // page too — and left out of the swap below, which is what keeps the two from
-  // fighting: a drag never changes the active card, so at the moment the swap
-  // starts this value is exactly where the finger left it, and springs home from
-  // there while the new page slides in over it.
-  const detailLean = useMotionValue(0);
-
+  // The page of detail moves on a swap and at no other time. It is deliberately
+  // not wired to the drag: the deck is the layer the finger has hold of, and a
+  // page that leans out under every uncommitted quarter-swipe is a paragraph
+  // being tugged away from the eye that is reading it. So it holds still until
+  // the release decides, and then trades itself for the next one.
   const detailVariants = React.useMemo(() => {
-    const travel = step * follow;
+    const travel = step * swapTravel;
 
     return {
       enter: (towards: number) => ({ opacity: 0, x: towards * travel }),
@@ -473,7 +471,7 @@ export function DeckLift({
         transition: SPRING.detailLeave,
       }),
     };
-  }, [follow, snapSpring, step]);
+  }, [snapSpring, step, swapTravel]);
 
   /**
    * Focus a card by id rather than through a map of refs. Holding that map cost
@@ -609,10 +607,6 @@ export function DeckLift({
       snapSpring,
     );
 
-    // The same spring, so the page settles with the cards whether or not the
-    // release commits to a new one.
-    animate(detailLean, 0, snapSpring);
-
     select(target);
 
     // The click that follows a drag has to be swallowed, but the flag has to be
@@ -743,13 +737,6 @@ export function DeckLift({
           }}
           onDragStart={() => {
             dragged.current = true;
-            // A grab during the spring home takes the page off it. Motion does
-            // this for the value it is dragging; the page's is a second value
-            // riding along, so it has to be told.
-            detailLean.stop();
-          }}
-          onDrag={() => {
-            detailLean.set((deckX.get() - deckTargetRef.current) * follow);
           }}
           onDragEnd={onDragEnd}
           onKeyDown={onDeckKeyDown}
@@ -850,10 +837,7 @@ export function DeckLift({
             ref={detailScroller}
             className="min-h-0 flex-1 overflow-x-clip overflow-y-auto"
           >
-            <motion.div
-              style={{ x: detailLean }}
-              className="relative mx-auto w-full max-w-2xl @5xl:max-w-3xl"
-            >
+            <div className="relative mx-auto w-full max-w-2xl @5xl:max-w-3xl">
               <AnimatePresence
                 initial={false}
                 mode="popLayout"
@@ -872,7 +856,7 @@ export function DeckLift({
                   </motion.div>
                 ) : null}
               </AnimatePresence>
-            </motion.div>
+            </div>
           </div>
         </div>
       </motion.div>
