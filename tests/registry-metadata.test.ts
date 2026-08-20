@@ -14,15 +14,10 @@ describe("registry metadata", () => {
     expect(item?.searchTerms).toContain("nextjs-only");
   });
 
-  it("credits the Sliding Play Button design reference", () => {
+  it("keeps the Sliding Play Button description free of design credits", () => {
     const item = getRegistryItem("sliding-play-button");
 
-    expect(item?.description).toContain("inspired by Jhey Tompkins");
-    expect(item?.meta?.references).toEqual([
-      {
-        label: "Jhey Tompkins's Sliding Play Button post on X",
-        href: "https://x.com/jh3yy/status/2069482227356827744",
-      },
-    ]);
+    expect(item?.description).not.toContain("Jhey Tompkins");
+    expect(item?.meta?.references).toBeUndefined();
   });
 });

@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "sliding-play-button",
   "title": "Sliding Play Button",
-  "description": "A circular media toggle inspired by Jhey Tompkins's Sliding Play Button post, built from three overlapping SVG elements that compress, slide, expand, and settle together with an optional duration override.",
+  "description": "A circular media toggle built from three overlapping SVG elements that compress, slide, expand, and settle together with an optional duration override.",
   "dependencies": [
     "motion"
   ],
@@ -45,12 +45,6 @@
       "frosted-glass",
       "press-scale",
       "reduced-motion"
-    ],
-    "references": [
-      {
-        "label": "Jhey Tompkins's Sliding Play Button post on X",
-        "href": "https://x.com/jh3yy/status/2069482227356827744"
-      }
     ]
   },
   "categories": [
