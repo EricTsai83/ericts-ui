@@ -222,6 +222,45 @@
       ]
     },
     {
+      "name": "arc-menu",
+      "type": "registry:ui",
+      "title": "Arc Menu",
+      "description": "A bottom-anchored shortcut menu that fans actions along a configurable arc while its trigger shrinks and swaps from a shortcut grid to a close icon.",
+      "categories": ["overlay"],
+      "meta": {
+        "tags": [
+          "floating-action-button",
+          "shortcut-menu",
+          "quick-actions",
+          "radial-menu",
+          "optional-caption",
+          "controlled",
+          "keyboard-navigation",
+          "typeahead",
+          "custom-icons",
+          "per-action-close",
+          "menu"
+        ],
+        "effects": [
+          "arc-motion",
+          "trigger-scale",
+          "icon-swap",
+          "simultaneous-actions",
+          "fade",
+          "reduced-motion"
+        ]
+      },
+      "registryDependencies": ["button"],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/base/ui/arc-menu.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/arc-menu.tsx"
+        }
+      ]
+    },
+    {
       "name": "status-badge",
       "type": "registry:ui",
       "title": "Status Badge",

@@ -190,6 +190,7 @@ const registryDisplayItemConfigs = [
   { name: "adaptive-drawer", category: "overlay" },
   { name: "feedback-popover", category: "overlay" },
   { name: "floating-shortcut-button", category: "overlay" },
+  { name: "arc-menu", category: "overlay" },
   { name: "status-badge", category: "display" },
   { name: "check-mark", category: "display" },
   { name: "timer", category: "display" },

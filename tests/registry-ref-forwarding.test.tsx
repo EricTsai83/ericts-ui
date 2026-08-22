@@ -3,6 +3,7 @@ import { createRef } from "react";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ArcMenu } from "@/registry/base/ui/arc-menu";
 import { ContextCursor } from "@/registry/base/ui/context-cursor";
 import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
@@ -35,7 +36,7 @@ afterEach(() => {
 
 /**
  * Registry items are copied into consumer codebases, so `ref` on the root node
- * is part of their public contract. The four components that also keep an
+ * is part of their public contract. Components that also keep an
  * internal root ref (outside-click detection, bounds measurement) must *merge*
  * the consumer's ref rather than overwrite it — that is what this guards.
  */
@@ -45,6 +46,7 @@ describe("registry root ref forwarding", () => {
     const tabsRef = createRef<HTMLDivElement>();
     const cursorRef = createRef<HTMLDivElement>();
     const shortcutRef = createRef<HTMLDivElement>();
+    const arcMenuRef = createRef<HTMLDivElement>();
 
     render(
       <>
@@ -59,6 +61,9 @@ describe("registry root ref forwarding", () => {
         <FloatingShortcutButton ref={shortcutRef}>
           <span />
         </FloatingShortcutButton>
+        <ArcMenu ref={arcMenuRef}>
+          <span />
+        </ArcMenu>
       </>,
     );
 
@@ -72,6 +77,9 @@ describe("registry root ref forwarding", () => {
 
     expect(shortcutRef.current).toBeInstanceOf(HTMLDivElement);
     expect(shortcutRef.current?.dataset.slot).toBe("floating-shortcut-button");
+
+    expect(arcMenuRef.current).toBeInstanceOf(HTMLDivElement);
+    expect(arcMenuRef.current?.dataset.slot).toBe("arc-menu");
   });
 
   it("keeps internal behavior working while a consumer ref is attached", () => {
