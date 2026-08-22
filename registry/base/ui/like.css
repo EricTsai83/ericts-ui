@@ -1,0 +1,228 @@
+/* Layered so consumer styles and Tailwind utilities can override without
+   fighting specificity. Unlayered rules and utilities both win over this. */
+@layer components {
+  .like {
+    --like-color: var(--destructive);
+    --like-size: 32px;
+    --like-duration: 350ms;
+    --like-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --like-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  .like-icon {
+    position: relative;
+    display: inline-flex;
+    width: var(--like-size);
+    height: var(--like-size);
+    flex: none;
+    font-size: var(--like-size);
+    transform: scale(1);
+    transition: transform 160ms var(--like-ease-out);
+  }
+
+  .like[data-icon-only] {
+    width: max(2rem, calc(var(--like-size) + 0.5rem));
+    height: max(2rem, calc(var(--like-size) + 0.5rem));
+  }
+
+  .like:active .like-icon {
+    transform: scale(0.97);
+  }
+
+  .like-heart {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    stroke-width: 1.75;
+  }
+
+  .like-heart-outline {
+    color: currentColor;
+    transition: color 150ms var(--like-ease-out);
+  }
+
+  .like-heart-fill {
+    color: var(--like-color);
+    clip-path: circle(0% at 50% 55%);
+    transition: clip-path 160ms var(--like-ease-in-out);
+  }
+
+  .like[data-liked="true"] .like-heart-outline {
+    color: var(--like-color);
+    transition-delay: 60ms;
+  }
+
+  .like[data-liked="true"] .like-heart-fill {
+    clip-path: circle(75% at 50% 55%);
+  }
+
+  .like-burst {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: var(--like-color);
+  }
+
+  .like-particle {
+    --like-particle-delay: 0ms;
+    --like-particle-duration-scale: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--like-particle-size, 0.25em);
+    height: var(--like-particle-size, 0.25em);
+    opacity: 0;
+    animation: like-particle
+      calc(var(--like-duration) * var(--like-particle-duration-scale))
+      linear calc(24ms + var(--like-particle-delay)) both;
+  }
+
+  /* Only 8 particles are choreographed below (LIKE_PARTICLE_COUNT in
+     like.tsx); anything past them has no travel vector, so hide it. */
+  .like-particle:nth-child(n + 9) {
+    display: none;
+  }
+
+  .like-particle-heart {
+    display: block;
+    stroke: none;
+  }
+
+  /* Three compact radial waves. Every heart travels the same 1.05em radius. */
+  .like-particle:nth-child(1) {
+    --like-particle-size: 0.3em;
+    --like-particle-x: -0.602em;
+    --like-particle-y: -0.86em;
+    --like-particle-rotate: -28deg;
+  }
+
+  .like-particle:nth-child(2) {
+    --like-particle-size: 0.125em;
+    --like-particle-x: 0.128em;
+    --like-particle-y: -1.042em;
+    --like-particle-rotate: 14deg;
+    --like-particle-delay: 44ms;
+    --like-particle-duration-scale: 1.125;
+  }
+
+  .like-particle:nth-child(3) {
+    --like-particle-size: 0.2em;
+    --like-particle-x: 0.78em;
+    --like-particle-y: -0.703em;
+    --like-particle-rotate: 31deg;
+    --like-particle-delay: 0ms;
+    --like-particle-duration-scale: 0.9;
+  }
+
+  .like-particle:nth-child(4) {
+    --like-particle-size: 0.34em;
+    --like-particle-x: 1.049em;
+    --like-particle-y: 0.037em;
+    --like-particle-rotate: -17deg;
+    --like-particle-delay: 88ms;
+    --like-particle-duration-scale: 0.975;
+  }
+
+  .like-particle:nth-child(5) {
+    --like-particle-size: 0.225em;
+    --like-particle-x: 0.703em;
+    --like-particle-y: 0.78em;
+    --like-particle-rotate: 24deg;
+    --like-particle-delay: 44ms;
+    --like-particle-duration-scale: 1.05;
+  }
+
+  .like-particle:nth-child(6) {
+    --like-particle-size: 0.36em;
+    --like-particle-x: -0.128em;
+    --like-particle-y: 1.042em;
+    --like-particle-rotate: -12deg;
+    --like-particle-delay: 0ms;
+    --like-particle-duration-scale: 1.1;
+  }
+
+  .like-particle:nth-child(7) {
+    --like-particle-size: 0.175em;
+    --like-particle-x: -0.839em;
+    --like-particle-y: 0.632em;
+    --like-particle-rotate: -34deg;
+    --like-particle-delay: 88ms;
+    --like-particle-duration-scale: 1.0875;
+  }
+
+  .like-particle:nth-child(8) {
+    --like-particle-size: 0.125em;
+    --like-particle-x: -1.047em;
+    --like-particle-y: -0.073em;
+    --like-particle-rotate: 18deg;
+    --like-particle-delay: 44ms;
+    --like-particle-duration-scale: 0.9375;
+  }
+
+  @keyframes like-particle {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) rotate(0deg) scale(0.95);
+    }
+
+    8% {
+      opacity: 1;
+    }
+
+    40% {
+      opacity: 0.9;
+    }
+
+    70% {
+      opacity: 0.65;
+    }
+
+    90% {
+      opacity: 0.25;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(
+          calc(-50% + var(--like-particle-x, 0px)),
+          calc(-50% + var(--like-particle-y, 0px))
+        )
+        rotate(var(--like-particle-rotate, 0deg)) scale(0.95);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .like[data-icon-only]:hover .like-heart-outline {
+      color: var(--foreground);
+    }
+
+    .like[data-icon-only][data-liked="true"]:hover .like-heart-outline {
+      color: var(--like-color);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .like-icon,
+    .like:active .like-icon {
+      transform: none;
+    }
+
+    .like-heart-fill {
+      clip-path: none;
+      opacity: 0;
+      transition: opacity 120ms var(--like-ease-out);
+    }
+
+    .like[data-liked="true"] .like-heart-fill {
+      opacity: 1;
+    }
+
+    /* Zero duration instead of `none` so animationend still fires and the
+       component can unmount the burst. `both` fill ends at opacity 0. */
+    .like-particle {
+      animation-duration: 0ms;
+      animation-delay: 0ms;
+    }
+  }
+}
