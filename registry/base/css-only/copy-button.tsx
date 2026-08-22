@@ -4,26 +4,29 @@ import * as React from "react";
 import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-import "./copy-button.css";
+import { IconSwap } from "./icon-swap";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
-
 export type CopyButtonProps = Omit<
   ButtonProps,
   "children" | "value" | "onCopy"
 > & {
+  /** Text written to the clipboard when the button is pressed. */
   value: string;
   /** How long the copied state stays visible, in ms. */
   copiedDuration?: number;
+  /** Icon swap transition duration in milliseconds. Defaults to 160ms. */
+  duration?: number;
+  /** Called with the copied value after a successful write. */
   onCopy?: (value: string) => void;
 };
 
 export function CopyButton({
   value,
   copiedDuration = 1000,
+  duration,
   onCopy,
   onClick,
   className,
@@ -34,7 +37,6 @@ export function CopyButton({
   ...props
 }: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
-  const [interacted, setInteracted] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
@@ -56,7 +58,6 @@ export function CopyButton({
       }
 
       onCopy?.(value);
-      setInteracted(true);
       setCopied(true);
 
       if (timer.current) clearTimeout(timer.current);
@@ -71,29 +72,18 @@ export function CopyButton({
       variant={variant}
       size={size}
       aria-label={ariaLabel}
-      // Same root attribute as the motion variant, so switching between the two
-      // doesn't break consumer selectors. (The per-icon `data-state` below is
-      // an internal styling hook for the CSS keyframes.)
       data-copied={copied}
-      data-interacted={interacted ? "true" : undefined}
       onClick={handleCopy}
-      className={cn("copy-button", className)}
+      className={className}
       {...props}
     >
-      <span className="copy-button__icon-stack" aria-hidden="true">
-        <span
-          className="copy-button__icon"
-          data-state={copied ? "closed" : "open"}
-        >
-          <Copy data-icon="icon" />
-        </span>
-        <span
-          className="copy-button__icon"
-          data-state={copied ? "open" : "closed"}
-        >
-          <Check data-icon="icon" />
-        </span>
-      </span>
+      <IconSwap
+        active={copied}
+        duration={duration}
+        icon={<Copy />}
+        activeIcon={<Check />}
+        data-icon="icon"
+      />
       <span role="status" aria-live="polite" className="sr-only">
         {copied ? "Copied to clipboard" : ""}
       </span>

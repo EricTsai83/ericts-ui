@@ -1,0 +1,38 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "icon-swap",
+  "title": "Icon Swap",
+  "description": "A controlled binary icon transition with stable layout, interruptible state changes, and reduced-motion support.",
+  "dependencies": [
+    "motion"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/icon-swap.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { motion, type Transition, useReducedMotion } from \"motion/react\";\n\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Both layers cross-fade in place — the outgoing icon shrinks and blurs away\n * while the incoming one sharpens into focus. The blur masks the frames where\n * both icons are semi-transparent, so the swap reads as one icon melting into\n * the other instead of two overlapping ghosts.\n */\nconst defaultTransition: Transition = {\n  duration: 0.16,\n  ease: [0.215, 0.61, 0.355, 1],\n};\n\nexport type IconSwapProps = Omit<\n  React.ComponentProps<\"span\">,\n  \"aria-hidden\" | \"children\"\n> & {\n  /** Whether the active icon is visible. */\n  active: boolean;\n  /** Icon shown while inactive. */\n  icon: React.ReactNode;\n  /** Icon shown while active. */\n  activeIcon: React.ReactNode;\n  /** Whether state changes animate. */\n  animated?: boolean;\n  /** Classes applied to both icon layers. */\n  iconClassName?: string;\n  /** Transition shared by both icon layers. */\n  transition?: Transition;\n};\n\nexport function IconSwap({\n  active,\n  icon,\n  activeIcon,\n  animated = true,\n  className,\n  iconClassName,\n  transition = defaultTransition,\n  ref,\n  ...props\n}: IconSwapProps) {\n  const reduceMotion = useReducedMotion();\n  const shouldAnimate = animated && !reduceMotion;\n  const resolvedTransition = shouldAnimate ? transition : { duration: 0 };\n  const iconClasses = cn(\n    \"col-start-1 row-start-1 inline-flex origin-center\",\n    iconClassName,\n  );\n\n  return (\n    <span\n      {...props}\n      ref={ref}\n      data-slot=\"icon-swap\"\n      data-state={active ? \"active\" : \"inactive\"}\n      data-animated={animated}\n      aria-hidden=\"true\"\n      className={cn(\n        \"relative inline-grid shrink-0 place-items-center\",\n        className,\n      )}\n    >\n      <motion.span\n        initial={false}\n        animate={{\n          opacity: active ? 0 : 1,\n          scale: active ? 0.5 : 1,\n          filter: active ? \"blur(2px)\" : \"blur(0px)\",\n        }}\n        transition={resolvedTransition}\n        data-slot=\"icon-swap-icon\"\n        data-state={active ? \"closed\" : \"open\"}\n        className={iconClasses}\n      >\n        {icon}\n      </motion.span>\n      <motion.span\n        initial={false}\n        animate={{\n          opacity: active ? 1 : 0,\n          scale: active ? 1 : 0.5,\n          filter: active ? \"blur(0px)\" : \"blur(2px)\",\n        }}\n        transition={resolvedTransition}\n        data-slot=\"icon-swap-active-icon\"\n        data-state={active ? \"open\" : \"closed\"}\n        className={iconClasses}\n      >\n        {activeIcon}\n      </motion.span>\n    </span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/icon-swap.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "icon",
+      "swap",
+      "toggle",
+      "controlled",
+      "button",
+      "css-transition",
+      "motion"
+    ],
+    "effects": [
+      "crossfade",
+      "scale",
+      "state-transition"
+    ],
+    "cssOnly": true
+  },
+  "categories": [
+    "effect"
+  ],
+  "type": "registry:ui"
+}

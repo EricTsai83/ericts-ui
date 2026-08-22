@@ -72,6 +72,15 @@ export function ComponentShowcase({
   fullscreenHref,
   previewDevice,
 }: ComponentShowcaseProps) {
+  const cssOnlyFileNames =
+    codeVariants
+      .find((variant) => variant.value === "css-only")
+      ?.files.map((file) => file.name) ?? [];
+  const primaryFileNames =
+    codeVariants
+      .find((variant) => variant.value === "motion")
+      ?.files.map((file) => file.name) ?? [];
+
   if (type === "registry:hook") {
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-12">
@@ -86,6 +95,8 @@ export function ComponentShowcase({
           dependencies={dependencies}
           registryDependencies={registryDependencies}
           hasCssOnlyVariant={false}
+          cssOnlyFileNames={[]}
+          primaryFileNames={primaryFileNames}
           motionApiSnippets={motionApiSnippets}
         />
       </div>
@@ -109,6 +120,8 @@ export function ComponentShowcase({
         hasCssOnlyVariant={codeVariants.some(
           (variant) => variant.value === "css-only",
         )}
+        cssOnlyFileNames={cssOnlyFileNames}
+        primaryFileNames={primaryFileNames}
         motionApiSnippets={motionApiSnippets}
       />
     </div>
@@ -646,6 +659,8 @@ function InstallationPanel({
   dependencies,
   registryDependencies,
   hasCssOnlyVariant,
+  cssOnlyFileNames,
+  primaryFileNames,
   motionApiSnippets,
 }: {
   name: string;
@@ -653,6 +668,8 @@ function InstallationPanel({
   dependencies: string[];
   registryDependencies: string[];
   hasCssOnlyVariant: boolean;
+  cssOnlyFileNames: string[];
+  primaryFileNames: string[];
   motionApiSnippets: ComponentCodeFile[];
 }) {
   return (
@@ -692,6 +709,8 @@ function InstallationPanel({
             dependencies={dependencies}
             registryDependencies={registryDependencies}
             hasCssOnlyVariant={hasCssOnlyVariant}
+            cssOnlyFileNames={cssOnlyFileNames}
+            primaryFileNames={primaryFileNames}
           />
         </TabsContent>
       </Tabs>
@@ -769,11 +788,15 @@ function ManualInstall({
   dependencies,
   registryDependencies,
   hasCssOnlyVariant,
+  cssOnlyFileNames,
+  primaryFileNames,
 }: {
   targetPath: string;
   dependencies: string[];
   registryDependencies: string[];
   hasCssOnlyVariant: boolean;
+  cssOnlyFileNames: string[];
+  primaryFileNames: string[];
 }) {
   const [packageManager, setPackageManager, isPackageManagerReady] =
     usePackageManager(DEFAULT_PACKAGE_MANAGER);
@@ -798,6 +821,8 @@ function ManualInstall({
         dependencies={dependencies}
         registryDependencies={registryDependencies}
         hasCssOnlyVariant={hasCssOnlyVariant}
+        cssOnlyFileNames={cssOnlyFileNames}
+        primaryFileNames={primaryFileNames}
         packageManager={packageManager}
         onPackageManagerChange={setPackageManager}
         isPackageManagerReady={isPackageManagerReady}
@@ -811,6 +836,8 @@ function ManualInstallSteps({
   dependencies,
   registryDependencies,
   hasCssOnlyVariant,
+  cssOnlyFileNames,
+  primaryFileNames,
   packageManager,
   onPackageManagerChange,
   isPackageManagerReady,
@@ -819,6 +846,8 @@ function ManualInstallSteps({
   dependencies: string[];
   registryDependencies: string[];
   hasCssOnlyVariant: boolean;
+  cssOnlyFileNames: string[];
+  primaryFileNames: string[];
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
   isPackageManagerReady: boolean;
@@ -840,6 +869,25 @@ function ManualInstallSteps({
       ? (item: PackageManager) =>
           getPackageInstallCommand(cssOnlyDependencies, item)
       : undefined;
+  // Registry URLs point at linked registry items. Their Motion files come in
+  // through this command, but the CSS-only path recreates them by hand in
+  // step 3 — so the CSS-only command must not install them.
+  const linkedRegistryDependencies = registryDependencies.filter((dependency) =>
+    isRegistryItemUrl(dependency),
+  );
+  const cssOnlyRegistryDependencies =
+    hasCssOnlyVariant && linkedRegistryDependencies.length > 0
+      ? registryDependencies.filter(
+          (dependency) => !isRegistryItemUrl(dependency),
+        )
+      : [];
+  const cssOnlyRegistryDependencyCommand =
+    cssOnlyRegistryDependencies.length > 0
+      ? (item: PackageManager) =>
+          getRegistryInstallCommand(cssOnlyRegistryDependencies.join(" "), item)
+      : undefined;
+  const showCssOnlyRegistryDependencyNote =
+    hasCssOnlyVariant && linkedRegistryDependencies.length > 0;
 
   return (
     <ol className="relative flex flex-col gap-0 before:absolute before:left-3.5 before:top-8 before:bottom-8 before:w-px before:bg-border">
@@ -847,15 +895,26 @@ function ManualInstallSteps({
         number={1}
         title="Install shadcn/ui dependencies"
         description={
-          registryDependencyCommand
-            ? "Add the shadcn/ui primitives this item imports."
-            : "This item does not require any shadcn/ui primitives."
+          registryDependencyCommand && showCssOnlyRegistryDependencyNote
+            ? "The command below installs the Motion version of the linked registry items. For CSS-only, their files are created by hand in step 3 instead."
+            : registryDependencyCommand
+              ? "Add the shadcn/ui primitives this item imports."
+              : "This item does not require any shadcn/ui primitives."
         }
         command={registryDependencyCommand}
         packageManager={packageManager}
         onPackageManagerChange={onPackageManagerChange}
         isPackageManagerReady={isPackageManagerReady}
-      />
+      >
+        {showCssOnlyRegistryDependencyNote ? (
+          <CssOnlyRegistryDependencyNote
+            command={cssOnlyRegistryDependencyCommand}
+            packageManager={packageManager}
+            onPackageManagerChange={onPackageManagerChange}
+            isPackageManagerReady={isPackageManagerReady}
+          />
+        ) : null}
+      </ManualInstallStep>
       <ManualInstallStep
         number={2}
         title="Install package dependencies"
@@ -883,12 +942,16 @@ function ManualInstallSteps({
       <ManualInstallStep
         number={3}
         title={
-          hasCssOnlyVariant ? "Copy the source files" : "Copy the source file"
+          hasCssOnlyVariant || primaryFileNames.length > 1
+            ? "Copy the source files"
+            : "Copy the source file"
         }
         description={
           <SourceCopyDescription
             targetPath={targetPath}
             hasCssOnlyVariant={hasCssOnlyVariant}
+            cssOnlyFileNames={cssOnlyFileNames}
+            primaryFileNames={primaryFileNames}
           />
         }
         packageManager={packageManager}
@@ -896,6 +959,43 @@ function ManualInstallSteps({
         isPackageManagerReady={isPackageManagerReady}
       />
     </ol>
+  );
+}
+
+function isRegistryItemUrl(dependency: string) {
+  return dependency.includes("://");
+}
+
+function CssOnlyRegistryDependencyNote({
+  command,
+  packageManager,
+  onPackageManagerChange,
+  isPackageManagerReady,
+}: {
+  command?: ManualInstallCommandFactory;
+  packageManager: PackageManager;
+  onPackageManagerChange: (packageManager: PackageManager) => void;
+  isPackageManagerReady: boolean;
+}) {
+  return (
+    <div className="mt-4 flex flex-col gap-2">
+      <div className="text-sm font-medium text-foreground">
+        CSS-only shadcn/ui dependencies
+      </div>
+      {command ? (
+        <ManualInstallCommand
+          command={command}
+          packageManager={packageManager}
+          onPackageManagerChange={onPackageManagerChange}
+          isPackageManagerReady={isPackageManagerReady}
+        />
+      ) : (
+        <p className="leading-6 text-foreground">
+          No shadcn/ui command is needed for the CSS-only source — the files in
+          step 3 replace the linked registry items.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -935,39 +1035,56 @@ function CssOnlyPackageDependencyNote({
 function SourceCopyDescription({
   targetPath,
   hasCssOnlyVariant,
+  cssOnlyFileNames,
+  primaryFileNames,
 }: {
   targetPath: string;
   hasCssOnlyVariant: boolean;
+  cssOnlyFileNames: string[];
+  primaryFileNames: string[];
 }) {
-  const cssOnlyTargetPath = getCssOnlyTargetPath(targetPath);
+  const primaryTargetPaths =
+    primaryFileNames.length > 0
+      ? primaryFileNames.map((fileName) =>
+          getSiblingTargetPath(targetPath, fileName),
+        )
+      : [targetPath];
+  const hasMultiplePrimaryFiles = primaryTargetPaths.length > 1;
 
   return (
     <div className="flex flex-col gap-2">
       <span>
         {hasCssOnlyVariant
-          ? "For the Motion version, create this file and paste in the Motion source from the code panel."
-          : "Create this file and paste in the source from the code panel."}
+          ? hasMultiplePrimaryFiles
+            ? "For the Motion version, create these files and paste in the Motion source from the code panel."
+            : "For the Motion version, create this file and paste in the Motion source from the code panel."
+          : hasMultiplePrimaryFiles
+            ? "Create these files and paste in the source from the code panel."
+            : "Create this file and paste in the source from the code panel."}
       </span>
-      <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
-        {targetPath}
-      </code>
+      <ul className="flex flex-col gap-1">
+        {primaryTargetPaths.map((filePath) => (
+          <li key={filePath}>
+            <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+              {filePath}
+            </code>
+          </li>
+        ))}
+      </ul>
       {hasCssOnlyVariant ? (
         <>
           <span>
-            For CSS-only, select the CSS only variant above, then create both
-            files.
+            For CSS-only, select the CSS only variant above, then create all
+            listed files.
           </span>
           <ul className="flex flex-col gap-1">
-            <li>
-              <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
-                {targetPath}
-              </code>
-            </li>
-            <li>
-              <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
-                {cssOnlyTargetPath}
-              </code>
-            </li>
+            {cssOnlyFileNames.map((fileName) => (
+              <li key={fileName}>
+                <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                  {getSiblingTargetPath(targetPath, fileName)}
+                </code>
+              </li>
+            ))}
           </ul>
           <span>
             Keep the local CSS import if the files stay together. If you move
@@ -982,10 +1099,10 @@ function SourceCopyDescription({
   );
 }
 
-function getCssOnlyTargetPath(targetPath: string) {
-  return targetPath.includes(".")
-    ? targetPath.replace(/\.[^/.]+$/, ".css")
-    : `${targetPath}.css`;
+function getSiblingTargetPath(targetPath: string, fileName: string) {
+  const directoryEnd = targetPath.lastIndexOf("/") + 1;
+
+  return `${targetPath.slice(0, directoryEnd)}${fileName}`;
 }
 
 function ManualInstallStep({

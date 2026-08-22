@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import ts from "typescript";
 
+import { collectCssOnlyGraph } from "../lib/css-only-graph.mjs";
+
 const root = process.cwd();
 const canonicalRegistryUrl = "https://ui.ericts.com";
 const canonicalRegistryItemUrlPrefix = `${canonicalRegistryUrl}/r/`;
@@ -55,7 +57,7 @@ validateCategoriesAreOccupied();
 validateTitlesMatchNames();
 validateBrowsablePreviews();
 validateRegistryFilesExist();
-validateCssOnlyVariants();
+await validateCssOnlyVariants();
 validatePublishedOutput();
 validateCanonicalRegistryUrls();
 
@@ -366,18 +368,36 @@ function validateRegistryFilesExist() {
   }
 }
 
-function validateCssOnlyVariants() {
+/**
+ * Walks the same import graph the site renders (lib/registry-code.tsx), via
+ * the shared collector, so a variant this validator accepts is exactly the
+ * one shown in the CSS-only code panel.
+ */
+async function validateCssOnlyVariants() {
+  const cssOnlyDirectory = path.join(root, "registry/base/css-only");
+  const readCssOnlySource = (fileName) => {
+    const filePath = path.join(cssOnlyDirectory, fileName);
+
+    return fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : null;
+  };
+
   for (const item of registry.items) {
     if (item.meta?.cssOnly !== true) {
       continue;
     }
 
-    const cssPath = path.join(root, "registry/base/css-only", `${item.name}.css`);
-    const tsxPath = path.join(root, "registry/base/css-only", `${item.name}.tsx`);
+    const graph = await collectCssOnlyGraph(item.name, readCssOnlySource);
 
-    if (!fs.existsSync(cssPath) || !fs.existsSync(tsxPath)) {
+    if (!graph.has(`${item.name}.tsx`)) {
       errors.push(
-        `Registry item "${item.name}" sets meta.cssOnly but registry/base/css-only/${item.name}.{css,tsx} is missing.`,
+        `Registry item "${item.name}" sets meta.cssOnly but registry/base/css-only/${item.name}.tsx is missing.`,
+      );
+      continue;
+    }
+
+    if (![...graph.keys()].some((fileName) => fileName.endsWith(".css"))) {
+      errors.push(
+        `Registry item "${item.name}" sets meta.cssOnly but its CSS-only source does not import a reachable CSS file.`,
       );
     }
   }

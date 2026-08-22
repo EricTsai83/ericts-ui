@@ -7,7 +7,8 @@ import type {
   ComponentCodeFile,
   ComponentCodeVariant,
 } from "@/components/component-showcase";
-import type { RegistryItem } from "@/lib/registry";
+import { collectCssOnlyGraph } from "@/lib/css-only-graph.mjs";
+import { getRegistryItem, type RegistryItem } from "@/lib/registry";
 import { getRegistryInstallTarget } from "@/lib/registry-install";
 
 export type RegistryCodeModel = {
@@ -101,8 +102,9 @@ async function getRegistryItemSource(item: RegistryItem) {
 
 async function getRegistryItemCodeFiles(
   item: RegistryItem,
+  visited: Set<string> = new Set([item.name]),
 ): Promise<ComponentCodeVariant["files"]> {
-  const files = await Promise.all(
+  const ownFiles = await Promise.all(
     (item.files ?? []).map(async (file) => {
       const registryPath = file.path.replace(/^registry\//, "");
 
@@ -128,34 +130,64 @@ async function getRegistryItemCodeFiles(
     }),
   );
 
-  return files.filter((file): file is ComponentCodeFile => Boolean(file));
+  // Items linked through registryDependencies URLs are part of this item's
+  // source (their files are imported as siblings), so the code panel and the
+  // manual install steps must show them too.
+  const dependencyFiles: ComponentCodeFile[] = [];
+
+  for (const dependency of item.registryDependencies ?? []) {
+    const dependencyName = getLocalRegistryDependencyName(dependency);
+
+    if (!dependencyName || visited.has(dependencyName)) continue;
+
+    visited.add(dependencyName);
+    const dependencyItem = getRegistryItem(dependencyName);
+
+    if (dependencyItem) {
+      dependencyFiles.push(
+        ...(await getRegistryItemCodeFiles(dependencyItem, visited)),
+      );
+    }
+  }
+
+  const files = [
+    ...ownFiles.filter((file): file is ComponentCodeFile => Boolean(file)),
+    ...dependencyFiles,
+  ];
+
+  return files.filter(
+    (file, index) =>
+      files.findIndex((other) => other.name === file.name) === index,
+  );
+}
+
+export function getLocalRegistryDependencyName(dependency: string) {
+  return dependency.match(/\/r\/([a-z0-9-]+)\.json$/)?.[1];
 }
 
 async function getCssOnlyFiles(
   item: RegistryItem,
 ): Promise<ComponentCodeVariant["files"]> {
   const cssOnlyPath = path.join(process.cwd(), "registry/base/css-only");
-  const [cssSource, reactSource] = await Promise.all([
-    readOptionalFile(path.join(cssOnlyPath, `${item.name}.css`)),
-    readOptionalFile(path.join(cssOnlyPath, `${item.name}.tsx`)),
-  ]);
+  const graph = await collectCssOnlyGraph(item.name, (fileName: string) =>
+    readOptionalFile(path.join(cssOnlyPath, fileName)),
+  );
+  const files = [...graph].map(
+    ([name, source]): ComponentCodeFile => ({
+      name,
+      language: getCodeLanguage(name),
+      source,
+    }),
+  );
 
-  if (!cssSource || !reactSource) {
+  if (
+    !graph.has(`${item.name}.tsx`) ||
+    !files.some((file) => file.language === "css")
+  ) {
     return [];
   }
 
-  return [
-    {
-      name: `${item.name}.css`,
-      language: "css",
-      source: cssSource,
-    },
-    {
-      name: `${item.name}.tsx`,
-      language: "tsx",
-      source: reactSource,
-    },
-  ];
+  return files;
 }
 
 async function highlightCodeFiles(
@@ -205,7 +237,7 @@ function getPrimaryVariantLabel(item: RegistryItem, source: string) {
     return "Custom hook";
   }
 
-  if (source.includes("motion/react")) {
+  if (source.includes("motion/react") || item.dependencies?.includes("motion")) {
     return "Motion";
   }
 

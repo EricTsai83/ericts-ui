@@ -170,6 +170,8 @@ const registryDisplayCategories = [
  */
 const registryDisplayItemConfigs = [
   { name: "copy-button", category: "action" },
+  { name: "like", category: "action" },
+  { name: "like-button", category: "action" },
   { name: "status-button", category: "action" },
   { name: "expandable-toggle-button", category: "action" },
   { name: "play-button", category: "action" },
@@ -198,6 +200,7 @@ const registryDisplayItemConfigs = [
   { name: "smooth-height", category: "container", defaultVariant: "motion" },
   { name: "multi-step", category: "container" },
   { name: "expandable-toolbar", category: "container", viewport: "wide" },
+  { name: "icon-swap", category: "effect" },
   { name: "jitter", category: "effect" },
   { name: "squeeze", category: "effect" },
   { name: "heartbeat", category: "effect" },

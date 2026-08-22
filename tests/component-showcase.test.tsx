@@ -77,6 +77,11 @@ describe("ComponentShowcase manual installation", () => {
                 language: "tsx",
                 source: "export function ExampleItem() { return null; }",
               },
+              {
+                name: "icon-swap.tsx",
+                language: "tsx",
+                source: "export function IconSwap() { return null; }",
+              },
             ],
           },
           {
@@ -97,7 +102,10 @@ describe("ComponentShowcase manual installation", () => {
           },
         ]}
         targetPath="components/ui/example-item.tsx"
-        registryDependencies={["button"]}
+        registryDependencies={[
+          "button",
+          "https://ui.ericts.com/r/icon-swap.json",
+        ]}
         dependencies={["motion", "lucide-react"]}
       />,
     );
@@ -110,14 +118,36 @@ describe("ComponentShowcase manual installation", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Manual" }));
 
+    // Linked registry items ship Motion files, so the CSS-only path gets its
+    // own filtered command that skips them.
+    expect(
+      screen.getByText(
+        "The command below installs the Motion version of the linked registry items. For CSS-only, their files are created by hand in step 3 instead.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "pnpm dlx shadcn@latest add button https://ui.ericts.com/r/icon-swap.json",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("pnpm dlx shadcn@latest add button")).toBeTruthy();
+
     expect(screen.getByText("Copy the source files")).toBeTruthy();
+    // The Motion list carries every file in the variant, including linked
+    // registry dependency files.
+    expect(
+      screen.getByText(
+        "For the Motion version, create these files and paste in the Motion source from the code panel.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("components/ui/icon-swap.tsx")).toBeTruthy();
     expect(screen.getAllByText("components/ui/example-item.tsx")).toHaveLength(
       2,
     );
     expect(screen.getByText("components/ui/example-item.css")).toBeTruthy();
     expect(
       screen.getByText(
-        "For CSS-only, select the CSS only variant above, then create both files.",
+        "For CSS-only, select the CSS only variant above, then create all listed files.",
       ),
     ).toBeTruthy();
     expect(
