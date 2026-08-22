@@ -30,6 +30,7 @@ export type FloatingShortcutButtonSize = "sm" | "md" | "lg";
 
 export type FloatingShortcutMetrics = {
   triggerSize: number;
+  iconOnlyTriggerSize: number;
   openTriggerSize: number;
   actionSize: number;
   triggerIconSize: number;
@@ -42,7 +43,7 @@ export type FloatingShortcutMetrics = {
 };
 
 export type FloatingShortcutMotion = {
-  /** Total duration in milliseconds. Delay and stagger preserve their ratios. */
+  /** Total duration in milliseconds. Set to 0 to disable motion. */
   duration: number;
   /** Vertical travel used by action rows. */
   distance: number;
@@ -69,6 +70,7 @@ export type FloatingShortcutButtonClassNames = {
 export const floatingShortcutSizePresets = {
   sm: {
     triggerSize: 48,
+    iconOnlyTriggerSize: 40,
     openTriggerSize: 36,
     actionSize: 40,
     triggerIconSize: 18,
@@ -81,6 +83,7 @@ export const floatingShortcutSizePresets = {
   },
   md: {
     triggerSize: 56,
+    iconOnlyTriggerSize: 48,
     openTriggerSize: 40,
     actionSize: 48,
     triggerIconSize: 20,
@@ -93,6 +96,7 @@ export const floatingShortcutSizePresets = {
   },
   lg: {
     triggerSize: 64,
+    iconOnlyTriggerSize: 56,
     openTriggerSize: 44,
     actionSize: 56,
     triggerIconSize: 24,
@@ -114,6 +118,7 @@ export const floatingShortcutMotionDefault = {
 const ICON_SWAP_DELAY_RATIO = 0.5;
 const ACTION_STAGGER_RATIO = 0.2;
 const PRESS_DURATION_RATIO = 130 / 170;
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 function resolvePositive(value: number | undefined, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) && value > 0
@@ -127,6 +132,42 @@ function resolveNonNegative(value: number | undefined, fallback: number) {
     : fallback;
 }
 
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not(:disabled)",
+  "input:not(:disabled)",
+  "select:not(:disabled)",
+  "textarea:not(:disabled)",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+function focusAdjacentToTrigger(
+  trigger: HTMLButtonElement | null,
+  direction: -1 | 1,
+) {
+  if (!trigger) return;
+
+  const focusableElements = Array.from(
+    document.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+  ).filter(
+    (element) =>
+      element.tabIndex >= 0 &&
+      !element.hasAttribute("hidden") &&
+      !element.closest("[inert]") &&
+      !element.closest('[aria-hidden="true"]'),
+  );
+  const triggerIndex = focusableElements.indexOf(trigger);
+
+  if (triggerIndex === -1) {
+    trigger.focus();
+    return;
+  }
+
+  const target = focusableElements[triggerIndex + direction];
+
+  (target ?? trigger).focus();
+}
+
 function resolveMetrics(
   size: FloatingShortcutButtonSize,
   overrides?: Partial<FloatingShortcutMetrics>,
@@ -135,6 +176,10 @@ function resolveMetrics(
 
   return {
     triggerSize: resolvePositive(overrides?.triggerSize, preset.triggerSize),
+    iconOnlyTriggerSize: resolvePositive(
+      overrides?.iconOnlyTriggerSize,
+      preset.iconOnlyTriggerSize,
+    ),
     openTriggerSize: resolvePositive(
       overrides?.openTriggerSize,
       preset.openTriggerSize,
@@ -163,7 +208,7 @@ function resolveMotion(
   overrides?: Partial<FloatingShortcutMotion>,
 ): FloatingShortcutMotion {
   return {
-    duration: resolvePositive(
+    duration: resolveNonNegative(
       overrides?.duration,
       floatingShortcutMotionDefault.duration,
     ),
@@ -181,19 +226,25 @@ function resolveMotion(
 function createActionItemVariants(
   motionConfig: FloatingShortcutMotion,
   reduceMotion: boolean,
+  skipMotion = false,
 ) {
-  const duration = motionConfig.duration / 1000;
+  const duration = skipMotion ? 0 : motionConfig.duration / 1000;
+  const openTransform = "translate3d(0px, 0px, 0)";
+  const closedTransform =
+    reduceMotion || skipMotion
+      ? openTransform
+      : `translate3d(0px, ${motionConfig.distance}px, 0)`;
 
   return {
     open: {
       opacity: 1,
-      y: 0,
-      transition: { duration, ease: "easeOut" },
+      transform: openTransform,
+      transition: { duration, ease: EASE_OUT },
     },
     closed: {
       opacity: 0,
-      y: reduceMotion ? 0 : motionConfig.distance,
-      transition: { duration, ease: "easeOut" },
+      transform: closedTransform,
+      transition: { duration, ease: EASE_OUT },
     },
   } satisfies Variants;
 }
@@ -212,13 +263,8 @@ function createActionListVariants(duration: number) {
   } satisfies Variants;
 }
 
-const fallbackActionItemVariants = createActionItemVariants(
-  floatingShortcutMotionDefault,
-  false,
-);
-
 type FloatingShortcutContextValue = {
-  close: () => void;
+  close: (skipMotion?: boolean) => void;
   closeOnAction: boolean;
   metrics: FloatingShortcutMetrics;
   motion: FloatingShortcutMotion;
@@ -229,6 +275,18 @@ type FloatingShortcutContextValue = {
 const FloatingShortcutContext = React.createContext<
   FloatingShortcutContextValue | undefined
 >(undefined);
+
+function useFloatingShortcutContext() {
+  const context = React.useContext(FloatingShortcutContext);
+
+  if (!context) {
+    throw new Error(
+      "FloatingShortcutAction must be used inside FloatingShortcutButton.",
+    );
+  }
+
+  return context;
+}
 
 function ShortcutGridIcon() {
   return (
@@ -276,10 +334,16 @@ export type FloatingShortcutButtonProps = Omit<
   triggerIcon?: React.ReactNode;
   /** Short caption shown under the trigger icon. Set to null to hide it. */
   triggerCaption?: React.ReactNode;
+  /** Whether to render the trigger caption. Its text still labels the button. */
+  showTriggerCaption?: boolean;
   /** Accessible name for the closed trigger. */
   triggerLabel?: string;
   /** Accessible name for the open trigger. */
   closeLabel?: string;
+  /** Accessible name for the menu. */
+  menuLabel?: string;
+  /** Icon shown while the shortcut menu is open. */
+  closeIcon?: React.ReactNode;
   /** Coordinated geometry preset. @default "md" */
   size?: FloatingShortcutButtonSize;
   /** Advanced geometry overrides. Invalid values fall back to the size preset. */
@@ -314,6 +378,8 @@ export type FloatingShortcutActionProps = Omit<
   iconClassName?: string;
   /** Classes applied to this action's visible label. */
   labelClassName?: string;
+  /** Override the root menu's close-on-action behavior. */
+  closeOnAction?: boolean;
   /** Inline styles that do not replace geometry controlled by metrics. */
   style?: React.CSSProperties;
 };
@@ -325,8 +391,11 @@ export function FloatingShortcutButton({
   onOpenChange,
   triggerIcon,
   triggerCaption = "Quick",
+  showTriggerCaption = true,
   triggerLabel,
   closeLabel = "Close shortcuts",
+  menuLabel = "Shortcuts",
+  closeIcon,
   size = "md",
   metrics: metricsOverrides,
   motion: motionOverrides,
@@ -340,6 +409,7 @@ export function FloatingShortcutButton({
   ...props
 }: FloatingShortcutButtonProps) {
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
+  const [skipMotion, setSkipMotion] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const pendingFocusRef = React.useRef<"first" | "last" | null>(null);
@@ -354,21 +424,33 @@ export function FloatingShortcutButton({
     [motionOverrides],
   );
   const actionListVariants = React.useMemo(
-    () => createActionListVariants(resolvedMotion.duration),
-    [resolvedMotion.duration],
+    () => createActionListVariants(skipMotion ? 0 : resolvedMotion.duration),
+    [resolvedMotion.duration, skipMotion],
   );
   const actionItemVariants = React.useMemo(
-    () => createActionItemVariants(resolvedMotion, shouldReduceMotion),
-    [resolvedMotion, shouldReduceMotion],
+    () =>
+      createActionItemVariants(resolvedMotion, shouldReduceMotion, skipMotion),
+    [resolvedMotion, shouldReduceMotion, skipMotion],
   );
   const iconDelay = resolvedMotion.duration * ICON_SWAP_DELAY_RATIO;
+  const hasVisibleTriggerCaption =
+    showTriggerCaption && Boolean(triggerCaption);
+  const closedTriggerScale = hasVisibleTriggerCaption
+    ? 1
+    : Math.min(
+        resolvedMetrics.iconOnlyTriggerSize,
+        resolvedMetrics.triggerSize,
+      ) / resolvedMetrics.triggerSize;
   const openScale =
     resolvedMetrics.openTriggerSize / resolvedMetrics.triggerSize;
   const controlled = openProp !== undefined;
   const open = controlled ? openProp : internalOpen;
+  const captionLabel =
+    typeof triggerCaption === "string" ? triggerCaption.trim() : "";
   const resolvedTriggerLabel =
-    triggerLabel ??
-    (typeof triggerCaption === "string" ? triggerCaption : "Open shortcuts");
+    triggerLabel?.trim() || captionLabel || "Open shortcuts";
+  const resolvedCloseLabel = closeLabel.trim() || "Close shortcuts";
+  const resolvedMenuLabel = menuLabel.trim() || "Shortcuts";
   const {
     className: triggerClassName,
     disabled: triggerDisabled,
@@ -377,7 +459,9 @@ export function FloatingShortcutButton({
     ...restTriggerProps
   } = triggerProps ?? {};
   const setOpen = React.useCallback(
-    (nextOpen: boolean) => {
+    (nextOpen: boolean, shouldSkipMotion = false) => {
+      setSkipMotion(shouldSkipMotion);
+
       if (!controlled) {
         setInternalOpen(nextOpen);
       }
@@ -386,6 +470,14 @@ export function FloatingShortcutButton({
     },
     [controlled, onOpenChange],
   );
+
+  React.useEffect(() => {
+    if (!skipMotion) return;
+
+    const frame = window.requestAnimationFrame(() => setSkipMotion(false));
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, skipMotion]);
 
   // The root node is needed internally (menu-item queries, outside-click) *and*
   // by consumers, so the consumer's ref is merged in rather than overwritten.
@@ -412,10 +504,13 @@ export function FloatingShortcutButton({
     [],
   );
 
-  const close = React.useCallback(() => {
-    setOpen(false);
-    triggerRef.current?.focus();
-  }, [setOpen]);
+  const close = React.useCallback(
+    (shouldSkipMotion = false) => {
+      setOpen(false, shouldSkipMotion);
+      triggerRef.current?.focus();
+    },
+    [setOpen],
+  );
 
   React.useEffect(() => {
     if (!open) return;
@@ -453,7 +548,11 @@ export function FloatingShortcutButton({
 
     if (event.defaultPrevented || triggerDisabled) return;
 
-    setOpen(!open);
+    if (!open) {
+      pendingFocusRef.current = "first";
+    }
+
+    setOpen(!open, event.detail === 0);
   };
 
   const handleTriggerKeyDown = (event: ButtonKeyDownEvent) => {
@@ -473,7 +572,7 @@ export function FloatingShortcutButton({
       return;
     }
 
-    setOpen(true);
+    setOpen(true, true);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -483,7 +582,14 @@ export function FloatingShortcutButton({
 
     if (event.key === "Escape") {
       event.preventDefault();
-      close();
+      close(true);
+      return;
+    }
+
+    if (event.key === "Tab") {
+      event.preventDefault();
+      setOpen(false, true);
+      focusAdjacentToTrigger(triggerRef.current, event.shiftKey ? -1 : 1);
       return;
     }
 
@@ -502,6 +608,26 @@ export function FloatingShortcutButton({
       nextIndex = 0;
     } else if (event.key === "End") {
       nextIndex = items.length - 1;
+    } else if (
+      event.key.length === 1 &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      const query = event.key.toLocaleLowerCase();
+
+      for (let offset = 1; offset <= items.length; offset += 1) {
+        const candidateIndex = (activeIndex + offset) % items.length;
+        const candidateLabel =
+          items[candidateIndex]
+            ?.getAttribute("aria-label")
+            ?.toLocaleLowerCase() ?? "";
+
+        if (candidateLabel.startsWith(query)) {
+          nextIndex = candidateIndex;
+          break;
+        }
+      }
     }
 
     if (nextIndex !== undefined) {
@@ -510,17 +636,27 @@ export function FloatingShortcutButton({
     }
   };
 
+  const contextValue = React.useMemo<FloatingShortcutContextValue>(
+    () => ({
+      close,
+      closeOnAction,
+      metrics: resolvedMetrics,
+      motion: resolvedMotion,
+      actionItemVariants,
+      classNames,
+    }),
+    [
+      actionItemVariants,
+      classNames,
+      close,
+      closeOnAction,
+      resolvedMetrics,
+      resolvedMotion,
+    ],
+  );
+
   return (
-    <FloatingShortcutContext.Provider
-      value={{
-        close,
-        closeOnAction,
-        metrics: resolvedMetrics,
-        motion: resolvedMotion,
-        actionItemVariants,
-        classNames,
-      }}
-    >
+    <FloatingShortcutContext.Provider value={contextValue}>
       <div
         {...props}
         ref={setRootRef}
@@ -537,6 +673,7 @@ export function FloatingShortcutButton({
         <motion.div
           id={menuId}
           role="menu"
+          aria-label={resolvedMenuLabel}
           aria-hidden={!open}
           inert={!open || undefined}
           data-slot="floating-shortcut-menu"
@@ -567,10 +704,11 @@ export function FloatingShortcutButton({
             variant="link"
             size="icon-lg"
             disabled={triggerDisabled}
-            aria-label={open ? closeLabel : resolvedTriggerLabel}
+            aria-label={open ? resolvedCloseLabel : resolvedTriggerLabel}
             aria-expanded={open}
             aria-haspopup="menu"
             aria-controls={menuId}
+            data-state={open ? "open" : "closed"}
             onClick={handleTriggerClick}
             onKeyDown={handleTriggerKeyDown}
             className={cn(
@@ -590,12 +728,14 @@ export function FloatingShortcutButton({
               aria-hidden="true"
               data-slot="floating-shortcut-trigger-surface"
               className={cn(
-                "pointer-events-none absolute inset-0 rounded-full bg-primary shadow-sm transition-[transform,background-color] ease-in-out group-hover/button:bg-primary/90 group-active/button:bg-primary/90 motion-reduce:transition-none",
+                "pointer-events-none absolute inset-0 rounded-full bg-primary shadow-sm transition-[transform,background-color] group-hover/button:bg-primary/90 group-active/button:bg-primary/90 motion-reduce:transition-none",
                 classNames?.triggerSurface,
               )}
               style={{
-                transform: `scale(${open ? openScale : 1})`,
-                transitionDuration: `${resolvedMotion.duration}ms`,
+                transform: `scale(${open ? openScale : closedTriggerScale})`,
+                transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
+                transitionTimingFunction:
+                  "cubic-bezier(0.77, 0, 0.175, 1)",
               }}
             />
           </Button>
@@ -607,14 +747,17 @@ export function FloatingShortcutButton({
             <span
               data-slot="floating-shortcut-trigger-face"
               className={cn(
-                "col-start-1 row-start-1 flex flex-col items-center transition-[opacity,filter] ease-out motion-reduce:transition-none",
+                "col-start-1 row-start-1 flex flex-col items-center transition-[opacity,filter] motion-reduce:transition-none",
                 open ? "opacity-0 blur-xs" : "opacity-100 blur-none",
                 classNames?.triggerFace,
               )}
               style={{
                 gap: resolvedMetrics.captionGap,
-                transitionDuration: `${resolvedMotion.duration}ms`,
-                transitionDelay: open ? "0ms" : `${iconDelay}ms`,
+                transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
+                transitionDelay:
+                  skipMotion || open ? "0ms" : `${iconDelay}ms`,
+                transitionTimingFunction:
+                  "cubic-bezier(0.23, 1, 0.32, 1)",
               }}
             >
               <span
@@ -630,7 +773,7 @@ export function FloatingShortcutButton({
               >
                 {triggerIcon ?? <ShortcutGridIcon />}
               </span>
-              {triggerCaption ? (
+              {showTriggerCaption && triggerCaption ? (
                 <span
                   data-slot="floating-shortcut-caption"
                   className={cn(
@@ -645,18 +788,21 @@ export function FloatingShortcutButton({
             <span
               data-slot="floating-shortcut-close-face"
               className={cn(
-                "col-start-1 row-start-1 grid place-items-center transition-[opacity,filter] ease-out motion-reduce:transition-none [&_svg]:size-full",
+                "col-start-1 row-start-1 grid place-items-center transition-[opacity,filter] motion-reduce:transition-none [&_svg]:size-full",
                 open ? "opacity-100 blur-none" : "opacity-0 blur-xs",
                 classNames?.closeFace,
               )}
               style={{
                 width: resolvedMetrics.closeIconSize,
                 height: resolvedMetrics.closeIconSize,
-                transitionDuration: `${resolvedMotion.duration}ms`,
-                transitionDelay: open ? `${iconDelay}ms` : "0ms",
+                transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
+                transitionDelay:
+                  skipMotion || !open ? "0ms" : `${iconDelay}ms`,
+                transitionTimingFunction:
+                  "cubic-bezier(0.23, 1, 0.32, 1)",
               }}
             >
-              <ShortcutCloseIcon />
+              {closeIcon ?? <ShortcutCloseIcon />}
             </span>
           </div>
         </div>
@@ -671,14 +817,15 @@ export function FloatingShortcutAction({
   rowClassName,
   iconClassName,
   labelClassName,
+  closeOnAction: closeOnActionProp,
   className,
   style,
   onClick,
   ...props
 }: FloatingShortcutActionProps) {
-  const context = React.useContext(FloatingShortcutContext);
-  const metrics = context?.metrics ?? floatingShortcutSizePresets.md;
-  const motionConfig = context?.motion ?? floatingShortcutMotionDefault;
+  const context = useFloatingShortcutContext();
+  const metrics = context.metrics;
+  const motionConfig = context.motion;
   const actionOffset = (metrics.triggerSize - metrics.actionSize) / 2;
   const pressDuration = motionConfig.duration * PRESS_DURATION_RATIO;
   const resolvedStyle: React.CSSProperties & {
@@ -689,14 +836,18 @@ export function FloatingShortcutAction({
     height: metrics.actionSize,
     marginInlineEnd: actionOffset,
     transitionDuration: `${pressDuration}ms`,
+    transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
     "--floating-shortcut-press-scale": motionConfig.pressScale,
   };
 
   const handleClick = (event: ButtonClickEvent) => {
     onClick?.(event);
 
-    if (!event.defaultPrevented && context?.closeOnAction) {
-      context?.close();
+    if (
+      !event.defaultPrevented &&
+      (closeOnActionProp ?? context.closeOnAction)
+    ) {
+      context.close(event.detail === 0);
     }
   };
 
@@ -704,10 +855,10 @@ export function FloatingShortcutAction({
     <motion.div
       role="none"
       data-slot="floating-shortcut-action-row"
-      variants={context?.actionItemVariants ?? fallbackActionItemVariants}
+      variants={context.actionItemVariants}
       className={cn(
         "flex items-center",
-        context?.classNames?.actionRow,
+        context.classNames?.actionRow,
         rowClassName,
       )}
       style={{ gap: metrics.rowGap }}
@@ -716,7 +867,7 @@ export function FloatingShortcutAction({
         data-slot="floating-shortcut-action-label"
         className={cn(
           "text-sm font-medium text-foreground",
-          context?.classNames?.actionLabel,
+          context.classNames?.actionLabel,
           labelClassName,
         )}
       >
@@ -729,19 +880,22 @@ export function FloatingShortcutAction({
         variant="ghost"
         size="icon-lg"
         aria-label={label}
+        tabIndex={-1}
         onClick={handleClick}
         className={cn(
-          "touch-manipulation rounded-full border-border bg-card text-card-foreground shadow-sm transition-[transform,background-color] ease-out hover:bg-accent active:scale-[var(--floating-shortcut-press-scale)] active:bg-accent/70 disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none",
-          context?.classNames?.actionButton,
+          "touch-manipulation rounded-full border-border bg-card text-card-foreground shadow-sm transition-[transform,background-color] hover:bg-accent active:scale-[var(--floating-shortcut-press-scale)] active:bg-accent/70 disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none",
+          context.classNames?.actionButton,
           className,
         )}
         style={resolvedStyle}
       >
         <span
+          aria-hidden="true"
+          data-icon
           data-slot="floating-shortcut-action-icon"
           className={cn(
             "grid place-items-center [&_svg]:size-full",
-            context?.classNames?.actionIcon,
+            context.classNames?.actionIcon,
             iconClassName,
           )}
           style={{ width: metrics.actionIconSize, height: metrics.actionIconSize }}

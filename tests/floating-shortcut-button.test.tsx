@@ -22,6 +22,40 @@ function renderShortcutButton(
 }
 
 describe("FloatingShortcutButton", () => {
+  it("supports a custom trigger caption", () => {
+    const { container } = renderShortcutButton({
+      triggerCaption: "Create",
+    });
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    );
+
+    expect(screen.getByRole("button", { name: "Create" })).toBeTruthy();
+    expect(
+      container.querySelector("[data-slot='floating-shortcut-caption']")
+        ?.textContent,
+    ).toBe("Create");
+    expect(surface?.style.transform).toBe("scale(1)");
+  });
+
+  it("can hide the caption without removing its accessible label", () => {
+    const { container } = renderShortcutButton({
+      triggerCaption: "Create",
+      showTriggerCaption: false,
+    });
+    const trigger = screen.getByRole("button", { name: "Create" });
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    );
+
+    expect(trigger.style.width).toBe("56px");
+    expect(trigger.style.height).toBe("56px");
+    expect(surface?.style.transform).toBe("scale(0.8571428571428571)");
+    expect(
+      container.querySelector("[data-slot='floating-shortcut-caption']"),
+    ).toBeNull();
+  });
+
   it("toggles its menu in uncontrolled mode", () => {
     const onOpenChange = vi.fn();
     renderShortcutButton({ onOpenChange });
@@ -96,7 +130,9 @@ describe("FloatingShortcutButton", () => {
       "m5.5 5.5 13 13m0-13-13 13",
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Quick" }));
+    fireEvent.click(screen.getByRole("button", { name: "Quick" }), {
+      detail: 1,
+    });
 
     expect(triggerFace.className).toContain("opacity-0");
     expect(triggerFace.style.transitionDelay).toBe("0ms");
@@ -111,13 +147,23 @@ describe("FloatingShortcutButton", () => {
   });
 
   it.each([
-    ["sm", 48, 40, 18, 24],
-    ["md", 56, 48, 20, 28],
-    ["lg", 64, 56, 24, 32],
+    ["sm", 48, 40, 40, 18, 24],
+    ["md", 56, 48, 48, 20, 28],
+    ["lg", 64, 56, 56, 24, 32],
   ] as const)(
     "keeps the %s size preset geometrically aligned",
-    (size, triggerSize, actionSize, triggerIconSize, closeIconSize) => {
-      renderShortcutButton({ size });
+    (
+      size,
+      triggerSize,
+      actionSize,
+      iconOnlyTriggerSize,
+      triggerIconSize,
+      closeIconSize,
+    ) => {
+      const { container } = renderShortcutButton({
+        size,
+        showTriggerCaption: false,
+      });
 
       const trigger = screen.getByRole("button", { name: "Quick" });
       const root = trigger.closest(
@@ -133,6 +179,9 @@ describe("FloatingShortcutButton", () => {
       const closeFace = root.querySelector(
         "[data-slot='floating-shortcut-close-face']",
       ) as HTMLElement;
+      const triggerSurface = container.querySelector<HTMLElement>(
+        "[data-slot='floating-shortcut-trigger-surface']",
+      );
 
       expect(trigger.style.width).toBe(`${triggerSize}px`);
       expect(action.style.width).toBe(`${actionSize}px`);
@@ -141,6 +190,9 @@ describe("FloatingShortcutButton", () => {
       );
       expect(triggerIcon.style.width).toBe(`${triggerIconSize}px`);
       expect(closeFace.style.width).toBe(`${closeIconSize}px`);
+      expect(triggerSurface?.style.transform).toBe(
+        `scale(${iconOnlyTriggerSize / triggerSize})`,
+      );
     },
   );
 
@@ -148,6 +200,7 @@ describe("FloatingShortcutButton", () => {
     renderShortcutButton({
       metrics: {
         triggerSize: 60,
+        iconOnlyTriggerSize: 50,
         openTriggerSize: 45,
         actionSize: 42,
         triggerIconSize: 19,
@@ -219,6 +272,47 @@ describe("FloatingShortcutButton", () => {
     expect(
       action.style.getPropertyValue("--floating-shortcut-press-scale"),
     ).toBe("0.94");
+  });
+
+  it("allows motion to be disabled explicitly", () => {
+    const { container } = renderShortcutButton({
+      motion: { duration: 0 },
+    });
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    );
+    const action = screen.getByRole("menuitem", {
+      name: "Search",
+      hidden: true,
+    });
+
+    expect(surface?.style.transitionDuration).toBe("0ms");
+    expect(action.style.transitionDuration).toBe("0ms");
+  });
+
+  it("labels the menu and focuses its first item after keyboard activation", () => {
+    const { container } = renderShortcutButton({ menuLabel: "Creation tools" });
+    const trigger = screen.getByRole("button", { name: "Quick" });
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot='floating-shortcut-trigger-surface']",
+    );
+
+    fireEvent.click(trigger, { detail: 0 });
+
+    const items = screen.getAllByRole("menuitem");
+    expect(screen.getByRole("menu", { name: "Creation tools" })).toBeTruthy();
+    expect(document.activeElement).toBe(items[0]);
+    expect(items.every((item) => item.tabIndex === -1)).toBe(true);
+    expect(surface?.style.transitionDuration).toBe("0ms");
+  });
+
+  it("supports a custom close icon", () => {
+    renderShortcutButton({
+      defaultOpen: true,
+      closeIcon: <span data-testid="custom-close">Close</span>,
+    });
+
+    expect(screen.getByTestId("custom-close")).toBeTruthy();
   });
 
   it("applies global slot classes and per-action overrides", () => {
@@ -295,6 +389,34 @@ describe("FloatingShortcutButton", () => {
         .getByRole("button", { name: "Close shortcuts" })
         .getAttribute("aria-expanded"),
     ).toBe("true");
+  });
+
+  it("allows one action to override the root close behavior", () => {
+    render(
+      <FloatingShortcutButton defaultOpen closeOnAction={false}>
+        <FloatingShortcutAction
+          label="Search"
+          icon={<span>S</span>}
+          closeOnAction
+        />
+      </FloatingShortcutButton>,
+    );
+
+    fireEvent.click(screen.getByRole("menuitem", { name: "Search" }));
+
+    expect(
+      screen
+        .getByRole("button", { name: "Quick" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
+  });
+
+  it("fails clearly when an action is rendered outside its root", () => {
+    expect(() =>
+      render(<FloatingShortcutAction label="Search" icon={<span>S</span>} />),
+    ).toThrow(
+      "FloatingShortcutAction must be used inside FloatingShortcutButton.",
+    );
   });
 
   it("lets trigger handlers cancel the state change", () => {
@@ -376,5 +498,30 @@ describe("FloatingShortcutButton", () => {
     const trigger = screen.getByRole("button", { name: "Quick" });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it("closes and moves focus before the trigger with Shift+Tab", () => {
+    render(
+      <>
+        <button type="button">Before</button>
+        <FloatingShortcutButton defaultOpen>
+          <FloatingShortcutAction label="Search" icon={<span>S</span>} />
+        </FloatingShortcutButton>
+        <button type="button">After</button>
+      </>,
+    );
+    const action = screen.getByRole("menuitem", { name: "Search" });
+    action.focus();
+
+    fireEvent.keyDown(action, { key: "Tab", shiftKey: true });
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Before" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Quick" }).getAttribute(
+        "aria-expanded",
+      ),
+    ).toBe("false");
   });
 });
