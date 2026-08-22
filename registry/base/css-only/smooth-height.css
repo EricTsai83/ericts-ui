@@ -1,12 +1,16 @@
-.smooth-height {
-  display: block;
-  overflow: hidden;
-  transition: height 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
-  will-change: height;
-}
-
-@media (prefers-reduced-motion: reduce) {
+/* Layered so consumer styles and Tailwind utilities can override without
+   fighting specificity. Unlayered rules and utilities both win over this. */
+@layer components {
   .smooth-height {
-    transition-duration: 1ms;
+    display: block;
+    overflow: hidden;
+    transition: height 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
+    will-change: height;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .smooth-height {
+      transition-duration: 1ms;
+    }
   }
 }
