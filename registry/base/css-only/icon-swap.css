@@ -1,0 +1,41 @@
+/* Layered so consumer styles and Tailwind utilities can override without
+   fighting specificity. Unlayered rules and utilities both win over this. */
+@layer components {
+  .icon-swap {
+    position: relative;
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+  }
+
+  /* Both layers cross-fade in place — the outgoing icon shrinks and blurs
+     away while the incoming one sharpens into focus. The blur masks the
+     frames where both icons are semi-transparent, so the swap reads as one
+     icon melting into the other instead of two overlapping ghosts. */
+  .icon-swap__icon {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    transform: scale(0.5);
+    opacity: 0;
+    filter: blur(2px);
+    transition-property: opacity, transform, filter;
+    transition-duration: var(--icon-swap-duration, 160ms);
+    transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  .icon-swap__icon[data-state="open"] {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  .icon-swap[data-animated="false"] .icon-swap__icon {
+    transition-duration: 0ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .icon-swap__icon[data-state] {
+      transition-duration: 0ms;
+    }
+  }
+}

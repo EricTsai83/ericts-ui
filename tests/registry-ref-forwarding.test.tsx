@@ -9,6 +9,7 @@ import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
 import { FloatingShortcutButton } from "@/registry/base/ui/floating-shortcut-button";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
+import { IconSwap } from "@/registry/base/ui/icon-swap";
 import { RailList } from "@/registry/base/ui/rail-list";
 import { StatusButton } from "@/registry/base/ui/status-button";
 
@@ -96,17 +97,25 @@ describe("registry root ref forwarding", () => {
     const railRef = createRef<HTMLDivElement>();
     const highlightRef = createRef<HTMLDivElement>();
     const buttonRef = createRef<HTMLButtonElement>();
+    const iconSwapRef = createRef<HTMLSpanElement>();
 
     render(
       <>
         <RailList ref={railRef} items={[{ value: "a", label: "A" }]} />
         <HighlightTabs ref={highlightRef} tabs={[{ value: "a", label: "A" }]} />
         <StatusButton ref={buttonRef} />
+        <IconSwap
+          ref={iconSwapRef}
+          active={false}
+          icon={<span />}
+          activeIcon={<span />}
+        />
       </>,
     );
 
     expect(railRef.current?.dataset.slot).toBe("rail-list");
     expect(highlightRef.current?.dataset.slot).toBe("highlight-tabs");
     expect(buttonRef.current).toBeInstanceOf(HTMLButtonElement);
+    expect(iconSwapRef.current?.dataset.slot).toBe("icon-swap");
   });
 });
