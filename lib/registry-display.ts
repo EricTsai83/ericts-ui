@@ -195,6 +195,7 @@ const registryDisplayItemConfigs = [
   { name: "arc-menu", category: "overlay" },
   { name: "status-badge", category: "display" },
   { name: "check-mark", category: "display" },
+  { name: "shy-heart", category: "display" },
   { name: "timer", category: "display" },
   { name: "text-morph", category: "display" },
   { name: "smooth-height", category: "container", defaultVariant: "motion" },

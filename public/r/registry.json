@@ -493,6 +493,59 @@
       ]
     },
     {
+      "name": "shy-heart",
+      "type": "registry:ui",
+      "title": "Shy Heart",
+      "description": "A resizable brand-outline heart that leans left on hover before revealing soft blush marks.",
+      "categories": ["display"],
+      "meta": {
+        "tags": [
+          "heart",
+          "brand",
+          "logo",
+          "outline",
+          "blush",
+          "svg",
+          "icon",
+          "illustration",
+          "hover",
+          "resizable",
+          "cartoon",
+          "shy",
+          "tilt"
+        ],
+        "effects": [
+          "fade",
+          "scale",
+          "hover-tilt",
+          "blush-reveal",
+          "reduced-motion"
+        ]
+      },
+      "cssVars": {
+        "light": {
+          "ericts-shy-heart-blush": "oklch(0.82 0.1 10)",
+          "ericts-shy-heart-blush-baseline": "oklch(0.82 0.1 10)"
+        },
+        "dark": {
+          "ericts-shy-heart-blush": "oklch(0.82 0.1 10)",
+          "ericts-shy-heart-blush-baseline": "oklch(0.82 0.1 10)"
+        }
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/shy-heart.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/shy-heart.tsx"
+        },
+        {
+          "path": "registry/base/ui/shy-heart.css",
+          "type": "registry:file",
+          "target": "components/ui/shy-heart.css"
+        }
+      ]
+    },
+    {
       "name": "jitter",
       "type": "registry:ui",
       "title": "Jitter",

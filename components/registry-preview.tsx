@@ -23,6 +23,7 @@ const previews: Record<string, PreviewComponent> = {
   "like": dynamic(() => import("@/components/previews/like")),
   "like-button": dynamic(() => import("@/components/previews/like-button")),
   "check-mark": dynamic(() => import("@/components/previews/check-mark")),
+  "shy-heart": dynamic(() => import("@/components/previews/shy-heart")),
   "jitter": dynamic(() => import("@/components/previews/jitter")),
   "squeeze": dynamic(() => import("@/components/previews/squeeze")),
   "heartbeat": dynamic(() => import("@/components/previews/heartbeat")),

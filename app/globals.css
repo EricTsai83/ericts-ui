@@ -98,6 +98,8 @@
   --ericts-success-foreground: oklch(0.508 0.118 165.612);
   --ericts-warning: oklch(0.769 0.188 70.08);
   --ericts-warning-foreground: oklch(0.555 0.163 48.998);
+  --ericts-shy-heart-blush: oklch(0.82 0.1 10);
+  --ericts-shy-heart-blush-baseline: oklch(0.82 0.1 10);
   --registry-surface: oklch(0.955 0 0);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -142,6 +144,8 @@
   --ericts-success-foreground: oklch(0.845 0.143 164.978);
   --ericts-warning: oklch(0.769 0.188 70.08);
   --ericts-warning-foreground: oklch(0.879 0.169 91.605);
+  --ericts-shy-heart-blush: oklch(0.82 0.1 10);
+  --ericts-shy-heart-blush-baseline: oklch(0.82 0.1 10);
   --registry-surface: oklch(0.225 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);

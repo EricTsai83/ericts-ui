@@ -1,0 +1,165 @@
+/* Layered so consumer styles and Tailwind utilities can override without
+   fighting specificity. Unlayered rules and utilities both win over this. */
+@layer components {
+  .shy-heart {
+    --shy-heart-size: 64px;
+    --shy-heart-duration: 240ms;
+    --shy-heart-tilt-duration: 220ms;
+    --shy-heart-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --shy-heart-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --shy-heart-blush-color: var(--ericts-shy-heart-blush);
+    --shy-heart-blush-backdrop-color: var(
+      --ericts-shy-heart-blush-baseline
+    );
+    width: var(--shy-heart-size);
+  }
+
+  .shy-heart-svg {
+    display: block;
+  }
+
+  .shy-heart-motion-stage,
+  .shy-heart-figure,
+  .shy-heart-blush {
+    transform-box: view-box;
+  }
+
+  .shy-heart-motion-stage {
+    transform-origin: 52% 72%;
+  }
+
+  .shy-heart-figure,
+  .shy-heart-blush {
+    transform-origin: center;
+  }
+
+  .shy-heart-body {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 16;
+  }
+
+  .shy-heart-blush {
+    color: var(--shy-heart-blush-color);
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .shy-heart-blush-backdrop {
+    stroke: var(--shy-heart-blush-backdrop-color);
+    stroke-width: 18;
+    opacity: 0.36;
+  }
+
+  .shy-heart-blush-lines {
+    stroke: currentColor;
+    stroke-width: 6;
+  }
+
+  .shy-heart[data-animated] .shy-heart-motion-stage {
+    transition: transform var(--shy-heart-tilt-duration)
+      var(--shy-heart-ease-in-out);
+  }
+
+  .shy-heart[data-animated] .shy-heart-figure {
+    animation: shy-heart-arrive var(--shy-heart-duration)
+      var(--shy-heart-ease-out) both;
+  }
+
+  .shy-heart[data-animated] .shy-heart-blush {
+    opacity: 0;
+    transform: translateY(2%) scale(0.96);
+    transition:
+      opacity 180ms var(--shy-heart-ease-out),
+      transform 180ms var(--shy-heart-ease-out);
+  }
+
+  .shy-heart[data-animated]:focus-visible .shy-heart-motion-stage {
+    transform: translate(-1%, 1%) rotate(-8deg);
+  }
+
+  .shy-heart[data-animated]:focus-visible .shy-heart-blush {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition-delay: 90ms;
+  }
+
+  @keyframes shy-heart-arrive {
+    from {
+      opacity: 0.64;
+      transform: translateY(2%) scale(0.96);
+    }
+
+    72% {
+      opacity: 1;
+      transform: translateY(0) scale(1.025, 0.985);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shy-heart[data-animated]:hover .shy-heart-motion-stage {
+      transform: translate(-1%, 1%) rotate(-8deg);
+      will-change: transform;
+    }
+
+    .shy-heart[data-animated]:hover .shy-heart-blush {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition-delay: 90ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shy-heart[data-animated] .shy-heart-figure {
+      animation-name: shy-heart-fade;
+    }
+
+    .shy-heart[data-animated] .shy-heart-motion-stage {
+      transition: none;
+    }
+
+    .shy-heart[data-animated] .shy-heart-blush {
+      transform: none;
+      transition: opacity 160ms var(--shy-heart-ease-out);
+    }
+
+    .shy-heart[data-animated]:focus-visible .shy-heart-motion-stage {
+      transform: none;
+    }
+
+    .shy-heart[data-animated]:focus-visible .shy-heart-blush {
+      transform: none;
+      transition-delay: 0ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .shy-heart[data-animated]:hover .shy-heart-motion-stage {
+      transform: none;
+      will-change: auto;
+    }
+
+    .shy-heart[data-animated]:hover .shy-heart-blush {
+      transform: none;
+      transition-delay: 0ms;
+    }
+  }
+
+  @keyframes shy-heart-fade {
+    from {
+      opacity: 0.64;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
