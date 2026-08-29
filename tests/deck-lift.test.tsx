@@ -231,6 +231,18 @@ describe("DeckLift", () => {
     expect(before(card, panel)).toBe(true);
   });
 
+  it("keeps the animated controls to their painted height", () => {
+    const { container } = renderDeckLift();
+
+    const stage = getStage(container);
+    const controls = getLayer(container, "deck-lift-controls");
+
+    expect(stage.className).toContain("[contain:layout_paint]");
+    expect(controls.className).toContain("inset-x-0");
+    expect(controls.className).not.toContain("inset-0");
+    expect(controls.style.height).toBe("56px");
+  });
+
   it("keeps the desktop focus mask over the full card lift", () => {
     const { container } = renderDeckLift();
 

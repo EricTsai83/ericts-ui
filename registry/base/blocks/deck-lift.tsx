@@ -637,7 +637,7 @@ export function DeckLift({
       data-slot="deck-lift"
       data-state={open ? "open" : "closed"}
       className={cn(
-        "@container relative isolate overflow-clip bg-background",
+        "@container relative isolate overflow-clip bg-background [contain:layout_paint]",
         // The one width the composition is built from: it grows with the stage
         // and stops at a card-sized cap, so a phone, a tablet and a desktop all
         // get a card rather than a stretched one. Every other measurement is
@@ -669,14 +669,18 @@ export function DeckLift({
         inert={!open}
         aria-hidden={open ? undefined : true}
         initial={false}
-        animate={{ y: open ? "0%" : "100%" }}
+        animate={{
+          transform: open
+            ? "translate3d(0, 0, 0)"
+            : stageHeight
+              ? `translate3d(0, ${stageHeight}px, 0)`
+              : "translate3d(0, 100dvh, 0)",
+        }}
         transition={stageSpring}
-        className="pointer-events-none absolute inset-0 z-40"
+        style={{ height: DOCK.top }}
+        className="pointer-events-none absolute inset-x-0 top-0 z-40"
       >
-        <div
-          className="flex items-center px-3"
-          style={{ height: DOCK.top }}
-        >
+        <div className="flex size-full items-center px-3">
           <button
             type="button"
             onClick={close}
