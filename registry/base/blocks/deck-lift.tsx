@@ -213,10 +213,7 @@ function cardState({
     const away = Math.min(Math.abs(index - activeIndex), DOCK.depth);
 
     return {
-      x: index * step,
-      y: dockY,
-      rotate: 0,
-      scale: 1 - away * DOCK.recede,
+      transform: `translate3d(${index * step}px, ${dockY}px, 0) rotate(0deg) scale(${1 - away * DOCK.recede})`,
       opacity: 1,
     };
   }
@@ -224,10 +221,7 @@ function cardState({
   const slot = Math.min(index, deepestSlot);
 
   return {
-    x: 0,
-    y: -slot * REST.rise,
-    rotate: REST.tilt + slot * REST.tiltStep,
-    scale: 1 - slot * REST.shrink,
+    transform: `translate3d(0, ${-slot * REST.rise}px, 0) rotate(${REST.tilt + slot * REST.tiltStep}deg) scale(${1 - slot * REST.shrink})`,
     opacity: index > deepestSlot ? 0 : 1,
   };
 }
@@ -457,17 +451,24 @@ export function DeckLift({
   // the release decides, and then trades itself for the next one.
   const detailVariants = React.useMemo(() => {
     const travel = step * swapTravel;
+    const at = (x: number) => `translate3d(${x}px, 0, 0)`;
 
     return {
-      enter: (towards: number) => ({ opacity: 0, x: towards * travel }),
+      enter: (towards: number) => ({
+        opacity: 0,
+        transform: at(towards * travel),
+      }),
       center: {
         opacity: 1,
-        x: 0,
-        transition: { x: snapSpring, opacity: SPRING.detailArrive },
+        transform: at(0),
+        transition: {
+          transform: snapSpring,
+          opacity: SPRING.detailArrive,
+        },
       },
       exit: (towards: number) => ({
         opacity: 0,
-        x: towards * -travel,
+        transform: at(towards * -travel),
         transition: SPRING.detailLeave,
       }),
     };
@@ -842,12 +843,8 @@ export function DeckLift({
             ref={detailScroller}
             className="min-h-0 flex-1 overflow-x-clip overflow-y-auto"
           >
-            <div className="relative mx-auto w-full max-w-2xl @5xl:max-w-3xl">
-              <AnimatePresence
-                initial={false}
-                mode="popLayout"
-                custom={direction}
-              >
+            <div className="mx-auto grid w-full max-w-2xl @5xl:max-w-3xl">
+              <AnimatePresence initial={false} custom={direction}>
                 {activeItem ? (
                   <motion.div
                     key={activeItem.id}
@@ -856,6 +853,7 @@ export function DeckLift({
                     initial="enter"
                     animate="center"
                     exit="exit"
+                    className="min-w-0 [grid-area:1/1]"
                   >
                     {activeItem.detail}
                   </motion.div>
