@@ -707,6 +707,7 @@ export function DeckLift({
           centre along with it. */}
       <div
         data-slot="deck-lift-focus"
+        data-swipe-navigation="ignore"
         className={cn(
           // Fill the stage vertically. The cards travel from the resting pile
           // to the dock, but the desktop mask must not travel or keep the

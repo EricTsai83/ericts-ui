@@ -87,6 +87,18 @@
     transition-delay: 90ms;
   }
 
+  .shy-heart[data-animated]:active .shy-heart-motion-stage {
+    transform: translate(-1%, 1%) rotate(-8deg) scale(0.96);
+    transition-duration: 140ms;
+  }
+
+  .shy-heart[data-animated]:active .shy-heart-blush {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition-delay: 0ms;
+    transition-duration: 140ms;
+  }
+
   @keyframes shy-heart-arrive {
     from {
       opacity: 0.64;
@@ -135,7 +147,16 @@
       transform: none;
     }
 
+    .shy-heart[data-animated]:active .shy-heart-motion-stage {
+      transform: none;
+    }
+
     .shy-heart[data-animated]:focus-visible .shy-heart-blush {
+      transform: none;
+      transition-delay: 0ms;
+    }
+
+    .shy-heart[data-animated]:active .shy-heart-blush {
       transform: none;
       transition-delay: 0ms;
     }

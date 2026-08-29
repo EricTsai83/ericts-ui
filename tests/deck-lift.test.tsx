@@ -246,6 +246,16 @@ describe("DeckLift", () => {
     expect(Number.parseFloat(deck.style.top)).toBeCloseTo(56);
   });
 
+  it("owns card swipes so a fullscreen shell does not navigate", () => {
+    const { container } = renderDeckLift();
+
+    expect(
+      getLayer(container, "deck-lift-focus").getAttribute(
+        "data-swipe-navigation",
+      ),
+    ).toBe("ignore");
+  });
+
   it("starts each card's detail at the top, however the last one was left", async () => {
     const { container } = renderDeckLift();
 
