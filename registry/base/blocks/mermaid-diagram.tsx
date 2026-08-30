@@ -2,7 +2,6 @@
 
 import type { MermaidConfig } from "mermaid";
 import {
-  Info,
   Maximize2,
   RotateCcw,
   ZoomIn,
@@ -48,6 +47,8 @@ export interface MermaidRepairRequest {
 export type MermaidDiagramClassNames = {
   root?: string;
   header?: string;
+  title?: string;
+  caption?: string;
   viewport?: string;
   toolbar?: string;
   error?: string;
@@ -55,6 +56,7 @@ export type MermaidDiagramClassNames = {
 
 export interface MermaidDiagramProps {
   chart: string;
+  responsiveChart?: MermaidResponsiveChart;
   title?: string;
   caption?: string;
   meta?: string;
@@ -74,6 +76,11 @@ export interface MermaidDiagramProps {
   renderError?: (context: MermaidRepairRequest) => ReactNode;
   ref?: Ref<HTMLElement>;
 }
+
+export type MermaidResponsiveChart = {
+  chart: string;
+  query?: string;
+};
 
 export type DiagramViewportControls = {
   reset: () => void;
@@ -125,6 +132,7 @@ const DEFAULT_MERMAID_CONFIG: MermaidConfig = {
 const DEFAULT_MIN_ZOOM = 0.5;
 const DEFAULT_MAX_ZOOM = 4;
 const DEFAULT_ZOOM_STEP = 0.25;
+const DEFAULT_RESPONSIVE_CHART_QUERY = "(max-width: 640px)";
 const EMPTY_MERMAID_CONFIG: MermaidConfig = {};
 
 let renderQueue: Promise<void> = Promise.resolve();
@@ -206,6 +214,7 @@ async function renderMermaid(
 
 export function MermaidDiagram({
   chart,
+  responsiveChart,
   title: titleProp,
   caption: captionProp,
   meta,
@@ -228,7 +237,12 @@ export function MermaidDiagram({
   const parsedMeta = useMemo(() => parseMermaidFenceMeta(meta), [meta]);
   const title = titleProp?.trim() || parsedMeta.title;
   const caption = captionProp?.trim() || parsedMeta.caption;
-  const normalizedChart = useMemo(() => chart.replace(/\n+$/u, ""), [chart]);
+  const useResponsiveChart = useMediaQuery(
+    responsiveChart?.query ?? DEFAULT_RESPONSIVE_CHART_QUERY,
+    Boolean(responsiveChart),
+  );
+  const selectedChart = useResponsiveChart ? responsiveChart?.chart ?? chart : chart;
+  const normalizedChart = useMemo(() => selectedChart.replace(/\n+$/u, ""), [selectedChart]);
   const renderState = useMermaidRender(normalizedChart, config, isIncomplete, onRenderError);
 
   if (isIncomplete) {
@@ -262,30 +276,42 @@ export function MermaidDiagram({
     );
   }
 
+  if (renderState.status === "success") {
+    return (
+      <SvgViewer
+        key={renderState.requestKey}
+        ref={ref}
+        svgHtml={renderState.svg}
+        title={title}
+        caption={caption}
+        fullscreen={fullscreen}
+        wheelZoom={wheelZoom}
+        initialZoom={initialZoom}
+        minZoom={minZoom}
+        maxZoom={maxZoom}
+        zoomStep={zoomStep}
+        viewportClassName={classNames?.viewport}
+        toolbarClassName={classNames?.toolbar}
+        className={cn(className, classNames?.root)}
+        headerClassName={classNames?.header}
+        titleClassName={classNames?.title}
+        captionClassName={classNames?.caption}
+      />
+    );
+  }
+
   return (
     <MermaidFrame
       ref={ref}
       title={title}
       caption={caption}
-      isLoading={renderState.status !== "success"}
+      isLoading
       className={cn(className, classNames?.root)}
       headerClassName={classNames?.header}
+      titleClassName={classNames?.title}
+      captionClassName={classNames?.caption}
     >
-      {renderState.status === "success" ? (
-        <SvgViewer
-          svgHtml={renderState.svg}
-          title={title}
-          caption={caption}
-          fullscreen={fullscreen}
-          wheelZoom={wheelZoom}
-          initialZoom={initialZoom}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
-          zoomStep={zoomStep}
-          viewportClassName={classNames?.viewport}
-          toolbarClassName={classNames?.toolbar}
-        />
-      ) : renderLoading ? (
+      {renderLoading ? (
         renderLoading()
       ) : (
         <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
@@ -295,6 +321,25 @@ export function MermaidDiagram({
       )}
     </MermaidFrame>
   );
+}
+
+function useMediaQuery(query: string, enabled: boolean) {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!enabled || typeof window === "undefined") return () => {};
+      const mediaQuery = window.matchMedia(query);
+      mediaQuery.addEventListener("change", callback);
+      return () => mediaQuery.removeEventListener("change", callback);
+    },
+    [enabled, query],
+  );
+  const getSnapshot = useCallback(
+    () => enabled && typeof window !== "undefined" && window.matchMedia(query).matches,
+    [enabled, query],
+  );
+  const getServerSnapshot = useCallback(() => false, []);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 function useMermaidRender(
@@ -341,27 +386,40 @@ function MermaidFrame({
   caption,
   isLoading,
   children,
+  actions,
+  actionsClassName,
   className,
   headerClassName,
+  titleClassName,
+  captionClassName,
   ref,
 }: {
   title?: string;
   caption?: string;
   isLoading: boolean;
   children: ReactNode;
+  actions?: ReactNode;
+  actionsClassName?: string;
   className?: string;
   headerClassName?: string;
+  titleClassName?: string;
+  captionClassName?: string;
   ref?: Ref<HTMLElement>;
 }) {
   return (
     <figure ref={ref} className={cn("my-4 overflow-hidden rounded-xl border bg-card text-card-foreground", className)}>
-      <div className={cn("flex min-h-10 items-center justify-between gap-3 border-b bg-muted/45 px-3 py-2", headerClassName)}>
-        <figcaption className="min-w-0 truncate font-mono text-xs font-semibold uppercase text-foreground">
-          {title?.trim() || "Mermaid diagram"}
-        </figcaption>
-        <div className="flex shrink-0 items-center gap-2">
-          {caption?.trim() ? <CaptionInfo caption={caption} /> : null}
+      <div data-slot="mermaid-diagram-header" className={cn("flex min-h-14 items-center justify-between gap-3 border-b bg-muted/45 px-3 py-2", headerClassName)}>
+        <div className="min-w-0">
+          <figcaption data-slot="mermaid-diagram-title" className={cn("truncate text-base font-medium text-foreground", titleClassName)}>
+            {title?.trim() || "Mermaid diagram"}
+          </figcaption>
+          {caption?.trim() ? (
+            <p data-slot="mermaid-diagram-caption" className={cn("truncate text-xs text-muted-foreground", captionClassName)}>{caption}</p>
+          ) : null}
+        </div>
+        <div className={cn("flex shrink-0 items-center gap-1", actionsClassName)}>
           {isLoading ? <span className="font-mono text-[10px] uppercase text-muted-foreground">Loading</span> : null}
+          {actions}
         </div>
       </div>
       {children}
@@ -369,18 +427,8 @@ function MermaidFrame({
   );
 }
 
-function CaptionInfo({ caption }: { caption: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger render={<Button aria-label="Diagram information" variant="ghost" size="icon-sm" />}>
-        <Info />
-      </TooltipTrigger>
-      <TooltipContent>{caption}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 function SvgViewer({
+  ref,
   svgHtml,
   title,
   caption,
@@ -392,7 +440,12 @@ function SvgViewer({
   zoomStep,
   viewportClassName,
   toolbarClassName,
+  className,
+  headerClassName,
+  titleClassName,
+  captionClassName,
 }: {
+  ref?: Ref<HTMLElement>;
   svgHtml: string;
   title?: string;
   caption?: string;
@@ -404,6 +457,10 @@ function SvgViewer({
   zoomStep: number;
   viewportClassName?: string;
   toolbarClassName?: string;
+  className?: string;
+  headerClassName?: string;
+  titleClassName?: string;
+  captionClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const controlsRef = useRef<DiagramViewportControls | null>(null);
@@ -411,16 +468,26 @@ function SvgViewer({
 
   return (
     <TooltipProvider delay={150}>
-      {fullscreen ? (
-        <div className={cn("flex items-center justify-end border-b bg-background/70 px-3 py-2", toolbarClassName)}>
+      <MermaidFrame
+        ref={ref}
+        title={title}
+        caption={caption}
+        isLoading={false}
+        className={className}
+        headerClassName={headerClassName}
+        titleClassName={titleClassName}
+        captionClassName={captionClassName}
+        actionsClassName={toolbarClassName}
+        actions={fullscreen ? (
           <IconButton label="View diagram fullscreen" onClick={() => setOpen(true)}>
             <Maximize2 />
           </IconButton>
-        </div>
-      ) : null}
-      <DiagramViewport interactive={false} className={cn("min-h-48", viewportClassName)}>
-        <SvgMount svgHtml={svgHtml} ariaLabel={label} />
-      </DiagramViewport>
+        ) : null}
+      >
+        <DiagramViewport interactive={false} className={cn("min-h-48", viewportClassName)}>
+          <SvgMount svgHtml={svgHtml} ariaLabel={label} />
+        </DiagramViewport>
+      </MermaidFrame>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           showCloseButton
@@ -428,10 +495,10 @@ function SvgViewer({
         >
           <div className="flex min-h-14 items-center justify-between gap-4 border-b bg-card px-4 pr-14">
             <div className="min-w-0">
-              <DialogTitle className="truncate font-mono text-xs font-semibold uppercase">
+              <DialogTitle className={cn("truncate text-base font-medium", titleClassName)}>
                 {title?.trim() || "Mermaid diagram"}
               </DialogTitle>
-              <DialogDescription className={cn("truncate text-xs", !caption && "sr-only")}>
+              <DialogDescription className={cn("truncate text-xs", captionClassName, !caption && "sr-only")}>
                 {caption?.trim() || "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
               </DialogDescription>
             </div>

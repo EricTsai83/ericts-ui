@@ -9,6 +9,13 @@ const chart = `flowchart LR
   Render --> View[Pan, zoom & fullscreen]
   Repair --> Source`;
 
+const compactChart = `flowchart TB
+  Source[Markdown source] --> Parse{Mermaid parser}
+  Parse -->|valid| Render[Accessible SVG]
+  Parse -->|invalid| Repair[Repair workflow]
+  Render --> View[Pan, zoom & fullscreen]
+  Repair --> Source`;
+
 export default function Preview({
   presentation = "inline",
 }: {
@@ -19,6 +26,7 @@ export default function Preview({
     <div className="flex size-full min-h-[28rem] items-center justify-center bg-muted/30 p-4 sm:p-8">
       <MermaidDiagram
         chart={chart}
+        responsiveChart={{ chart: compactChart }}
         title="Diagram rendering pipeline"
         caption="A complete Mermaid rendering surface with safe defaults and an interactive fullscreen view."
         className="my-0 w-full max-w-4xl shadow-sm"

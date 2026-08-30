@@ -858,10 +858,10 @@
       "name": "mermaid-diagram",
       "type": "registry:block",
       "title": "Mermaid Diagram",
-      "description": "A safe Mermaid rendering surface with streaming and error states, repair hooks, and an accessible pan-and-zoom fullscreen viewer.",
+      "description": "A responsive Mermaid rendering surface with streaming and error states, repair hooks, and an accessible pan-and-zoom fullscreen viewer.",
       "categories": ["content"],
       "meta": {
-        "tags": ["diagram", "flowchart", "markdown", "svg", "pan", "zoom", "fullscreen", "streaming", "error-recovery"],
+        "tags": ["diagram", "flowchart", "markdown", "svg", "pan", "zoom", "fullscreen", "responsive", "streaming", "error-recovery"],
         "effects": ["pan", "zoom", "fullscreen", "reduced-motion"]
       },
       "registryDependencies": [
