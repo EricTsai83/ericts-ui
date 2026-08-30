@@ -855,6 +855,31 @@
       ]
     },
     {
+      "name": "mermaid-diagram",
+      "type": "registry:block",
+      "title": "Mermaid Diagram",
+      "description": "A safe Mermaid rendering surface with streaming and error states, repair hooks, and an accessible pan-and-zoom fullscreen viewer.",
+      "categories": ["content"],
+      "meta": {
+        "tags": ["diagram", "flowchart", "markdown", "svg", "pan", "zoom", "fullscreen", "streaming", "error-recovery"],
+        "effects": ["pan", "zoom", "fullscreen", "reduced-motion"]
+      },
+      "registryDependencies": [
+        "button",
+        "dialog",
+        "tooltip",
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ],
+      "dependencies": ["lucide-react", "mermaid"],
+      "files": [
+        {
+          "path": "registry/base/blocks/mermaid-diagram.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/mermaid-diagram.tsx"
+        }
+      ]
+    },
+    {
       "name": "expandable-segmented-tabs",
       "type": "registry:ui",
       "title": "Expandable Segmented Tabs",

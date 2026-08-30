@@ -129,6 +129,13 @@ const registryDisplayCategories = [
       "Composed browsing layouts that pair navigation with a focused content stage.",
   },
   {
+    slug: "content",
+    kind: "block",
+    label: "Content",
+    description:
+      "Composed readers and viewers for rich content that needs its own controls and states.",
+  },
+  {
     slug: "screen",
     kind: "block",
     label: "App Screens",
@@ -209,6 +216,7 @@ const registryDisplayItemConfigs = [
   { name: "staggered-entrance", category: "effect" },
   { name: "context-cursor", category: "effect", viewport: "wide" },
   { name: "rail-stage", category: "navigation", viewport: "wide" },
+  { name: "mermaid-diagram", category: "content", viewport: "wide" },
   { name: "use-reduced-motion", category: "accessibility" },
   { name: "use-element-height", category: "measurement" },
   { name: "use-element-size-map", category: "measurement", viewport: "wide" },

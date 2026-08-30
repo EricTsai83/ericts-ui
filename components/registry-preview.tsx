@@ -49,6 +49,7 @@ const previews: Record<string, PreviewComponent> = {
   "sliding-list": dynamic(() => import("@/components/previews/sliding-list")),
   "rail-list": dynamic(() => import("@/components/previews/rail-list")),
   "rail-stage": dynamic(() => import("@/components/previews/rail-stage")),
+  "mermaid-diagram": dynamic(() => import("@/components/previews/mermaid-diagram")),
   "expandable-segmented-tabs": dynamic(() => import("@/components/previews/expandable-segmented-tabs")),
   "expandable-tabs": dynamic(() => import("@/components/previews/expandable-tabs")),
   "expandable-panel": dynamic(() => import("@/components/previews/expandable-panel")),
