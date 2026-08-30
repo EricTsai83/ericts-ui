@@ -538,6 +538,7 @@ function SvgViewer({
   const [open, setOpen] = useState(false);
   const controlsRef = useRef<DiagramViewportControls | null>(null);
   const label = title?.trim() ? `${title} diagram` : "Mermaid diagram";
+  useFullscreenDocumentScrollLock(open);
 
   return (
     <TooltipProvider delay={150}>
@@ -566,7 +567,7 @@ function SvgViewer({
           <SvgMount svgHtml={svgHtml} ariaLabel={label} />
         </DiagramViewport>
       </MermaidFrame>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setOpen} modal="trap-focus">
         <DialogContent
           showCloseButton={false}
           className="inset-0 top-0 left-0 grid size-full max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 rounded-none p-0 sm:max-w-none"
@@ -616,6 +617,25 @@ function SvgViewer({
       </Dialog>
     </TooltipProvider>
   );
+}
+
+function useFullscreenDocumentScrollLock(open: boolean) {
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const rootOverflow = root.style.overflow;
+    const bodyOverflow = body.style.overflow;
+
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      root.style.overflow = rootOverflow;
+      body.style.overflow = bodyOverflow;
+    };
+  }, [open]);
 }
 
 function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {

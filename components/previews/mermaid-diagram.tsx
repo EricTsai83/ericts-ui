@@ -28,7 +28,6 @@ export default function Preview({
         chart={chart}
         responsiveChart={{ chart: compactChart }}
         title="Diagram rendering pipeline"
-        caption="A complete Mermaid rendering surface with safe defaults and an interactive fullscreen view."
         className="my-0 w-full max-w-4xl shadow-sm"
         classNames={{
           viewport:

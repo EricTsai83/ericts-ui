@@ -139,6 +139,24 @@ describe("MermaidDiagram", () => {
     expect(document.querySelector('[data-slot="mermaid-diagram-caption"]')).toBeNull();
   });
 
+  it("locks document scrolling without reserving a scrollbar gutter in fullscreen", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }));
+
+    expect(document.documentElement.style.overflow).toBe("hidden");
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.documentElement.style.scrollbarGutter).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Exit fullscreen" }));
+
+    await waitFor(() => {
+      expect(document.documentElement.style.overflow).toBe("");
+      expect(document.body.style.overflow).toBe("");
+    });
+  });
+
   it("switches to the supplied responsive source only when its media query changes", async () => {
     let matches = false;
     const listeners = new Set<() => void>();
