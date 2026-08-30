@@ -4,6 +4,7 @@ import type { MermaidConfig } from "mermaid";
 import {
   Maximize2,
   RotateCcw,
+  X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -27,10 +28,12 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -549,9 +552,14 @@ function SvgViewer({
         captionClassName={captionClassName}
         actionsClassName={toolbarClassName}
         actions={fullscreen ? (
-          <IconButton label="View diagram fullscreen" onClick={() => setOpen(true)}>
+          <Button
+            aria-label="View diagram fullscreen"
+            onClick={() => setOpen(true)}
+            variant="ghost"
+            size="icon"
+          >
             <Maximize2 />
-          </IconButton>
+          </Button>
         ) : null}
       >
         <DiagramViewport interactive={false} className={cn("min-h-48", viewportClassName)}>
@@ -560,11 +568,11 @@ function SvgViewer({
       </MermaidFrame>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          showCloseButton
+          showCloseButton={false}
           className="inset-0 top-0 left-0 grid size-full max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 rounded-none p-0 sm:max-w-none"
         >
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b bg-card px-4 pr-14">
-            <div className="min-w-0">
+          <div className="flex min-h-14 items-stretch justify-between border-b bg-card">
+            <div className="flex min-w-0 flex-1 flex-col justify-center px-4">
               <DialogTitle className={cn("truncate text-base font-medium capitalize", titleClassName)}>
                 {title?.trim() || "Mermaid diagram"}
               </DialogTitle>
@@ -572,7 +580,25 @@ function SvgViewer({
                 {caption?.trim() || "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
               </DialogDescription>
             </div>
-            <ViewerToolbar controlsRef={controlsRef} className={toolbarClassName} />
+            <div className="flex shrink-0 items-stretch">
+              <ViewerToolbar controlsRef={controlsRef} className={cn("px-3", toolbarClassName)} />
+              <Separator
+                orientation="vertical"
+                className="w-px bg-foreground/20"
+              />
+              <DialogClose
+                render={
+                  <Button
+                    aria-label="Exit fullscreen"
+                    className="size-14 rounded-none [&_svg:not([class*='size-'])]:size-6"
+                    variant="ghost"
+                    size="icon"
+                  />
+                }
+              >
+                <X />
+              </DialogClose>
+            </div>
           </div>
           <DiagramViewport
             controlsRef={controlsRef}

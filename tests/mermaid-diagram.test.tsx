@@ -112,7 +112,9 @@ describe("MermaidDiagram", () => {
 
     const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]');
     expect(header).toBeTruthy();
-    expect(within(header!).getByRole("button", { name: "View diagram fullscreen" })).toBeTruthy();
+    const fullscreenButton = within(header!).getByRole("button", { name: "View diagram fullscreen" });
+    expect(fullscreenButton).toBeTruthy();
+    expect(fullscreenButton.closest('[data-slot="tooltip-trigger"]')).toBeNull();
     expect(screen.queryByRole("button", { name: "Diagram information" })).toBeNull();
     expect(screen.getByText("Explicit title").className).not.toContain("uppercase");
     expect(screen.getByText("Explicit title").className).toContain("capitalize");
