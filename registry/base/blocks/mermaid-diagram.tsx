@@ -1,5 +1,6 @@
 "use client";
 
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import type { MermaidConfig } from "mermaid";
 import {
   Maximize2,
@@ -26,13 +27,6 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -536,6 +530,7 @@ function SvgViewer({
   captionClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [animateFullscreen, setAnimateFullscreen] = useState(true);
   const controlsRef = useRef<DiagramViewportControls | null>(null);
   const label = title?.trim() ? `${title} diagram` : "Mermaid diagram";
   useFullscreenDocumentScrollLock(open);
@@ -555,7 +550,10 @@ function SvgViewer({
         actions={fullscreen ? (
           <Button
             aria-label="View diagram fullscreen"
-            onClick={() => setOpen(true)}
+            onClick={(event) => {
+              setAnimateFullscreen(event.detail > 0);
+              setOpen(true);
+            }}
             variant="ghost"
             size="icon"
           >
@@ -567,54 +565,76 @@ function SvgViewer({
           <SvgMount svgHtml={svgHtml} ariaLabel={label} />
         </DiagramViewport>
       </MermaidFrame>
-      <Dialog open={open} onOpenChange={setOpen} modal="trap-focus">
-        <DialogContent
-          showCloseButton={false}
-          className="inset-0 top-0 left-0 grid size-full max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 rounded-none p-0 sm:max-w-none"
-        >
-          <div className="flex min-h-14 items-stretch justify-between border-b bg-card">
-            <div className="flex min-w-0 flex-1 flex-col justify-center px-4">
-              <DialogTitle className={cn("truncate text-base font-medium capitalize", titleClassName)}>
-                {title?.trim() || "Mermaid diagram"}
-              </DialogTitle>
-              <DialogDescription className={cn("truncate text-xs", captionClassName, !caption && "sr-only")}>
-                {caption?.trim() || "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
-              </DialogDescription>
-            </div>
-            <div className="flex shrink-0 items-stretch">
-              <ViewerToolbar controlsRef={controlsRef} className={cn("px-3", toolbarClassName)} />
-              <Separator
-                orientation="vertical"
-                className="w-px bg-foreground/20"
-              />
-              <DialogClose
-                render={
-                  <Button
-                    aria-label="Exit fullscreen"
-                    className="size-14 rounded-none [&_svg:not([class*='size-'])]:size-6"
-                    variant="ghost"
-                    size="icon"
-                  />
-                }
-              >
-                <X />
-              </DialogClose>
-            </div>
-          </div>
-          <DiagramViewport
-            controlsRef={controlsRef}
-            interactive
-            wheelZoom={wheelZoom}
-            initialZoom={initialZoom}
-            minZoom={minZoom}
-            maxZoom={maxZoom}
-            zoomStep={zoomStep}
-            className={cn("min-h-0", viewportClassName)}
+      <DialogPrimitive.Root
+        open={open}
+        onOpenChange={(nextOpen, eventDetails) => {
+          if (!nextOpen && eventDetails.event instanceof window.KeyboardEvent) {
+            setAnimateFullscreen(false);
+          }
+          setOpen(nextOpen);
+        }}
+        modal="trap-focus"
+      >
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Backdrop
+            data-slot="mermaid-fullscreen-backdrop"
+            className="fixed inset-0 isolate z-50 bg-transparent"
+          />
+          <DialogPrimitive.Popup
+            data-slot="mermaid-fullscreen"
+            className={cn(
+              "fixed inset-0 z-50 grid size-full grid-rows-[auto_minmax(0,1fr)] bg-popover text-sm text-popover-foreground opacity-100 outline-none",
+              animateFullscreen
+                ? "transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] data-ending-style:duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:duration-100"
+                : "transition-none",
+            )}
           >
-            <SvgMount svgHtml={svgHtml} ariaLabel={label} />
-          </DiagramViewport>
-        </DialogContent>
-      </Dialog>
+            <div className="flex min-h-14 items-stretch justify-between border-b bg-card">
+              <div className="flex min-w-0 flex-1 flex-col justify-center px-4">
+                <DialogPrimitive.Title className={cn("truncate text-base font-medium capitalize", titleClassName)}>
+                  {title?.trim() || "Mermaid diagram"}
+                </DialogPrimitive.Title>
+                <DialogPrimitive.Description
+                  className={cn("truncate text-xs text-muted-foreground", captionClassName, !caption && "sr-only")}
+                >
+                  {caption?.trim() || "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
+                </DialogPrimitive.Description>
+              </div>
+              <div className="flex shrink-0 items-stretch">
+                <ViewerToolbar controlsRef={controlsRef} className={cn("px-3", toolbarClassName)} />
+                <Separator
+                  orientation="vertical"
+                  className="w-px bg-foreground/20"
+                />
+                <DialogPrimitive.Close
+                  render={
+                    <Button
+                      aria-label="Exit fullscreen"
+                      className="size-14 rounded-none [&_svg:not([class*='size-'])]:size-6"
+                      variant="ghost"
+                      size="icon"
+                    />
+                  }
+                >
+                  <X />
+                </DialogPrimitive.Close>
+              </div>
+            </div>
+            <DiagramViewport
+              controlsRef={controlsRef}
+              interactive
+              wheelZoom={wheelZoom}
+              initialZoom={initialZoom}
+              minZoom={minZoom}
+              maxZoom={maxZoom}
+              zoomStep={zoomStep}
+              className={cn("min-h-0", viewportClassName)}
+            >
+              <SvgMount svgHtml={svgHtml} ariaLabel={label} />
+            </DiagramViewport>
+          </DialogPrimitive.Popup>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
     </TooltipProvider>
   );
 }

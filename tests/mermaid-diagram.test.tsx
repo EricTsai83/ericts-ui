@@ -143,8 +143,18 @@ describe("MermaidDiagram", () => {
     render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }));
+    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
 
+    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]');
+    const backdrop = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen-backdrop"]');
+    expect(fullscreen?.className).toContain("transition-opacity");
+    expect(fullscreen?.className).toContain("duration-200");
+    expect(fullscreen?.className).toContain("data-ending-style:duration-150");
+    expect(fullscreen?.className).toContain("motion-reduce:duration-100");
+    expect(fullscreen?.className).not.toContain("zoom");
+    expect(fullscreen?.className).not.toContain("animate-");
+    expect(backdrop?.className).not.toContain("backdrop-blur");
+    expect(backdrop?.className).not.toContain("transition");
     expect(document.documentElement.style.overflow).toBe("hidden");
     expect(document.body.style.overflow).toBe("hidden");
     expect(document.documentElement.style.scrollbarGutter).toBe("");
@@ -155,6 +165,17 @@ describe("MermaidDiagram", () => {
       expect(document.documentElement.style.overflow).toBe("");
       expect(document.body.style.overflow).toBe("");
     });
+  });
+
+  it("opens fullscreen without a transition for keyboard-triggered presses", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 0 });
+
+    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]');
+    expect(fullscreen?.className).toContain("transition-none");
+    expect(fullscreen?.className).not.toContain("transition-opacity");
   });
 
   it("switches to the supplied responsive source only when its media query changes", async () => {

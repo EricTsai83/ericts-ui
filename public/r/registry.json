@@ -866,11 +866,10 @@
       },
       "registryDependencies": [
         "button",
-        "dialog",
         "tooltip",
         "https://ui.ericts.com/r/use-reduced-motion.json"
       ],
-      "dependencies": ["lucide-react", "mermaid"],
+      "dependencies": ["@base-ui/react", "lucide-react", "mermaid"],
       "files": [
         {
           "path": "registry/base/blocks/mermaid-diagram.tsx",
