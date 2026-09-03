@@ -18,6 +18,7 @@ export type RegistryListItem = {
   categories?: string[];
   groupCategory?: string;
   groupLabel?: string;
+  groupDescription?: string;
   meta?: {
     tags?: string[];
     effects?: string[];
@@ -46,7 +47,7 @@ type RegistryItemsBrowserProps = {
    * Category slugs in the order their groups should render. This browser used
    * to order groups by label instead, which quietly gave the same taxonomy two
    * orders — the homepage rendered Actions → Form → Tabs & Navigation, this
-   * list rendered Actions → Containers → Display. Ordering lives with the
+   * list rendered Actions → Layout & Flow → Display. Ordering lives with the
    * category declarations; this component only follows it.
    */
   categoryOrder?: readonly string[];
@@ -57,6 +58,7 @@ type RegistryItemsBrowserProps = {
 type RegistryItemGroup = {
   category: string;
   label: string;
+  description?: string;
   items: RegistryListItem[];
 };
 
@@ -84,7 +86,7 @@ function groupItemsByPrimaryCategory(
 ): RegistryItemGroup[] {
   const groups = new Map<
     string,
-    { label: string; items: RegistryListItem[] }
+    { label: string; description?: string; items: RegistryListItem[] }
   >();
   const categoryRank = new Map(
     categoryOrder.map((category, index) => [category, index]),
@@ -95,6 +97,7 @@ function groupItemsByPrimaryCategory(
       item.groupCategory?.trim() || item.categories?.[0]?.trim() || "other";
     const group = groups.get(category) ?? {
       label: item.groupLabel?.trim() || formatCategoryLabel(category),
+      description: item.groupDescription?.trim() || undefined,
       items: [],
     };
 
@@ -105,6 +108,7 @@ function groupItemsByPrimaryCategory(
   return Array.from(groups, ([category, group]) => ({
     category,
     label: group.label,
+    description: group.description,
     items: group.items.sort(compareItems),
   })).sort((a, b) => {
     // A category with no declared rank sorts last rather than first, so an item
@@ -349,9 +353,16 @@ export function RegistryItemsBrowser({
                        * which keeps the page → category → item order legible by
                        * size alone.
                        */}
-                      <h3 className="border-b pb-2 text-xl font-semibold tracking-tight">
-                        {group.label}
-                      </h3>
+                      <header className="flex flex-col gap-1 border-b pb-3">
+                        <h3 className="text-xl font-semibold tracking-tight">
+                          {group.label}
+                        </h3>
+                        {group.description ? (
+                          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                            {group.description}
+                          </p>
+                        ) : null}
+                      </header>
                       <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                         {group.items.map((item) => (
                           <RegistryItemLink

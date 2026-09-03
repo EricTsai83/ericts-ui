@@ -32,7 +32,7 @@
     ]
   },
   "categories": [
-    "effect"
+    "motion-primitive"
   ],
   "type": "registry:ui"
 }

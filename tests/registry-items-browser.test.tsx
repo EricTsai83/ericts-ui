@@ -7,32 +7,35 @@ import { RegistryItemsBrowser } from "@/components/registry-items-browser";
 
 const items = [
   {
-    name: "zulu-button",
-    title: "Zulu Button",
+    name: "zulu-action",
+    title: "Zulu Action",
     category: "ui",
-    categories: ["button"],
-    groupCategory: "button",
-    groupLabel: "Button",
+    categories: ["action"],
+    groupCategory: "action",
+    groupLabel: "Actions",
+    groupDescription: "Controls that perform an action.",
     meta: { tags: ["nextjs-only"] },
-    href: "/components/zulu-button",
+    href: "/components/zulu-action",
   },
   {
-    name: "beta-animation",
-    title: "Beta Animation",
+    name: "beta-motion",
+    title: "Beta Motion",
     category: "ui",
-    categories: ["animation", "feedback"],
-    groupCategory: "animation",
-    groupLabel: "Animation",
-    href: "/components/beta-animation",
+    categories: ["motion-primitive"],
+    groupCategory: "motion-primitive",
+    groupLabel: "Motion Primitives",
+    groupDescription: "Reusable motion behaviors.",
+    href: "/components/beta-motion",
   },
   {
-    name: "alpha-animation",
-    title: "Alpha Animation",
+    name: "alpha-motion",
+    title: "Alpha Motion",
     category: "ui",
-    categories: ["animation"],
-    groupCategory: "animation",
-    groupLabel: "Animation",
-    href: "/components/alpha-animation",
+    categories: ["motion-primitive"],
+    groupCategory: "motion-primitive",
+    groupLabel: "Motion Primitives",
+    groupDescription: "Reusable motion behaviors.",
+    href: "/components/alpha-motion",
   },
   {
     // A registry slug that differs from the display label, which is what used
@@ -43,15 +46,16 @@ const items = [
     categories: ["drawer"],
     groupCategory: "overlay",
     groupLabel: "Overlays",
+    groupDescription: "Content that floats above the page.",
     meta: { effects: ["height-animation"] },
     href: "/components/delta-drawer",
   },
 ];
 
 const arrangementStorageKey = "ericts-ui:components:arrangement";
-// Deliberately not alphabetical: label sorting would read Animation → Button →
-// Overlays, which is exactly the order this browser used to impose on its own.
-const categoryOrder = ["overlay", "button", "animation"];
+// Deliberately not alphabetical: label sorting would read Actions → Motion
+// Primitives → Overlays, which is exactly the order this browser used to impose.
+const categoryOrder = ["overlay", "action", "motion-primitive"];
 
 afterEach(() => {
   cleanup();
@@ -114,7 +118,7 @@ describe("RegistryItemsBrowser arrangement", () => {
         .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(
-      screen.queryByRole("heading", { name: "Animation" }),
+      screen.queryByRole("heading", { name: "Motion Primitives" }),
     ).toBeNull();
   });
 
@@ -125,9 +129,11 @@ describe("RegistryItemsBrowser arrangement", () => {
       screen.getByRole("button", { name: "Arrange by category" }),
     );
 
-    expect(screen.getByRole("heading", { name: "Animation" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Button" })).toBeTruthy();
-    expect(screen.getAllByText("Beta Animation")).toHaveLength(1);
+    expect(
+      screen.getByRole("heading", { name: "Motion Primitives" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Actions" })).toBeTruthy();
+    expect(screen.getAllByText("Beta Motion")).toHaveLength(1);
     expect(
       screen
         .getByRole("button", { name: "Arrange by category" })
@@ -145,7 +151,9 @@ describe("RegistryItemsBrowser arrangement", () => {
         .getByRole("button", { name: "Arrange by category" })
         .getAttribute("aria-pressed"),
     ).toBe("true");
-    expect(screen.getByRole("heading", { name: "Animation" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Motion Primitives" }),
+    ).toBeTruthy();
   });
 
   it("saves arrangement changes to local storage", () => {
@@ -170,12 +178,12 @@ describe("RegistryItemsBrowser arrangement", () => {
       target: { value: "Zulu" },
     });
 
-    expect(screen.getByRole("heading", { name: "Button" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Actions" })).toBeTruthy();
     expect(
-      screen.queryByRole("heading", { name: "Animation" }),
+      screen.queryByRole("heading", { name: "Motion Primitives" }),
     ).toBeNull();
-    expect(screen.getByText("Zulu Button")).toBeTruthy();
-    expect(screen.queryByText("Beta Animation")).toBeNull();
+    expect(screen.getByText("Zulu Action")).toBeTruthy();
+    expect(screen.queryByText("Beta Motion")).toBeNull();
   });
 });
 
@@ -193,13 +201,21 @@ describe("RegistryItemsBrowser group order", () => {
   it("renders groups in the order the categories were declared", () => {
     renderBrowser();
 
-    expect(showCategoryGroups()).toEqual(["Overlays", "Button", "Animation"]);
+    expect(showCategoryGroups()).toEqual([
+      "Overlays",
+      "Actions",
+      "Motion Primitives",
+    ]);
   });
 
   it("sorts a category with no declared rank after the declared ones", () => {
-    render(<BrowserFixture order={["animation"]} />);
+    render(<BrowserFixture order={["motion-primitive"]} />);
 
-    expect(showCategoryGroups()).toEqual(["Animation", "Button", "Overlays"]);
+    expect(showCategoryGroups()).toEqual([
+      "Motion Primitives",
+      "Actions",
+      "Overlays",
+    ]);
   });
 });
 
@@ -207,7 +223,7 @@ describe("RegistryItemsBrowser category labels", () => {
   it("surfaces framework-only tags in the item metadata", () => {
     renderBrowser();
 
-    expect(screen.getByText("Button / Next.js only")).toBeTruthy();
+    expect(screen.getByText("Actions / Next.js only")).toBeTruthy();
   });
 
   it("labels a card with the same taxonomy as the group headings", () => {
@@ -227,5 +243,17 @@ describe("RegistryItemsBrowser category labels", () => {
     expect(screen.getByRole("heading", { name: "Overlays" })).toBeTruthy();
     expect(screen.getByText("height-animation")).toBeTruthy();
     expect(screen.queryByText("Overlays / height-animation")).toBeNull();
+  });
+
+  it("explains categories in the grouped view", () => {
+    renderBrowser();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Arrange by category" }),
+    );
+
+    expect(
+      screen.getByText("Content that floats above the page."),
+    ).toBeTruthy();
   });
 });

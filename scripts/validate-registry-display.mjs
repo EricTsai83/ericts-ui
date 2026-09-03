@@ -158,7 +158,7 @@ function validateConfigsDeclareNoKind() {
  * one group order. The list page must hand it to the browser rather than let the
  * browser invent one: the browser used to sort groups by label, so the same
  * taxonomy read Actions → Form → Tabs & Navigation on the homepage and
- * Actions → Containers → Display on `/components`.
+ * Actions → Layout & Flow → Display on `/components`.
  */
 function validateListPagesFollowCategoryOrder() {
   const absolutePath = path.join(root, listPagePath);

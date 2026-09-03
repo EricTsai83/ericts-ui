@@ -41,6 +41,7 @@ export default function Home() {
       kind,
       groups: getRegistryDisplayNavigationGroups(kind).map((group) => ({
         label: group.label,
+        description: group.description,
         items: group.items.map(toIndexItem),
       })),
     }),

@@ -17,6 +17,7 @@ export type HomeRegistryIndexItem = {
 export type HomeRegistryIndexGroup = {
   /** A semantic category inside one registry kind. */
   label: string;
+  description: string;
   items: HomeRegistryIndexItem[];
 };
 
@@ -32,8 +33,7 @@ export type HomeRegistryIndexPart = {
  * mount eight client vignettes plus a playback engine to show motion, which put
  * `motion/react` and every featured component in the landing bundle. Here the
  * only motion is CSS on hover, so the page costs nothing at rest and the groups'
- * uneven sizes — seven component categories next to one block category — carry
- * the visual rhythm that a uniform grid of tiles could not.
+ * uneven sizes carry the visual rhythm that a uniform grid of tiles could not.
  *
  * All three parts are full-width peers running the same column flow. Hooks and
  * Blocks used to sit side by side in a two-column row, which set their heights
@@ -46,7 +46,7 @@ export type HomeRegistryIndexPart = {
  * level are separated by space alone — the type sizes already rank them, and
  * stacking a rule under each one turned a reading order into a stack of tables.
  *
- * No entrance animation, deliberately. Fading nine groups in from 4px below read
+ * No entrance animation, deliberately. Fading every group in from 4px below read
  * as the layout still settling rather than as an entrance: the offset was too
  * small and the 500ms too slow to register as intent, every group moved in
  * unison against a sticky hero column that never moves, and `animate-in` leaves
@@ -177,13 +177,17 @@ function RegistryGroup({
        */}
       <h4
         id={headingId}
-        className="mb-2.5 flex items-center gap-2.5 border-b border-border/60 pb-2 text-[13px] font-semibold uppercase tracking-[0.07em]"
+        className="flex items-center gap-2.5 border-b border-border/60 pb-2 text-[13px] font-semibold uppercase tracking-[0.07em]"
       >
         <span className="font-mono text-[11px] font-normal tabular-nums text-muted-foreground">
           {String(groupIndex + 1).padStart(2, "0")}
         </span>
         <span className="min-w-0 truncate">{group.label}</span>
       </h4>
+
+      <p className="mt-2 mb-2.5 text-xs leading-5 text-muted-foreground">
+        {group.description}
+      </p>
 
       <ol className="flex flex-col">
         {group.items.map((item) => (

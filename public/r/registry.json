@@ -8,7 +8,7 @@
       "type": "registry:ui",
       "title": "Smooth Height",
       "description": "A Motion-powered layout primitive that observes content size and animates height changes.",
-      "categories": ["container"],
+      "categories": ["layout"],
       "meta": {
         "tags": [
           "resize-observer",
@@ -57,7 +57,7 @@
       "type": "registry:ui",
       "title": "Icon Swap",
       "description": "A controlled binary icon transition with stable layout, interruptible state changes, and reduced-motion support.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": [
           "icon",
@@ -438,7 +438,7 @@
       "type": "registry:ui",
       "title": "Expandable Toolbar",
       "description": "A controlled or uncontrolled toolbar primitive that measures its action slot and expands from either side.",
-      "categories": ["container"],
+      "categories": ["layout"],
       "meta": {
         "tags": [
           "toolbar",
@@ -550,7 +550,7 @@
       "type": "registry:ui",
       "title": "Jitter",
       "description": "A jitter animation primitive plus a ready-made vibration icon.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": ["svg", "svg-animation", "jitter", "axis", "primitive"],
         "effects": ["jitter", "horizontal-jitter", "vertical-jitter"]
@@ -574,7 +574,7 @@
       "type": "registry:ui",
       "title": "Squeeze",
       "description": "A squeeze animation primitive plus a ready-made SVG card icon.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": [
           "svg",
@@ -612,7 +612,7 @@
       "type": "registry:ui",
       "title": "Heartbeat",
       "description": "A Motion-powered heartbeat primitive with a projected shadow layer and reduced-motion support.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": ["heartbeat", "pulse", "double-thump", "primitive"],
         "effects": ["scale", "pulse", "projected-shadow", "reduced-motion"]
@@ -631,7 +631,7 @@
       "type": "registry:ui",
       "title": "Projected Shadow",
       "description": "A CSS-powered primitive that layers an element with projected and contact shadows, supports an animation opt-out, and gathers on hover or active state.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": [
           "hover",
@@ -840,7 +840,7 @@
       "type": "registry:block",
       "title": "Rail Stage",
       "description": "A composed content browser that pairs a scalable vertical rail with one focused stage, collapsing to a scrollable strip on small screens.",
-      "categories": ["navigation"],
+      "categories": ["app-pattern"],
       "meta": {
         "tags": ["tabs", "rail", "gallery", "roving-focus", "arrow-keys"],
         "effects": ["panel-swap", "indicator-slide", "reduced-motion"]
@@ -859,7 +859,7 @@
       "type": "registry:block",
       "title": "Mermaid Diagram",
       "description": "A responsive Mermaid rendering surface with streaming and error states, repair hooks, and an accessible pan-and-zoom fullscreen viewer.",
-      "categories": ["content"],
+      "categories": ["app-pattern"],
       "meta": {
         "tags": ["diagram", "flowchart", "markdown", "svg", "pan", "zoom", "fullscreen", "responsive", "streaming", "error-recovery"],
         "effects": ["pan", "zoom", "fullscreen", "reduced-motion"]
@@ -1065,7 +1065,7 @@
       "type": "registry:ui",
       "title": "Context Cursor",
       "description": "A scoped custom cursor for pointer-rich surfaces where each target can register its own label, icon, and interaction intent.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": [
           "pointer",
@@ -1117,7 +1117,7 @@
       "type": "registry:ui",
       "title": "Multi-Step Flow",
       "description": "A Motion-powered multi-step container that slides between steps and animates height changes.",
-      "categories": ["container"],
+      "categories": ["layout"],
       "meta": {
         "tags": ["wizard", "stepper", "onboarding", "form-flow", "flow"],
         "effects": ["slide", "height-animation"]
@@ -1166,7 +1166,7 @@
       "type": "registry:ui",
       "title": "Staggered Entrance",
       "description": "A CSS-powered staggered entrance primitive for lists, cards, steps, rows, and search results.",
-      "categories": ["effect"],
+      "categories": ["motion-primitive"],
       "meta": {
         "tags": ["stagger", "entrance", "css-only", "list-animation", "list"],
         "effects": ["stagger", "fade", "slide"]
@@ -1270,7 +1270,7 @@
       "type": "registry:block",
       "title": "Deck Lift",
       "description": "A screen whose resting card deck lifts to the top, drops the sheet away, and pulls a full page of detail up behind it, then swipes card by card.",
-      "categories": ["screen"],
+      "categories": ["app-pattern"],
       "meta": {
         "tags": ["deck", "pile", "cards", "detail", "swipe", "drag", "container-query", "controlled"],
         "effects": ["deck-lift", "cover-rise", "sheet-drop", "card-swipe", "detail-swap", "reduced-motion"]

@@ -15,19 +15,19 @@ const destinations = [
   {
     href: "/components",
     label: "Components",
-    description: "Animated UI you can install as source.",
+    description: "Reusable interface units and motion primitives.",
     icon: Component,
   },
   {
     href: "/hooks",
     label: "Hooks",
-    description: "Reusable motion and behavior hooks.",
+    description: "Render-free behavior, measurement, and motion utilities.",
     icon: Braces,
   },
   {
     href: "/blocks",
     label: "Blocks",
-    description: "Composed patterns ready to drop in.",
+    description: "Composed, opinionated interface patterns.",
     icon: Blocks,
   },
   {

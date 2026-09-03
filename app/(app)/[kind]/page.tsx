@@ -35,7 +35,7 @@ const registryKindPages = {
     title: "Components",
     metaDescription: "All the components available in the registry.",
     description:
-      "Here you can find the installable UI components available in the registry.",
+      "Reusable interface units and motion primitives you can install and compose.",
     emptyTitle: "No components found",
     noItemsLabel: "No components yet.",
     itemLabel: "component",
@@ -48,7 +48,8 @@ const registryKindPages = {
   hook: {
     title: "Hooks",
     metaDescription: "All the hooks available in the registry.",
-    description: "Client-safe React hooks available in the registry.",
+    description:
+      "Render-free React utilities for behavior, measurement, accessibility, and motion.",
     emptyTitle: "No hooks found",
     noItemsLabel: "No hooks yet.",
     itemLabel: "hook",
@@ -58,8 +59,10 @@ const registryKindPages = {
   },
   block: {
     title: "Blocks",
-    metaDescription: "Browse installable blocks in the registry.",
-    description: "Installable registry blocks will appear here.",
+    metaDescription:
+      "Browse composed, installable interface patterns in the registry.",
+    description:
+      "Composed, opinionated interface patterns built from multiple UI and behavior pieces.",
     emptyTitle: "No blocks found",
     noItemsLabel: "No blocks yet.",
     itemLabel: "block",
@@ -106,10 +109,10 @@ export default async function RegistryKindPage({ params }: PageProps) {
   const displayItemsByName = new Map(
     displayItems.map((item) => [item.name, item]),
   );
-  const displayCategoryLabels = new Map(
+  const displayCategoriesBySlug = new Map(
     getRegistryDisplayCategoryDetails(kind).map((category) => [
       category.slug,
-      category.label,
+      category,
     ]),
   );
   const items: RegistryListItem[] = getRegistryItemsByCategory(
@@ -127,7 +130,10 @@ export default async function RegistryKindPage({ params }: PageProps) {
         categories: item.categories,
         groupCategory: displayItem?.category,
         groupLabel: displayItem
-          ? displayCategoryLabels.get(displayItem.category)
+          ? displayCategoriesBySlug.get(displayItem.category)?.label
+          : undefined,
+        groupDescription: displayItem
+          ? displayCategoriesBySlug.get(displayItem.category)?.description
           : undefined,
         meta: item.meta,
         hasCssOnly: item.hasCssOnly,

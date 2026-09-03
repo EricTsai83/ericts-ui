@@ -55,6 +55,7 @@ export type RegistryDisplayCategory = {
 export type RegistryDisplayNavigationGroup = {
   category: string;
   label: string;
+  description: string;
   items: RegistryDisplayItem[];
 };
 
@@ -108,45 +109,31 @@ const registryDisplayCategories = [
       "Read-only output — status, text, and elapsed time — where motion carries the change.",
   },
   {
-    slug: "container",
+    slug: "layout",
     kind: "component",
-    label: "Containers",
+    label: "Layout & Flow",
     description:
-      "Surfaces that measure their own content and animate as it changes.",
+      "Structural primitives that measure, arrange, and transition changing content.",
   },
   {
-    slug: "effect",
+    slug: "motion-primitive",
     kind: "component",
-    label: "Effects",
+    label: "Motion Primitives",
     description:
-      "Content-agnostic wrappers that add motion to whatever you nest inside them.",
+      "Reusable motion behaviors that animate icons, elements, and nested content.",
   },
   {
-    slug: "navigation",
+    slug: "app-pattern",
     kind: "block",
-    label: "Navigation",
+    label: "App Patterns",
     description:
-      "Composed browsing layouts that pair navigation with a focused content stage.",
-  },
-  {
-    slug: "content",
-    kind: "block",
-    label: "Content",
-    description:
-      "Composed readers and viewers for rich content that needs its own controls and states.",
-  },
-  {
-    slug: "screen",
-    kind: "block",
-    label: "App Screens",
-    description:
-      "Whole product screens whose layers — page, sheet, card deck, cover — re-compose together in one move.",
+      "Composed product interfaces for navigation, rich content, and complete screen states.",
   },
   {
     slug: "marketing",
     kind: "block",
-    label: "Marketing",
-    description: "Full-page scroll heroes and scene galleries.",
+    label: "Marketing Scenes",
+    description: "Immersive scroll heroes and scene galleries for marketing surfaces.",
   },
   {
     slug: "accessibility",
@@ -205,18 +192,18 @@ const registryDisplayItemConfigs = [
   { name: "shy-heart", category: "display" },
   { name: "timer", category: "display" },
   { name: "text-morph", category: "display" },
-  { name: "smooth-height", category: "container", defaultVariant: "motion" },
-  { name: "multi-step", category: "container" },
-  { name: "expandable-toolbar", category: "container", viewport: "wide" },
-  { name: "icon-swap", category: "effect" },
-  { name: "jitter", category: "effect" },
-  { name: "squeeze", category: "effect" },
-  { name: "heartbeat", category: "effect" },
-  { name: "projected-shadow", category: "effect" },
-  { name: "staggered-entrance", category: "effect" },
-  { name: "context-cursor", category: "effect", viewport: "wide" },
-  { name: "rail-stage", category: "navigation", viewport: "wide" },
-  { name: "mermaid-diagram", category: "content", viewport: "wide" },
+  { name: "smooth-height", category: "layout", defaultVariant: "motion" },
+  { name: "multi-step", category: "layout" },
+  { name: "expandable-toolbar", category: "layout", viewport: "wide" },
+  { name: "icon-swap", category: "motion-primitive" },
+  { name: "jitter", category: "motion-primitive" },
+  { name: "squeeze", category: "motion-primitive" },
+  { name: "heartbeat", category: "motion-primitive" },
+  { name: "projected-shadow", category: "motion-primitive" },
+  { name: "staggered-entrance", category: "motion-primitive" },
+  { name: "context-cursor", category: "motion-primitive", viewport: "wide" },
+  { name: "rail-stage", category: "app-pattern", viewport: "wide" },
+  { name: "mermaid-diagram", category: "app-pattern", viewport: "wide" },
   { name: "use-reduced-motion", category: "accessibility" },
   { name: "use-element-height", category: "measurement" },
   { name: "use-element-size-map", category: "measurement", viewport: "wide" },
@@ -226,7 +213,7 @@ const registryDisplayItemConfigs = [
   { name: "use-sequence-player", category: "motion" },
   {
     name: "deck-lift",
-    category: "screen",
+    category: "app-pattern",
     viewport: "full",
     resizable: "mobile",
   },
@@ -285,6 +272,7 @@ export function getRegistryDisplayNavigationGroups(
     .map((category) => ({
       category: category.slug,
       label: category.label,
+      description: category.description,
       items: getRegistryDisplayItemsByCategory(kind, category.slug).filter(
         (item) => item.browsable !== false,
       ),

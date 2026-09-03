@@ -13,8 +13,9 @@ const renamedRegistryItems = [
   ["animated-modal", "expandable-dialog"],
   ["feedback", "feedback-popover"],
   ["orchestration", "staggered-entrance"],
-  // Dropped the `-animation` suffix: the category (Effects, Display) already says
-  // these animate, and two of them exported `Heartbeat`/`ProjectedShadow` anyway.
+  // Dropped the `-animation` suffix: the category (Motion Primitives, Display)
+  // already says these animate, and two of them exported
+  // `Heartbeat`/`ProjectedShadow` anyway.
   ["check-animation", "check-mark"],
   ["jitter-animation", "jitter"],
   ["squeeze-animation", "squeeze"],

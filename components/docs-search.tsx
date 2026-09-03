@@ -124,7 +124,7 @@ export function DocsSearchDialog({
           <DialogHeader className="sr-only">
             <DialogTitle>Search documentation</DialogTitle>
             <DialogDescription>
-              Search docs, components, and hooks.
+              Search docs, components, hooks, and blocks.
             </DialogDescription>
           </DialogHeader>
           <Command
@@ -136,7 +136,7 @@ export function DocsSearchDialog({
                 autoFocus
                 value={search}
                 onValueChange={setSearch}
-                placeholder="Search docs, components, and hooks..."
+                placeholder="Search docs, components, hooks, and blocks..."
                 className="pr-8 placeholder:text-muted-foreground"
               />
               {query.isLoading ? (
