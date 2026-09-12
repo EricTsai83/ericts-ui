@@ -46,6 +46,7 @@ const previews: Record<string, PreviewComponent> = {
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
   "nav-link": dynamic(() => import("@/components/previews/nav-link")),
   "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
+  "filter-tags": dynamic(() => import("@/components/previews/filter-tags")),
   "sliding-list": dynamic(() => import("@/components/previews/sliding-list")),
   "rail-list": dynamic(() => import("@/components/previews/rail-list")),
   "rail-stage": dynamic(() => import("@/components/previews/rail-stage")),

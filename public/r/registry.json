@@ -777,6 +777,26 @@
       ]
     },
     {
+      "name": "filter-tags",
+      "type": "registry:ui",
+      "title": "Filter Tags",
+      "description": "A horizontally scrollable multi-select tag row that groups selected tags first in selection order, with responsive controls and reduced-motion support.",
+      "categories": ["form"],
+      "meta": {
+        "tags": ["tags", "filters", "chips", "multi-select", "horizontal-scroll", "controlled", "uncontrolled"],
+        "effects": ["layout-reorder", "reduced-motion"]
+      },
+      "dependencies": ["@base-ui/react", "motion", "lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/base/ui/filter-tags.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/filter-tags.tsx"
+        }
+      ]
+    },
+    {
       "name": "sliding-list",
       "type": "registry:ui",
       "title": "Sliding List",

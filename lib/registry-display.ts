@@ -170,6 +170,7 @@ const registryDisplayItemConfigs = [
   { name: "expandable-toggle-button", category: "action" },
   { name: "play-button", category: "action" },
   { name: "sliding-play-button", category: "action" },
+  { name: "filter-tags", category: "form", viewport: "wide" },
   { name: "otp-input", category: "form" },
   { name: "floating-select", category: "form" },
   { name: "adaptive-switch", category: "form" },
