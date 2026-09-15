@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .like {
     --like-color: var(--destructive);
@@ -201,28 +201,30 @@
       color: var(--like-color);
     }
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .like-icon,
-    .like:active .like-icon {
-      transform: none;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .like-icon,
+  .like:active .like-icon {
+    transform: none !important;
+  }
 
-    .like-heart-fill {
-      clip-path: none;
-      opacity: 0;
-      transition: opacity 120ms var(--like-ease-out);
-    }
+  .like-heart-fill {
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 120ms var(--like-ease-out) !important;
+  }
 
-    .like[data-liked="true"] .like-heart-fill {
-      opacity: 1;
-    }
+  .like[data-liked="true"] .like-heart-fill {
+    opacity: 1;
+  }
 
-    /* Zero duration instead of `none` so animationend still fires and the
-       component can unmount the burst. `both` fill ends at opacity 0. */
-    .like-particle {
-      animation-duration: 0ms;
-      animation-delay: 0ms;
-    }
+  /* Zero duration instead of `none` so animationend still fires and the
+     component can unmount the burst. `both` fill ends at opacity 0. */
+  .like-particle {
+    animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
   }
 }

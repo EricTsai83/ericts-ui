@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .squeeze {
     --squeeze-duration: 1500ms;
@@ -143,12 +143,14 @@
       transform: translate(0, 0) scale(1);
     }
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .squeeze-target,
-    .squeeze-icon {
-      animation: none;
-      will-change: auto;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .squeeze-target,
+  .squeeze-icon {
+    animation: none !important;
+    will-change: auto;
   }
 }

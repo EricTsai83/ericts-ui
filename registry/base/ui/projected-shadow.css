@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .projected-shadow {
     --projected-shadow-duration: 280ms;
@@ -260,43 +260,46 @@
       scale(var(--projected-shadow-target-active-scale))
       rotate(var(--projected-shadow-target-active-rotate));
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .projected-shadow[data-animated] {
-      --projected-shadow-blur: 0px;
-      --projected-shadow-projected-opacity: 0;
-      --projected-shadow-projected-active-opacity: 0;
-      --projected-shadow-projected-x: 0%;
-      --projected-shadow-projected-y: 0%;
-      --projected-shadow-projected-scale: 1;
-      --projected-shadow-projected-rotate: 0deg;
-      --projected-shadow-projected-active-x: 0%;
-      --projected-shadow-projected-active-y: 0%;
-      --projected-shadow-projected-active-scale: 1;
-      --projected-shadow-projected-active-rotate: 0deg;
-      --projected-shadow-contact-opacity: 0;
-      --projected-shadow-contact-active-opacity: 0;
-      --projected-shadow-contact-x: 0%;
-      --projected-shadow-contact-y: 0%;
-      --projected-shadow-contact-scale: 1;
-      --projected-shadow-contact-rotate: 0deg;
-      --projected-shadow-contact-active-x: 0%;
-      --projected-shadow-contact-active-y: 0%;
-      --projected-shadow-contact-active-scale: 1;
-      --projected-shadow-contact-active-rotate: 0deg;
-      --projected-shadow-target-x: 0%;
-      --projected-shadow-target-y: 0%;
-      --projected-shadow-target-scale: 1;
-      --projected-shadow-target-rotate: 0deg;
-      --projected-shadow-target-active-x: 0%;
-      --projected-shadow-target-active-y: 0%;
-      --projected-shadow-target-active-scale: 1;
-      --projected-shadow-target-active-rotate: 0deg;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .projected-shadow[data-animated] {
+    --projected-shadow-blur: 0px;
+    --projected-shadow-projected-opacity: 0;
+    --projected-shadow-projected-active-opacity: 0;
+    --projected-shadow-projected-x: 0%;
+    --projected-shadow-projected-y: 0%;
+    --projected-shadow-projected-scale: 1;
+    --projected-shadow-projected-rotate: 0deg;
+    --projected-shadow-projected-active-x: 0%;
+    --projected-shadow-projected-active-y: 0%;
+    --projected-shadow-projected-active-scale: 1;
+    --projected-shadow-projected-active-rotate: 0deg;
+    --projected-shadow-contact-opacity: 0;
+    --projected-shadow-contact-active-opacity: 0;
+    --projected-shadow-contact-x: 0%;
+    --projected-shadow-contact-y: 0%;
+    --projected-shadow-contact-scale: 1;
+    --projected-shadow-contact-rotate: 0deg;
+    --projected-shadow-contact-active-x: 0%;
+    --projected-shadow-contact-active-y: 0%;
+    --projected-shadow-contact-active-scale: 1;
+    --projected-shadow-contact-active-rotate: 0deg;
+    --projected-shadow-target-x: 0%;
+    --projected-shadow-target-y: 0%;
+    --projected-shadow-target-scale: 1;
+    --projected-shadow-target-rotate: 0deg;
+    --projected-shadow-target-active-x: 0%;
+    --projected-shadow-target-active-y: 0%;
+    --projected-shadow-target-active-scale: 1;
+    --projected-shadow-target-active-rotate: 0deg;
+  }
 
-    .projected-shadow[data-animated] .projected-shadow-layer {
-      transition-duration: 0ms;
-      will-change: auto;
-    }
+  .projected-shadow[data-animated] .projected-shadow-layer {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    will-change: auto;
   }
 }

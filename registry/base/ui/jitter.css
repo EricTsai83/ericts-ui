@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .jitter,
   .jitter-icon {
@@ -132,10 +132,12 @@
       transform: translate3d(-0.21px, 0.14px, 0);
     }
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .jitter-target {
-      animation: none;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .jitter-target {
+    animation: none !important;
   }
 }

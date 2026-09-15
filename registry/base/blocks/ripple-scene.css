@@ -274,6 +274,6 @@
   .ripple-scene__strip::after,
   .ripple-scene__face--out,
   .ripple-scene__content-inner > * {
-    animation: none;
+    animation: none !important;
   }
 }

@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .shy-heart {
     --shy-heart-size: 64px;
@@ -129,51 +129,6 @@
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .shy-heart[data-animated] .shy-heart-figure {
-      animation-name: shy-heart-fade;
-    }
-
-    .shy-heart[data-animated] .shy-heart-motion-stage {
-      transition: none;
-    }
-
-    .shy-heart[data-animated] .shy-heart-blush {
-      transform: none;
-      transition: opacity 160ms var(--shy-heart-ease-out);
-    }
-
-    .shy-heart[data-animated]:focus-visible .shy-heart-motion-stage {
-      transform: none;
-    }
-
-    .shy-heart[data-animated]:active .shy-heart-motion-stage {
-      transform: none;
-    }
-
-    .shy-heart[data-animated]:focus-visible .shy-heart-blush {
-      transform: none;
-      transition-delay: 0ms;
-    }
-
-    .shy-heart[data-animated]:active .shy-heart-blush {
-      transform: none;
-      transition-delay: 0ms;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
-    .shy-heart[data-animated]:hover .shy-heart-motion-stage {
-      transform: none;
-      will-change: auto;
-    }
-
-    .shy-heart[data-animated]:hover .shy-heart-blush {
-      transform: none;
-      transition-delay: 0ms;
-    }
-  }
-
   @keyframes shy-heart-fade {
     from {
       opacity: 0.64;
@@ -182,5 +137,52 @@
     to {
       opacity: 1;
     }
+  }
+}
+
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .shy-heart[data-animated] .shy-heart-figure {
+    animation-name: shy-heart-fade !important;
+  }
+
+  .shy-heart[data-animated] .shy-heart-motion-stage {
+    transition: none !important;
+  }
+
+  .shy-heart[data-animated] .shy-heart-blush {
+    transform: none !important;
+    transition: opacity 160ms var(--shy-heart-ease-out) !important;
+  }
+
+  .shy-heart[data-animated]:focus-visible .shy-heart-motion-stage {
+    transform: none !important;
+  }
+
+  .shy-heart[data-animated]:active .shy-heart-motion-stage {
+    transform: none !important;
+  }
+
+  .shy-heart[data-animated]:focus-visible .shy-heart-blush {
+    transform: none !important;
+    transition-delay: 0ms !important;
+  }
+
+  .shy-heart[data-animated]:active .shy-heart-blush {
+    transform: none !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+  .shy-heart[data-animated]:hover .shy-heart-motion-stage {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .shy-heart[data-animated]:hover .shy-heart-blush {
+    transform: none !important;
+    transition-delay: 0ms !important;
   }
 }

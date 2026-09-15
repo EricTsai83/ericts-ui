@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .staggered-entrance {
     --staggered-entrance-delay: 80ms;
@@ -23,10 +23,6 @@
     );
   }
 
-  .staggered-entrance[data-disabled="true"] .staggered-entrance-item {
-    animation: none;
-  }
-
   @keyframes staggered-entrance-enter {
     from {
       opacity: var(--staggered-entrance-from-opacity);
@@ -43,11 +39,16 @@
       transform: translate3d(0, 0, 0) scale(1);
     }
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .staggered-entrance-item {
-      animation-duration: 1ms;
-      animation-delay: 0ms;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+.staggered-entrance[data-disabled="true"] .staggered-entrance-item {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staggered-entrance-item {
+    animation: none !important;
   }
 }

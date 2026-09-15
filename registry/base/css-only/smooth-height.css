@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .smooth-height {
     display: block;
@@ -7,10 +7,13 @@
     transition: height 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
     will-change: height;
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .smooth-height {
-      transition-duration: 1ms;
-    }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-height {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
   }
 }

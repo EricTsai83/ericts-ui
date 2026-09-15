@@ -1,5 +1,5 @@
-/* Layered so consumer styles and Tailwind utilities can override without
-   fighting specificity. Unlayered rules and utilities both win over this. */
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
 @layer components {
   .icon-swap {
     position: relative;
@@ -28,14 +28,18 @@
     opacity: 1;
     filter: blur(0px);
   }
+}
 
-  .icon-swap[data-animated="false"] .icon-swap__icon {
-    transition-duration: 0ms;
-  }
+/* Motion guards override ordinary customization, including inline timing.
+   Keep these outside the defaults layer; only motion declarations are important. */
+.icon-swap[data-animated="false"] .icon-swap__icon {
+  transition-duration: 0ms !important;
+  transition-delay: 0ms !important;
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .icon-swap__icon[data-state] {
-      transition-duration: 0ms;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .icon-swap__icon[data-state] {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
   }
 }
