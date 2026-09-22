@@ -221,6 +221,7 @@ const registryDisplayItemConfigs = [
   },
   { name: "scroll-expand", category: "marketing", viewport: "full" },
   { name: "ripple-scene", category: "marketing", viewport: "full" },
+  { name: "demo-tabs", category: "marketing", viewport: "wide" },
   { name: "vertical-scene", category: "marketing", viewport: "full" },
 ] as const satisfies readonly RegistryDisplayItemConfig[];
 

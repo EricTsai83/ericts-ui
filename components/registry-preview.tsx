@@ -73,6 +73,7 @@ const previews: Record<string, PreviewComponent> = {
   "deck-lift": dynamic(() => import("@/components/previews/deck-lift")),
   "scroll-expand": dynamic(() => import("@/components/previews/scroll-expand")),
   "ripple-scene": dynamic(() => import("@/components/previews/ripple-scene")),
+  "demo-tabs": dynamic(() => import("@/components/previews/demo-tabs")),
   "vertical-scene": dynamic(() => import("@/components/previews/vertical-scene")),
 };
 

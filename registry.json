@@ -1507,6 +1507,49 @@
           "target": "@hooks/use-scroll-anchor.ts"
         }
       ]
+    },
+    {
+      "name": "demo-tabs",
+      "type": "registry:block",
+      "title": "Demo Tabs",
+      "description": "A tabbed product demo with a shared playback timeline, progress underline, and customizable scenes. Includes three synchronized terminal-and-result examples.",
+      "categories": [
+        "marketing"
+      ],
+      "meta": {
+        "tags": [
+          "tabs",
+          "demo",
+          "product",
+          "timeline",
+          "controlled"
+        ],
+        "effects": [
+          "progress",
+          "synchronized-playback",
+          "reduced-motion"
+        ]
+      },
+      "dependencies": [
+        "@base-ui/react",
+        "motion",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ],
+      "files": [
+        {
+          "path": "registry/base/blocks/demo-tabs.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/demo-tabs.tsx"
+        },
+        {
+          "path": "registry/base/blocks/demo-tabs-example.tsx",
+          "type": "registry:block",
+          "target": "components/blocks/demo-tabs-example.tsx"
+        }
+      ]
     }
   ]
 }
