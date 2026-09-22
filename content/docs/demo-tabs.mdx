@@ -1,0 +1,93 @@
+---
+title: Demo Tabs
+description: Build a tabbed product demo whose progress and custom scenes share one timeline.
+---
+
+[Open the interactive block](/blocks/demo-tabs).
+
+## Install
+
+```bash
+pnpm dlx shadcn@latest add https://ui.ericts.com/r/demo-tabs.json
+```
+
+The block includes `DemoTabs` and an editable `DemoTabsExample` with three terminal-and-result scenes.
+
+```tsx
+import { DemoTabsExample } from "@/components/blocks/demo-tabs-example"
+
+export default function Page() {
+  return <DemoTabsExample />
+}
+```
+
+## Create a scene
+
+Define items inside a Client Component because `render` is a function. Give every item a unique, stable `value` and a total `duration` in milliseconds. Include a reading pause at the end of the duration.
+
+The render callback receives a shared `progress` MotionValue from 0 to 1, `isPlaying`, and `reducedMotion`. Create a child component for hooks; do not call hooks directly inside the render callback.
+
+```tsx
+"use client"
+
+import { motion, useTransform } from "motion/react"
+import {
+  DemoTabs,
+  type DemoTabsScene,
+} from "@/components/blocks/demo-tabs"
+
+function Result({ progress }: DemoTabsScene) {
+  const opacity = useTransform(progress, [0.2, 0.4], [0, 1])
+  return (
+    <div className="grid gap-6 p-8 @min-[40rem]/demo:grid-cols-2">
+      <code>$ hello</code>
+      <motion.div style={{ opacity }}>Hello, world.</motion.div>
+    </div>
+  )
+}
+
+export function ProductDemo() {
+  return (
+    <DemoTabs
+      items={[
+        {
+          value: "hello",
+          label: "hello",
+          description: "Your first request",
+          duration: 6000,
+          render: (scene) => <Result {...scene} />,
+        },
+      ]}
+    />
+  )
+}
+```
+
+Both columns should derive their animations from the same `progress` value. Avoid independent CSS animations, timers, or mount animations: those cannot automatically pause or replay with this clock. Use `useTransform` to map parts of the timeline onto opacity or transforms, and allow content to be fully readable at progress 1.
+
+The layout is yours: the block does not require two columns. It establishes the named `demo` container so custom scenes can respond to their actual available width.
+
+## Playback behavior
+
+- Playback starts when at least 20% of the block enters the viewport. It pauses offscreen, while the document is hidden, and while focus is inside scene content. Resuming continues from the saved position.
+- Automatic playback advances through items and loops by default. Set `loop={false}` to stop after the last scene. A single item plays once.
+- Clicking a tab plays that scene from the beginning and disables automatic advancement for that mounted block. Keyboard focus in the tab list also disables advancement; arrow keys move focus and Enter or Space selects a scene.
+- There are no playback buttons. Clicking the selected tab replays it from the beginning; when it finishes, it stays on the final frame.
+- With reduced motion enabled, progress is 1 and autoplay is disabled. Every scene must provide a meaningful final frame; tabs remain usable.
+- Inactive scenes unmount. Store any persistent scene data outside the scene.
+
+## API
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `items` | Required | Scene labels, optional descriptions, duration, and render callbacks. |
+| `value` / `defaultValue` | First item | Controlled or initial selected value. |
+| `onValueChange` | — | Selection request, including automatic advancement. A controlled parent must update `value` to accept it. |
+| `autoPlay` | `true` | Initial playback preference; changes to this prop update that preference. |
+| `loop` | `true` | Wrap automatic playback after the last item. |
+| `selectorLabel` | `Choose a demo` | Accessible name of the tab list. |
+| `emptyLabel` | `Add a demo to get started.` | Empty state copy. |
+| `classNames` | — | Classes for `list`, `tab`, `progress`, and `panel`. |
+| `ref` | — | The root section DOM node. |
+
+Invalid or nonpositive durations use 6000 ms. If the selected item is removed, the first remaining item is displayed. The progress underline is decorative playback feedback, not a loading indicator or a seek control.
