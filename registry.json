@@ -277,6 +277,52 @@
       ]
     },
     {
+      "name": "seek-button",
+      "type": "registry:ui",
+      "title": "Seek Button",
+      "description": "A circular media skip control whose ring spins one full turn per press while the seconds it jumps stay upright at the centre.",
+      "categories": ["action"],
+      "meta": {
+        "tags": [
+          "button",
+          "seek",
+          "skip",
+          "rewind",
+          "media",
+          "video",
+          "custom-icon"
+        ],
+        "effects": [
+          "rotation",
+          "svg-animation",
+          "press-scale",
+          "frosted-glass",
+          "reduced-motion"
+        ]
+      },
+      "cssVars": {
+        "light": {
+          "ericts-media-control": "oklch(0 0 0)",
+          "ericts-media-control-foreground": "oklch(1 0 0)"
+        },
+        "dark": {
+          "ericts-media-control": "oklch(0 0 0)",
+          "ericts-media-control-foreground": "oklch(1 0 0)"
+        }
+      },
+      "dependencies": ["motion"],
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ],
+      "files": [
+        {
+          "path": "registry/base/ui/seek-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/seek-button.tsx"
+        }
+      ]
+    },
+    {
       "name": "floating-shortcut-button",
       "type": "registry:ui",
       "title": "Floating Shortcut Button",

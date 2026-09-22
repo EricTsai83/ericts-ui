@@ -37,6 +37,7 @@ const previews: Record<string, PreviewComponent> = {
   "sliding-play-button": dynamic(
     () => import("@/components/previews/sliding-play-button"),
   ),
+  "seek-button": dynamic(() => import("@/components/previews/seek-button")),
   "floating-select": dynamic(() => import("@/components/previews/floating-select")),
   "adaptive-switch": dynamic(
     () => import("@/components/previews/adaptive-switch"),
