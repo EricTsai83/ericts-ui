@@ -38,7 +38,7 @@ function Spinner({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "size-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70",
+        "size-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70 motion-reduce:animate-none",
         className
       )}
     />

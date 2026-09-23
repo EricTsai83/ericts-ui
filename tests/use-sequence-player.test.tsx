@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useEffect, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -45,6 +46,39 @@ function Harness() {
         take over
       </button>
     </div>
+  );
+}
+
+function InlineHarness({ sequences }: { sequences: readonly SequenceScript[] }) {
+  const { containerProps, activeIndex, stepsFired } = useSequencePlayer({
+    sequences,
+    leadInMs: LEAD_IN_MS,
+  });
+
+  return (
+    <div {...containerProps}>
+      <output data-testid="active">{activeIndex}</output>
+      <output data-testid="steps">{stepsFired}</output>
+    </div>
+  );
+}
+
+/** A parent that re-renders every 10ms, passing a fresh inline array each time. */
+function ChurningParent() {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((tick) => tick + 1), 10);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <InlineHarness
+      sequences={[
+        { steps: 2, stepMs: 100 },
+        { steps: 1, stepMs: 100 },
+      ]}
+    />
   );
 }
 
@@ -172,5 +206,47 @@ describe("useSequencePlayer", () => {
     // Back on auto, so sequence 1's single beat hands off to sequence 0.
     advance(100);
     expect(screen.getByTestId("active").textContent).toBe("0");
+  });
+
+  it("keeps advancing while a parent re-renders with new-but-equal sequences", () => {
+    render(<ChurningParent />);
+
+    advance(LEAD_IN_MS);
+    expect(screen.getByTestId("steps").textContent).toBe("1");
+
+    advance(100);
+    expect(screen.getByTestId("steps").textContent).toBe("2");
+
+    advance(100);
+    expect(screen.getByTestId("active").textContent).toBe("1");
+    expect(screen.getByTestId("steps").textContent).toBe("1");
+
+    advance(100);
+    expect(screen.getByTestId("active").textContent).toBe("0");
+  });
+
+  it("picks up content changes to the active sequence", () => {
+    const { rerender } = render(
+      <InlineHarness sequences={[{ steps: 3, stepMs: 100 }, { steps: 1, stepMs: 100 }]} />,
+    );
+
+    advance(LEAD_IN_MS);
+    expect(screen.getByTestId("steps").textContent).toBe("1");
+
+    // A longer dwell for the resting beat restarts it with the new value.
+    rerender(
+      <InlineHarness sequences={[{ steps: 3, stepMs: 400 }, { steps: 1, stepMs: 100 }]} />,
+    );
+    advance(399);
+    expect(screen.getByTestId("steps").textContent).toBe("1");
+    advance(1);
+    expect(screen.getByTestId("steps").textContent).toBe("2");
+
+    // Fewer steps hand off to the next sequence once the current beat rests.
+    rerender(
+      <InlineHarness sequences={[{ steps: 2, stepMs: 400 }, { steps: 1, stepMs: 100 }]} />,
+    );
+    advance(400);
+    expect(screen.getByTestId("active").textContent).toBe("1");
   });
 });

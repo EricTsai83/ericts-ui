@@ -46,9 +46,20 @@ type ExpandableSliderContextValue = {
   /** Attached by the rail; every measurement is taken from it. */
   railRef: React.RefObject<HTMLDivElement | null>;
   commitValue: (next: number) => void;
-  valueFromPointer: (clientX: number) => number | undefined;
+  /** Reads the rail's box and writing direction; one layout read per call. */
+  measureRail: () => RailGeometry | undefined;
+  valueFromPointer: (
+    clientX: number,
+    geometry?: RailGeometry,
+  ) => number | undefined;
   stepBy: (steps: number) => void;
   setDragging: (dragging: boolean) => void;
+};
+
+type RailGeometry = {
+  left: number;
+  width: number;
+  rtl: boolean;
 };
 
 const ExpandableSliderContext =
@@ -83,7 +94,11 @@ export type ExpandableSliderProps = Omit<
   formatValueText?: (value: number) => string;
   /** Controlled desktop expansion; mobile viewports stay visually expanded. */
   expanded?: boolean;
-  /** Called after the expanded state changes. */
+  /**
+   * Called when hover, focus, or a drag changes the expansion the slider
+   * would show on its own. When `expanded` is controlled, this is the request
+   * to act on; the prop itself is not echoed back.
+   */
   onExpandedChange?: (expanded: boolean) => void;
   /** Grace period in ms before collapsing once the pointer leaves; 0 collapses immediately. */
   collapseDelay?: number;
@@ -158,17 +173,20 @@ export function ExpandableSlider({
     max,
     step,
   );
-  const isExpanded =
-    expanded ?? (disabled ? false : hovered || focused || dragging);
+  // What the interaction alone asks for. Uncontrolled, this is the state;
+  // controlled, it is what gets reported so the parent can follow hover,
+  // focus, and drags instead of only hearing its own prop echoed back.
+  const requestedExpanded = disabled ? false : hovered || focused || dragging;
+  const isExpanded = expanded ?? requestedExpanded;
 
-  const previousExpandedRef = React.useRef(isExpanded);
+  const previousRequestedRef = React.useRef(requestedExpanded);
 
   React.useEffect(() => {
-    if (previousExpandedRef.current === isExpanded) return;
+    if (previousRequestedRef.current === requestedExpanded) return;
 
-    previousExpandedRef.current = isExpanded;
-    onExpandedChange?.(isExpanded);
-  }, [isExpanded, onExpandedChange]);
+    previousRequestedRef.current = requestedExpanded;
+    onExpandedChange?.(requestedExpanded);
+  }, [onExpandedChange, requestedExpanded]);
 
   const commitValue = React.useCallback(
     (next: number) => {
@@ -183,30 +201,41 @@ export function ExpandableSlider({
     [controlled, currentValue, onValueChange],
   );
 
+  const measureRail = React.useCallback((): RailGeometry | undefined => {
+    const rail = railRef.current;
+
+    if (!rail) return undefined;
+
+    const rect = rail.getBoundingClientRect();
+
+    return { left: rect.left, width: rect.width, rtl: isRtl(rail) };
+  }, []);
+
+  // A drag passes the geometry it measured at pointerdown, so a move costs no
+  // layout read; without one, the rail is measured on the spot.
   const valueFromPointer = React.useCallback(
-    (clientX: number) => {
-      const rail = railRef.current;
+    (clientX: number, geometry?: RailGeometry) => {
+      const rail = geometry ?? measureRail();
 
       if (!rail) return undefined;
 
-      const rect = rail.getBoundingClientRect();
-      const usable = rect.width - THUMB_SIZE;
+      const usable = rail.width - THUMB_SIZE;
 
       if (usable <= 0) return undefined;
 
       const rawRatio = clamp(
-        (clientX - rect.left - THUMB_SIZE / 2) / usable,
+        (clientX - rail.left - THUMB_SIZE / 2) / usable,
         0,
         1,
       );
       // Pointer coordinates are always physical; in an RTL context the track
       // runs right-to-left, so the ratio has to be mirrored to stay on the
       // same side of the rail as the fill.
-      const ratio = isRtl(rail) ? 1 - rawRatio : rawRatio;
+      const ratio = rail.rtl ? 1 - rawRatio : rawRatio;
 
       return clampToStep(min + ratio * (max - min), min, max, step);
     },
-    [max, min, step],
+    [max, measureRail, min, step],
   );
 
   const stepBy = React.useCallback(
@@ -231,6 +260,7 @@ export function ExpandableSlider({
       trackWidth,
       railRef,
       commitValue,
+      measureRail,
       valueFromPointer,
       stepBy,
       setDragging,
@@ -244,6 +274,7 @@ export function ExpandableSlider({
       isExpanded,
       label,
       max,
+      measureRail,
       min,
       step,
       stepBy,
@@ -374,6 +405,7 @@ export function ExpandableSliderTrack({
     dragging,
     label,
     max,
+    measureRail,
     min,
     setDragging,
     stepBy,
@@ -382,10 +414,36 @@ export function ExpandableSliderTrack({
     valueFromPointer,
     valueText,
   } = context;
+  // Measured once at pointerdown and reused for every move of that drag, so a
+  // move is not a forced layout. Anything that can shift the rail mid-drag —
+  // the panel's width transition settling, a scroll, a resize — drops it, and
+  // the next move measures afresh.
+  const dragGeometryRef = React.useRef<RailGeometry | null>(null);
+
+  React.useEffect(() => {
+    if (!dragging) return;
+
+    const invalidate = () => {
+      dragGeometryRef.current = null;
+    };
+
+    window.addEventListener("scroll", invalidate, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("resize", invalidate);
+
+    return () => {
+      window.removeEventListener("scroll", invalidate, { capture: true });
+      window.removeEventListener("resize", invalidate);
+      dragGeometryRef.current = null;
+    };
+  }, [dragging]);
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
 
+    dragGeometryRef.current = null;
     setDragging(false);
 
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
@@ -409,6 +467,11 @@ export function ExpandableSliderTrack({
           "--expandable-slider-panel-width": `${trackWidth + leadInset + tailInset}px`,
         } as React.CSSProperties
       }
+      onTransitionEnd={(event) => {
+        if (event.target === event.currentTarget) {
+          dragGeometryRef.current = null;
+        }
+      }}
     >
       <div
         role="slider"
@@ -443,7 +506,10 @@ export function ExpandableSliderTrack({
           event.currentTarget.setPointerCapture?.(event.pointerId);
           setDragging(true);
 
-          const next = valueFromPointer(event.clientX);
+          const geometry = measureRail() ?? null;
+          dragGeometryRef.current = geometry;
+
+          const next = valueFromPointer(event.clientX, geometry ?? undefined);
 
           if (next !== undefined) {
             commitValue(next);
@@ -454,7 +520,12 @@ export function ExpandableSliderTrack({
 
           if (event.defaultPrevented || !dragging) return;
 
-          const next = valueFromPointer(event.clientX);
+          dragGeometryRef.current ??= measureRail() ?? null;
+
+          const next = valueFromPointer(
+            event.clientX,
+            dragGeometryRef.current ?? undefined,
+          );
 
           if (next !== undefined) {
             commitValue(next);

@@ -155,4 +155,40 @@ describe("RailList", () => {
         ?.getAttribute("data-edge"),
     ).toBe("top");
   });
+
+  it("labels the tablist with aria-labelledby instead of the default label", () => {
+    render(
+      <>
+        <h2 id="chapters-heading">Chapters</h2>
+        <RailList items={items} aria-labelledby="chapters-heading" />
+      </>,
+    );
+
+    const tablist = screen.getByRole("tablist", { name: "Chapters" });
+
+    expect(tablist.getAttribute("aria-labelledby")).toBe("chapters-heading");
+    expect(tablist.hasAttribute("aria-label")).toBe(false);
+    expect(
+      document
+        .querySelector('[data-slot="rail-list"]')
+        ?.hasAttribute("aria-labelledby"),
+    ).toBe(false);
+  });
+
+  it("keeps an explicit aria-label alongside aria-labelledby", () => {
+    render(
+      <RailList items={items} aria-label="Fallback" aria-labelledby="chapters-heading" />,
+    );
+
+    const tablist = screen.getByRole("tablist");
+
+    expect(tablist.getAttribute("aria-label")).toBe("Fallback");
+    expect(tablist.getAttribute("aria-labelledby")).toBe("chapters-heading");
+  });
+
+  it("falls back to the default tablist label", () => {
+    render(<RailList items={items} />);
+
+    expect(screen.getByRole("tablist", { name: "Options" })).toBeTruthy();
+  });
 });

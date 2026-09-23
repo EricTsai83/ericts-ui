@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -15,6 +16,7 @@ import {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const TRACK_WIDTH = 72;
@@ -334,6 +336,71 @@ describe("ExpandableSlider", () => {
     ]);
   });
 
+  it("measures the rail once per drag rather than on every move", () => {
+    const { slider, rail } = renderSlider({ defaultValue: 0, collapseDelay: 0 });
+    const clientXFor = stubRailRect(rail);
+    const rect = vi.mocked(rail.getBoundingClientRect);
+    const computedStyle = vi.spyOn(window, "getComputedStyle");
+    const railStyleReads = () =>
+      computedStyle.mock.calls.filter(([element]) => element === rail).length;
+
+    fireEvent.pointerDown(slider, {
+      button: 0,
+      pointerId: 1,
+      clientX: clientXFor(10),
+    });
+    fireEvent.pointerMove(slider, { pointerId: 1, clientX: clientXFor(40) });
+    fireEvent.pointerMove(slider, { pointerId: 1, clientX: clientXFor(70) });
+
+    expect(slider.getAttribute("aria-valuenow")).toBe("70");
+    expect(rect).toHaveBeenCalledTimes(1);
+    expect(railStyleReads()).toBe(1);
+
+    fireEvent.pointerUp(slider, { pointerId: 1 });
+
+    // A new drag measures again, so a rail that moved in between is honoured.
+    const nextClientXFor = stubRailRect(rail, 200);
+    fireEvent.pointerDown(slider, {
+      button: 0,
+      pointerId: 2,
+      clientX: nextClientXFor(30),
+    });
+
+    expect(slider.getAttribute("aria-valuenow")).toBe("30");
+  });
+
+  it("re-measures mid-drag once something may have moved the rail", () => {
+    const { slider, rail, panel } = renderSlider({
+      defaultValue: 0,
+      collapseDelay: 0,
+    });
+    const clientXFor = stubRailRect(rail);
+
+    fireEvent.pointerDown(slider, {
+      button: 0,
+      pointerId: 1,
+      clientX: clientXFor(10),
+    });
+
+    // The page scrolls sideways under the pointer.
+    const shiftedClientXFor = stubRailRect(rail, 160);
+    fireEvent.scroll(window);
+    fireEvent.pointerMove(slider, {
+      pointerId: 1,
+      clientX: shiftedClientXFor(50),
+    });
+    expect(slider.getAttribute("aria-valuenow")).toBe("50");
+
+    // The expansion transition settles and moves the rail again.
+    const settledClientXFor = stubRailRect(rail, 120);
+    fireEvent.transitionEnd(panel);
+    fireEvent.pointerMove(slider, {
+      pointerId: 1,
+      clientX: settledClientXFor(80),
+    });
+    expect(slider.getAttribute("aria-valuenow")).toBe("80");
+  });
+
   it("reports controlled changes without mutating the value", () => {
     const onValueChange = vi.fn();
     const { slider } = renderSlider({ value: 40, onValueChange });
@@ -352,6 +419,86 @@ describe("ExpandableSlider", () => {
     fireEvent.pointerOut(root);
 
     expect(root.dataset.expanded).toBe("true");
+  });
+
+  it("reports interaction to a controlled parent without echoing its prop", () => {
+    vi.useFakeTimers();
+
+    const onExpandedChange = vi.fn();
+    const { root, rerender } = renderSlider({
+      expanded: false,
+      onExpandedChange,
+    });
+
+    // Mounting is not a change.
+    expect(onExpandedChange).not.toHaveBeenCalled();
+
+    fireEvent.pointerOver(root);
+    expect(onExpandedChange).toHaveBeenLastCalledWith(true);
+    // The prop still decides what renders.
+    expect(root.dataset.expanded).toBe("false");
+
+    fireEvent.pointerOut(root);
+    advanceTimers(COLLAPSE_DELAY);
+    expect(onExpandedChange).toHaveBeenLastCalledWith(false);
+    expect(onExpandedChange).toHaveBeenCalledTimes(2);
+
+    // A parent-driven change is the parent's own; it is not reported back.
+    rerender(
+      <ExpandableSlider
+        label="Volume"
+        defaultValue={50}
+        expanded
+        onExpandedChange={onExpandedChange}
+      >
+        <ExpandableSliderTrigger aria-label="Mute">
+          <span>icon</span>
+        </ExpandableSliderTrigger>
+        <ExpandableSliderTrack />
+      </ExpandableSlider>,
+    );
+    expect(root.dataset.expanded).toBe("true");
+    expect(onExpandedChange).toHaveBeenCalledTimes(2);
+  });
+
+  it("lets a controlled parent follow hover, focus, and drags", () => {
+    function Controlled() {
+      const [expanded, setExpanded] = React.useState(false);
+
+      return (
+        <ExpandableSlider
+          label="Volume"
+          defaultValue={50}
+          collapseDelay={0}
+          expanded={expanded}
+          onExpandedChange={setExpanded}
+        >
+          <ExpandableSliderTrigger aria-label="Mute">
+            <span>icon</span>
+          </ExpandableSliderTrigger>
+          <ExpandableSliderTrack />
+        </ExpandableSlider>
+      );
+    }
+
+    render(<Controlled />);
+
+    const slider = screen.getByRole("slider", { name: "Volume" });
+    const root = slider.closest(
+      "[data-slot='expandable-slider']",
+    ) as HTMLElement;
+
+    fireEvent.pointerOver(root);
+    expect(root.dataset.expanded).toBe("true");
+
+    fireEvent.pointerOut(root);
+    expect(root.dataset.expanded).toBe("false");
+
+    fireEvent.focus(slider);
+    expect(root.dataset.expanded).toBe("true");
+
+    fireEvent.blur(slider, { relatedTarget: document.body });
+    expect(root.dataset.expanded).toBe("false");
   });
 
   it("routes trigger clicks to the consumer", () => {

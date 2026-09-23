@@ -71,6 +71,7 @@ export function ExpandableDialog({
   const titleId = `${reactId}-title`;
   const descriptionId = `${reactId}-description`;
   const dialogRef = React.useRef<HTMLDivElement>(null);
+  const listRef = React.useRef<HTMLUListElement>(null);
   const previouslyFocusedElement = React.useRef<HTMLElement | null>(null);
   const imageDecodePromises = React.useRef(new Map<string, Promise<void>>());
   const decodedImages = React.useRef(new Set<string>());
@@ -188,15 +189,40 @@ export function ExpandableDialog({
   });
 
   const activeItemId = activeItem?.id ?? null;
+  const isOpen = activeItemId !== null;
+
+  // `inert` (not aria-hidden, which leaves the list's buttons focusable) takes
+  // the list out of the tab order and accessibility tree while open. It is
+  // applied here, synchronously after commit, so the trigger is captured and
+  // focus is already inside the dialog before the browser's inert focus fixup
+  // could blur it to <body>. This cleanup runs before the passive effect's
+  // below, so the list is interactive again by the time focus returns to it.
+  React.useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const list = listRef.current;
+
+    previouslyFocusedElement.current = document.activeElement as HTMLElement;
+    dialogRef.current?.focus();
+    list?.toggleAttribute("inert", true);
+
+    return () => {
+      list?.toggleAttribute("inert", false);
+    };
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (activeItemId === null) return;
 
-    previouslyFocusedElement.current = document.activeElement as HTMLElement;
     dialogRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // A nested overlay (select, menu) inside the content that consumed
+        // this Escape marks it handled; closing too would dismiss both.
+        if (event.defaultPrevented) return;
+
+        event.preventDefault();
         closeActiveItemRef.current();
         return;
       }
@@ -371,8 +397,8 @@ export function ExpandableDialog({
         </AnimatePresence>
 
         <ul
+          ref={listRef}
           data-slot="expandable-dialog-list"
-          aria-hidden={activeItem ? true : undefined}
           className={cn("flex w-full max-w-md flex-col gap-2", listClassName)}
         >
           {items.map((item) => (

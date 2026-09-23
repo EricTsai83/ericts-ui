@@ -172,6 +172,24 @@ describe("DemoTabs", () => {
     advance(250);
     expect(scene.progress.get()).toBeCloseTo(0.25);
   });
+  it("keeps advancing when keyboard focus merely passes through the tabs", () => {
+    render(<DemoTabs items={items} />);
+    enter();
+    advance(400);
+    const first = screen.getByRole("tab", { name: "First" });
+    act(() => first.focus());
+    const inspect = screen.getByRole("button", { name: "Inspect First" });
+    act(() => inspect.focus());
+    act(() => inspect.blur());
+    advance(600);
+    expect(
+      screen.getByRole("tab", { name: "Second" }).getAttribute("aria-selected"),
+    ).toBe("true");
+    advance(1000);
+    expect(
+      screen.getByRole("tab", { name: "Third" }).getAttribute("aria-selected"),
+    ).toBe("true");
+  });
   it("freezes offscreen and in a hidden document without catch-up", () => {
     render(<DemoTabs items={items} />);
     enter();

@@ -100,6 +100,10 @@ export function FeedbackPopover({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const timers = React.useRef<number[]>([]);
   const isMountedRef = React.useRef(true);
+  // Bumped on every open/close transition. An `onSubmit` that settles after
+  // its session ended must not flip a reopened popover into success, schedule
+  // a close, or pull focus back to the trigger.
+  const sessionRef = React.useRef(0);
   const shouldReduceMotion = useReducedMotion();
   const isControlled = open !== undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
@@ -155,8 +159,14 @@ export function FeedbackPopover({
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
 
-    if (isOpen && !wasOpen) {
+    if (isOpen !== wasOpen) {
+      sessionRef.current += 1;
+      // Also drops a success-close timer scheduled by a submission that
+      // settled in the same tick as the close.
       clearTimers();
+    }
+
+    if (isOpen && !wasOpen) {
       setFormState("idle");
       setFeedback("");
     }
@@ -165,6 +175,8 @@ export function FeedbackPopover({
   const submitFeedback = React.useCallback(async () => {
     if (!trimmedFeedback || formState !== "idle") return;
 
+    const session = sessionRef.current;
+
     clearTimers();
     setFormState("loading");
 
@@ -172,12 +184,14 @@ export function FeedbackPopover({
       await Promise.all([onSubmit?.(trimmedFeedback), wait(loadingDuration)]);
     } catch (error) {
       if (!isMountedRef.current) return;
-      setFormState("idle");
+      // A stale session still reports the failure, but must not reset the
+      // form state of whatever session is showing now.
+      if (sessionRef.current === session) setFormState("idle");
       onError?.(error);
       return;
     }
 
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current || sessionRef.current !== session) return;
 
     setFormState("success");
     timers.current = [
@@ -225,6 +239,11 @@ export function FeedbackPopover({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // A nested overlay (select, menu) that consumed this Escape marks it
+        // handled; closing here too would dismiss both layers at once.
+        if (event.defaultPrevented) return;
+
+        event.preventDefault();
         closePopover({ restoreFocus: true });
         return;
       }
@@ -306,6 +325,15 @@ export function FeedbackPopover({
               style={{ borderRadius: 12 }}
               className="absolute left-1/2 top-1/2 z-50 h-48 w-(--feedback-popover-width) -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
             >
+              {/* Persistent live region: the visible loading and success views
+                  mount and unmount, which screen readers don't announce. */}
+              <span role="status" aria-live="polite" className="sr-only">
+                {formState === "loading"
+                  ? loadingAnnouncement
+                  : formState === "success"
+                    ? successTitle
+                    : null}
+              </span>
               <motion.span
                 id={titleId}
                 layoutId="feedback-popover-title"
@@ -395,9 +423,13 @@ export function FeedbackPopover({
                       autoFocus
                       required
                       value={feedback}
-                      disabled={formState === "loading"}
+                      // readOnly rather than disabled: disabling the focused
+                      // field would drop focus to <body> mid-submit.
+                      // `submitFeedback` already refuses to run unless idle.
+                      readOnly={formState === "loading"}
+                      aria-disabled={formState === "loading" || undefined}
                       onChange={(event) => setFeedback(event.target.value)}
-                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-base leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-base leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 sm:text-sm"
                     />
 
                     <div className="relative flex items-center justify-end border-t border-dashed bg-muted/30 px-3 py-2.5">

@@ -295,7 +295,9 @@ function toMilliseconds(seconds: number, name: string) {
     throw new RangeError(`${name} must be a finite, non-negative number.`);
   }
 
-  const milliseconds = seconds * 1000;
+  // Round, because float seconds rarely scale to whole ms (16.1 * 1000 is
+  // 16100.000000000002) and a derived duration must not throw.
+  const milliseconds = Math.round(seconds * 1000);
 
   if (!Number.isSafeInteger(milliseconds)) {
     throw new RangeError(`${name} is outside the supported timer range.`);

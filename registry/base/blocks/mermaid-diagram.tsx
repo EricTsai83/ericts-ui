@@ -475,7 +475,7 @@ function MermaidFrame({
     <figure ref={ref} className={cn("my-4 overflow-hidden rounded-xl border bg-card text-card-foreground", className)}>
       <div data-slot="mermaid-diagram-header" className={cn("flex min-h-14 items-center justify-between gap-3 border-b bg-muted/45 px-3 py-2", headerClassName)}>
         <div className="min-w-0">
-          <figcaption data-slot="mermaid-diagram-title" className={cn("truncate text-base font-medium capitalize text-foreground", titleClassName)}>
+          <figcaption data-slot="mermaid-diagram-title" className={cn("truncate text-base font-medium text-foreground", titleClassName)}>
             {title?.trim() || "Mermaid diagram"}
           </figcaption>
           {caption?.trim() ? (
@@ -591,7 +591,7 @@ function SvgViewer({
           >
             <div className="flex min-h-14 items-stretch justify-between border-b bg-card">
               <div className="flex min-w-0 flex-1 flex-col justify-center px-4">
-                <DialogPrimitive.Title className={cn("truncate text-base font-medium capitalize", titleClassName)}>
+                <DialogPrimitive.Title className={cn("truncate text-base font-medium", titleClassName)}>
                   {title?.trim() || "Mermaid diagram"}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description

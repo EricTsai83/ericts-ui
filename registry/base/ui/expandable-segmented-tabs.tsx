@@ -16,6 +16,10 @@ export type ExpandableSegmentedTabsItem = {
   icon: React.ReactNode;
   disabled?: boolean;
   ariaLabel?: string;
+  /** Id applied to the trigger, so a tabpanel can point back via aria-labelledby. */
+  id?: string;
+  /** Id of the tabpanel this trigger controls. */
+  ariaControls?: string;
 };
 
 export type ExpandableSegmentedTabsProps = Omit<
@@ -108,7 +112,8 @@ export function ExpandableSegmentedTabs({
   iconClassName,
   labelClassName,
   indicatorClassName,
-  "aria-label": ariaLabel = "Options",
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: ExpandableSegmentedTabsProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -238,7 +243,8 @@ export function ExpandableSegmentedTabs({
     >
       <div
         role="tablist"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? (ariaLabelledBy ? undefined : "Options")}
+        aria-labelledby={ariaLabelledBy}
         data-slot="expandable-segmented-tabs-list"
         className={cn(
           "flex h-10 w-full items-center gap-1 rounded-xl border bg-muted/70 p-1",
@@ -271,6 +277,8 @@ export function ExpandableSegmentedTabs({
               }}
               type="button"
               role="tab"
+              id={item.id}
+              aria-controls={item.ariaControls}
               aria-selected={isActive}
               aria-label={item.ariaLabel}
               disabled={item.disabled}

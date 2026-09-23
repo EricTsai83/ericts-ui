@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -160,6 +160,66 @@ describe("Like", () => {
     fireEvent.click(control);
     fireEvent.click(control);
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
+  });
+
+  it("does not burst when controlled state turns liked programmatically", () => {
+    const { container, rerender } = render(<Like liked={false} />);
+
+    // e.g. liked state arriving from a fetch or a realtime update.
+    rerender(<Like liked />);
+
+    expect(
+      screen.getByRole("button", { name: "Unlike" }).getAttribute(
+        "aria-pressed",
+      ),
+    ).toBe("true");
+    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+  });
+
+  it("bursts when a controlled parent accepts a click", () => {
+    function ControlledLike() {
+      const [liked, setLiked] = useState(false);
+      return <Like liked={liked} onLikedChange={setLiked} />;
+    }
+
+    const { container } = render(<ControlledLike />);
+    fireEvent.click(screen.getByRole("button", { name: "Like" }));
+
+    expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
+  });
+
+  it("bursts when a non-optimistic parent commits the click later", () => {
+    const { container, rerender } = render(<Like liked={false} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Like" }));
+    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+
+    // e.g. the parent sets `liked` only after the API responds.
+    rerender(<Like liked />);
+    expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
+  });
+
+  it("drops an in-flight burst when unliked mid-burst", () => {
+    function ControlledLike({ forced }: { forced?: boolean }) {
+      const [liked, setLiked] = useState(false);
+      return <Like liked={forced ?? liked} onLikedChange={setLiked} />;
+    }
+
+    const { container, rerender } = render(<ControlledLike />);
+    fireEvent.click(screen.getByRole("button", { name: "Like" }));
+    expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
+
+    rerender(<ControlledLike forced={false} />);
+    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+
+    // Returning to the parent's liked state is programmatic — no replay.
+    rerender(<ControlledLike />);
+    expect(
+      screen.getByRole("button", { name: "Unlike" }).getAttribute(
+        "aria-pressed",
+      ),
+    ).toBe("true");
+    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
   });
 
   it("ignores clicks while disabled", () => {

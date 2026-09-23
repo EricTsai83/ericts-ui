@@ -29,6 +29,16 @@ afterEach(() => {
 });
 
 describe("useTimer", () => {
+  it("accepts fractional seconds that do not scale to whole milliseconds", () => {
+    // 16.1 * 1000 === 16100.000000000002 in floating point.
+    expect(() =>
+      render(
+        <TimerValue direction="down" initialSeconds={16.1} endSeconds={0} />,
+      ),
+    ).not.toThrow();
+    expect(screen.getByRole("status", { hidden: true }).textContent).toBe("17");
+  });
+
   it("uses a deadline instead of counting ticks", () => {
     render(
       <TimerValue direction="down" initialSeconds={10} endSeconds={0} />,

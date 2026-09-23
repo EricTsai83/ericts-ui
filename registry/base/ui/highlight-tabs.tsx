@@ -58,7 +58,8 @@ export function HighlightTabs({
   listClassName,
   tabClassName,
   indicatorClassName,
-  "aria-label": ariaLabel = "Tabs",
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: HighlightTabsProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -150,7 +151,8 @@ export function HighlightTabs({
       <LayoutGroup id={layoutId}>
         <ul
           role="tablist"
-          aria-label={ariaLabel}
+          aria-label={ariaLabel ?? (ariaLabelledBy ? undefined : "Tabs")}
+          aria-labelledby={ariaLabelledBy}
           aria-orientation="horizontal"
           data-slot="highlight-tabs-list"
           className={cn(

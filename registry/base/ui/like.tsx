@@ -73,6 +73,7 @@ export function Like({
   const controlled = liked !== undefined;
   const isLiked = controlled ? liked : internalLiked;
   const previousLikedRef = React.useRef(isLiked);
+  const likeIntentRef = React.useRef(false);
   const [burstId, setBurstId] = React.useState(0);
   const [burstActive, setBurstActive] = React.useState(false);
   const settledParticlesRef = React.useRef(0);
@@ -87,11 +88,24 @@ export function Like({
       typeof iconSize === "number" ? `${iconSize}px` : iconSize;
   }
 
+  // A burst only belongs to a liked heart, so unliking mid-burst drops it.
+  if (burstActive && !isLiked) {
+    setBurstActive(false);
+  }
+
+  // The burst celebrates user intent: it plays when `isLiked` turns true after
+  // a click asked for it — immediately for optimistic parents, or once a
+  // non-optimistic parent commits the result — but never for controlled state
+  // arriving from a fetch or a realtime update.
   React.useEffect(() => {
-    if (!previousLikedRef.current && isLiked) {
+    if (!previousLikedRef.current && isLiked && likeIntentRef.current) {
       settledParticlesRef.current = 0;
       setBurstId((current) => current + 1);
       setBurstActive(true);
+    }
+
+    if (previousLikedRef.current !== isLiked) {
+      likeIntentRef.current = false;
     }
 
     previousLikedRef.current = isLiked;
@@ -110,6 +124,8 @@ export function Like({
       if (!controlled) {
         setInternalLiked(nextLiked);
       }
+
+      likeIntentRef.current = nextLiked;
 
       onLikedChange?.(nextLiked);
     }, [controlled, disabled, isLiked, onClick, onLikedChange],
