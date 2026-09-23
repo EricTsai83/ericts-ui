@@ -43,12 +43,20 @@ export type LikeProps = Omit<
    * `--like-duration` custom property, which can also be set in CSS.
    */
   duration?: number;
+  /**
+   * CSS `<position>` the fill circle grows from, relative to the heart, e.g.
+   * `"50% 100%"` or `"left top"`. Defaults to the heart's visual center
+   * (`50% 45%`) via the `--like-fill-origin` custom property, which can also
+   * be set in CSS.
+   */
+  fillOrigin?: string;
   /** Classes applied to the heart and burst wrapper. */
   iconClassName?: string;
 };
 
 type LikeStyle = React.CSSProperties & {
   "--like-duration"?: string;
+  "--like-fill-origin"?: string;
   "--like-size"?: string;
 };
 
@@ -62,6 +70,7 @@ export function Like({
   children,
   iconSize,
   duration,
+  fillOrigin,
   className,
   iconClassName,
   disabled,
@@ -81,6 +90,10 @@ export function Like({
 
   if (duration !== undefined) {
     likeStyle["--like-duration"] = `${duration}ms`;
+  }
+
+  if (fillOrigin !== undefined) {
+    likeStyle["--like-fill-origin"] = fillOrigin;
   }
 
   if (iconSize !== undefined) {

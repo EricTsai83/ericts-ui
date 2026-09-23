@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { ClickHint } from "@/components/previews/click-hint";
 import { SlidingPlayButton } from "@/registry/base/ui/sliding-play-button";
 
 export default function Preview() {
@@ -9,7 +10,10 @@ export default function Preview() {
 
   return (
     <div className="flex min-h-40 w-full items-center justify-center">
-      <SlidingPlayButton playing={playing} onPlayingChange={setPlaying} />
+      <div className="relative flex items-center">
+        <ClickHint />
+        <SlidingPlayButton playing={playing} onPlayingChange={setPlaying} />
+      </div>
     </div>
   );
 }

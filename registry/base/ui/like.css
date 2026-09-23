@@ -5,8 +5,10 @@
     --like-color: var(--destructive);
     --like-size: 32px;
     --like-duration: 350ms;
+    /* Where the fill circle grows from. 45% sits on the heart's visual
+       center: its mass is in the two lobes, not the bottom point. */
+    --like-fill-origin: 50% 45%;
     --like-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-    --like-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   }
 
   .like-icon {
@@ -44,8 +46,8 @@
 
   .like-heart-fill {
     color: var(--like-color);
-    clip-path: circle(0% at 50% 55%);
-    transition: clip-path 160ms var(--like-ease-in-out);
+    clip-path: circle(0% at var(--like-fill-origin));
+    transition: clip-path 160ms var(--like-ease-out);
   }
 
   .like[data-liked="true"] .like-heart-outline {
@@ -54,7 +56,7 @@
   }
 
   .like[data-liked="true"] .like-heart-fill {
-    clip-path: circle(75% at 50% 55%);
+    clip-path: circle(150% at var(--like-fill-origin));
   }
 
   .like-burst {
