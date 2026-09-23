@@ -52,6 +52,8 @@ export type MermaidDiagramClassNames = {
   error?: string;
 };
 
+export type MermaidDiagramTool = "zoom-in" | "zoom-out" | "reset" | "fullscreen";
+
 export interface MermaidDiagramProps {
   chart: string;
   responsiveChart?: MermaidResponsiveChart;
@@ -61,7 +63,14 @@ export interface MermaidDiagramProps {
   meta?: string;
   config?: MermaidConfig;
   isIncomplete?: boolean;
-  fullscreen?: boolean;
+  /**
+   * Header buttons for the inline diagram; omit one to hide it. Zoom tools
+   * render in the given order and only while `inlineZoom` is on; the
+   * fullscreen button always sits last, and leaving it out removes the
+   * fullscreen viewer. The fullscreen toolbar always keeps every zoom tool.
+   */
+  tools?: readonly MermaidDiagramTool[];
+  inlineZoom?: boolean;
   wheelZoom?: boolean;
   initialZoom?: number;
   minZoom?: number;
@@ -90,6 +99,12 @@ export type DiagramViewportControls = {
 export interface DiagramViewportProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: ReactNode;
   controlsRef?: Ref<DiagramViewportControls>;
+  /**
+   * For viewports that sit inside a scrolling page: plain wheel and touch
+   * gestures scroll the page, while ctrl/⌘+wheel (and trackpad pinch) zoom and
+   * mouse or pen drags pan.
+   */
+  embedded?: boolean;
   initialZoom?: number;
   interactive?: boolean;
   maxZoom?: number;
@@ -138,6 +153,8 @@ const DEFAULT_MERMAID_CONFIG: MermaidConfig = {
   suppressErrorRendering: true,
 };
 
+const DEFAULT_TOOLS: readonly MermaidDiagramTool[] = ["zoom-in", "zoom-out", "reset", "fullscreen"];
+const FULLSCREEN_TOOLS: readonly MermaidDiagramTool[] = ["zoom-in", "zoom-out", "reset"];
 const DEFAULT_MIN_ZOOM = 0.5;
 const DEFAULT_MAX_ZOOM = 4;
 const DEFAULT_ZOOM_STEP = 0.25;
@@ -262,7 +279,8 @@ export function MermaidDiagram({
   meta,
   config = EMPTY_MERMAID_CONFIG,
   isIncomplete = false,
-  fullscreen = true,
+  tools = DEFAULT_TOOLS,
+  inlineZoom = true,
   wheelZoom = true,
   initialZoom = 1,
   minZoom = DEFAULT_MIN_ZOOM,
@@ -333,7 +351,8 @@ export function MermaidDiagram({
         isRefreshing={renderState.status === "loading"}
         title={title}
         caption={caption}
-        fullscreen={fullscreen}
+        tools={tools}
+        inlineZoom={inlineZoom}
         wheelZoom={wheelZoom}
         initialZoom={initialZoom}
         minZoom={minZoom}
@@ -498,7 +517,8 @@ function SvgViewer({
   isRefreshing,
   title,
   caption,
-  fullscreen,
+  tools,
+  inlineZoom,
   wheelZoom,
   initialZoom,
   minZoom,
@@ -516,7 +536,8 @@ function SvgViewer({
   isRefreshing: boolean;
   title?: string;
   caption?: string;
-  fullscreen: boolean;
+  tools: readonly MermaidDiagramTool[];
+  inlineZoom: boolean;
   wheelZoom: boolean;
   initialZoom: number;
   minZoom: number;
@@ -532,7 +553,10 @@ function SvgViewer({
   const [open, setOpen] = useState(false);
   const [animateFullscreen, setAnimateFullscreen] = useState(true);
   const controlsRef = useRef<DiagramViewportControls | null>(null);
+  const inlineControlsRef = useRef<DiagramViewportControls | null>(null);
   const label = title?.trim() ? `${title} diagram` : "Mermaid diagram";
+  const fullscreen = tools.includes("fullscreen");
+  const inlineTools = inlineZoom ? [...new Set(tools)].filter((tool) => tool !== "fullscreen") : [];
   useFullscreenDocumentScrollLock(open);
 
   return (
@@ -547,21 +571,36 @@ function SvgViewer({
         titleClassName={titleClassName}
         captionClassName={captionClassName}
         actionsClassName={toolbarClassName}
-        actions={fullscreen ? (
-          <Button
-            aria-label="View diagram fullscreen"
-            onClick={(event) => {
-              setAnimateFullscreen(event.detail > 0);
-              setOpen(true);
-            }}
-            variant="ghost"
-            size="icon"
-          >
-            <Maximize2 />
-          </Button>
-        ) : null}
+        actions={
+          <>
+            {inlineTools.length > 0 ? <ViewerToolbar controlsRef={inlineControlsRef} tools={inlineTools} /> : null}
+            {fullscreen ? (
+              <Button
+                aria-label="View diagram fullscreen"
+                onClick={(event) => {
+                  setAnimateFullscreen(event.detail > 0);
+                  setOpen(true);
+                }}
+                variant="ghost"
+                size="icon"
+              >
+                <Maximize2 />
+              </Button>
+            ) : null}
+          </>
+        }
       >
-        <DiagramViewport interactive={false} className={cn("min-h-48", viewportClassName)}>
+        <DiagramViewport
+          controlsRef={inlineControlsRef}
+          interactive={inlineZoom}
+          embedded
+          wheelZoom={wheelZoom}
+          initialZoom={initialZoom}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+          zoomStep={zoomStep}
+          className={cn("min-h-48", viewportClassName)}
+        >
           <SvgMount svgHtml={svgHtml} ariaLabel={label} />
         </DiagramViewport>
       </MermaidFrame>
@@ -601,7 +640,7 @@ function SvgViewer({
                 </DialogPrimitive.Description>
               </div>
               <div className="flex shrink-0 items-stretch">
-                <ViewerToolbar controlsRef={controlsRef} className={cn("px-3", toolbarClassName)} />
+                <ViewerToolbar controlsRef={controlsRef} tools={FULLSCREEN_TOOLS} className={cn("px-3", toolbarClassName)} />
                 <Separator
                   orientation="vertical"
                   className="w-px bg-foreground/20"
@@ -669,13 +708,30 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
   );
 }
 
-function ViewerToolbar({ controlsRef, className }: { controlsRef: RefObject<DiagramViewportControls | null>; className?: string }) {
+function ViewerToolbar({
+  controlsRef,
+  tools,
+  className,
+}: {
+  controlsRef: RefObject<DiagramViewportControls | null>;
+  tools: readonly MermaidDiagramTool[];
+  className?: string;
+}) {
   const getControls = () => controlsRef.current;
   return (
     <div className={cn("flex shrink-0 items-center gap-1", className)}>
-      <IconButton label="Zoom in" onClick={() => getControls()?.zoomIn()}><ZoomIn /></IconButton>
-      <IconButton label="Zoom out" onClick={() => getControls()?.zoomOut()}><ZoomOut /></IconButton>
-      <IconButton label="Reset diagram view" onClick={() => getControls()?.reset()}><RotateCcw /></IconButton>
+      {tools.map((tool) => {
+        switch (tool) {
+          case "zoom-in":
+            return <IconButton key={tool} label="Zoom in" onClick={() => getControls()?.zoomIn()}><ZoomIn /></IconButton>;
+          case "zoom-out":
+            return <IconButton key={tool} label="Zoom out" onClick={() => getControls()?.zoomOut()}><ZoomOut /></IconButton>;
+          case "reset":
+            return <IconButton key={tool} label="Reset diagram view" onClick={() => getControls()?.reset()}><RotateCcw /></IconButton>;
+          default:
+            return null;
+        }
+      })}
     </div>
   );
 }
@@ -688,6 +744,7 @@ function setRefValue<T>(ref: Ref<T> | undefined, value: T | null) {
 export function DiagramViewport({
   children,
   controlsRef,
+  embedded = false,
   initialZoom = 1,
   interactive = true,
   maxZoom = DEFAULT_MAX_ZOOM,
@@ -784,6 +841,9 @@ export function DiagramViewport({
     if (!node || !interactive || !wheelZoom) return;
 
     const handleWheel = (event: WheelEvent) => {
+      // Inside a page, an unmodified wheel is the reader scrolling past the
+      // diagram, not asking to zoom it.
+      if (embedded && !event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       const deltaY =
         event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 16
@@ -806,7 +866,7 @@ export function DiagramViewport({
 
     node.addEventListener("wheel", handleWheel, { passive: false });
     return () => node.removeEventListener("wheel", handleWheel);
-  }, [getViewportPoint, interactive, wheelZoom, zoomAtPoint]);
+  }, [embedded, getViewportPoint, interactive, wheelZoom, zoomAtPoint]);
 
   useEffect(() => () => {
     if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
@@ -826,6 +886,8 @@ export function DiagramViewport({
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     onPointerDown?.(event);
     if (!interactive || event.defaultPrevented || event.button !== 0) return;
+    // Touch keeps scrolling the page; fullscreen is where fingers pan and pinch.
+    if (embedded && event.pointerType === "touch") return;
     event.currentTarget.setPointerCapture(event.pointerId);
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     setIsGesturing(true);
@@ -925,16 +987,20 @@ export function DiagramViewport({
   return (
     <div
       role={interactive ? "group" : undefined}
-      aria-label={interactive ? "Diagram viewport. Drag or use arrow keys to pan, pinch or press plus and minus to zoom, 0 to reset." : undefined}
+      aria-label={
+        !interactive ? undefined
+        : embedded ? "Diagram viewport. Drag or use arrow keys to pan, press plus and minus to zoom, 0 to reset."
+        : "Diagram viewport. Drag or use arrow keys to pan, pinch or press plus and minus to zoom, 0 to reset."
+      }
       tabIndex={interactive ? 0 : undefined}
       {...props}
       ref={setViewportNode}
-      data-mermaid-viewport={interactive ? "interactive" : "static"}
+      data-mermaid-viewport={!interactive ? "static" : embedded ? "embedded" : "interactive"}
       className={cn(
         "relative flex overflow-hidden bg-background",
-        interactive
-          ? "cursor-grab touch-none select-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:outline-none"
-          : "touch-auto",
+        interactive &&
+          "cursor-grab select-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset focus-visible:outline-none",
+        interactive && !embedded ? "touch-none" : "touch-auto",
         className,
       )}
       onPointerDown={handlePointerDown}
@@ -955,7 +1021,8 @@ export function DiagramViewport({
         style={{
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
           transition: isGesturing || reducedMotion ? "none" : "transform 120ms ease-out",
-          willChange: interactive ? "transform" : undefined,
+          // A page can hold many inline diagrams; only promote those in motion.
+          willChange: interactive && (!embedded || isGesturing) ? "transform" : undefined,
         }}
       >
         {children}

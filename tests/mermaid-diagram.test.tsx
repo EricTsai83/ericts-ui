@@ -124,6 +124,60 @@ describe("MermaidDiagram", () => {
     expect(screen.getByText("Explicit caption").className).toContain("text-sm");
   });
 
+  it("zooms the inline diagram from the header toolbar", async () => {
+    const { container } = render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
+
+    fireEvent.click(within(header).getByRole("button", { name: "Zoom in" }));
+    expect(getTransformScale(container)).toBe(1.25);
+
+    fireEvent.click(within(header).getByRole("button", { name: "Reset diagram view" }));
+    expect(getTransformScale(container)).toBe(1);
+  });
+
+  it("keeps the inline diagram static when inlineZoom is false", async () => {
+    const { container } = render(<MermaidDiagram chart={"flowchart LR\nA --> B"} inlineZoom={false} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
+    expect(container.querySelector<HTMLElement>("[data-mermaid-viewport]")?.dataset.mermaidViewport).toBe("static");
+  });
+
+  it("shows only the header tools that are listed", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={["reset", "zoom-in"]} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
+    const labels = within(header).getAllByRole("button").map((button) => button.getAttribute("aria-label"));
+    expect(labels).toEqual(["Reset diagram view", "Zoom in"]);
+  });
+
+  it("keeps every zoom tool in fullscreen when inline shows only the fullscreen button", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={["fullscreen"]} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
+    expect(within(header).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+      "View diagram fullscreen",
+    ]);
+
+    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
+    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]')!;
+    expect(within(fullscreen).getByRole("button", { name: "Zoom in" })).toBeTruthy();
+    expect(within(fullscreen).getByRole("button", { name: "Zoom out" })).toBeTruthy();
+    expect(within(fullscreen).getByRole("button", { name: "Reset diagram view" })).toBeTruthy();
+  });
+
+  it("drops the fullscreen viewer when its tool is left out", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={[]} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "View diagram fullscreen" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
+  });
+
   it("hides the caption when showCaption is false, even when supplied via fence metadata", async () => {
     render(
       <MermaidDiagram
@@ -370,6 +424,45 @@ describe("DiagramViewport", () => {
       flushFrames();
     });
     expect(getTransformScale(container)!).toBeLessThan(zoomedScale!);
+  });
+
+  it("leaves plain wheel and touch to the page when embedded", () => {
+    const flushFrames = stubAnimationFrames();
+
+    const { container } = render(<DiagramViewport embedded>diagram</DiagramViewport>);
+    const viewport = container.querySelector<HTMLElement>("[data-mermaid-viewport]")!;
+    viewport.setPointerCapture = vi.fn();
+    viewport.releasePointerCapture = vi.fn();
+    viewport.hasPointerCapture = vi.fn(() => false);
+    expect(viewport.dataset.mermaidViewport).toBe("embedded");
+    expect(viewport.className).toContain("touch-auto");
+
+    const plainWheel = new WheelEvent("wheel", { deltaY: -300, bubbles: true, cancelable: true });
+    act(() => {
+      viewport.dispatchEvent(plainWheel);
+      flushFrames();
+    });
+    expect(plainWheel.defaultPrevented).toBe(false);
+    expect(getTransformScale(container)).toBe(1);
+
+    const pinchWheel = new WheelEvent("wheel", { deltaY: -100, ctrlKey: true, bubbles: true, cancelable: true });
+    act(() => {
+      viewport.dispatchEvent(pinchWheel);
+      flushFrames();
+    });
+    expect(pinchWheel.defaultPrevented).toBe(true);
+    expect(getTransformScale(container)!).toBeGreaterThan(1);
+
+    const zoomed = getContentTransform(container);
+    fireEvent.pointerDown(viewport, { pointerId: 1, pointerType: "touch", clientX: 0, clientY: 0, button: 0 });
+    fireEvent.pointerMove(viewport, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    fireEvent.pointerUp(viewport, { pointerId: 1, pointerType: "touch" });
+    expect(getContentTransform(container)).toBe(zoomed);
+
+    fireEvent.pointerDown(viewport, { pointerId: 2, pointerType: "mouse", clientX: 0, clientY: 0, button: 0 });
+    fireEvent.pointerMove(viewport, { pointerId: 2, pointerType: "mouse", clientX: 30, clientY: 10 });
+    fireEvent.pointerUp(viewport, { pointerId: 2, pointerType: "mouse" });
+    expect(getContentTransform(container)).not.toBe(zoomed);
   });
 
   it("supports keyboard panning, zooming, and reset", () => {
