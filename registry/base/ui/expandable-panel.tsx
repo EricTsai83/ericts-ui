@@ -266,7 +266,7 @@ export function ExpandablePanel({
             aria-label={isOpen ? closeLabel : openLabel}
             onClick={() => setOpen(!isOpen)}
             className={cn(
-              "extend-touch-target absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none",
+              "absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none pointer-coarse:touch-manipulation pointer-coarse:after:absolute pointer-coarse:after:-inset-2",
               classNames?.trigger,
             )}
           >

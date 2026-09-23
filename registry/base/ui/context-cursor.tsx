@@ -48,7 +48,7 @@ type ContextCursorContextValue = {
     cursor: ContextCursorState,
     targetId: string,
     point?: CursorPoint,
-    targetBounds?: DOMRectReadOnly,
+    targetElement?: Element,
     targetAnimation?: ContextCursorTargetAnimation,
   ) => void;
   hideCursor: (targetId?: string, point?: CursorPoint) => void;
@@ -143,6 +143,11 @@ export function ContextCursor({
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const bounds = React.useRef<DOMRectReadOnly | null>(null);
   const activeTargetBounds = React.useRef<DOMRectReadOnly | null>(null);
+  const activeTargetElement = React.useRef<Element | null>(null);
+  // Set when a scroll or resize moves layout under a still pointer, so the
+  // cached wrapper/target rects above are re-read on the next frame.
+  const measurementsStale = React.useRef(false);
+  const lastPointer = React.useRef<CursorPoint | null>(null);
   const activeTargetAnimation =
     React.useRef<ContextCursorTargetAnimation | null>(null);
   const hideTimer = React.useRef<number | null>(null);
@@ -317,6 +322,26 @@ export function ContextCursor({
 
         if (!nextFrame) return;
 
+        if (measurementsStale.current) {
+          measurementsStale.current = false;
+
+          const freshWrapperBounds =
+            wrapperRef.current?.getBoundingClientRect() ??
+            nextFrame.wrapperBounds;
+          const targetElement = activeTargetElement.current;
+          const freshTargetBounds =
+            targetElement?.getBoundingClientRect() ?? null;
+
+          bounds.current = freshWrapperBounds;
+          activeTargetBounds.current = freshTargetBounds;
+          updatePointerPosition(
+            nextFrame.point,
+            freshWrapperBounds,
+            freshTargetBounds,
+          );
+          return;
+        }
+
         updatePointerPosition(
           nextFrame.point,
           nextFrame.wrapperBounds,
@@ -332,10 +357,12 @@ export function ContextCursor({
       nextCursor: ContextCursorState,
       targetId: string,
       point?: CursorPoint,
-      targetBounds?: DOMRectReadOnly,
+      targetElement?: Element,
       targetAnimation?: ContextCursorTargetAnimation,
     ) => {
       if (isDisabled) return;
+
+      const targetBounds = targetElement?.getBoundingClientRect();
 
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current);
@@ -344,6 +371,8 @@ export function ContextCursor({
 
       activeTargetId.current = targetId;
       activeTargetBounds.current = targetBounds ?? null;
+      activeTargetElement.current = targetElement ?? null;
+      if (point) lastPointer.current = point;
       activeTargetAnimation.current = targetAnimation ?? null;
       setCursor(nextCursor);
 
@@ -379,6 +408,7 @@ export function ContextCursor({
 
       const currentAnimation = getAnimation(activeTargetAnimation.current);
       activeTargetBounds.current = null;
+      activeTargetElement.current = null;
       activeTargetAnimation.current = null;
 
       if (hideTimer.current) {
@@ -441,7 +471,10 @@ export function ContextCursor({
     latestPointerFrame.current = null;
     activeTargetId.current = null;
     activeTargetBounds.current = null;
+    activeTargetElement.current = null;
     activeTargetAnimation.current = null;
+    measurementsStale.current = false;
+    lastPointer.current = null;
     bounds.current = null;
     const currentAnimation = getAnimation(null);
     opacity.set(currentAnimation.hiddenOpacity);
@@ -473,14 +506,56 @@ export function ContextCursor({
 
       const currentBounds =
         bounds.current ?? event.currentTarget.getBoundingClientRect();
+      const point = { x: event.clientX, y: event.clientY };
 
-      schedulePointerPosition(
-        { x: event.clientX, y: event.clientY },
-        currentBounds,
-      );
+      lastPointer.current = point;
+      schedulePointerPosition(point, currentBounds);
     },
     [isDisabled, schedulePointerPosition],
   );
+
+  const schedulePointerPositionRef = React.useRef(schedulePointerPosition);
+
+  React.useEffect(() => {
+    schedulePointerPositionRef.current = schedulePointerPosition;
+  });
+
+  const hasCursor = cursor !== null;
+
+  // Wrapper and target rects are cached on enter, so scrolling (or resizing)
+  // without moving the pointer would leave them stale and the badge pinned to
+  // the old spot. Only while a badge is live: mark the rects stale and replay
+  // the last pointer position through the rAF, which re-measures once per
+  // frame at most.
+  React.useEffect(() => {
+    if (isDisabled || !hasCursor) return;
+
+    const invalidateMeasurements = () => {
+      measurementsStale.current = true;
+
+      const point = lastPointer.current;
+      const wrapperBounds = bounds.current;
+
+      if (point && wrapperBounds && activeTargetElement.current) {
+        schedulePointerPositionRef.current(point, wrapperBounds);
+      }
+    };
+    const scrollOptions = { capture: true, passive: true } as const;
+
+    window.addEventListener("scroll", invalidateMeasurements, scrollOptions);
+    window.addEventListener("resize", invalidateMeasurements, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        invalidateMeasurements,
+        scrollOptions,
+      );
+      window.removeEventListener("resize", invalidateMeasurements);
+    };
+  }, [hasCursor, isDisabled]);
 
   const handlePointerLeave = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -488,6 +563,7 @@ export function ContextCursor({
 
       hideCursor(undefined, { x: event.clientX, y: event.clientY });
       bounds.current = null;
+      lastPointer.current = null;
     },
     [hideCursor],
   );
@@ -753,7 +829,7 @@ export function ContextCursorTarget({
               x: event.clientX,
               y: event.clientY,
             },
-            event.currentTarget.getBoundingClientRect(),
+            event.currentTarget,
             animation,
           );
         }

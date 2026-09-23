@@ -232,4 +232,40 @@ describe("SlidingList", () => {
     expect(onItemPointerEnter).toHaveBeenCalledWith(relatedItems[0]);
     expect(onItemFocus).toHaveBeenCalledWith(relatedItems[0]);
   });
+
+  it("labels the tablist with aria-labelledby instead of the default label", () => {
+    render(
+      <>
+        <h2 id="services-heading">Services</h2>
+        <SlidingList items={items} aria-labelledby="services-heading" />
+      </>,
+    );
+
+    const tablist = screen.getByRole("tablist", { name: "Services" });
+
+    expect(tablist.getAttribute("aria-labelledby")).toBe("services-heading");
+    expect(tablist.hasAttribute("aria-label")).toBe(false);
+    expect(
+      document
+        .querySelector('[data-slot="sliding-list"]')
+        ?.hasAttribute("aria-labelledby"),
+    ).toBe(false);
+  });
+
+  it("keeps an explicit aria-label alongside aria-labelledby", () => {
+    render(
+      <SlidingList items={items} aria-label="Fallback" aria-labelledby="services-heading" />,
+    );
+
+    const tablist = screen.getByRole("tablist");
+
+    expect(tablist.getAttribute("aria-label")).toBe("Fallback");
+    expect(tablist.getAttribute("aria-labelledby")).toBe("services-heading");
+  });
+
+  it("falls back to the default tablist label", () => {
+    render(<SlidingList items={items} />);
+
+    expect(screen.getByRole("tablist", { name: "Options" })).toBeTruthy();
+  });
 });

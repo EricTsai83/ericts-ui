@@ -15,6 +15,15 @@ export type ProjectedShadowOffset = {
   y?: ProjectedShadowLengthValue;
 };
 
+/**
+ * Note: `children` is rendered up to three times — once in each decorative
+ * shadow layer (projected and contact) and once as the visible target. The
+ * shadow copies are `aria-hidden` and `inert`, so interactive children are not
+ * duplicated as tab stops, but anything carrying an `id`, or a heavy node like
+ * an `img`/`video`, is still duplicated in the DOM. Pass a lightweight `shadow`
+ * to decouple the layers, or set `animated={false}` (or hide both layers) to
+ * render `children` only once.
+ */
 export type ProjectedShadowProps = React.ComponentProps<"span"> & {
   /** Keep the gathered state active without requiring hover. */
   active?: boolean;
@@ -98,6 +107,7 @@ export function ProjectedShadow({
       {animated && showProjectedShadow ? (
         <span
           aria-hidden="true"
+          inert
           data-slot="projected-shadow-projected"
           className={cn(
             "projected-shadow-layer projected-shadow-projected pointer-events-none absolute inset-0 z-0 inline-flex text-current",
@@ -111,6 +121,7 @@ export function ProjectedShadow({
       {animated && showContactShadow ? (
         <span
           aria-hidden="true"
+          inert
           data-slot="projected-shadow-contact"
           className={cn(
             "projected-shadow-layer projected-shadow-contact pointer-events-none absolute inset-0 z-0 inline-flex text-current",

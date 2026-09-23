@@ -44,7 +44,9 @@ type HeartbeatTransition = NonNullable<HTMLMotionProps<"span">["transition"]>;
  * Note: `children` is rendered twice — once as the blurred shadow layer and
  * once as the visible target. Keep it a simple icon or glyph: anything
  * carrying an `id`, or a heavy node like an `img`/`video`, would be duplicated
- * in the DOM. Set `showShadow={false}` to render it only once.
+ * in the DOM. The shadow copy is `aria-hidden` and `inert`, so interactive
+ * children never become an extra tab stop. Set `showShadow={false}` to render
+ * it only once.
  */
 export type HeartbeatProps = React.ComponentProps<"span"> & {
   /** Classes applied to the visible animated child wrapper. */
@@ -81,6 +83,7 @@ export function Heartbeat({
       {showShadow ? (
         <motion.span
           aria-hidden="true"
+          inert
           data-slot="heartbeat-shadow"
           className={cn(
             "pointer-events-none absolute inset-0 z-0 text-current blur-[5px]",

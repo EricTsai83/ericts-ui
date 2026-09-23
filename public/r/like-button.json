@@ -3,6 +3,9 @@
   "name": "like-button",
   "title": "Like Button",
   "description": "A ready-made labeled action built from the composable Like primitive.",
+  "dependencies": [
+    "class-variance-authority"
+  ],
   "registryDependencies": [
     "button",
     "https://ui.ericts.com/r/like.json"
@@ -12,7 +15,7 @@
       "path": "registry/base/ui/like-button.tsx",
       "content": "\"use client\";\n\nimport type { VariantProps } from \"class-variance-authority\";\n\nimport { buttonVariants } from \"@/components/ui/button\";\nimport { cn } from \"@/lib/utils\";\n\nimport { Like, type LikeProps } from \"./like\";\n\nexport type LikeButtonProps = LikeProps & VariantProps<typeof buttonVariants>;\n\n/** A ready-made labeled button built from the composable Like primitive. */\nexport function LikeButton({\n  children = \"Like\",\n  className,\n  iconSize = 16,\n  size = \"default\",\n  variant = \"outline\",\n  ...props\n}: LikeButtonProps) {\n  return (\n    <Like\n      className={cn(buttonVariants({ variant, size }), className)}\n      iconSize={iconSize}\n      {...props}\n    >\n      {children}\n    </Like>\n  );\n}\n",
       "type": "registry:ui",
-      "target": "components/ui/like-button.tsx"
+      "target": "@ui/like-button.tsx"
     }
   ],
   "meta": {

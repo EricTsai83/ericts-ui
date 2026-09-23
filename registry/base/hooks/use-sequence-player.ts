@@ -204,21 +204,28 @@ export function useSequencePlayer({
     !focusPaused &&
     count > 0;
 
+  // The timer depends only on primitives derived from the active script, never
+  // on the `sequences` array itself. A parent that re-renders with a new-but-equal
+  // inline array would otherwise restart the beat on every render and starve it
+  // forever; a real change to the active script's steps or current dwell still
+  // restarts it with the new values.
+  const activeIndex = count > 0 ? playback.index % count : 0;
+  const activeScript = count > 0 ? sequences[activeIndex] : undefined;
+  const activeSteps = activeScript?.steps;
+  const delay = activeScript
+    ? playback.stepsFired === 0
+      ? leadInMs
+      : resolveDwell(activeScript.stepMs, playback.stepsFired - 1)
+    : undefined;
+  const { stepsFired, mode } = playback;
+
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || activeSteps === undefined || delay === undefined) return;
 
-    const index = playback.index % count;
-    const script = sequences[index];
-
-    if (!script) return;
-
-    const delay =
-      playback.stepsFired === 0
-        ? leadInMs
-        : resolveDwell(script.stepMs, playback.stepsFired - 1);
+    const index = activeIndex;
 
     const timeout = setTimeout(() => {
-      if (playback.stepsFired < script.steps) {
+      if (stepsFired < activeSteps) {
         fire(index);
         setPlayback((current) => ({
           ...current,
@@ -227,7 +234,7 @@ export function useSequencePlayer({
         return;
       }
 
-      if (playback.mode === "taken" && loopTakeOver) {
+      if (mode === "taken" && loopTakeOver) {
         fire(index);
         setPlayback((current) => ({ ...current, stepsFired: 1 }));
         return;
@@ -240,7 +247,17 @@ export function useSequencePlayer({
     }, delay);
 
     return () => clearTimeout(timeout);
-  }, [count, fire, isPlaying, leadInMs, loopTakeOver, playback, sequences]);
+  }, [
+    activeIndex,
+    activeSteps,
+    count,
+    delay,
+    fire,
+    isPlaying,
+    loopTakeOver,
+    mode,
+    stepsFired,
+  ]);
 
   const takeOver = useCallback(
     (index: number) => {
@@ -280,8 +297,8 @@ export function useSequencePlayer({
       },
       onPointerLeave: release,
     },
-    activeIndex: count > 0 ? playback.index % count : 0,
-    stepsFired: playback.stepsFired,
+    activeIndex,
+    stepsFired,
     runs,
     isPlaying,
     dwellMs,

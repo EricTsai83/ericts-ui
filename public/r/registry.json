@@ -24,7 +24,7 @@
         {
           "path": "registry/base/ui/smooth-height.tsx",
           "type": "registry:ui",
-          "target": "components/ui/smooth-height.tsx"
+          "target": "@ui/smooth-height.tsx"
         }
       ]
     },
@@ -48,7 +48,7 @@
         {
           "path": "registry/base/ui/copy-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/copy-button.tsx"
+          "target": "@ui/copy-button.tsx"
         }
       ]
     },
@@ -76,7 +76,7 @@
         {
           "path": "registry/base/ui/icon-swap.tsx",
           "type": "registry:ui",
-          "target": "components/ui/icon-swap.tsx"
+          "target": "@ui/icon-swap.tsx"
         }
       ]
     },
@@ -108,12 +108,12 @@
         {
           "path": "registry/base/ui/like.tsx",
           "type": "registry:ui",
-          "target": "components/ui/like.tsx"
+          "target": "@ui/like.tsx"
         },
         {
           "path": "registry/base/ui/like.css",
           "type": "registry:file",
-          "target": "components/ui/like.css"
+          "target": "@ui/like.css"
         }
       ]
     },
@@ -136,11 +136,12 @@
         "button",
         "https://ui.ericts.com/r/like.json"
       ],
+      "dependencies": ["class-variance-authority"],
       "files": [
         {
           "path": "registry/base/ui/like-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/like-button.tsx"
+          "target": "@ui/like-button.tsx"
         }
       ]
     },
@@ -160,7 +161,7 @@
         {
           "path": "registry/base/ui/status-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/status-button.tsx"
+          "target": "@ui/status-button.tsx"
         }
       ]
     },
@@ -180,7 +181,7 @@
         {
           "path": "registry/base/ui/expandable-toggle-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-toggle-button.tsx"
+          "target": "@ui/expandable-toggle-button.tsx"
         }
       ]
     },
@@ -224,7 +225,7 @@
         {
           "path": "registry/base/ui/play-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/play-button.tsx"
+          "target": "@ui/play-button.tsx"
         }
       ]
     },
@@ -272,7 +273,7 @@
         {
           "path": "registry/base/ui/sliding-play-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/sliding-play-button.tsx"
+          "target": "@ui/sliding-play-button.tsx"
         }
       ]
     },
@@ -318,7 +319,7 @@
         {
           "path": "registry/base/ui/seek-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/seek-button.tsx"
+          "target": "@ui/seek-button.tsx"
         }
       ]
     },
@@ -358,7 +359,7 @@
         {
           "path": "registry/base/ui/floating-shortcut-button.tsx",
           "type": "registry:ui",
-          "target": "components/ui/floating-shortcut-button.tsx"
+          "target": "@ui/floating-shortcut-button.tsx"
         }
       ]
     },
@@ -397,7 +398,7 @@
         {
           "path": "registry/base/ui/arc-menu.tsx",
           "type": "registry:ui",
-          "target": "components/ui/arc-menu.tsx"
+          "target": "@ui/arc-menu.tsx"
         }
       ]
     },
@@ -430,7 +431,7 @@
         {
           "path": "registry/base/ui/status-badge.tsx",
           "type": "registry:ui",
-          "target": "components/ui/status-badge.tsx"
+          "target": "@ui/status-badge.tsx"
         }
       ]
     },
@@ -449,7 +450,7 @@
         {
           "path": "registry/base/ui/floating-select.tsx",
           "type": "registry:ui",
-          "target": "components/ui/floating-select.tsx"
+          "target": "@ui/floating-select.tsx"
         }
       ]
     },
@@ -475,7 +476,7 @@
         {
           "path": "registry/base/ui/expandable-slider.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-slider.tsx"
+          "target": "@ui/expandable-slider.tsx"
         }
       ]
     },
@@ -502,7 +503,7 @@
         {
           "path": "registry/base/ui/expandable-toolbar.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-toolbar.tsx"
+          "target": "@ui/expandable-toolbar.tsx"
         }
       ]
     },
@@ -529,12 +530,12 @@
         {
           "path": "registry/base/ui/check-mark.tsx",
           "type": "registry:ui",
-          "target": "components/ui/check-mark.tsx"
+          "target": "@ui/check-mark.tsx"
         },
         {
           "path": "registry/base/ui/check-mark.css",
           "type": "registry:file",
-          "target": "components/ui/check-mark.css"
+          "target": "@ui/check-mark.css"
         }
       ]
     },
@@ -582,12 +583,12 @@
         {
           "path": "registry/base/ui/shy-heart.tsx",
           "type": "registry:ui",
-          "target": "components/ui/shy-heart.tsx"
+          "target": "@ui/shy-heart.tsx"
         },
         {
           "path": "registry/base/ui/shy-heart.css",
           "type": "registry:file",
-          "target": "components/ui/shy-heart.css"
+          "target": "@ui/shy-heart.css"
         }
       ]
     },
@@ -606,12 +607,12 @@
         {
           "path": "registry/base/ui/jitter.tsx",
           "type": "registry:ui",
-          "target": "components/ui/jitter.tsx"
+          "target": "@ui/jitter.tsx"
         },
         {
           "path": "registry/base/ui/jitter.css",
           "type": "registry:file",
-          "target": "components/ui/jitter.css"
+          "target": "@ui/jitter.css"
         }
       ]
     },
@@ -644,12 +645,12 @@
         {
           "path": "registry/base/ui/squeeze.tsx",
           "type": "registry:ui",
-          "target": "components/ui/squeeze.tsx"
+          "target": "@ui/squeeze.tsx"
         },
         {
           "path": "registry/base/ui/squeeze.css",
           "type": "registry:file",
-          "target": "components/ui/squeeze.css"
+          "target": "@ui/squeeze.css"
         }
       ]
     },
@@ -668,7 +669,7 @@
         {
           "path": "registry/base/ui/heartbeat.tsx",
           "type": "registry:ui",
-          "target": "components/ui/heartbeat.tsx"
+          "target": "@ui/heartbeat.tsx"
         }
       ]
     },
@@ -699,12 +700,12 @@
         {
           "path": "registry/base/ui/projected-shadow.tsx",
           "type": "registry:ui",
-          "target": "components/ui/projected-shadow.tsx"
+          "target": "@ui/projected-shadow.tsx"
         },
         {
           "path": "registry/base/ui/projected-shadow.css",
           "type": "registry:file",
-          "target": "components/ui/projected-shadow.css"
+          "target": "@ui/projected-shadow.css"
         }
       ]
     },
@@ -745,7 +746,7 @@
         {
           "path": "registry/base/ui/otp-input.tsx",
           "type": "registry:ui",
-          "target": "components/ui/otp-input.tsx"
+          "target": "@ui/otp-input.tsx"
         }
       ]
     },
@@ -770,7 +771,7 @@
         {
           "path": "registry/base/ui/adaptive-switch.tsx",
           "type": "registry:ui",
-          "target": "components/ui/adaptive-switch.tsx"
+          "target": "@ui/adaptive-switch.tsx"
         }
       ]
     },
@@ -799,7 +800,7 @@
         {
           "path": "registry/base/ui/nav-link.tsx",
           "type": "registry:ui",
-          "target": "components/ui/nav-link.tsx"
+          "target": "@ui/nav-link.tsx"
         }
       ]
     },
@@ -818,7 +819,7 @@
         {
           "path": "registry/base/ui/highlight-tabs.tsx",
           "type": "registry:ui",
-          "target": "components/ui/highlight-tabs.tsx"
+          "target": "@ui/highlight-tabs.tsx"
         }
       ]
     },
@@ -838,7 +839,7 @@
         {
           "path": "registry/base/ui/filter-tags.tsx",
           "type": "registry:ui",
-          "target": "components/ui/filter-tags.tsx"
+          "target": "@ui/filter-tags.tsx"
         }
       ]
     },
@@ -868,7 +869,7 @@
         {
           "path": "registry/base/ui/sliding-list.tsx",
           "type": "registry:ui",
-          "target": "components/ui/sliding-list.tsx"
+          "target": "@ui/sliding-list.tsx"
         }
       ]
     },
@@ -897,7 +898,7 @@
         {
           "path": "registry/base/ui/rail-list.tsx",
           "type": "registry:ui",
-          "target": "components/ui/rail-list.tsx"
+          "target": "@ui/rail-list.tsx"
         }
       ]
     },
@@ -916,7 +917,7 @@
         {
           "path": "registry/base/blocks/rail-stage.tsx",
           "type": "registry:block",
-          "target": "components/blocks/rail-stage.tsx"
+          "target": "@components/blocks/rail-stage.tsx"
         }
       ]
     },
@@ -932,6 +933,7 @@
       },
       "registryDependencies": [
         "button",
+        "separator",
         "tooltip",
         "https://ui.ericts.com/r/use-reduced-motion.json"
       ],
@@ -940,7 +942,7 @@
         {
           "path": "registry/base/blocks/mermaid-diagram.tsx",
           "type": "registry:block",
-          "target": "components/blocks/mermaid-diagram.tsx"
+          "target": "@components/blocks/mermaid-diagram.tsx"
         }
       ]
     },
@@ -965,7 +967,7 @@
         {
           "path": "registry/base/ui/expandable-segmented-tabs.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-segmented-tabs.tsx"
+          "target": "@ui/expandable-segmented-tabs.tsx"
         }
       ]
     },
@@ -994,7 +996,7 @@
         {
           "path": "registry/base/ui/expandable-tabs.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-tabs.tsx"
+          "target": "@ui/expandable-tabs.tsx"
         }
       ]
     },
@@ -1018,7 +1020,7 @@
         {
           "path": "registry/base/ui/expandable-panel.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-panel.tsx"
+          "target": "@ui/expandable-panel.tsx"
         }
       ]
     },
@@ -1041,7 +1043,7 @@
         {
           "path": "registry/base/ui/navigation-menu.tsx",
           "type": "registry:ui",
-          "target": "components/ui/navigation-menu.tsx"
+          "target": "@ui/navigation-menu.tsx"
         }
       ]
     },
@@ -1060,7 +1062,7 @@
         {
           "path": "registry/base/ui/text-morph.tsx",
           "type": "registry:ui",
-          "target": "components/ui/text-morph.tsx"
+          "target": "@ui/text-morph.tsx"
         }
       ]
     },
@@ -1091,12 +1093,12 @@
         {
           "path": "registry/base/ui/timer.tsx",
           "type": "registry:ui",
-          "target": "components/ui/timer.tsx"
+          "target": "@ui/timer.tsx"
         },
         {
           "path": "registry/base/hooks/use-timer.ts",
           "type": "registry:hook",
-          "target": "hooks/use-timer.ts"
+          "target": "@hooks/use-timer.ts"
         }
       ]
     },
@@ -1122,7 +1124,7 @@
         {
           "path": "registry/base/ui/expandable-dialog.tsx",
           "type": "registry:ui",
-          "target": "components/ui/expandable-dialog.tsx"
+          "target": "@ui/expandable-dialog.tsx"
         }
       ]
     },
@@ -1148,7 +1150,7 @@
         {
           "path": "registry/base/ui/context-cursor.tsx",
           "type": "registry:ui",
-          "target": "components/ui/context-cursor.tsx"
+          "target": "@ui/context-cursor.tsx"
         }
       ]
     },
@@ -1174,7 +1176,7 @@
         {
           "path": "registry/base/ui/feedback-popover.tsx",
           "type": "registry:ui",
-          "target": "components/ui/feedback-popover.tsx"
+          "target": "@ui/feedback-popover.tsx"
         }
       ]
     },
@@ -1197,7 +1199,7 @@
         {
           "path": "registry/base/ui/multi-step.tsx",
           "type": "registry:ui",
-          "target": "components/ui/multi-step.tsx"
+          "target": "@ui/multi-step.tsx"
         }
       ]
     },
@@ -1223,7 +1225,7 @@
         {
           "path": "registry/base/ui/adaptive-drawer.tsx",
           "type": "registry:ui",
-          "target": "components/ui/adaptive-drawer.tsx"
+          "target": "@ui/adaptive-drawer.tsx"
         }
       ]
     },
@@ -1241,12 +1243,12 @@
         {
           "path": "registry/base/ui/staggered-entrance.tsx",
           "type": "registry:ui",
-          "target": "components/ui/staggered-entrance.tsx"
+          "target": "@ui/staggered-entrance.tsx"
         },
         {
           "path": "registry/base/ui/staggered-entrance.css",
           "type": "registry:file",
-          "target": "components/ui/staggered-entrance.css"
+          "target": "@ui/staggered-entrance.css"
         }
       ]
     },
@@ -1268,12 +1270,12 @@
         {
           "path": "registry/base/blocks/scroll-expand.tsx",
           "type": "registry:block",
-          "target": "components/blocks/scroll-expand.tsx"
+          "target": "@components/blocks/scroll-expand.tsx"
         },
         {
           "path": "registry/base/blocks/scroll-expand.css",
           "type": "registry:file",
-          "target": "components/blocks/scroll-expand.css"
+          "target": "@components/blocks/scroll-expand.css"
         }
       ]
     },
@@ -1295,12 +1297,12 @@
         {
           "path": "registry/base/blocks/ripple-scene.tsx",
           "type": "registry:block",
-          "target": "components/blocks/ripple-scene.tsx"
+          "target": "@components/blocks/ripple-scene.tsx"
         },
         {
           "path": "registry/base/blocks/ripple-scene.css",
           "type": "registry:file",
-          "target": "components/blocks/ripple-scene.css"
+          "target": "@components/blocks/ripple-scene.css"
         }
       ]
     },
@@ -1322,12 +1324,12 @@
         {
           "path": "registry/base/blocks/vertical-scene.tsx",
           "type": "registry:block",
-          "target": "components/blocks/vertical-scene.tsx"
+          "target": "@components/blocks/vertical-scene.tsx"
         },
         {
           "path": "registry/base/blocks/vertical-scene.css",
           "type": "registry:file",
-          "target": "components/blocks/vertical-scene.css"
+          "target": "@components/blocks/vertical-scene.css"
         }
       ]
     },
@@ -1349,7 +1351,7 @@
         {
           "path": "registry/base/blocks/deck-lift.tsx",
           "type": "registry:block",
-          "target": "components/blocks/deck-lift.tsx"
+          "target": "@components/blocks/deck-lift.tsx"
         }
       ]
     },
@@ -1542,12 +1544,12 @@
         {
           "path": "registry/base/blocks/demo-tabs.tsx",
           "type": "registry:block",
-          "target": "components/blocks/demo-tabs.tsx"
+          "target": "@components/blocks/demo-tabs.tsx"
         },
         {
           "path": "registry/base/blocks/demo-tabs-example.tsx",
           "type": "registry:block",
-          "target": "components/blocks/demo-tabs-example.tsx"
+          "target": "@components/blocks/demo-tabs-example.tsx"
         }
       ]
     }

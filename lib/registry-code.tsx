@@ -229,7 +229,29 @@ async function readOptionalFile(filePath: string) {
 function getRegistryItemTargetPath(item: RegistryItem) {
   const file = getPrimaryRegistryFile(item);
 
-  return file?.target ?? `components/ui/${item.name}.tsx`;
+  return toDefaultAliasPath(file?.target ?? `@ui/${item.name}.tsx`);
+}
+
+/**
+ * Registry targets use shadcn alias prefixes (`@ui/`, `@hooks/`) so the CLI
+ * honours each project's `components.json` aliases. Manual install copy shows
+ * the default location those aliases resolve to.
+ */
+const defaultAliasPaths: Record<string, string> = {
+  "@components/": "components/",
+  "@hooks/": "hooks/",
+  "@lib/": "lib/",
+  "@ui/": "components/ui/",
+};
+
+function toDefaultAliasPath(target: string) {
+  for (const [alias, directory] of Object.entries(defaultAliasPaths)) {
+    if (target.startsWith(alias)) {
+      return `${directory}${target.slice(alias.length)}`;
+    }
+  }
+
+  return target;
 }
 
 function getPrimaryVariantLabel(item: RegistryItem, source: string) {

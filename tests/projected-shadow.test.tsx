@@ -84,4 +84,27 @@ describe("ProjectedShadow", () => {
     ).toBeNull();
     expect(screen.getAllByText("Icon")).toHaveLength(1);
   });
+
+  it("keeps duplicated children out of the tab order", () => {
+    const { container } = render(
+      <ProjectedShadow>
+        <button type="button">Action</button>
+      </ProjectedShadow>,
+    );
+
+    for (const slot of [
+      "projected-shadow-projected",
+      "projected-shadow-contact",
+    ]) {
+      const layer = container.querySelector(`[data-slot='${slot}']`);
+      expect(layer?.hasAttribute("inert")).toBe(true);
+      expect(layer?.getAttribute("aria-hidden")).toBe("true");
+    }
+
+    const target = container.querySelector(
+      "[data-slot='projected-shadow-target']",
+    );
+    expect(target?.hasAttribute("inert")).toBe(false);
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
 });

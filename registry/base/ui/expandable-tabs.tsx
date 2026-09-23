@@ -59,7 +59,19 @@ type ExpandableTabBase = {
 export type ExpandableTabItem = ExpandableTabBase &
   (
     | { items: ExpandableTabMenuItem[]; content?: never; onSelect?: never }
-    | { content: ReactNode; items?: never; onSelect?: never }
+    | {
+        /**
+         * Panel body. It is always mounted once more in a hidden, inert
+         * measuring layer that sizes the panel, in addition to the visible
+         * copy while the panel is open. Effects in it can therefore run twice,
+         * and hard-coded `id`s or form field `name`s inside it will be
+         * duplicated in the DOM — derive ids with `useId` and keep side
+         * effects idempotent.
+         */
+        content: ReactNode;
+        items?: never;
+        onSelect?: never;
+      }
     | { onSelect: () => void; items?: never; content?: never }
   );
 
@@ -405,10 +417,16 @@ function PanelMeasurers({
  * from them, exactly as it was. `clip` rather than `hidden` so the box does not
  * become a scroll container; it needs Safari 16, below which the declaration is
  * dropped and the scrollbar returns.
+ *
+ * The copies are real DOM, so `inert` (with `aria-hidden` for older engines)
+ * keeps their duplicated buttons and any focusable panel content out of the
+ * tab order and the accessibility tree even if a consumer's styles override
+ * `invisible`.
  */
 function MeasurerLayer({ children }: { children: ReactNode }) {
   return (
     <div
+      inert
       aria-hidden
       className="pointer-events-none invisible absolute left-0 top-0 size-0 overflow-clip"
     >

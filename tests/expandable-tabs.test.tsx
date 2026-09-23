@@ -77,4 +77,15 @@ describe("ExpandableTabs", () => {
     expect(screen.getByRole("menuitem", { name: "New file" })).toBeTruthy();
     expect(screen.getByRole("menuitem", { name: "New folder" })).toBeTruthy();
   });
+
+  it("keeps the measuring copies inert and hidden from assistive tech", () => {
+    render(<ExpandableTabs items={items} aria-label="Quick actions" />);
+
+    const layer = screen.getByText("Settings panel").closest("[inert]");
+
+    expect(layer).not.toBeNull();
+    expect(layer?.getAttribute("aria-hidden")).toBe("true");
+    // Only the measuring copy exists while closed; it must not be exposed.
+    expect(screen.queryByRole("group", { name: "Settings" })).toBeNull();
+  });
 });

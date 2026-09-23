@@ -63,7 +63,8 @@ export function RailList({
   indicatorClassName,
   onItemPointerEnter,
   onItemFocus,
-  "aria-label": ariaLabel = "Options",
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: RailListProps) {
   const isControlled = value !== undefined;
@@ -147,7 +148,8 @@ export function RailList({
     >
       <ul
         role="tablist"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? (ariaLabelledBy ? undefined : "Options")}
+        aria-labelledby={ariaLabelledBy}
         aria-orientation="horizontal"
         data-slot="rail-list-list"
         className={cn(

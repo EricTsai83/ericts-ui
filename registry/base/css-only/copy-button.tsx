@@ -38,9 +38,12 @@ export function CopyButton({
 }: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = React.useRef(true);
 
   React.useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);
@@ -58,6 +61,11 @@ export function CopyButton({
       }
 
       onCopy?.(value);
+
+      // The write can resolve after unmount; scheduling the reset then would
+      // leak a timer the cleanup above has already run past.
+      if (!isMountedRef.current) return;
+
       setCopied(true);
 
       if (timer.current) clearTimeout(timer.current);

@@ -37,6 +37,26 @@ describe("StatusButton", () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it("stops the default loading spinner under prefers-reduced-motion", async () => {
+    const deferred = createDeferred<void>();
+    const { container, unmount } = render(
+      <StatusButton onClick={() => deferred.promise} />
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button"));
+    });
+
+    const spinner = container.querySelector(".animate-spin");
+    expect(spinner).not.toBeNull();
+    expect(spinner?.classList.contains("motion-reduce:animate-none")).toBe(
+      true
+    );
+
+    unmount();
+    deferred.resolve();
+  });
+
   it("moves idle -> loading -> success -> idle on the happy path", async () => {
     vi.useFakeTimers();
 

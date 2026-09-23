@@ -175,6 +175,12 @@ export function FloatingSelect({
   const [internalSelected, setInternalSelected] = React.useState(
     defaultValue ?? (options[0] ? getOptionValue(options[0]) : ""),
   );
+  // Roving tabindex: only one option is in the tab order, so Tab leaves the
+  // listbox instead of walking every option. It follows focus, falling back
+  // to the selected option (or the first) before any option has been focused.
+  const [focusedOptionValue, setFocusedOptionValue] = React.useState<
+    string | null
+  >(null);
 
   // The trigger and the listbox are swapped in and out of the DOM by
   // AnimatePresence, so focus must be managed manually: into the selected
@@ -208,16 +214,33 @@ export function FloatingSelect({
   React.useEffect(() => {
     if (!open) return;
 
+    // Escape belongs to this select only while focus is inside it, so a page
+    // shortcut or a surrounding dialog keeps its own Escape otherwise. The
+    // capture phase on window runs before any document-level dismiss layer,
+    // which is what lets a select inside a dialog close alone.
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        pendingTriggerFocusRef.current = true;
-        setOpen(false);
-      }
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+
+      const shellElement = shellRef.current;
+
+      if (!shellElement) return;
+
+      const target = event.target;
+      const withinShell =
+        shellElement.contains(document.activeElement) ||
+        (target instanceof Node && shellElement.contains(target));
+
+      if (!withinShell) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      pendingTriggerFocusRef.current = true;
+      setOpen(false);
     }
 
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKeyDown, true);
 
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [open, setOpen]);
 
   React.useEffect(() => {
@@ -249,6 +272,15 @@ export function FloatingSelect({
   const selectedOption = options.find(
     (option) => getOptionValue(option) === selectedValue,
   );
+  const tabbableOptionValue = options.some(
+    (option) => getOptionValue(option) === focusedOptionValue,
+  )
+    ? focusedOptionValue
+    : selectedOption
+      ? selectedValue
+      : options[0]
+        ? getOptionValue(options[0])
+        : null;
   const alignClass =
     align === "start"
       ? "justify-start"
@@ -358,6 +390,21 @@ export function FloatingSelect({
     });
   }, [placement, updateInlineAnchorSize]);
 
+  // Tabbing (or programmatic focus) out of the open panel closes it. A null
+  // relatedTarget is ignored on purpose: it is what a click on the panel's
+  // non-focusable padding, a Safari button press, or the window losing focus
+  // produce, none of which mean the user left. Pointer dismissals outside are
+  // already handled by the document pointerdown listener.
+  const handleShellBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    if (!open) return;
+
+    const nextFocus = event.relatedTarget;
+
+    if (nextFocus instanceof Node && !event.currentTarget.contains(nextFocus)) {
+      setOpen(false);
+    }
+  };
+
   const handleOpen = () => {
     measureInlineAnchorSize();
     setOptionHoverLocked(shouldReduceMotion !== true);
@@ -403,6 +450,7 @@ export function FloatingSelect({
           className,
         )}
         style={{ transformOrigin }}
+        onBlur={handleShellBlur}
       >
         <AnimatePresence mode="popLayout" initial={false}>
           {open ? (
@@ -440,9 +488,11 @@ export function FloatingSelect({
                       role="option"
                       aria-selected={active}
                       type="button"
+                      tabIndex={optionValue === tabbableOptionValue ? 0 : -1}
                       data-slot="floating-select-option"
                       data-active={active ? "" : undefined}
                       variants={shouldReduceMotion ? undefined : optionVariants}
+                      onFocus={() => setFocusedOptionValue(optionValue)}
                       onClick={() => handleSelect(option)}
                       className={cn(
                         "relative flex h-8 w-full items-center gap-6 overflow-hidden rounded-md px-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",

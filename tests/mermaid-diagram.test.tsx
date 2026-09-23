@@ -117,7 +117,8 @@ describe("MermaidDiagram", () => {
     expect(fullscreenButton.closest('[data-slot="tooltip-trigger"]')).toBeNull();
     expect(screen.queryByRole("button", { name: "Diagram information" })).toBeNull();
     expect(screen.getByText("Explicit title").className).not.toContain("uppercase");
-    expect(screen.getByText("Explicit title").className).toContain("capitalize");
+    // Consumer titles render as written — no re-casing ("iOS" stays "iOS").
+    expect(screen.getByText("Explicit title").className).not.toContain("capitalize");
     expect(screen.getByText("Explicit title").className).toContain("text-xl");
     expect(screen.getByText("Explicit title").className).not.toContain("text-base");
     expect(screen.getByText("Explicit caption").className).toContain("text-sm");
@@ -137,6 +138,19 @@ describe("MermaidDiagram", () => {
     expect(screen.queryByText("Prop caption")).toBeNull();
     expect(screen.queryByText("Fence caption")).toBeNull();
     expect(document.querySelector('[data-slot="mermaid-diagram-caption"]')).toBeNull();
+  });
+
+  it("renders titles as written in the header and fullscreen dialog", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} title="iOS release flow" />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    const headerTitle = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-title"]');
+    expect(headerTitle?.textContent).toBe("iOS release flow");
+    expect(headerTitle?.className).not.toContain("capitalize");
+
+    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
+    const dialogTitle = await screen.findByRole("heading", { name: "iOS release flow" });
+    expect(dialogTitle.className).not.toContain("capitalize");
   });
 
   it("locks document scrolling without reserving a scrollbar gutter in fullscreen", async () => {

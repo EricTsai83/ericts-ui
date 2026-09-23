@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // The success wave and the error shake are both imperative, so the assertion
@@ -77,5 +77,98 @@ describe("OTPInput success wave", () => {
 
     expect(Array.isArray(targets)).toBe(false);
     expect(keyframes).toEqual({ x: [0, -5, 5, -3, 3, -1, 0] });
+  });
+});
+
+describe("OTPInput form participation", () => {
+  function formOf(container: HTMLElement) {
+    return container.querySelector("form") as HTMLFormElement;
+  }
+
+  it("submits the joined value under `name`", () => {
+    const { container } = render(
+      <form>
+        <OTPInput name="code" defaultValue="248917" />
+      </form>,
+    );
+
+    expect(new FormData(formOf(container)).get("code")).toBe("248917");
+  });
+
+  it("renders no form field without a name", () => {
+    const { container } = render(
+      <form>
+        <OTPInput defaultValue="248917" />
+      </form>,
+    );
+
+    expect(Array.from(new FormData(formOf(container)).keys())).toEqual([]);
+  });
+
+  it("tracks typing in the submitted value", () => {
+    const { container } = render(
+      <form>
+        <OTPInput name="code" length={4} />
+      </form>,
+    );
+    const input = screen.getByLabelText("One-time passcode");
+
+    fireEvent.keyDown(input, { key: "1" });
+    fireEvent.keyDown(input, { key: "2" });
+
+    expect(new FormData(formOf(container)).get("code")).toBe("12");
+    // The visible input's own value stays empty for its keyboard logic.
+    expect((input as HTMLInputElement).value).toBe("");
+  });
+
+  it("associates with a form by id when rendered outside it", () => {
+    const { container } = render(
+      <>
+        <form id="verify" />
+        <OTPInput name="code" form="verify" defaultValue="1234" length={4} />
+      </>,
+    );
+
+    expect(new FormData(formOf(container)).get("code")).toBe("1234");
+  });
+
+  it("does not submit while disabled, like a native control", () => {
+    const { container } = render(
+      <form>
+        <OTPInput name="code" defaultValue="248917" disabled />
+      </form>,
+    );
+
+    expect(new FormData(formOf(container)).get("code")).toBeNull();
+  });
+
+  it("blocks validation until every slot is filled when required", () => {
+    const { container, rerender } = render(
+      <form>
+        <OTPInput name="code" length={4} value="12" required />
+      </form>,
+    );
+    const input = screen.getByLabelText<HTMLInputElement>("One-time passcode");
+
+    expect(formOf(container).checkValidity()).toBe(false);
+    expect(input.validity.valueMissing).toBe(true);
+
+    rerender(
+      <form>
+        <OTPInput name="code" length={4} value="1234" required />
+      </form>,
+    );
+
+    expect(formOf(container).checkValidity()).toBe(true);
+  });
+
+  it("stays valid when not required", () => {
+    const { container } = render(
+      <form>
+        <OTPInput name="code" length={4} />
+      </form>,
+    );
+
+    expect(formOf(container).checkValidity()).toBe(true);
   });
 });

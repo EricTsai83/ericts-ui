@@ -57,6 +57,19 @@ export interface OTPInputProps
   inputRef?: React.Ref<HTMLInputElement>;
   /** Accessible label for the underlying input. */
   "aria-label"?: string;
+  /**
+   * Form field name. When set, the joined value is submitted with the
+   * surrounding form (or the one named by `form`) under this name.
+   */
+  name?: string;
+  /**
+   * Block native form submission until every slot is filled. Validation runs
+   * on the focusable input, so the browser's own message anchors on the slots
+   * and focusing the invalid field lands where typing works.
+   */
+  required?: boolean;
+  /** `id` of a `<form>` to associate with when rendered outside of it. */
+  form?: string;
 }
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -102,6 +115,9 @@ export function OTPInput({
   autoFocus = false,
   inputRef: consumerInputRef,
   "aria-label": ariaLabel = "One-time passcode",
+  name,
+  required = false,
+  form,
   className,
   ...props
 }: OTPInputProps) {
@@ -382,6 +398,11 @@ export function OTPInput({
           aria-label={ariaLabel}
           aria-describedby={messageId}
           aria-invalid={status === "error"}
+          form={form}
+          // The input always holds "", so a plain `required` would never pass.
+          // It is only required while a slot is still empty: the incomplete
+          // code fails as `valueMissing`, with the browser's localised message.
+          required={required && !complete}
           value=""
           maxLength={slotCount}
           onKeyDown={onKeyDown}
@@ -391,6 +412,18 @@ export function OTPInput({
           onBlur={() => setFocused(false)}
           className="absolute inset-0 z-20 h-full w-full cursor-text bg-transparent text-transparent caret-transparent opacity-0 outline-none disabled:cursor-not-allowed"
         />
+        {/* The visible input stays empty for its keyboard and paste logic, so
+            the submitted value travels on its own field. Disabled with the
+            component, matching native controls, which are not submitted. */}
+        {name ? (
+          <input
+            type="hidden"
+            name={name}
+            form={form}
+            value={visibleSlots.join("")}
+            disabled={disabled}
+          />
+        ) : null}
 
         {/* Six slots at the desktop size need 328px, which no phone has left
             over once a page and a card have taken their padding. The narrow

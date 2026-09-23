@@ -215,8 +215,9 @@ export function DemoTabs({
       )}
       onFocusCapture={(event) => {
         onFocusCapture?.(event);
-        if ((event.target as HTMLElement).closest('[role="tablist"]'))
-          setManual(true);
+        // Focus alone is not a choice: keyboard users tabbing past the
+        // tablist keep auto-advance. Only `select` (click, Enter/Space on a
+        // tab) switches to manual playback.
         setContentFocused(
           Boolean(
             (event.target as HTMLElement).closest(
