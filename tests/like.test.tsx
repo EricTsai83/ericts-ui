@@ -11,7 +11,7 @@ import { Like } from "@/registry/base/ui/like";
 afterEach(cleanup);
 
 describe("Like", () => {
-  it("configures the heart size and particle duration", () => {
+  it("configures the heart size, particle duration, and fill origin", () => {
     const { rerender } = render(<Like />);
     const control = screen.getByRole("button");
 
@@ -19,6 +19,7 @@ describe("Like", () => {
     // custom properties unless the props are provided.
     expect(control.style.getPropertyValue("--like-size")).toBe("");
     expect(control.style.getPropertyValue("--like-duration")).toBe("");
+    expect(control.style.getPropertyValue("--like-fill-origin")).toBe("");
 
     rerender(<Like iconSize={40} duration={500} />);
     expect(control.style.getPropertyValue("--like-size")).toBe("40px");
@@ -26,6 +27,11 @@ describe("Like", () => {
 
     rerender(<Like iconSize="2.5rem" />);
     expect(control.style.getPropertyValue("--like-size")).toBe("2.5rem");
+
+    rerender(<Like fillOrigin="50% 100%" />);
+    expect(control.style.getPropertyValue("--like-fill-origin")).toBe(
+      "50% 100%",
+    );
   });
 
   it("toggles its uncontrolled state and accessible action", () => {
