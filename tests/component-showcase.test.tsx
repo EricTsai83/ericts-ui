@@ -155,6 +155,41 @@ describe("ComponentShowcase manual installation", () => {
     ).toBeTruthy();
     expect(screen.getByText("pnpm add lucide-react")).toBeTruthy();
   });
+
+  it("adds a CSS variables step only for items that need theme variables", () => {
+    const source = ":root {\n  --ericts-example: oklch(0.6 0.2 20);\n}\n";
+    const { rerender } = render(
+      <ComponentShowcase
+        name="example-item"
+        codeVariants={[]}
+        targetPath="components/ui/example-item.tsx"
+        cssVariables={{
+          name: "globals.css",
+          language: "css",
+          source,
+          highlighted: <pre data-testid="css-variables">{source}</pre>,
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Manual" }));
+
+    expect(screen.getByText("Add the CSS variables")).toBeTruthy();
+    expect(screen.getByTestId("css-variables").textContent).toContain(
+      "--ericts-example: oklch(0.6 0.2 20);",
+    );
+
+    rerender(
+      <ComponentShowcase
+        name="example-item"
+        codeVariants={[]}
+        targetPath="components/ui/example-item.tsx"
+      />,
+    );
+
+    expect(screen.queryByText("Add the CSS variables")).toBeNull();
+    expect(screen.getByText("Copy the source file")).toBeTruthy();
+  });
 });
 
 describe("ComponentShowcase component guides", () => {

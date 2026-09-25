@@ -58,6 +58,8 @@ type ComponentShowcaseProps = {
   fullscreenHref?: string;
   /** Preview inside a resizable device frame, opening at this device. */
   previewDevice?: PreviewDeviceId;
+  /** Theme variables the manual install adds to the global stylesheet. */
+  cssVariables?: ComponentCodeFile;
 };
 
 export function ComponentShowcase({
@@ -71,6 +73,7 @@ export function ComponentShowcase({
   motionApiSnippets = [],
   fullscreenHref,
   previewDevice,
+  cssVariables,
 }: ComponentShowcaseProps) {
   const cssOnlyFileNames =
     codeVariants
@@ -98,6 +101,7 @@ export function ComponentShowcase({
           cssOnlyFileNames={[]}
           primaryFileNames={primaryFileNames}
           motionApiSnippets={motionApiSnippets}
+          cssVariables={cssVariables}
         />
       </div>
     );
@@ -123,6 +127,7 @@ export function ComponentShowcase({
         cssOnlyFileNames={cssOnlyFileNames}
         primaryFileNames={primaryFileNames}
         motionApiSnippets={motionApiSnippets}
+        cssVariables={cssVariables}
       />
     </div>
   );
@@ -662,6 +667,7 @@ function InstallationPanel({
   cssOnlyFileNames,
   primaryFileNames,
   motionApiSnippets,
+  cssVariables,
 }: {
   name: string;
   targetPath: string;
@@ -671,6 +677,7 @@ function InstallationPanel({
   cssOnlyFileNames: string[];
   primaryFileNames: string[];
   motionApiSnippets: ComponentCodeFile[];
+  cssVariables?: ComponentCodeFile;
 }) {
   return (
     <section className="min-w-0 flex flex-col gap-5">
@@ -711,6 +718,7 @@ function InstallationPanel({
             hasCssOnlyVariant={hasCssOnlyVariant}
             cssOnlyFileNames={cssOnlyFileNames}
             primaryFileNames={primaryFileNames}
+            cssVariables={cssVariables}
           />
         </TabsContent>
       </Tabs>
@@ -790,6 +798,7 @@ function ManualInstall({
   hasCssOnlyVariant,
   cssOnlyFileNames,
   primaryFileNames,
+  cssVariables,
 }: {
   targetPath: string;
   dependencies: string[];
@@ -797,6 +806,7 @@ function ManualInstall({
   hasCssOnlyVariant: boolean;
   cssOnlyFileNames: string[];
   primaryFileNames: string[];
+  cssVariables?: ComponentCodeFile;
 }) {
   const [packageManager, setPackageManager, isPackageManagerReady] =
     usePackageManager(DEFAULT_PACKAGE_MANAGER);
@@ -823,6 +833,7 @@ function ManualInstall({
         hasCssOnlyVariant={hasCssOnlyVariant}
         cssOnlyFileNames={cssOnlyFileNames}
         primaryFileNames={primaryFileNames}
+        cssVariables={cssVariables}
         packageManager={packageManager}
         onPackageManagerChange={setPackageManager}
         isPackageManagerReady={isPackageManagerReady}
@@ -838,6 +849,7 @@ function ManualInstallSteps({
   hasCssOnlyVariant,
   cssOnlyFileNames,
   primaryFileNames,
+  cssVariables,
   packageManager,
   onPackageManagerChange,
   isPackageManagerReady,
@@ -848,6 +860,7 @@ function ManualInstallSteps({
   hasCssOnlyVariant: boolean;
   cssOnlyFileNames: string[];
   primaryFileNames: string[];
+  cssVariables?: ComponentCodeFile;
   packageManager: PackageManager;
   onPackageManagerChange: (packageManager: PackageManager) => void;
   isPackageManagerReady: boolean;
@@ -958,6 +971,22 @@ function ManualInstallSteps({
         onPackageManagerChange={onPackageManagerChange}
         isPackageManagerReady={isPackageManagerReady}
       />
+      {/* The command writes these into the project's stylesheet; copied
+          files alone leave the component's colour variables undefined. */}
+      {cssVariables ? (
+        <ManualInstallStep
+          number={4}
+          title="Add the CSS variables"
+          description="Add these theme variables to the global stylesheet that defines your shadcn/ui theme. The source reads its colours from them, so without them it renders uncoloured."
+          packageManager={packageManager}
+          onPackageManagerChange={onPackageManagerChange}
+          isPackageManagerReady={isPackageManagerReady}
+        >
+          <div className="mt-3 min-w-0">
+            <CodeSnippet snippet={cssVariables} />
+          </div>
+        </ManualInstallStep>
+      ) : null}
     </ol>
   );
 }

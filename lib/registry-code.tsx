@@ -8,7 +8,12 @@ import type {
   ComponentCodeVariant,
 } from "@/components/component-showcase";
 import { collectCssOnlyGraph } from "@/lib/css-only-graph.mjs";
-import { getRegistryItem, type RegistryItem } from "@/lib/registry";
+import {
+  getLocalRegistryDependencyName,
+  getRegistryItem,
+  type RegistryItem,
+} from "@/lib/registry";
+import { getRegistryCssVariablesSource } from "@/lib/registry-css-vars";
 import { getRegistryInstallTarget } from "@/lib/registry-install";
 
 export type RegistryCodeModel = {
@@ -17,6 +22,8 @@ export type RegistryCodeModel = {
   targetPath: string;
   dependencies: string[];
   hasCssOnlyVariant: boolean;
+  /** Theme variables a manual install must add; absent when there are none. */
+  cssVariables?: ComponentCodeFile;
 };
 
 export async function getRegistryCodeModel(
@@ -25,6 +32,7 @@ export async function getRegistryCodeModel(
   const primarySource = await getRegistryItemSource(item);
   const primaryFiles = await getRegistryItemCodeFiles(item);
   const cssOnlyFiles = await getCssOnlyFiles(item);
+  const cssVariablesSource = getRegistryCssVariablesSource(item);
   const variants: ComponentCodeVariant[] = [
     {
       value: "motion",
@@ -57,6 +65,14 @@ export async function getRegistryCodeModel(
     targetPath: getRegistryItemTargetPath(item),
     dependencies: item.dependencies ?? [],
     hasCssOnlyVariant: cssOnlyFiles.length > 0,
+    cssVariables: cssVariablesSource
+      ? (
+          await highlightCodeFiles(
+            [{ name: "globals.css", language: "css", source: cssVariablesSource }],
+            true,
+          )
+        )[0]
+      : undefined,
   };
 }
 
@@ -159,10 +175,6 @@ async function getRegistryItemCodeFiles(
     (file, index) =>
       files.findIndex((other) => other.name === file.name) === index,
   );
-}
-
-export function getLocalRegistryDependencyName(dependency: string) {
-  return dependency.match(/\/r\/([a-z0-9-]+)\.json$/)?.[1];
 }
 
 async function getCssOnlyFiles(

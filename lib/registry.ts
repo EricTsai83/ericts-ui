@@ -20,6 +20,11 @@ export type RegistryItemMeta = {
   }>;
 };
 
+/** Theme variables `shadcn add` writes into the project's global stylesheet. */
+export type RegistryCssVars = Partial<
+  Record<"theme" | "light" | "dark", Record<string, string>>
+>;
+
 type RegistrySourceItem = {
   name: string;
   type: string;
@@ -27,6 +32,7 @@ type RegistrySourceItem = {
   description?: string;
   categories?: string[];
   meta?: RegistryItemMeta;
+  cssVars?: RegistryCssVars;
   registryDependencies?: string[];
   dependencies?: string[];
   files?: RegistryFile[];
@@ -127,6 +133,11 @@ export function getRegistryItemFacets(items: RegistryItem[] = registryItems) {
   return uniqueStrings(items.flatMap((item) => item.categories ?? [])).sort(
     (a, b) => a.localeCompare(b),
   );
+}
+
+/** The item name behind a registry dependency URL on this registry. */
+export function getLocalRegistryDependencyName(dependency: string) {
+  return dependency.match(/\/r\/([a-z0-9-]+)\.json$/)?.[1];
 }
 
 export function getRegistryItemBadges(item: RegistryItem, limit = 5) {
