@@ -166,6 +166,7 @@ const registryDisplayItemConfigs = [
   { name: "copy-button", category: "action" },
   { name: "like", category: "action" },
   { name: "like-button", category: "action" },
+  { name: "like-burst", category: "action" },
   { name: "status-button", category: "action" },
   { name: "expandable-toggle-button", category: "action" },
   { name: "play-button", category: "action" },

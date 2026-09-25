@@ -154,6 +154,56 @@
       ]
     },
     {
+      "name": "like-burst",
+      "type": "registry:ui",
+      "title": "Like Burst",
+      "description": "A like toggle with the same props as Like, whose outline collapses into a bubble that hollows into a ring as the heart pops back amid paired confetti dots.",
+      "categories": ["action"],
+      "meta": {
+        "tags": [
+          "like",
+          "heart",
+          "favorite",
+          "toggle",
+          "controlled",
+          "render-prop",
+          "button",
+          "confetti",
+          "social"
+        ],
+        "effects": [
+          "collapse",
+          "bubble-ring",
+          "pop-in",
+          "dot-burst",
+          "reduced-motion"
+        ]
+      },
+      "cssVars": {
+        "light": {
+          "ericts-like-burst": "oklch(0.7 0.19 6)",
+          "ericts-like-burst-ring": "oklch(0.77 0.15 311)"
+        },
+        "dark": {
+          "ericts-like-burst": "oklch(0.7 0.19 6)",
+          "ericts-like-burst-ring": "oklch(0.77 0.15 311)"
+        }
+      },
+      "dependencies": ["@base-ui/react", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/like-burst.tsx",
+          "type": "registry:ui",
+          "target": "@ui/like-burst.tsx"
+        },
+        {
+          "path": "registry/base/ui/like-burst.css",
+          "type": "registry:file",
+          "target": "@ui/like-burst.css"
+        }
+      ]
+    },
+    {
       "name": "status-button",
       "type": "registry:ui",
       "title": "Status Button",

@@ -101,6 +101,8 @@
   --ericts-shy-heart-blush: oklch(0.82 0.1 10);
   --ericts-shy-heart-blush-baseline: oklch(0.82 0.1 10);
   --ericts-like: oklch(0.65 0.17 23);
+  --ericts-like-burst: oklch(0.7 0.19 6);
+  --ericts-like-burst-ring: oklch(0.77 0.15 311);
   --registry-surface: oklch(0.955 0 0);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -148,6 +150,8 @@
   --ericts-shy-heart-blush: oklch(0.82 0.1 10);
   --ericts-shy-heart-blush-baseline: oklch(0.82 0.1 10);
   --ericts-like: oklch(0.65 0.17 23);
+  --ericts-like-burst: oklch(0.7 0.19 6);
+  --ericts-like-burst-ring: oklch(0.77 0.15 311);
   --registry-surface: oklch(0.225 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
