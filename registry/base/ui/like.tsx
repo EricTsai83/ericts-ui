@@ -50,7 +50,7 @@ export type LikeProps = Omit<
    * be set in CSS.
    */
   fillOrigin?: string;
-  /** Classes applied to the heart and burst wrapper. */
+  /** Classes applied to the heart and scatter wrapper. */
   iconClassName?: string;
 };
 
@@ -83,8 +83,8 @@ export function Like({
   const isLiked = controlled ? liked : internalLiked;
   const previousLikedRef = React.useRef(isLiked);
   const likeIntentRef = React.useRef(false);
-  const [burstId, setBurstId] = React.useState(0);
-  const [burstActive, setBurstActive] = React.useState(false);
+  const [scatterId, setScatterId] = React.useState(0);
+  const [scatterActive, setScatterActive] = React.useState(false);
   const settledParticlesRef = React.useRef(0);
   const likeStyle: LikeStyle = { ...style };
 
@@ -101,20 +101,20 @@ export function Like({
       typeof iconSize === "number" ? `${iconSize}px` : iconSize;
   }
 
-  // A burst only belongs to a liked heart, so unliking mid-burst drops it.
-  if (burstActive && !isLiked) {
-    setBurstActive(false);
+  // A scatter only belongs to a liked heart, so unliking mid-scatter drops it.
+  if (scatterActive && !isLiked) {
+    setScatterActive(false);
   }
 
-  // The burst celebrates user intent: it plays when `isLiked` turns true after
+  // The scatter celebrates user intent: it plays when `isLiked` turns true after
   // a click asked for it — immediately for optimistic parents, or once a
   // non-optimistic parent commits the result — but never for controlled state
   // arriving from a fetch or a realtime update.
   React.useEffect(() => {
     if (!previousLikedRef.current && isLiked && likeIntentRef.current) {
       settledParticlesRef.current = 0;
-      setBurstId((current) => current + 1);
-      setBurstActive(true);
+      setScatterId((current) => current + 1);
+      setScatterActive(true);
     }
 
     if (previousLikedRef.current !== isLiked) {
@@ -144,16 +144,16 @@ export function Like({
     }, [controlled, disabled, isLiked, onClick, onLikedChange],
   );
 
-  // The burst leaves the DOM once every particle has finished, so long-lived
+  // The scatter leaves the DOM once every particle has finished, so long-lived
   // liked items don't keep 8 idle SVGs mounted.
-  const handleBurstAnimationEnd = React.useCallback(
+  const handleScatterAnimationEnd = React.useCallback(
     (event: React.AnimationEvent<HTMLSpanElement>) => {
       if (event.animationName !== "like-particle") return;
 
       settledParticlesRef.current += 1;
 
       if (settledParticlesRef.current >= LIKE_PARTICLE_COUNT) {
-        setBurstActive(false);
+        setScatterActive(false);
       }
     },
     [],
@@ -193,12 +193,12 @@ export function Like({
         />
         <HeartIcon className="like-heart like-heart-outline size-full" />
 
-        {isLiked && burstActive ? (
+        {isLiked && scatterActive ? (
           <span
-            key={burstId}
-            data-slot="like-burst"
-            className="like-burst"
-            onAnimationEnd={handleBurstAnimationEnd}
+            key={scatterId}
+            data-slot="like-scatter"
+            className="like-scatter"
+            onAnimationEnd={handleScatterAnimationEnd}
           >
             {Array.from({ length: LIKE_PARTICLE_COUNT }, (_, index) => (
               <span className="like-particle" key={index}>

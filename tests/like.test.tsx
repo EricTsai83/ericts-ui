@@ -40,7 +40,7 @@ describe("Like", () => {
 
     expect(control.getAttribute("aria-pressed")).toBe("false");
     expect(control.getAttribute("data-liked")).toBe("false");
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
 
     fireEvent.click(control);
 
@@ -59,7 +59,7 @@ describe("Like", () => {
         "aria-pressed",
       ),
     ).toBe("false");
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
 
   it("reports controlled changes without latching", () => {
@@ -136,13 +136,13 @@ describe("Like", () => {
     expect(control.getAttribute("aria-pressed")).toBe("false");
   });
 
-  it("does not burst for an initially liked mount", () => {
+  it("does not scatter for an initially liked mount", () => {
     const { container } = render(<Like defaultLiked />);
 
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
 
-  it("unmounts the burst once every particle has finished", () => {
+  it("unmounts the scatter once every particle has finished", () => {
     const { container } = render(<Like />);
     const control = screen.getByRole("button", { name: "Like" });
 
@@ -159,16 +159,16 @@ describe("Like", () => {
       fireEvent(particle, animationEnd);
     }
 
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
     expect(control.getAttribute("aria-pressed")).toBe("true");
 
-    // Re-liking replays the burst from scratch.
+    // Re-liking replays the scatter from scratch.
     fireEvent.click(control);
     fireEvent.click(control);
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
   });
 
-  it("does not burst when controlled state turns liked programmatically", () => {
+  it("does not scatter when controlled state turns liked programmatically", () => {
     const { container, rerender } = render(<Like liked={false} />);
 
     // e.g. liked state arriving from a fetch or a realtime update.
@@ -179,10 +179,10 @@ describe("Like", () => {
         "aria-pressed",
       ),
     ).toBe("true");
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
 
-  it("bursts when a controlled parent accepts a click", () => {
+  it("scatters when a controlled parent accepts a click", () => {
     function ControlledLike() {
       const [liked, setLiked] = useState(false);
       return <Like liked={liked} onLikedChange={setLiked} />;
@@ -194,18 +194,18 @@ describe("Like", () => {
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
   });
 
-  it("bursts when a non-optimistic parent commits the click later", () => {
+  it("scatters when a non-optimistic parent commits the click later", () => {
     const { container, rerender } = render(<Like liked={false} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Like" }));
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
 
     // e.g. the parent sets `liked` only after the API responds.
     rerender(<Like liked />);
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
   });
 
-  it("drops an in-flight burst when unliked mid-burst", () => {
+  it("drops an in-flight scatter when unliked mid-scatter", () => {
     function ControlledLike({ forced }: { forced?: boolean }) {
       const [liked, setLiked] = useState(false);
       return <Like liked={forced ?? liked} onLikedChange={setLiked} />;
@@ -216,7 +216,7 @@ describe("Like", () => {
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
 
     rerender(<ControlledLike forced={false} />);
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
 
     // Returning to the parent's liked state is programmatic — no replay.
     rerender(<ControlledLike />);
@@ -225,7 +225,7 @@ describe("Like", () => {
         "aria-pressed",
       ),
     ).toBe("true");
-    expect(container.querySelector('[data-slot="like-burst"]')).toBeNull();
+    expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
 
   it("ignores clicks while disabled", () => {
