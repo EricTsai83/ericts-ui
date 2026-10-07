@@ -4,6 +4,35 @@
   "homepage": "https://ui.ericts.com",
   "items": [
     {
+      "name": "expandable-subscribe",
+      "type": "registry:ui",
+      "title": "Expandable Subscribe",
+      "description": "A compact button that expands into an email form, with async submission, loading, confirmation, and error recovery.",
+      "categories": ["form"],
+      "meta": {
+        "tags": ["email", "subscribe", "form", "loading", "success"],
+        "effects": ["expand", "state-transition"]
+      },
+      "dependencies": ["motion", "lucide-react"],
+      "registryDependencies": [
+        "button",
+        "input-group",
+        "https://ui.ericts.com/r/check-mark.json"
+      ],
+      "files": [
+        {
+          "path": "registry/base/ui/expandable-subscribe.tsx",
+          "type": "registry:ui",
+          "target": "@ui/expandable-subscribe.tsx"
+        },
+        {
+          "path": "registry/base/ui/expandable-subscribe.css",
+          "type": "registry:ui",
+          "target": "@ui/expandable-subscribe.css"
+        }
+      ]
+    },
+    {
       "name": "smooth-height",
       "type": "registry:ui",
       "title": "Smooth Height",

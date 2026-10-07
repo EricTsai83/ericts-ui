@@ -1,0 +1,30 @@
+@layer components {
+  .expandable-subscribe-confirmation {
+    --subscribe-circle-duration: 400ms;
+    --subscribe-check-duration: 260ms;
+  }
+
+  .expandable-subscribe-confirmation .check-mark {
+    --check-mark-shape-duration: var(--subscribe-circle-duration);
+    --check-mark-check-duration: var(--subscribe-check-duration);
+  }
+
+  /* Mounted together with CheckMark: the fade and check share delay/duration,
+     so they finish together without a timer or a React render between them. */
+  .expandable-subscribe-success-label {
+    opacity: 0;
+    animation: subscribe-confirmation-fade var(--subscribe-check-duration)
+      cubic-bezier(0.23, 1, 0.32, 1) var(--subscribe-circle-duration) forwards;
+  }
+
+  @keyframes subscribe-confirmation-fade {
+    to { opacity: 1; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-subscribe-success-label {
+    animation: none !important;
+    opacity: 1;
+  }
+}

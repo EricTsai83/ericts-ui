@@ -173,6 +173,7 @@ const registryDisplayItemConfigs = [
   { name: "sliding-play-button", category: "action" },
   { name: "seek-button", category: "action" },
   { name: "filter-tags", category: "form", viewport: "wide" },
+  { name: "expandable-subscribe", category: "form" },
   { name: "otp-input", category: "form" },
   { name: "floating-select", category: "form" },
   { name: "adaptive-switch", category: "form" },
