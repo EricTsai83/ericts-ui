@@ -5,12 +5,19 @@ import { source } from "@/lib/source";
 
 const search = createFromSource(source);
 
+// The index is public and bundled into each deployment. Share identical query
+// responses at the CDN, while browsers revalidate across deployments.
+const searchCacheHeaders = {
+  "Cache-Control": "public, max-age=0, must-revalidate",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+};
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const query = url.searchParams.get("query");
 
   if (!query) {
-    return Response.json([]);
+    return Response.json([], { headers: searchCacheHeaders });
   }
 
   const [docsResults, registryResults] = await Promise.all([
@@ -18,7 +25,9 @@ export async function GET(request: Request) {
     searchRegistryItems(query),
   ]);
 
-  return Response.json([...registryResults, ...docsResults]);
+  return Response.json([...registryResults, ...docsResults], {
+    headers: searchCacheHeaders,
+  });
 }
 
 function readSearchOptions(url: URL) {

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
+import { CompactCodeBlock } from "@/lib/compact-code-block";
 
 import type {
   ComponentCodeFile,
@@ -209,7 +209,7 @@ async function highlightCodeFiles(
   return Promise.all(
     files.map(async (file) => ({
       ...file,
-      highlighted: await ServerCodeBlock({
+      highlighted: await CompactCodeBlock({
         code: file.source.trimEnd(),
         lang: file.language,
         codeblock: keepCodeBlockStyle
