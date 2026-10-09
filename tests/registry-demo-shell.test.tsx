@@ -76,6 +76,42 @@ afterEach(() => {
 });
 
 describe("RegistryDemoShell preview navigation", () => {
+  it("keeps both item and category shortcuts prefetched for slow connections", () => {
+    render(createDemoElement(item, {
+      ...navigation,
+      previousCategory: afterNext,
+      nextCategory: createDisplayItem("other-category", "Other Category"),
+    }));
+
+    expect(router.prefetch.mock.calls.map(([href]) => href)).toEqual([
+      previous.viewHref,
+      next.viewHref,
+      afterNext.viewHref,
+      "/view/base/other-category",
+    ]);
+  });
+
+  it.each(["mouseEnter", "focus", "touchStart"] as const)(
+    "prepares a navigation-map destination on %s rather than opening the map",
+    (eventName) => {
+      renderDemo();
+      fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+      expect(router.prefetch).toHaveBeenCalledTimes(2);
+
+      const destination = screen.getByRole("link", { name: "After Next Preview" });
+      fireEvent[eventName](destination);
+      expect(router.prefetch).toHaveBeenLastCalledWith(afterNext.viewHref);
+      expect(router.replace).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not prefetch the current item from the navigation map", () => {
+    renderDemo();
+    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+    fireEvent.mouseEnter(screen.getByRole("link", { name: "Current Preview" }));
+    expect(router.prefetch).toHaveBeenCalledTimes(2);
+  });
+
   it("exposes previous and next links with their keyboard shortcuts", () => {
     renderDemo();
 

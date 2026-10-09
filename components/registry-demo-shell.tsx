@@ -93,6 +93,7 @@ export function RegistryDemoShell({
     selectedItemName: string;
   } | null>(null);
   const itemPageLabel = getItemPageLabel(item.kind);
+  // Keep both item and category shortcuts warm, including on slow connections.
   const prefetchHrefs = useMemo(
     () =>
       uniqueStrings([
@@ -677,6 +678,7 @@ function PreviewNavigationLink({
   return (
     <Link
       href={item.viewHref}
+      prefetch={false}
       replace
       scroll={false}
       title={`${label}: ${item.title} (${shortcutLabel} key)`}
@@ -711,6 +713,12 @@ function NavigationMapGroup({
   currentItemName: string;
   onSelect: (item: RegistryDemoNavigationItem) => void;
 }) {
+  const router = useRouter();
+  const prefetchItem = (item: RegistryDemoNavigationItem) => {
+    if (item.name !== currentItemName) {
+      prefetchRoute(router, item.viewHref);
+    }
+  };
   const isCurrentGroup = group.items.some(
     (groupItem) => groupItem.name === currentItemName,
   );
@@ -733,6 +741,10 @@ function NavigationMapGroup({
             <Link
               key={groupItem.name}
               href={groupItem.viewHref}
+              prefetch={false}
+              onMouseEnter={() => prefetchItem(groupItem)}
+              onFocus={() => prefetchItem(groupItem)}
+              onTouchStart={() => prefetchItem(groupItem)}
               replace
               scroll={false}
               aria-current={selected ? "page" : undefined}

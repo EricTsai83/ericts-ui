@@ -18,19 +18,26 @@ type PageProps = {
   params: Promise<{
     style: string;
     name: string;
-  }>;
-  searchParams?: Promise<{
-    variant?: string | string[];
+    variant?: string[];
   }>;
 };
+
+// Fail during prerendering if request-time APIs are accidentally added later.
+export const dynamic = "error";
+export const dynamicParams = false;
+
+const fullscreenPreviewVariants = ["motion", "css-only", "usage"] as const;
 
 export function generateStaticParams() {
   return getRegistryDisplayItems()
     .filter((item) => item.browsable !== false)
-    .map((item) => ({
-      style: "base",
-      name: item.name,
-    }));
+    .flatMap((item) =>
+      [undefined, ...fullscreenPreviewVariants].map((variant) => ({
+        style: "base",
+        name: item.name,
+        variant: variant ? [variant] : [],
+      })),
+    );
 }
 
 export async function generateMetadata({
@@ -49,8 +56,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function ViewPage({ params, searchParams }: PageProps) {
-  const { name, style } = await params;
+export default async function ViewPage({ params }: PageProps) {
+  const { name, style, variant: variantSegments = [] } = await params;
   const displayItem =
     style === "base" ? getRegistryDisplayItem(name) : undefined;
 
@@ -59,7 +66,14 @@ export default async function ViewPage({ params, searchParams }: PageProps) {
   }
 
   const navigation = getRegistryDisplayNavigation(displayItem.name);
-  const requestedVariant = getRequestedVariant(await searchParams);
+  const requestedVariant = variantSegments[0];
+
+  if (
+    variantSegments.length > 1 ||
+    (requestedVariant && !isFullscreenPreviewVariant(requestedVariant))
+  ) {
+    notFound();
+  }
   const variant = getResolvedVariant(displayItem, requestedVariant);
 
   if (!navigation) {
@@ -78,34 +92,24 @@ export default async function ViewPage({ params, searchParams }: PageProps) {
   );
 }
 
-function getRequestedVariant(
-  searchParams: Awaited<PageProps["searchParams"]>,
-) {
-  const variant = searchParams?.variant;
-
-  if (Array.isArray(variant)) {
-    return variant[0];
-  }
-
-  return variant;
-}
-
 function getResolvedVariant(
   item: RegistryDisplayItem,
   requestedVariant: string | undefined,
 ) {
-  if (requestedVariant && fullscreenPreviewVariants.has(requestedVariant)) {
+  if (requestedVariant && isFullscreenPreviewVariant(requestedVariant)) {
     return requestedVariant;
   }
 
-  if (item.defaultVariant && fullscreenPreviewVariants.has(item.defaultVariant)) {
+  if (item.defaultVariant && isFullscreenPreviewVariant(item.defaultVariant)) {
     return item.defaultVariant;
   }
 
   return "motion";
 }
 
-const fullscreenPreviewVariants = new Set(["motion", "css-only", "usage"]);
+function isFullscreenPreviewVariant(value: string) {
+  return fullscreenPreviewVariants.some((variant) => variant === value);
+}
 
 function toDemoNavigation(
   navigation: NonNullable<ReturnType<typeof getRegistryDisplayNavigation>>,

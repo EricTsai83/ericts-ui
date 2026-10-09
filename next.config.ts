@@ -60,8 +60,8 @@ const nextConfig: NextConfig = {
           permanent: false,
         })),
         {
-          source: `/view/:style/${from}`,
-          destination: `/view/:style/${to}`,
+          source: `/view/:style/${from}/:variant*`,
+          destination: `/view/:style/${to}/:variant*`,
           permanent: false,
         },
         {
@@ -73,12 +73,28 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: "/docs/:path*.md",
-        destination: "/llm/:path*",
-      },
-    ];
+    return {
+      // Resolve shared query URLs to prerendered variants before page matching.
+      // The browser keeps its original URL and receives the correct first render.
+      beforeFiles: ["motion", "css-only", "usage"].map((variant) => ({
+        source: "/view/:style/:name",
+        has: [
+          {
+            type: "query" as const,
+            key: "variant",
+            value: variant,
+          },
+        ],
+        destination: `/view/:style/:name/${variant}`,
+      })),
+      afterFiles: [
+        {
+          source: "/docs/:path*.md",
+          destination: "/llm/:path*",
+        },
+      ],
+      fallback: [],
+    };
   },
 };
 
