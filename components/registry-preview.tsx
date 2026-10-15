@@ -16,6 +16,7 @@ type PreviewComponent = ComponentType<{
 // each need a different slice of this gallery. Items without an entry
 // render nothing (the card still shows their metadata).
 const previews: Record<string, PreviewComponent> = {
+  "download-button": dynamic(() => import("@/components/previews/download-button")),
   "expandable-subscribe": dynamic(() => import("@/components/previews/expandable-subscribe")),
   "smooth-height": dynamic(() => import("@/components/previews/smooth-height")),
   "timer": dynamic(() => import("@/components/previews/timer")),

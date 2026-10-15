@@ -4,6 +4,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ArcMenu } from "@/registry/base/ui/arc-menu";
+import { DownloadButton } from "@/registry/base/ui/download-button";
 import { ContextCursor } from "@/registry/base/ui/context-cursor";
 import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
@@ -98,6 +99,7 @@ describe("registry root ref forwarding", () => {
     const highlightRef = createRef<HTMLDivElement>();
     const buttonRef = createRef<HTMLButtonElement>();
     const iconSwapRef = createRef<HTMLSpanElement>();
+    const downloadRef = createRef<HTMLButtonElement>();
 
     render(
       <>
@@ -110,6 +112,7 @@ describe("registry root ref forwarding", () => {
           icon={<span />}
           activeIcon={<span />}
         />
+        <DownloadButton ref={downloadRef} onDownload={() => {}} />
       </>,
     );
 
@@ -117,5 +120,6 @@ describe("registry root ref forwarding", () => {
     expect(highlightRef.current?.dataset.slot).toBe("highlight-tabs");
     expect(buttonRef.current).toBeInstanceOf(HTMLButtonElement);
     expect(iconSwapRef.current?.dataset.slot).toBe("icon-swap");
+    expect(downloadRef.current?.dataset.slot).toBe("download-button");
   });
 });

@@ -4,6 +4,25 @@
   "homepage": "https://ui.ericts.com",
   "items": [
     {
+      "name": "download-button",
+      "type": "registry:ui",
+      "title": "Download Button",
+      "description": "A circular download action whose outline becomes the progress ring, then settles into a download-again arrow with a check badge. The done state can persist, reset, or hand off to a custom action, and downloads can be cancelable.",
+      "categories": ["action"],
+      "meta": {
+        "tags": ["download", "progress", "async-action", "loading", "success", "cancel", "abort-signal", "button"],
+        "effects": ["progress-ring", "svg-animation", "state-transition", "reduced-motion"]
+      },
+      "dependencies": ["motion", "lucide-react"],
+      "files": [
+        {
+          "path": "registry/base/ui/download-button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/download-button.tsx"
+        }
+      ]
+    },
+    {
       "name": "expandable-subscribe",
       "type": "registry:ui",
       "title": "Expandable Subscribe",
