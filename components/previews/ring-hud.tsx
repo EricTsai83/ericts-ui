@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUp, Check, Flame, HardDrive, Headphones, Zap } from "lucide-react";
+import { ArrowUp, Check, Flame, HardDrive, Headphones, Pause, Play, RotateCcw, X, Zap } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { RingHud, type RingHudControls, type RingHudPhase } from "@/registry/base/ui/ring-hud";
 
 type Scenario = "charging" | "upload" | "goal" | "storage" | "connected";
@@ -49,6 +50,59 @@ const scenarios: Record<Exclude<Scenario, "upload">, ScenarioConfig> = {
 
 const order: Scenario[] = ["charging", "upload", "goal", "storage", "connected"];
 
+const phases: { id: RingHudPhase; label: string }[] = [
+  { id: "enter", label: "Enter" },
+  { id: "hold", label: "Hold" },
+  { id: "exit", label: "Exit" },
+  { id: "done", label: "Done" },
+];
+
+function PhaseSteps({ phase, manualHold }: { phase: RingHudPhase; manualHold: boolean }) {
+  const current = phases.findIndex((step) => step.id === phase);
+
+  return (
+    <ol aria-label="Phase" className="flex items-center gap-1.5 text-xs">
+      {phases.map((step, index) => {
+        const state = index < current ? "past" : index === current ? "current" : "upcoming";
+        return (
+          <li key={step.id} className="flex items-center gap-1.5">
+            {index > 0 && (
+              <span
+                aria-hidden
+                className={cn(
+                  "h-px w-3 transition-colors duration-300",
+                  index <= current ? "bg-foreground/40" : "bg-border",
+                )}
+              />
+            )}
+            <span
+              aria-current={state === "current" ? "step" : undefined}
+              className={cn(
+                "flex items-center gap-1.5 transition-colors duration-300",
+                state === "current" ? "text-foreground" : state === "past" ? "text-muted-foreground" : "text-muted-foreground/50",
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "size-1.5 rounded-full transition-colors duration-300",
+                  state === "current" ? "bg-foreground" : state === "past" ? "bg-muted-foreground" : "bg-border",
+                )}
+              />
+              {step.label}
+              {step.id === "hold" && manualHold && state !== "past" && (
+                <span className="text-muted-foreground" title="Holds until the upload finishes">
+                  ∞
+                </span>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export default function Preview() {
   const [scenario, setScenario] = useState<Scenario>("charging");
   const [run, setRun] = useState(0);
@@ -87,6 +141,7 @@ export default function Preview() {
   };
 
   const uploaded = progress >= 100;
+  const manualHold = scenario === "upload" && !uploaded;
   const config: ScenarioConfig =
     scenario === "upload"
       ? {
@@ -121,27 +176,48 @@ export default function Preview() {
           icon={config.icon}
           label={config.label}
           ringClassName={config.ringClassName}
-          holdDuration={scenario === "upload" && !uploaded ? Infinity : undefined}
+          holdDuration={manualHold ? Infinity : undefined}
           onPhaseChange={setPhase}
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button size="sm" onClick={() => start(scenario)}>
-          Replay
-        </Button>
-        <Button variant="outline" size="sm" disabled={phase === "done"} onClick={togglePaused}>
-          {paused ? "Resume" : "Pause"}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={phase === "exit" || phase === "done"}
-          onClick={() => controlsRef.current?.dismiss()}
-        >
-          Dismiss
-        </Button>
-        <span className="w-14 text-xs text-muted-foreground tabular-nums">{phase}</span>
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-full border bg-muted/30 py-1 pr-1 pl-4">
+        <PhaseSteps phase={phase} manualHold={manualHold} />
+        <span aria-hidden className="h-4 w-px bg-border" />
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full"
+            aria-label={paused ? "Resume" : "Pause"}
+            title={paused ? "Resume" : "Pause"}
+            disabled={phase === "done"}
+            onClick={togglePaused}
+          >
+            {paused ? <Play /> : <Pause />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full"
+            aria-label="Dismiss"
+            title="Dismiss"
+            disabled={phase === "exit" || phase === "done"}
+            onClick={() => controlsRef.current?.dismiss()}
+          >
+            <X />
+          </Button>
+          <Button
+            variant={phase === "done" ? "secondary" : "ghost"}
+            size="icon-sm"
+            className="rounded-full"
+            aria-label="Replay"
+            title="Replay"
+            onClick={() => start(scenario)}
+          >
+            <RotateCcw />
+          </Button>
+        </div>
       </div>
     </div>
   );
