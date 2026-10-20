@@ -18,31 +18,31 @@ type ScenarioConfig = {
 
 const scenarios: Record<Exclude<Scenario, "upload">, ScenarioConfig> = {
   charging: {
-    name: "充電",
+    name: "Charging",
     value: 54,
     icon: <Zap strokeWidth={1} fill="currentColor" />,
-    label: (value) => `已充電 ${value}%`,
+    label: (value) => `Charged ${value}%`,
     ringClassName: "text-[oklch(0.82_0.18_143)]",
   },
   goal: {
-    name: "每日目標",
+    name: "Daily goal",
     value: 82,
     icon: <Flame strokeWidth={1.75} />,
-    label: (value) => `今日目標 ${value}%`,
+    label: (value) => `Daily goal ${value}%`,
     ringClassName: "text-orange-500",
   },
   storage: {
-    name: "儲存空間",
+    name: "Storage",
     value: 92,
     icon: <HardDrive strokeWidth={1.75} />,
-    label: (value) => `已使用 ${value}% 空間`,
+    label: (value) => `${value}% of storage used`,
     ringClassName: "text-red-500",
   },
   connected: {
-    name: "已連線",
+    name: "Connected",
     value: 100,
     icon: <Headphones strokeWidth={1.75} />,
-    label: () => "AirPods 已連線",
+    label: () => "AirPods connected",
     ringClassName: "text-sky-500",
   },
 };
@@ -90,10 +90,10 @@ export default function Preview() {
   const config: ScenarioConfig =
     scenario === "upload"
       ? {
-          name: "上傳",
+          name: "Upload",
           value: progress,
           icon: uploaded ? <Check strokeWidth={2.25} /> : <ArrowUp strokeWidth={2.25} />,
-          label: (value) => (uploaded ? "上傳完成" : `上傳中 ${value}%`),
+          label: (value) => (uploaded ? "Upload complete" : `Uploading ${value}%`),
           ringClassName: "text-violet-500",
         }
       : scenarios[scenario];
@@ -108,7 +108,7 @@ export default function Preview() {
             variant={item === scenario ? "default" : "outline"}
             onClick={() => start(item)}
           >
-            {item === "upload" ? "上傳" : scenarios[item].name}
+            {item === "upload" ? "Upload" : scenarios[item].name}
           </Button>
         ))}
       </div>
