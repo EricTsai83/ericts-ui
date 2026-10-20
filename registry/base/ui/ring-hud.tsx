@@ -77,6 +77,12 @@ const formatPercent = (value: number) => `${value}%`;
  *
  * Also themeable through `--ring-hud-color`, `--ring-hud-track-color`, and
  * `--ring-hud-size`.
+ *
+ * Phases advance on the root's CSS `animationend`, with no JS timers, so
+ * pausing freezes every phase at once. The flow therefore needs animations
+ * to run: inside a `display: none` ancestor it waits until shown, and a global
+ * `animation: none !important` reset stalls it outright. Short-duration
+ * resets such as `animation-duration: 0.01ms` are fine.
  */
 export function RingHud({
   value,
@@ -97,6 +103,10 @@ export function RingHud({
   ...props
 }: RingHudProps) {
   const [phase, setPhase] = useState<RingHudPhase>("enter");
+  // Controls and event handlers read the phase from here, not from render
+  // state, so calls made back to back (replay() then dismiss()) see the
+  // phase the previous call just moved to.
+  const phaseRef = useRef<RingHudPhase>("enter");
   const [paused, setPaused] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const dismissRequestedRef = useRef(false);
@@ -111,6 +121,7 @@ export function RingHud({
   const hold = Number.isFinite(holdDuration) ? Math.max(1, holdDuration) : DEFAULT_HOLD_DURATION;
 
   const goTo = (next: RingHudPhase) => {
+    phaseRef.current = next;
     setPhase(next);
     // The live region exists from mount and is filled once the caption is
     // settled, so screen readers announce it. Re-setting identical text on
@@ -129,7 +140,7 @@ export function RingHud({
       setAnnouncement("");
       // Leaving any other phase swaps animation names, which restarts them on
       // the same node. Replaying mid-entrance keeps the names, so rewind them.
-      if (phase === "enter") {
+      if (phaseRef.current === "enter") {
         for (const animation of rootRef.current?.getAnimations?.({ subtree: true }) ?? []) {
           animation.currentTime = 0;
         }
@@ -143,8 +154,8 @@ export function RingHud({
       setPaused(false);
     },
     dismiss() {
-      if (phase === "enter") dismissRequestedRef.current = true;
-      else if (phase === "hold") goTo("exit");
+      if (phaseRef.current === "enter") dismissRequestedRef.current = true;
+      else if (phaseRef.current === "hold") goTo("exit");
     },
   }));
 
@@ -167,9 +178,10 @@ export function RingHud({
     onAnimationEnd?.(event);
     if (event.target !== event.currentTarget || !event.animationName.startsWith("ring-hud-")) return;
 
-    if (phase === "enter") goTo(dismissRequestedRef.current ? "exit" : "hold");
-    else if (phase === "hold" && !manualHold) goTo("exit");
-    else if (phase === "exit") goTo("done");
+    const current = phaseRef.current;
+    if (current === "enter") goTo(dismissRequestedRef.current ? "exit" : "hold");
+    else if (current === "hold" && !manualHold) goTo("exit");
+    else if (current === "exit") goTo("done");
   };
 
   return (
@@ -191,7 +203,7 @@ export function RingHud({
         ...style,
       } as CSSProperties}
     >
-      <div aria-hidden="true" data-slot="ring-hud-ring" className={cn("ring-hud-visual", ringClassName)}>
+      <div aria-hidden="true" data-slot="ring-hud-ring" className={cn("ring-hud-ring", ringClassName)}>
         <svg viewBox="0 0 200 200" fill="none">
           <defs>
             <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">

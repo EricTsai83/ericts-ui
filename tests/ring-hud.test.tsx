@@ -147,6 +147,22 @@ describe("RingHud", () => {
     expect(onPhaseChange).toHaveBeenCalledWith("enter");
   });
 
+  it("lets back-to-back control calls see the phase the previous call set", () => {
+    const controls = createRef<RingHudControls>();
+    const { container } = render(<RingHud value={40} controlsRef={controls} />);
+    for (const name of ["ring-hud-enter", "ring-hud-hold", "ring-hud-exit"]) {
+      endAnimation(root(container), name);
+    }
+
+    act(() => {
+      controls.current?.replay();
+      controls.current?.dismiss();
+    });
+    expect(root(container).dataset.phase).toBe("enter");
+    endAnimation(root(container), "ring-hud-enter");
+    expect(root(container).dataset.phase).toBe("exit");
+  });
+
   it("maps size to the custom property", () => {
     const { container } = render(<RingHud value={10} size={96} />);
     expect(root(container).style.getPropertyValue("--ring-hud-size")).toBe("96px");
