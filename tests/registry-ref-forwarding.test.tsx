@@ -12,6 +12,9 @@ import { FloatingShortcutButton } from "@/registry/base/ui/floating-shortcut-but
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { IconSwap } from "@/registry/base/ui/icon-swap";
 import { RailList } from "@/registry/base/ui/rail-list";
+import { RingHud } from "@/registry/base/ui/ring-hud";
+
+vi.mock("@/registry/base/ui/ring-hud.css", () => ({}));
 import { StatusButton } from "@/registry/base/ui/status-button";
 
 // jsdom ships no matchMedia; ContextCursor probes for a fine pointer on mount.
@@ -100,6 +103,7 @@ describe("registry root ref forwarding", () => {
     const buttonRef = createRef<HTMLButtonElement>();
     const iconSwapRef = createRef<HTMLSpanElement>();
     const downloadRef = createRef<HTMLButtonElement>();
+    const ringHudRef = createRef<HTMLDivElement>();
 
     render(
       <>
@@ -113,6 +117,7 @@ describe("registry root ref forwarding", () => {
           activeIcon={<span />}
         />
         <DownloadButton ref={downloadRef} onDownload={() => {}} />
+        <RingHud ref={ringHudRef} value={50} />
       </>,
     );
 
@@ -121,5 +126,6 @@ describe("registry root ref forwarding", () => {
     expect(buttonRef.current).toBeInstanceOf(HTMLButtonElement);
     expect(iconSwapRef.current?.dataset.slot).toBe("icon-swap");
     expect(downloadRef.current?.dataset.slot).toBe("download-button");
+    expect(ringHudRef.current?.dataset.slot).toBe("ring-hud");
   });
 });

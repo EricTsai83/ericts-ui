@@ -4,6 +4,43 @@
   "homepage": "https://ui.ericts.com",
   "items": [
     {
+      "name": "ring-hud",
+      "type": "registry:ui",
+      "title": "Ring HUD",
+      "description": "A transient heads-up ring: it fills to a level around an icon, holds with a caption, then sweeps away. Hold for a set time or until dismissed, and update the value live for charging, uploads, goals, storage, or connection status.",
+      "categories": [
+        "display"
+      ],
+      "meta": {
+        "tags": [
+          "hud",
+          "progress",
+          "ring",
+          "status",
+          "charging",
+          "upload",
+          "notification"
+        ],
+        "effects": [
+          "stroke-draw",
+          "stroke-erase",
+          "reduced-motion"
+        ]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/ring-hud.tsx",
+          "type": "registry:ui",
+          "target": "@ui/ring-hud.tsx"
+        },
+        {
+          "path": "registry/base/ui/ring-hud.css",
+          "type": "registry:file",
+          "target": "@ui/ring-hud.css"
+        }
+      ]
+    },
+    {
       "name": "download-button",
       "type": "registry:ui",
       "title": "Download Button",

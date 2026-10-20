@@ -193,6 +193,7 @@ const registryDisplayItemConfigs = [
   { name: "floating-shortcut-button", category: "overlay" },
   { name: "arc-menu", category: "overlay" },
   { name: "status-badge", category: "display" },
+  { name: "ring-hud", category: "display" },
   { name: "check-mark", category: "display" },
   { name: "shy-heart", category: "display" },
   { name: "timer", category: "display" },

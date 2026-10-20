@@ -1,0 +1,184 @@
+/* Registered so value changes interpolate: the ring glides to a new level in
+   any phase instead of jumping, including mid-hold progress updates. */
+@property --ring-hud-value {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@layer components {
+  /* Base styles are the settled frame. Each phase layers its own animations
+     on top, so the hold is simply "no child animation" and can last any time.
+
+     Enter (530ms): fade in 0-120ms, arc fills 0-530ms, icon pops by 340ms.
+     Exit  (450ms): sweep and thinning 0-384ms, strokes fade from 186ms,
+     then the root fades so no empty frame shows. */
+  .ring-hud {
+    --ring-hud-enter: 530ms;
+    --ring-hud-exit: 450ms;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    transition: --ring-hud-value 480ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  .ring-hud-visual {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: var(--ring-hud-size, 12rem);
+    height: var(--ring-hud-size, 12rem);
+    color: var(--ring-hud-color, var(--primary));
+  }
+
+  .ring-hud-visual > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ring-hud-track {
+    stroke: var(--ring-hud-track-color, color-mix(in oklab, var(--foreground) 30%, transparent));
+  }
+
+  .ring-hud-path {
+    stroke-dasharray: var(--ring-hud-value) 100;
+  }
+
+  .ring-hud-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42%;
+    height: 42%;
+  }
+
+  .ring-hud-icon > svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ring-hud[data-phase="done"] {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  /* Root animations drive the phase machine: each one's animationend advances
+     to the next phase. A manual hold has none and waits for dismiss(). */
+  .ring-hud[data-phase="enter"] { animation: ring-hud-enter var(--ring-hud-enter) linear both; }
+  .ring-hud[data-phase="hold"] { animation: ring-hud-hold var(--ring-hud-hold) linear both; }
+  .ring-hud[data-phase="hold"][data-hold="manual"] { animation: none; }
+  .ring-hud[data-phase="exit"] { animation: ring-hud-exit var(--ring-hud-exit) linear both; }
+
+  .ring-hud[data-phase="enter"] .ring-hud-path { animation: ring-hud-draw-in var(--ring-hud-enter) linear both; }
+  .ring-hud[data-phase="enter"] .ring-hud-icon { animation: ring-hud-icon-in var(--ring-hud-enter) linear both; }
+  .ring-hud[data-phase="enter"] .ring-hud-label { animation: ring-hud-label-in var(--ring-hud-enter) linear both; }
+
+  .ring-hud[data-phase="exit"] .ring-hud-path { animation: ring-hud-draw-out var(--ring-hud-exit) linear both; }
+  .ring-hud[data-phase="exit"] .ring-hud-trim {
+    animation: ring-hud-trim-out var(--ring-hud-exit) linear both, ring-hud-weight-out var(--ring-hud-exit) linear both;
+  }
+  .ring-hud[data-phase="exit"] .ring-hud-ink {
+    animation: ring-hud-weight-out var(--ring-hud-exit) linear both, ring-hud-ink-out var(--ring-hud-exit) linear both;
+  }
+  .ring-hud[data-phase="exit"] .ring-hud-icon { animation: ring-hud-icon-out var(--ring-hud-exit) linear both; }
+  .ring-hud[data-phase="exit"] .ring-hud-label { animation: ring-hud-label-out var(--ring-hud-exit) linear both; }
+
+  .ring-hud[data-paused][data-phase],
+  .ring-hud[data-paused][data-phase] * {
+    animation-play-state: paused;
+  }
+
+  @keyframes ring-hud-enter {
+    0% { opacity: 0; animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); }
+    22.641509%, 100% { opacity: 1; }
+  }
+
+  /* Carries no visual change; its duration is the hold countdown. */
+  @keyframes ring-hud-hold {
+    from, to { opacity: 1; }
+  }
+
+  @keyframes ring-hud-exit {
+    0%, 85.333333% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* A soft cubic ease-out so the arc visibly travels rather than snapping.
+     Opacity hides the zero-length round cap at the very start. */
+  @keyframes ring-hud-draw-in {
+    0% { stroke-dasharray: 0 100; opacity: 0; animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+    4.90566% { opacity: 1; }
+    100% { stroke-dasharray: var(--ring-hud-value) 100; opacity: 1; }
+  }
+
+  @keyframes ring-hud-icon-in {
+    0% { transform: scale(0.6); opacity: 0; animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+    39.811321% { transform: scale(1.04); opacity: 1; animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1); }
+    64.716981%, 100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes ring-hud-label-in {
+    0%, 29.811321% { opacity: 0; transform: translateY(6px); animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); }
+    69.811321%, 100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* The head advances to 100 while the tail erases clockwise behind it.
+     Ease-in-out keeps the whole sweep legible instead of front-loading it. */
+  @keyframes ring-hud-draw-out {
+    0% { stroke-dasharray: var(--ring-hud-value) 100; stroke-dashoffset: 0; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    85.333333% { stroke-dasharray: 0 100; stroke-dashoffset: -100; opacity: 1; }
+    100% { stroke-dasharray: 0 100; stroke-dashoffset: -100; opacity: 0; }
+  }
+
+  /* The track's mask erases with the same tail. */
+  @keyframes ring-hud-trim-out {
+    0% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    85.333333%, 100% { stroke-dashoffset: -100; }
+  }
+
+  @keyframes ring-hud-weight-out {
+    0% { stroke-width: 14; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    85.333333%, 100% { stroke-width: 1.5; }
+  }
+
+  /* Fade before the round caps collapse into overlapping dots. */
+  @keyframes ring-hud-ink-out {
+    0%, 41.333333% { opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+    85.333333%, 100% { opacity: 0; }
+  }
+
+  @keyframes ring-hud-icon-out {
+    0%, 6.222222% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+    70.666667%, 100% { transform: scale(0.6); opacity: 0; }
+  }
+
+  @keyframes ring-hud-label-out {
+    0%, 12% { opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+    64.888889%, 100% { opacity: 0; }
+  }
+
+  @keyframes ring-hud-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  /* Children hold their settled frame; the root keeps opacity-only fades so
+     the phase machine still advances on the same animationend events. */
+  @media (prefers-reduced-motion: reduce) {
+    .ring-hud { transition: none; }
+
+    .ring-hud[data-phase] .ring-hud-path,
+    .ring-hud[data-phase] .ring-hud-trim,
+    .ring-hud[data-phase] .ring-hud-ink,
+    .ring-hud[data-phase] .ring-hud-icon,
+    .ring-hud[data-phase] .ring-hud-label {
+      animation: none;
+    }
+
+    .ring-hud[data-phase="exit"] { animation-name: ring-hud-fade-out; }
+  }
+}
