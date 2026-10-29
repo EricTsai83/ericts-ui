@@ -8,11 +8,12 @@ Website: [ui.ericts.com](https://ui.ericts.com)
 
 ## Development
 
-The project supports one Node.js major: 24, the newest one Vercel deploys
-(Vercel offers 24.x and 22.x). `.node-version`, `engines` (`24.x`), CI, and
-`@types/node` all follow it, so development, CI, and production run the same
-runtime. Move all four together once Vercel adds a newer major. Use the pnpm
-version declared in `package.json` (pnpm 12).
+Development and CI run Node.js 26 (`.node-version`). Production runs Node.js
+24, the newest major Vercel deploys (it offers 24.x and 22.x); `engines`
+(`^24.0.0 || >=26.0.0`) lets Vercel pick 24 and lets 26 run locally without an
+engine warning. `@types/node` tracks 24, so code cannot use an API that the
+production runtime lacks. Once Vercel offers 26, narrow `engines` to 26 and move
+`@types/node` with it. Use the pnpm version declared in `package.json` (pnpm 12).
 
 ```sh
 pnpm install --frozen-lockfile
