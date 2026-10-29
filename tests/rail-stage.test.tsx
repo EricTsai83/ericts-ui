@@ -37,7 +37,9 @@ describe("RailStage", () => {
   });
 
   it("honours defaultValue when uncontrolled", () => {
-    render(<RailStage items={items} defaultValue="three" railLabel="Sections" />);
+    render(
+      <RailStage items={items} defaultValue="three" railLabel="Sections" />,
+    );
 
     expect(screen.getByRole("tab", { selected: true }).textContent).toBe(
       "Three",

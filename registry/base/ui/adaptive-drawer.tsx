@@ -10,6 +10,7 @@ import {
   type HTMLMotionProps,
 } from "motion/react";
 
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
@@ -19,7 +20,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
 
 type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
 
@@ -40,8 +40,7 @@ export type AdaptiveDrawerPanel = {
   title: React.ReactNode;
   description?: React.ReactNode;
   content:
-    | React.ReactNode
-    | ((controls: AdaptiveDrawerControls) => React.ReactNode);
+    React.ReactNode | ((controls: AdaptiveDrawerControls) => React.ReactNode);
 };
 
 export type AdaptiveDrawerProps = {
@@ -96,8 +95,7 @@ export function AdaptiveDrawer({
   const [uncontrolledPanel, setUncontrolledPanel] =
     React.useState(fallbackPanel);
   const [height, setHeight] = React.useState<number | null>(null);
-  const [panelDuration, setPanelDuration] =
-    React.useState(minPanelDuration);
+  const [panelDuration, setPanelDuration] = React.useState(minPanelDuration);
   const [contentElement, setContentElement] =
     React.useState<HTMLDivElement | null>(null);
   const frameRef = React.useRef<number | null>(null);
@@ -195,7 +193,10 @@ export function AdaptiveDrawer({
 
       const heightDifference = Math.abs(nextHeight - previousHeight);
       const nextDuration = Math.min(
-        Math.max(heightDifference / heightChangeDurationDivisor, minPanelDuration),
+        Math.max(
+          heightDifference / heightChangeDurationDivisor,
+          minPanelDuration,
+        ),
         maxPanelDuration,
       );
 
@@ -235,13 +236,13 @@ export function AdaptiveDrawer({
 
   const resolvedHeightTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
-    : heightTransition ?? { duration: 0.27, ease: [0.25, 1, 0.5, 1] };
+    : (heightTransition ?? { duration: 0.27, ease: [0.25, 1, 0.5, 1] });
   const resolvedPanelTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
-    : panelTransition ?? {
+    : (panelTransition ?? {
         duration: panelDuration,
         ease: [0.26, 0.08, 0.25, 1],
-      };
+      });
 
   if (!activePanel) {
     return null;
@@ -287,7 +288,7 @@ export function AdaptiveDrawer({
             >
               <div
                 ref={setContentElement}
-                className={cn("px-6 pb-6 pt-5", contentClassName)}
+                className={cn("px-6 pt-5 pb-6", contentClassName)}
               >
                 <div className="grid grid-cols-[1fr_2rem] items-start gap-4">
                   <div className="min-w-0">

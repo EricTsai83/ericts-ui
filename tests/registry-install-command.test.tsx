@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { RegistryInstallCommand } from "@/components/registry-install-command";
 import { PACKAGE_MANAGER_STORAGE_KEY } from "@/lib/use-package-manager";
+import { RegistryInstallCommand } from "@/components/registry-install-command";
 
 afterEach(() => {
   cleanup();

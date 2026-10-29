@@ -10,12 +10,12 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { RegistryDisplayItem } from "@/lib/registry-display";
 import { FullscreenSessionProvider } from "@/components/fullscreen-session";
 import {
   RegistryDemoShell,
   type RegistryDemoNavigation,
 } from "@/components/registry-demo-shell";
-import type { RegistryDisplayItem } from "@/lib/registry-display";
 
 const router = vi.hoisted(() => ({
   prefetch: vi.fn(),
@@ -77,11 +77,13 @@ afterEach(() => {
 
 describe("RegistryDemoShell preview navigation", () => {
   it("keeps both item and category shortcuts prefetched for slow connections", () => {
-    render(createDemoElement(item, {
-      ...navigation,
-      previousCategory: afterNext,
-      nextCategory: createDisplayItem("other-category", "Other Category"),
-    }));
+    render(
+      createDemoElement(item, {
+        ...navigation,
+        previousCategory: afterNext,
+        nextCategory: createDisplayItem("other-category", "Other Category"),
+      }),
+    );
 
     expect(router.prefetch.mock.calls.map(([href]) => href)).toEqual([
       previous.viewHref,
@@ -95,10 +97,14 @@ describe("RegistryDemoShell preview navigation", () => {
     "prepares a navigation-map destination on %s rather than opening the map",
     (eventName) => {
       renderDemo();
-      fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Open navigation map" }),
+      );
       expect(router.prefetch).toHaveBeenCalledTimes(2);
 
-      const destination = screen.getByRole("link", { name: "After Next Preview" });
+      const destination = screen.getByRole("link", {
+        name: "After Next Preview",
+      });
       fireEvent[eventName](destination);
       expect(router.prefetch).toHaveBeenLastCalledWith(afterNext.viewHref);
       expect(router.replace).not.toHaveBeenCalled();
@@ -107,7 +113,9 @@ describe("RegistryDemoShell preview navigation", () => {
 
   it("does not prefetch the current item from the navigation map", () => {
     renderDemo();
-    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open navigation map" }),
+    );
     fireEvent.mouseEnter(screen.getByRole("link", { name: "Current Preview" }));
     expect(router.prefetch).toHaveBeenCalledTimes(2);
   });
@@ -218,7 +226,9 @@ describe("RegistryDemoShell preview navigation", () => {
   it("keeps the navigation map open while browsing inside fullscreen", () => {
     const view = renderDemo();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open navigation map" }),
+    );
     swipe(screen.getByRole("navigation", { name: "Preview navigation" }), {
       from: [180, 24],
       to: [96, 26],
@@ -237,7 +247,9 @@ describe("RegistryDemoShell preview navigation", () => {
   it("collapses the navigation map on the next entry into fullscreen", () => {
     const view = renderDemo();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open navigation map" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open navigation map" }),
+    );
 
     view.unmount();
     renderDemo();
@@ -427,10 +439,10 @@ describe("RegistryDemoShell preview navigation", () => {
       vi.useFakeTimers();
       const view = renderDemo();
 
-      swipe(
-        screen.getByRole("region", { name: "Fullscreen preview canvas" }),
-        { from, to },
-      );
+      swipe(screen.getByRole("region", { name: "Fullscreen preview canvas" }), {
+        from,
+        to,
+      });
       expect(router.replace).toHaveBeenCalledWith(target.viewHref, {
         scroll: false,
       });
@@ -446,9 +458,7 @@ describe("RegistryDemoShell preview navigation", () => {
       act(() => vi.advanceTimersByTime(20));
       expect(previewStage?.hasAttribute("data-swipe-entrance")).toBe(false);
       expect(
-        previewStage?.classList.contains(
-          "[transform:translate3d(0,0,0)]",
-        ),
+        previewStage?.classList.contains("[transform:translate3d(0,0,0)]"),
       ).toBe(true);
     },
   );
@@ -465,10 +475,7 @@ describe("RegistryDemoShell preview navigation", () => {
   });
 
   it("keeps swipe navigation without motion feedback for reduced motion", () => {
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockReturnValue({ matches: true }),
-    );
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
     renderDemo();
 
     const canvas = screen.getByRole("region", {
@@ -576,10 +583,7 @@ function createDemoElement(
   );
 }
 
-function createDisplayItem(
-  name: string,
-  title: string,
-): RegistryDisplayItem {
+function createDisplayItem(name: string, title: string): RegistryDisplayItem {
   return {
     name,
     title,

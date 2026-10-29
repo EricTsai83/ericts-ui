@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bell,
   FilePlus2,
@@ -9,7 +10,6 @@ import {
   Sun,
   UserPlus,
 } from "lucide-react";
-import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -79,7 +79,7 @@ export default function Preview() {
                 onClick={() => setTheme(option)}
                 aria-pressed={theme === option}
                 className={cn(
-                  "rounded-lg border px-2 py-2 text-xs font-medium transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "rounded-lg border px-2 py-2 text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.97]",
                   theme === option
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-background text-foreground hover:bg-foreground/5",

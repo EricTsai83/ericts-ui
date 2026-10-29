@@ -1,7 +1,7 @@
-import type * as React from "react"
+import type * as React from "react";
 
-export type IconProps = React.SVGAttributes<SVGElement>
-export type IconComponent = (props: IconProps) => React.ReactElement
+export type IconProps = React.SVGAttributes<SVGElement>;
+export type IconComponent = (props: IconProps) => React.ReactElement;
 
 export const LogoIcon: IconComponent = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {...props}>
@@ -37,7 +37,7 @@ export const LogoIcon: IconComponent = (props) => (
       strokeWidth="16"
     />
   </svg>
-)
+);
 
 export const TwitterIcon: IconComponent = (props) => (
   <svg
@@ -49,7 +49,7 @@ export const TwitterIcon: IconComponent = (props) => (
   >
     <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
   </svg>
-)
+);
 
 export const GitHubIcon: IconComponent = (props) => (
   <svg viewBox="0 0 256 250" {...props}>
@@ -58,7 +58,7 @@ export const GitHubIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const RadixIcon: IconComponent = (props) => (
   <svg viewBox="0 0 25 25" fill="none" {...props}>
@@ -72,13 +72,13 @@ export const RadixIcon: IconComponent = (props) => (
       fill="currentcolor"
     />
   </svg>
-)
+);
 
 export const AriaIcon: IconComponent = (props) => (
   <svg role="img" viewBox="0 0 24 24" fill="currentColor" {...props}>
     <path d="M13.966 22.624l-1.69-4.281H8.122l3.892-9.144 5.662 13.425zM8.884 1.376H0v21.248zm15.116 0h-8.884L24 22.624Z" />
   </svg>
-)
+);
 
 export const NpmIcon: IconComponent = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -87,7 +87,7 @@ export const NpmIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const YarnIcon: IconComponent = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -96,7 +96,7 @@ export const YarnIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const PnpmIcon: IconComponent = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -105,7 +105,7 @@ export const PnpmIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const ReactIcon: IconComponent = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -114,7 +114,7 @@ export const ReactIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const TailwindIcon: IconComponent = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -123,7 +123,7 @@ export const TailwindIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const GoogleIcon: IconComponent = (props) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -132,7 +132,7 @@ export const GoogleIcon: IconComponent = (props) => (
       d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
     />
   </svg>
-)
+);
 
 export const AppleIcon: IconComponent = (props) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -141,7 +141,7 @@ export const AppleIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const PaypalIcon: IconComponent = (props) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -150,7 +150,7 @@ export const PaypalIcon: IconComponent = (props) => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 export const SpinnerIcon: IconComponent = (props) => (
   <svg
@@ -167,7 +167,7 @@ export const SpinnerIcon: IconComponent = (props) => (
   >
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
-)
+);
 
 export const Icons = {
   logo: LogoIcon,
@@ -184,4 +184,4 @@ export const Icons = {
   apple: AppleIcon,
   paypal: PaypalIcon,
   spinner: SpinnerIcon,
-} satisfies Record<string, IconComponent>
+} satisfies Record<string, IconComponent>;

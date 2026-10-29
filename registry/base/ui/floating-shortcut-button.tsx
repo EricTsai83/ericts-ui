@@ -3,14 +3,12 @@
 import * as React from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
-type ButtonKeyDownEvent = Parameters<
-  NonNullable<ButtonProps["onKeyDown"]>
->[0];
+type ButtonKeyDownEvent = Parameters<NonNullable<ButtonProps["onKeyDown"]>>[0];
 export type FloatingShortcutTriggerProps = Omit<
   ButtonProps,
   | "aria-controls"
@@ -360,13 +358,7 @@ export type FloatingShortcutButtonProps = Omit<
 
 export type FloatingShortcutActionProps = Omit<
   ButtonProps,
-  | "aria-label"
-  | "children"
-  | "role"
-  | "size"
-  | "style"
-  | "type"
-  | "variant"
+  "aria-label" | "children" | "role" | "size" | "style" | "type" | "variant"
 > & {
   /** Visible action label and accessible name. */
   label: string;
@@ -594,7 +586,9 @@ export function FloatingShortcutButton({
     }
 
     const items = getEnabledItems();
-    const activeIndex = items.indexOf(document.activeElement as HTMLButtonElement);
+    const activeIndex = items.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
 
     if (activeIndex === -1) return;
 
@@ -734,8 +728,7 @@ export function FloatingShortcutButton({
               style={{
                 transform: `scale(${open ? openScale : closedTriggerScale})`,
                 transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
-                transitionTimingFunction:
-                  "cubic-bezier(0.77, 0, 0.175, 1)",
+                transitionTimingFunction: "cubic-bezier(0.77, 0, 0.175, 1)",
               }}
             />
           </Button>
@@ -754,10 +747,8 @@ export function FloatingShortcutButton({
               style={{
                 gap: resolvedMetrics.captionGap,
                 transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
-                transitionDelay:
-                  skipMotion || open ? "0ms" : `${iconDelay}ms`,
-                transitionTimingFunction:
-                  "cubic-bezier(0.23, 1, 0.32, 1)",
+                transitionDelay: skipMotion || open ? "0ms" : `${iconDelay}ms`,
+                transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
               }}
             >
               <span
@@ -777,7 +768,7 @@ export function FloatingShortcutButton({
                 <span
                   data-slot="floating-shortcut-caption"
                   className={cn(
-                    "text-xs font-medium leading-none",
+                    "text-xs leading-none font-medium",
                     classNames?.caption,
                   )}
                 >
@@ -796,10 +787,8 @@ export function FloatingShortcutButton({
                 width: resolvedMetrics.closeIconSize,
                 height: resolvedMetrics.closeIconSize,
                 transitionDuration: `${skipMotion ? 0 : resolvedMotion.duration}ms`,
-                transitionDelay:
-                  skipMotion || !open ? "0ms" : `${iconDelay}ms`,
-                transitionTimingFunction:
-                  "cubic-bezier(0.23, 1, 0.32, 1)",
+                transitionDelay: skipMotion || !open ? "0ms" : `${iconDelay}ms`,
+                transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
               }}
             >
               {closeIcon ?? <ShortcutCloseIcon />}
@@ -898,7 +887,10 @@ export function FloatingShortcutAction({
             context.classNames?.actionIcon,
             iconClassName,
           )}
-          style={{ width: metrics.actionIconSize, height: metrics.actionIconSize }}
+          style={{
+            width: metrics.actionIconSize,
+            height: metrics.actionIconSize,
+          }}
         >
           {icon}
         </span>

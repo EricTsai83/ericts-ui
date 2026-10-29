@@ -1,16 +1,13 @@
-import { ArrowLeft, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, TriangleAlert } from "lucide-react";
 
-import { ComponentShowcase } from "@/components/component-showcase";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+  getRegistryItem,
+  getRegistryItemBadges,
+  getRegistryItemsByCategory,
+} from "@/lib/registry";
 import {
   getRegistryCodeModel,
   getRegistryGuideSnippets,
@@ -18,15 +15,14 @@ import {
 } from "@/lib/registry-code";
 import { getRegistryDisplayItem } from "@/lib/registry-display";
 import {
-  getRegistryItem,
-  getRegistryItemBadges,
-  getRegistryItemsByCategory,
-} from "@/lib/registry";
-import {
   getRegistryKindRegistryCategory,
   getRegistryKindSegment,
   type RegistryKind,
 } from "@/lib/registry-kind";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { ComponentShowcase } from "@/components/component-showcase";
 
 type RegistryItemPageOptions = {
   name: string;
@@ -75,7 +71,7 @@ export async function RegistryItemPage({
   const references = item.meta?.references ?? [];
 
   return (
-    <main className="mx-auto flex min-w-0 w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8 lg:px-10">
+    <main className="mx-auto flex w-full max-w-5xl min-w-0 flex-col gap-8 px-4 py-10 sm:px-8 lg:px-10">
       <header className="flex max-w-3xl flex-col gap-5">
         <Link
           href={`/${segment}`}
@@ -106,7 +102,7 @@ export async function RegistryItemPage({
                   href={reference.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   {reference.label}
                 </a>
@@ -118,9 +114,8 @@ export async function RegistryItemPage({
               <TriangleAlert aria-hidden="true" />
               <AlertTitle>Next.js App Router only</AlertTitle>
               <AlertDescription>
-                Built on <code>next/link</code> and{" "}
-                <code>next/navigation</code>. Not compatible with the Pages
-                Router or other frameworks.
+                Built on <code>next/link</code> and <code>next/navigation</code>
+                . Not compatible with the Pages Router or other frameworks.
               </AlertDescription>
             </Alert>
           ) : null}
@@ -132,9 +127,7 @@ export async function RegistryItemPage({
                 </Badge>
               ))}
               {badges.hiddenCount > 0 ? (
-                <Badge variant="secondary">
-                  +{badges.hiddenCount}
-                </Badge>
+                <Badge variant="secondary">+{badges.hiddenCount}</Badge>
               ) : null}
             </div>
           ) : null}

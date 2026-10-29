@@ -48,8 +48,14 @@ export default function Preview() {
         <div className="flex min-h-40 w-full flex-wrap items-center justify-center gap-10 px-6">
           {variants.map(({ caption, props }) => (
             <figure key={caption} className="flex flex-col items-center gap-3">
-              <DownloadButton key={replayKey} onDownload={simulateDownload} {...props} />
-              <figcaption className="text-xs text-muted-foreground">{caption}</figcaption>
+              <DownloadButton
+                key={replayKey}
+                onDownload={simulateDownload}
+                {...props}
+              />
+              <figcaption className="text-xs text-muted-foreground">
+                {caption}
+              </figcaption>
             </figure>
           ))}
         </div>

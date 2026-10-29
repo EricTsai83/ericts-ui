@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
+import dynamic from "next/dynamic";
 
 type PreviewPresentation = "inline" | "fullscreen";
 
@@ -17,68 +17,122 @@ type PreviewComponent = ComponentType<{
 // render nothing (the card still shows their metadata).
 const previews: Record<string, PreviewComponent> = {
   "ring-hud": dynamic(() => import("@/components/previews/ring-hud")),
-  "download-button": dynamic(() => import("@/components/previews/download-button")),
-  "expandable-subscribe": dynamic(() => import("@/components/previews/expandable-subscribe")),
+  "download-button": dynamic(
+    () => import("@/components/previews/download-button"),
+  ),
+  "expandable-subscribe": dynamic(
+    () => import("@/components/previews/expandable-subscribe"),
+  ),
   "smooth-height": dynamic(() => import("@/components/previews/smooth-height")),
-  "timer": dynamic(() => import("@/components/previews/timer")),
+  timer: dynamic(() => import("@/components/previews/timer")),
   "copy-button": dynamic(() => import("@/components/previews/copy-button")),
   "icon-swap": dynamic(() => import("@/components/previews/icon-swap")),
-  "like": dynamic(() => import("@/components/previews/like")),
+  like: dynamic(() => import("@/components/previews/like")),
   "like-button": dynamic(() => import("@/components/previews/like-button")),
   "like-burst": dynamic(() => import("@/components/previews/like-burst")),
   "check-mark": dynamic(() => import("@/components/previews/check-mark")),
   "shy-heart": dynamic(() => import("@/components/previews/shy-heart")),
-  "jitter": dynamic(() => import("@/components/previews/jitter")),
-  "squeeze": dynamic(() => import("@/components/previews/squeeze")),
-  "heartbeat": dynamic(() => import("@/components/previews/heartbeat")),
-  "projected-shadow": dynamic(() => import("@/components/previews/projected-shadow")),
+  jitter: dynamic(() => import("@/components/previews/jitter")),
+  squeeze: dynamic(() => import("@/components/previews/squeeze")),
+  heartbeat: dynamic(() => import("@/components/previews/heartbeat")),
+  "projected-shadow": dynamic(
+    () => import("@/components/previews/projected-shadow"),
+  ),
   "status-badge": dynamic(() => import("@/components/previews/status-badge")),
   "status-button": dynamic(() => import("@/components/previews/status-button")),
-  "expandable-toggle-button": dynamic(() => import("@/components/previews/expandable-toggle-button")),
-  "floating-shortcut-button": dynamic(() => import("@/components/previews/floating-shortcut-button")),
+  "expandable-toggle-button": dynamic(
+    () => import("@/components/previews/expandable-toggle-button"),
+  ),
+  "floating-shortcut-button": dynamic(
+    () => import("@/components/previews/floating-shortcut-button"),
+  ),
   "arc-menu": dynamic(() => import("@/components/previews/arc-menu")),
   "play-button": dynamic(() => import("@/components/previews/play-button")),
   "sliding-play-button": dynamic(
     () => import("@/components/previews/sliding-play-button"),
   ),
   "seek-button": dynamic(() => import("@/components/previews/seek-button")),
-  "floating-select": dynamic(() => import("@/components/previews/floating-select")),
+  "floating-select": dynamic(
+    () => import("@/components/previews/floating-select"),
+  ),
   "adaptive-switch": dynamic(
     () => import("@/components/previews/adaptive-switch"),
   ),
-  "expandable-slider": dynamic(() => import("@/components/previews/expandable-slider")),
-  "expandable-toolbar": dynamic(() => import("@/components/previews/expandable-toolbar")),
+  "expandable-slider": dynamic(
+    () => import("@/components/previews/expandable-slider"),
+  ),
+  "expandable-toolbar": dynamic(
+    () => import("@/components/previews/expandable-toolbar"),
+  ),
   "otp-input": dynamic(() => import("@/components/previews/otp-input")),
   "nav-link": dynamic(() => import("@/components/previews/nav-link")),
-  "highlight-tabs": dynamic(() => import("@/components/previews/highlight-tabs")),
+  "highlight-tabs": dynamic(
+    () => import("@/components/previews/highlight-tabs"),
+  ),
   "filter-tags": dynamic(() => import("@/components/previews/filter-tags")),
   "sliding-list": dynamic(() => import("@/components/previews/sliding-list")),
   "rail-list": dynamic(() => import("@/components/previews/rail-list")),
   "rail-stage": dynamic(() => import("@/components/previews/rail-stage")),
-  "mermaid-diagram": dynamic(() => import("@/components/previews/mermaid-diagram")),
-  "expandable-segmented-tabs": dynamic(() => import("@/components/previews/expandable-segmented-tabs")),
-  "expandable-tabs": dynamic(() => import("@/components/previews/expandable-tabs")),
-  "expandable-panel": dynamic(() => import("@/components/previews/expandable-panel")),
-  "navigation-menu": dynamic(() => import("@/components/previews/navigation-menu")),
+  "mermaid-diagram": dynamic(
+    () => import("@/components/previews/mermaid-diagram"),
+  ),
+  "expandable-segmented-tabs": dynamic(
+    () => import("@/components/previews/expandable-segmented-tabs"),
+  ),
+  "expandable-tabs": dynamic(
+    () => import("@/components/previews/expandable-tabs"),
+  ),
+  "expandable-panel": dynamic(
+    () => import("@/components/previews/expandable-panel"),
+  ),
+  "navigation-menu": dynamic(
+    () => import("@/components/previews/navigation-menu"),
+  ),
   "text-morph": dynamic(() => import("@/components/previews/text-morph")),
-  "expandable-dialog": dynamic(() => import("@/components/previews/expandable-dialog")),
-  "context-cursor": dynamic(() => import("@/components/previews/context-cursor")),
-  "feedback-popover": dynamic(() => import("@/components/previews/feedback-popover")),
+  "expandable-dialog": dynamic(
+    () => import("@/components/previews/expandable-dialog"),
+  ),
+  "context-cursor": dynamic(
+    () => import("@/components/previews/context-cursor"),
+  ),
+  "feedback-popover": dynamic(
+    () => import("@/components/previews/feedback-popover"),
+  ),
   "multi-step": dynamic(() => import("@/components/previews/multi-step")),
-  "adaptive-drawer": dynamic(() => import("@/components/previews/adaptive-drawer")),
-  "staggered-entrance": dynamic(() => import("@/components/previews/staggered-entrance")),
-  "use-reduced-motion": dynamic(() => import("@/components/previews/use-reduced-motion")),
-  "use-element-height": dynamic(() => import("@/components/previews/use-element-height")),
-  "use-element-size-map": dynamic(() => import("@/components/previews/use-element-size-map")),
-  "use-scroll-anchor": dynamic(() => import("@/components/previews/use-scroll-anchor")),
-  "use-scroll-progress": dynamic(() => import("@/components/previews/use-scroll-progress")),
-  "use-swipe-navigation": dynamic(() => import("@/components/previews/use-swipe-navigation")),
-  "use-sequence-player": dynamic(() => import("@/components/previews/use-sequence-player")),
+  "adaptive-drawer": dynamic(
+    () => import("@/components/previews/adaptive-drawer"),
+  ),
+  "staggered-entrance": dynamic(
+    () => import("@/components/previews/staggered-entrance"),
+  ),
+  "use-reduced-motion": dynamic(
+    () => import("@/components/previews/use-reduced-motion"),
+  ),
+  "use-element-height": dynamic(
+    () => import("@/components/previews/use-element-height"),
+  ),
+  "use-element-size-map": dynamic(
+    () => import("@/components/previews/use-element-size-map"),
+  ),
+  "use-scroll-anchor": dynamic(
+    () => import("@/components/previews/use-scroll-anchor"),
+  ),
+  "use-scroll-progress": dynamic(
+    () => import("@/components/previews/use-scroll-progress"),
+  ),
+  "use-swipe-navigation": dynamic(
+    () => import("@/components/previews/use-swipe-navigation"),
+  ),
+  "use-sequence-player": dynamic(
+    () => import("@/components/previews/use-sequence-player"),
+  ),
   "deck-lift": dynamic(() => import("@/components/previews/deck-lift")),
   "scroll-expand": dynamic(() => import("@/components/previews/scroll-expand")),
   "ripple-scene": dynamic(() => import("@/components/previews/ripple-scene")),
   "demo-tabs": dynamic(() => import("@/components/previews/demo-tabs")),
-  "vertical-scene": dynamic(() => import("@/components/previews/vertical-scene")),
+  "vertical-scene": dynamic(
+    () => import("@/components/previews/vertical-scene"),
+  ),
 };
 
 export function RegistryPreview({

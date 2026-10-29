@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCallback, useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useSwipeNavigation } from "@/registry/base/hooks/use-swipe-navigation";
@@ -73,7 +73,7 @@ export default function Preview() {
 
           <output
             aria-live="polite"
-            className="text-xs font-medium tabular-nums text-muted-foreground"
+            className="text-xs font-medium text-muted-foreground tabular-nums"
           >
             {activeIndex + 1} of {pages.length}
           </output>

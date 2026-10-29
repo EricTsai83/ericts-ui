@@ -34,9 +34,9 @@ describe("ExpandableToggleButton", () => {
     fireEvent.click(button);
 
     expect(
-      screen.getByRole("button", { name: "Collapse action" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Collapse action" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(onActiveChange).toHaveBeenCalledWith(true);
   });

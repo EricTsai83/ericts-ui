@@ -95,12 +95,8 @@ describe("SurfaceGrainDemo", () => {
     expect(screen.queryByText("Esc")).toBeNull();
     expect(preview.getAttribute("data-magnifying")).toBe("true");
 
-    const lens = document.querySelector<HTMLElement>(
-      "[data-magnifier-lens]",
-    );
-    const canvas = lens?.querySelector<HTMLElement>(
-      "[data-magnifier-canvas]",
-    );
+    const lens = document.querySelector<HTMLElement>("[data-magnifier-lens]");
+    const canvas = lens?.querySelector<HTMLElement>("[data-magnifier-canvas]");
     const lightNoise = lens?.querySelector<HTMLElement>(
       '[data-magnifier-noise="Light"]',
     );
@@ -112,9 +108,7 @@ describe("SurfaceGrainDemo", () => {
 
     expect(lens?.parentElement).toBe(preview);
     expect(lens?.dataset.theme).toBe("Light");
-    expect(canvas?.style.transform).toBe(
-      "translate(-1520px, -320px) scale(4)",
-    );
+    expect(canvas?.style.transform).toBe("translate(-1520px, -320px) scale(4)");
     expect(lightNoise?.style.visibility).toBe("visible");
     expect(lightNoise?.style.backgroundPosition).toBe("-240px -144px");
     expect(lightNoise?.style.clipPath).toBe("inset(0px 0px 0px 0px)");

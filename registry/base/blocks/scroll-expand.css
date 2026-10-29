@@ -136,7 +136,11 @@
 
   .scroll-expand__media--empty {
     background:
-      radial-gradient(circle at 72% 22%, rgb(255 255 255 / 18%), transparent 28%),
+      radial-gradient(
+        circle at 72% 22%,
+        rgb(255 255 255 / 18%),
+        transparent 28%
+      ),
       linear-gradient(145deg, #343434, #111 68%);
   }
 
@@ -184,11 +188,7 @@
 
   .scroll-expand__item {
     opacity: 0;
-    transform: translate3d(
-        0,
-        var(--scroll-expand-item-offset-y, 24px),
-        0
-      )
+    transform: translate3d(0, var(--scroll-expand-item-offset-y, 24px), 0)
       scale(var(--scroll-expand-item-scale, 0.98));
     transform-origin: center;
     will-change: opacity, transform;

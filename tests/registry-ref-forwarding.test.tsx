@@ -4,18 +4,18 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ArcMenu } from "@/registry/base/ui/arc-menu";
-import { DownloadButton } from "@/registry/base/ui/download-button";
 import { ContextCursor } from "@/registry/base/ui/context-cursor";
-import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
+import { DownloadButton } from "@/registry/base/ui/download-button";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
+import { ExpandableTabs } from "@/registry/base/ui/expandable-tabs";
 import { FloatingShortcutButton } from "@/registry/base/ui/floating-shortcut-button";
 import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { IconSwap } from "@/registry/base/ui/icon-swap";
 import { RailList } from "@/registry/base/ui/rail-list";
 import { RingHud } from "@/registry/base/ui/ring-hud";
+import { StatusButton } from "@/registry/base/ui/status-button";
 
 vi.mock("@/registry/base/ui/ring-hud.css", () => ({}));
-import { StatusButton } from "@/registry/base/ui/status-button";
 
 // jsdom ships no matchMedia; ContextCursor probes for a fine pointer on mount.
 beforeEach(() => {
@@ -58,9 +58,7 @@ describe("registry root ref forwarding", () => {
         <ExpandablePanel ref={panelRef}>panel</ExpandablePanel>
         <ExpandableTabs
           ref={tabsRef}
-          items={[
-            { id: "a", label: "A", icon: null, onSelect: () => {} },
-          ]}
+          items={[{ id: "a", label: "A", icon: null, onSelect: () => {} }]}
         />
         <ContextCursor ref={cursorRef}>cursor</ContextCursor>
         <FloatingShortcutButton ref={shortcutRef}>

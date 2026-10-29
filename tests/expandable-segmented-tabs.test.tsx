@@ -129,7 +129,11 @@ describe("ExpandableSegmentedTabs", () => {
 
   it("keeps an explicit aria-label alongside aria-labelledby", () => {
     render(
-      <ExpandableSegmentedTabs items={items} aria-label="Fallback" aria-labelledby="mode-heading" />,
+      <ExpandableSegmentedTabs
+        items={items}
+        aria-label="Fallback"
+        aria-labelledby="mode-heading"
+      />,
     );
 
     const tablist = screen.getByRole("tablist");

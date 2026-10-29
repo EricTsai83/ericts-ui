@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 
-import { LogoIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { LogoIcon } from "@/components/icons";
 import { Heartbeat } from "@/registry/base/ui/heartbeat";
 
 /**
@@ -16,7 +16,7 @@ export function NotFoundMark({ className }: { className?: string }) {
     <div
       aria-hidden="true"
       className={cn(
-        "flex select-none items-center justify-center font-semibold leading-none tracking-tighter text-[clamp(4.5rem,22vw,11rem)] text-foreground",
+        "flex items-center justify-center text-[clamp(4.5rem,22vw,11rem)] leading-none font-semibold tracking-tighter text-foreground select-none",
         className,
       )}
     >
@@ -36,8 +36,7 @@ export function NotFoundMark({ className }: { className?: string }) {
 }
 
 const subscribe = () => () => {};
-const getPathSnapshot = () =>
-  window.location.pathname + window.location.search;
+const getPathSnapshot = () => window.location.pathname + window.location.search;
 const getServerPathSnapshot = () => "";
 
 /**

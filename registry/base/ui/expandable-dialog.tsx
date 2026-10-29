@@ -40,7 +40,6 @@ export type ExpandableDialogProps = Omit<
   itemClassName?: string;
 };
 
-
 /** How long a click waits for image decode before opening regardless. */
 const DECODE_BUDGET_MS = 200;
 
@@ -82,8 +81,7 @@ export function ExpandableDialog({
   >(defaultValue);
 
   const activeItemValue = isControlled ? value : uncontrolledValue;
-  const activeItem =
-    items.find((item) => item.id === activeItemValue) ?? null;
+  const activeItem = items.find((item) => item.id === activeItemValue) ?? null;
 
   const setActiveItem = React.useCallback(
     (nextItem: ExpandableDialogItem | null) => {
@@ -382,9 +380,7 @@ export function ExpandableDialog({
                   <motion.div
                     initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={
-                      shouldReduceMotion ? undefined : { opacity: 0, y: 4 }
-                    }
+                    exit={shouldReduceMotion ? undefined : { opacity: 0, y: 4 }}
                     transition={fadeTransition}
                     className="p-4 text-sm leading-6 text-muted-foreground"
                   >

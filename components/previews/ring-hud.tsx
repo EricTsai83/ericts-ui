@@ -1,11 +1,26 @@
 "use client";
 
-import { ArrowUp, Check, Flame, HardDrive, Headphones, Pause, Play, RotateCcw, X, Zap } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ArrowUp,
+  Check,
+  Flame,
+  HardDrive,
+  Headphones,
+  Pause,
+  Play,
+  RotateCcw,
+  X,
+  Zap,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { RingHud, type RingHudControls, type RingHudPhase } from "@/registry/base/ui/ring-hud";
+import { Button } from "@/components/ui/button";
+import {
+  RingHud,
+  type RingHudControls,
+  type RingHudPhase,
+} from "@/registry/base/ui/ring-hud";
 
 type Scenario = "charging" | "upload" | "goal" | "storage" | "connected";
 
@@ -48,7 +63,13 @@ const scenarios: Record<Exclude<Scenario, "upload">, ScenarioConfig> = {
   },
 };
 
-const order: Scenario[] = ["charging", "upload", "goal", "storage", "connected"];
+const order: Scenario[] = [
+  "charging",
+  "upload",
+  "goal",
+  "storage",
+  "connected",
+];
 
 const phases: { id: RingHudPhase; label: string }[] = [
   { id: "enter", label: "Enter" },
@@ -57,13 +78,20 @@ const phases: { id: RingHudPhase; label: string }[] = [
   { id: "done", label: "Done" },
 ];
 
-function PhaseSteps({ phase, manualHold }: { phase: RingHudPhase; manualHold: boolean }) {
+function PhaseSteps({
+  phase,
+  manualHold,
+}: {
+  phase: RingHudPhase;
+  manualHold: boolean;
+}) {
   const current = phases.findIndex((step) => step.id === phase);
 
   return (
     <ol aria-label="Phase" className="flex items-center gap-1.5 text-xs">
       {phases.map((step, index) => {
-        const state = index < current ? "past" : index === current ? "current" : "upcoming";
+        const state =
+          index < current ? "past" : index === current ? "current" : "upcoming";
         return (
           <li key={step.id} className="flex items-center gap-1.5">
             {index > 0 && (
@@ -79,19 +107,30 @@ function PhaseSteps({ phase, manualHold }: { phase: RingHudPhase; manualHold: bo
               aria-current={state === "current" ? "step" : undefined}
               className={cn(
                 "flex items-center gap-1.5 transition-colors duration-300",
-                state === "current" ? "text-foreground" : state === "past" ? "text-muted-foreground" : "text-muted-foreground/50",
+                state === "current"
+                  ? "text-foreground"
+                  : state === "past"
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/50",
               )}
             >
               <span
                 aria-hidden
                 className={cn(
                   "size-1.5 rounded-full transition-colors duration-300",
-                  state === "current" ? "bg-foreground" : state === "past" ? "bg-muted-foreground" : "bg-border",
+                  state === "current"
+                    ? "bg-foreground"
+                    : state === "past"
+                      ? "bg-muted-foreground"
+                      : "bg-border",
                 )}
               />
               {step.label}
               {step.id === "hold" && manualHold && state !== "past" && (
-                <span className="text-muted-foreground" title="Holds until the upload finishes">
+                <span
+                  className="text-muted-foreground"
+                  title="Holds until the upload finishes"
+                >
                   ∞
                 </span>
               )}
@@ -118,7 +157,9 @@ export default function Preview() {
     if (scenario !== "upload") return;
     const id = window.setInterval(() => {
       if (pausedRef.current) return;
-      setProgress((current) => Math.min(100, current + 6 + Math.round(Math.random() * 10)));
+      setProgress((current) =>
+        Math.min(100, current + 6 + Math.round(Math.random() * 10)),
+      );
     }, 280);
     return () => window.clearInterval(id);
   }, [scenario, run]);
@@ -147,8 +188,13 @@ export default function Preview() {
       ? {
           name: "Upload",
           value: progress,
-          icon: uploaded ? <Check strokeWidth={2.25} /> : <ArrowUp strokeWidth={2.25} />,
-          label: (value) => (uploaded ? "Upload complete" : `Uploading ${value}%`),
+          icon: uploaded ? (
+            <Check strokeWidth={2.25} />
+          ) : (
+            <ArrowUp strokeWidth={2.25} />
+          ),
+          label: (value) =>
+            uploaded ? "Upload complete" : `Uploading ${value}%`,
           ringClassName: "text-violet-500",
         }
       : scenarios[scenario];

@@ -27,11 +27,7 @@ describe("FloatingSelect", () => {
     const removeEventListener = vi.spyOn(window, "removeEventListener");
 
     render(
-      <FloatingSelect
-        placement="inline"
-        label="Mode"
-        options={options}
-      />,
+      <FloatingSelect placement="inline" label="Mode" options={options} />,
     );
 
     expect(

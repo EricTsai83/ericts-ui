@@ -1,10 +1,10 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
   useSequencePlayer,
   type SequenceScript,
 } from "@/registry/base/hooks/use-sequence-player";
-import { cn } from "@/lib/utils";
 
 // Three deliberately plain demos: the hook's job is the spotlight, so the
 // sequences only need enough state to show which one is currently playing.
@@ -104,7 +104,7 @@ export default function Preview() {
               <Demo run={runs[index] ?? 0} />
 
               <div className="flex w-full items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                <span className="font-mono text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
                   {sequence.label}
                 </span>
                 <span aria-hidden="true" className="flex gap-1">

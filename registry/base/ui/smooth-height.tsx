@@ -1,11 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  motion,
-  useReducedMotion,
-  type HTMLMotionProps,
-} from "motion/react";
+import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -60,7 +56,7 @@ export function SmoothHeight({
         : entry.borderBoxSize;
 
       updateHeight(
-        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height
+        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height,
       );
     });
 
@@ -71,7 +67,7 @@ export function SmoothHeight({
 
   const resolvedTransition: MotionTransition = shouldReduceMotion
     ? { duration: 0 }
-    : transition ?? { duration: 0.3, ease: [0.645, 0.045, 0.355, 1] };
+    : (transition ?? { duration: 0.3, ease: [0.645, 0.045, 0.355, 1] });
 
   return (
     <motion.div

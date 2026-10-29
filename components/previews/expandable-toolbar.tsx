@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps, ReactNode } from "react";
 import {
   ChevronsLeft,
   ChevronsLeftRight,
@@ -10,12 +11,13 @@ import {
   Mail,
   UserPlus,
 } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ExpandableToolbar } from "@/registry/base/ui/expandable-toolbar";
 
-type ToolbarSide = NonNullable<ComponentProps<typeof ExpandableToolbar>["side"]>;
+type ToolbarSide = NonNullable<
+  ComponentProps<typeof ExpandableToolbar>["side"]
+>;
 
 const DEMOS: {
   side: ToolbarSide;

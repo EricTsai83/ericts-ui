@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-  type Variants,
-} from "motion/react";
-import {
   useCallback,
   useEffect,
   useId,
@@ -17,12 +11,18 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "motion/react";
 
+import { cn } from "@/lib/utils";
 import {
   useElementSizeMap,
   type ElementSize,
 } from "@/hooks/use-element-size-map";
-import { cn } from "@/lib/utils";
 
 // Inlined so the registry item is self-contained. Strong custom ease — the
 // defaults like `ease-out` feel weak for a morphing surface like this.
@@ -88,8 +88,10 @@ export type ExpandableTabsClassNames = {
   menuItem?: string;
 };
 
-export interface ExpandableTabsProps
-  extends Omit<ComponentProps<"div">, "defaultValue" | "onSelect"> {
+export interface ExpandableTabsProps extends Omit<
+  ComponentProps<"div">,
+  "defaultValue" | "onSelect"
+> {
   items: ExpandableTabItem[];
   /** Open tab id, or null/undefined for the closed (bar-only) state. */
   value?: string | null;
@@ -197,8 +199,7 @@ function useDockGeometry(
 
     return {
       buttonsById,
-      width:
-        buttonsWidth + Math.max(0, items.length - 1) * BAR_GAP + BAR_X,
+      width: buttonsWidth + Math.max(0, items.length - 1) * BAR_GAP + BAR_X,
     };
   }, [activeId, buttonSizes, items]);
 }
@@ -218,7 +219,10 @@ function PanelBody({
   item: ExpandableTabItem;
   classNames?: ExpandableTabsClassNames;
   registerItemRef?: (index: number, node: HTMLButtonElement | null) => void;
-  onItemKeyDown?: (event: KeyboardEvent<HTMLButtonElement>, index: number) => void;
+  onItemKeyDown?: (
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => void;
   onItemSelect?: (menuItem: ExpandableTabMenuItem) => void;
 }) {
   if (isMenuTab(item)) {
@@ -239,7 +243,7 @@ function PanelBody({
               onClick={() => onItemSelect?.(menuItem)}
               onKeyDown={(event) => onItemKeyDown?.(event, index)}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm outline-none transition-colors",
+                "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors outline-none",
                 "text-foreground hover:bg-foreground/5 focus-visible:bg-foreground/5 active:bg-foreground/10",
                 "disabled:pointer-events-none disabled:opacity-40",
                 classNames?.menuItem,
@@ -251,7 +255,7 @@ function PanelBody({
                 </span>
               ) : null}
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate font-medium leading-tight">
+                <span className="truncate leading-tight font-medium">
                   {menuItem.label}
                 </span>
                 {menuItem.description ? (
@@ -336,9 +340,7 @@ function DockMeasurers({
 }: {
   items: ExpandableTabItem[];
   classNames?: ExpandableTabsClassNames;
-  setButtonMeasureRef: (
-    id: string,
-  ) => (node: HTMLButtonElement | null) => void;
+  setButtonMeasureRef: (id: string) => (node: HTMLButtonElement | null) => void;
 }) {
   return (
     <MeasurerLayer>
@@ -356,7 +358,7 @@ function DockMeasurers({
                   tabIndex={-1}
                   className={cn(
                     "relative isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none",
-                    isActive && "justify-start pl-2.5 pr-4",
+                    isActive && "justify-start pr-4 pl-2.5",
                     classNames?.tab,
                     isActive && classNames?.activeTab,
                   )}
@@ -392,7 +394,7 @@ function PanelMeasurers({
           key={item.id}
           ref={setPanelMeasureRef(item.id)}
           className={cn(
-            "absolute left-0 top-0 w-max px-2 pt-2",
+            "absolute top-0 left-0 w-max px-2 pt-2",
             classNames?.panel,
           )}
           style={{ paddingBottom: BAR_H + PANEL_DOCK_GAP }}
@@ -428,7 +430,7 @@ function MeasurerLayer({ children }: { children: ReactNode }) {
     <div
       inert
       aria-hidden
-      className="pointer-events-none invisible absolute left-0 top-0 size-0 overflow-clip"
+      className="pointer-events-none invisible absolute top-0 left-0 size-0 overflow-clip"
     >
       {children}
     </div>
@@ -515,10 +517,10 @@ function DockToolbar({
                 : TAB_CHANGE_TRANSITION
             }
             className={cn(
-              "absolute left-0 top-2 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium outline-none transition-colors",
+              "absolute top-2 left-0 isolate flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium transition-colors outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               "disabled:pointer-events-none disabled:opacity-40",
-              isActive && "justify-start pl-2.5 pr-4",
+              isActive && "justify-start pr-4 pl-2.5",
               isActive
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground",
@@ -635,7 +637,8 @@ export function ExpandableTabs({
     const enabled = enabledMenuIndexes(visualActive);
     if (enabled.length === 0) return;
 
-    const target = intent === "first" ? enabled[0] : enabled[enabled.length - 1];
+    const target =
+      intent === "first" ? enabled[0] : enabled[enabled.length - 1];
     focusMenuItem(target);
   }, [enabledMenuIndexes, focusMenuItem, visualActive, visualActiveId]);
 
@@ -802,11 +805,16 @@ export function ExpandableTabs({
   // The active panel drives the shell, while the dock width is derived from the
   // measured target width of each button state. That keeps the geometry explicit:
   // shell, dock, and buttons all animate toward the same stable numbers.
-  const activePanelSize = visualActive ? panelSizes[visualActive.id] : undefined;
+  const activePanelSize = visualActive
+    ? panelSizes[visualActive.id]
+    : undefined;
   const openSize = activePanelSize
     ? {
         width: Math.max(activePanelSize.width + ROOT_BORDER, closedSize.width),
-        height: Math.max(activePanelSize.height + ROOT_BORDER, closedSize.height),
+        height: Math.max(
+          activePanelSize.height + ROOT_BORDER,
+          closedSize.height,
+        ),
       }
     : closedSize;
   const targetSize = visualActive ? openSize : closedSize;
@@ -858,7 +866,7 @@ export function ExpandableTabs({
         >
           <div
             className={cn(
-              "absolute left-0 right-0 top-0 z-10 overflow-hidden px-2 pt-2",
+              "absolute top-0 right-0 left-0 z-10 overflow-hidden px-2 pt-2",
               classNames?.panel,
             )}
             style={{ bottom: BAR_H + PANEL_DOCK_GAP }}

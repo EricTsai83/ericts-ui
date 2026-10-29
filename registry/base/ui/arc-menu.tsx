@@ -3,14 +3,12 @@
 import * as React from "react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
-type ButtonKeyDownEvent = Parameters<
-  NonNullable<ButtonProps["onKeyDown"]>
->[0];
+type ButtonKeyDownEvent = Parameters<NonNullable<ButtonProps["onKeyDown"]>>[0];
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
@@ -277,10 +275,7 @@ export function ArcMenu({
   const menuItems = React.Children.toArray(children);
   const resolvedRadius = resolvePositive(radius, 72);
   const resolvedTriggerSize = resolvePositive(triggerSize, 56);
-  const resolvedIconOnlyTriggerSize = resolvePositive(
-    iconOnlyTriggerSize,
-    48,
-  );
+  const resolvedIconOnlyTriggerSize = resolvePositive(iconOnlyTriggerSize, 48);
   const resolvedOpenTriggerSize = resolvePositive(openTriggerSize, 40);
   const resolvedActionSize = resolvePositive(actionSize, 40);
   const resolvedTriggerIconSize = resolvePositive(triggerIconSize, 20);
@@ -297,8 +292,7 @@ export function ArcMenu({
     typeof triggerCaption === "string" ? triggerCaption.trim() : "";
   const resolvedTriggerLabel =
     triggerLabel?.trim() || captionLabel || "Open shortcuts";
-  const resolvedCloseLabel =
-    closeLabel.trim() || "Close and retract shortcuts";
+  const resolvedCloseLabel = closeLabel.trim() || "Close and retract shortcuts";
   const resolvedMenuLabel = menuLabel.trim() || "Shortcuts";
   const resolvedStartAngle = resolveAngle(startAngle, -150);
   const resolvedEndAngle = resolveAngle(endAngle, -30);
@@ -546,7 +540,7 @@ export function ArcMenu({
 
             return (
               <motion.li
-                key={React.isValidElement(child) ? child.key ?? index : index}
+                key={React.isValidElement(child) ? (child.key ?? index) : index}
                 role="none"
                 data-slot="arc-menu-action-slot"
                 className={cn(
@@ -616,9 +610,7 @@ export function ArcMenu({
             }}
             transition={{
               duration:
-                shouldReduceMotion || skipMotion
-                  ? 0
-                  : TRIGGER_DURATION_SECONDS,
+                shouldReduceMotion || skipMotion ? 0 : TRIGGER_DURATION_SECONDS,
               ease: EASE_IN_OUT,
             }}
           />
@@ -641,8 +633,7 @@ export function ArcMenu({
             initial={false}
             animate={{
               opacity: open ? 0 : 1,
-              filter:
-                shouldReduceMotion || !open ? "blur(0px)" : "blur(2px)",
+              filter: shouldReduceMotion || !open ? "blur(0px)" : "blur(2px)",
             }}
             transition={{
               duration: skipMotion
@@ -675,7 +666,7 @@ export function ArcMenu({
               <span
                 data-slot="arc-menu-caption"
                 className={cn(
-                  "text-xs font-medium leading-none",
+                  "text-xs leading-none font-medium",
                   classNames?.caption,
                 )}
               >
@@ -698,8 +689,7 @@ export function ArcMenu({
             initial={false}
             animate={{
               opacity: open ? 1 : 0,
-              filter:
-                shouldReduceMotion || open ? "blur(0px)" : "blur(2px)",
+              filter: shouldReduceMotion || open ? "blur(0px)" : "blur(2px)",
             }}
             transition={{
               duration: skipMotion

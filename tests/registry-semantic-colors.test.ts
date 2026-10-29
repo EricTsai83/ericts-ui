@@ -47,9 +47,13 @@ const PALETTE =
 const UTILITY =
   "bg|text|border|ring|inset-ring|shadow|inset-shadow|outline|divide|from|via|to|fill|stroke|accent|caret|decoration|placeholder";
 
-const PALETTE_UTILITY = new RegExp(`\\b(?:${UTILITY})-(?:${PALETTE})(?:-\\d+)?\\b`);
+const PALETTE_UTILITY = new RegExp(
+  `\\b(?:${UTILITY})-(?:${PALETTE})(?:-\\d+)?\\b`,
+);
 /** Opaque `bg-white` is a surface colour; `bg-white/10` is a scrim. */
-const OPAQUE_BLACK_WHITE = new RegExp(`\\b(?:${UTILITY})-(?:white|black)\\b(?!/)`);
+const OPAQUE_BLACK_WHITE = new RegExp(
+  `\\b(?:${UTILITY})-(?:white|black)\\b(?!/)`,
+);
 const HEX = /#[0-9a-f]{3,8}\b/gi;
 const COLOR_FUNCTION =
   /\b(rgba?|hsla?|oklch|oklab|lab|lch|color)\(\s*([^)]*)\)/gi;
@@ -88,7 +92,8 @@ function isAchromatic(value: string, fn?: string, body?: string) {
     // oklch / lch: chroma is the second channel.
     if (/^(?:oklch|lch)$/i.test(fn)) return parts[1] === "0";
     // oklab / lab: both opponent channels must vanish.
-    if (/^(?:oklab|lab)$/i.test(fn)) return parts[1] === "0" && parts[2] === "0";
+    if (/^(?:oklab|lab)$/i.test(fn))
+      return parts[1] === "0" && parts[2] === "0";
 
     return false;
   }
@@ -147,23 +152,33 @@ describe("registry colour rule", () => {
 
   it("rejects hues, whatever notation they arrive in", () => {
     expect(scanLine('className="bg-zinc-800"')).not.toEqual([]);
-    expect(scanLine('className="text-blue-500 hover:bg-rose-100"')).not.toEqual([]);
+    expect(scanLine('className="text-blue-500 hover:bg-rose-100"')).not.toEqual(
+      [],
+    );
     expect(scanLine('className="bg-white"')).not.toEqual([]);
     expect(scanLine('style={{ color: "#3b82f6" }}')).not.toEqual([]);
     expect(scanLine("background: oklch(0.646 0.222 41.116);")).not.toEqual([]);
     expect(scanLine("color: rgb(255 0 0 / 50%);")).not.toEqual([]);
     expect(scanLine("border-color: red;", true)).not.toEqual([]);
-    expect(scanLine("background: linear-gradient(to top, teal, transparent);", true)).not.toEqual([]);
+    expect(
+      scanLine("background: linear-gradient(to top, teal, transparent);", true),
+    ).not.toEqual([]);
   });
 
   it("passes light and shadow through untouched", () => {
     expect(scanLine("inset 0 1px 1px -0.5px oklch(1 0 0 / 55%)")).toEqual([]);
-    expect(scanLine("box-shadow: 0 10px 40px -16px rgb(0 0 0 / 16%);")).toEqual([]);
+    expect(scanLine("box-shadow: 0 10px 40px -16px rgb(0 0 0 / 16%);")).toEqual(
+      [],
+    );
     expect(scanLine('className="bg-white/10 text-black/60"')).toEqual([]);
-    expect(scanLine("mask: radial-gradient(currentColor, transparent);")).toEqual([]);
+    expect(
+      scanLine("mask: radial-gradient(currentColor, transparent);"),
+    ).toEqual([]);
     expect(scanLine("background: #000;")).toEqual([]);
     expect(scanLine("background: oklch(0.12 0 0);")).toEqual([]);
-    expect(scanLine('className="bg-background/25 inset-ring-foreground/12"')).toEqual([]);
+    expect(
+      scanLine('className="bg-background/25 inset-ring-foreground/12"'),
+    ).toEqual([]);
   });
 
   it("keeps hues out of component source, and leaves light and shadow alone", () => {
@@ -179,7 +194,9 @@ describe("registry colour rule", () => {
 
         source.split("\n").forEach((line, index) => {
           for (const reason of scanLine(line, file.path.endsWith(".css"))) {
-            violations.push(`${item.name}: ${file.path}:${index + 1} — ${reason}`);
+            violations.push(
+              `${item.name}: ${file.path}:${index + 1} — ${reason}`,
+            );
           }
         });
       }

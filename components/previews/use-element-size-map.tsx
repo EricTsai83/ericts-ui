@@ -1,13 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
+import { cn } from "@/lib/utils";
 import {
   DemoSegmentedControl,
   easeOutCubicTuple,
 } from "@/components/previews/hook-demo-shared";
-import { cn } from "@/lib/utils";
 import {
   useElementSizeMap,
   type ElementSize,
@@ -101,7 +101,7 @@ export default function Preview() {
 
       <div
         aria-hidden
-        className="pointer-events-none invisible absolute left-0 top-0 size-0 overflow-clip"
+        className="pointer-events-none invisible absolute top-0 left-0 size-0 overflow-clip"
       >
         {elementSizeMapPanels.map((panel) => (
           <div key={panel.id} ref={setMeasureRef(panel.id)} className="w-max">
@@ -131,7 +131,7 @@ export default function Preview() {
             duration: shouldReduceMotion ? 0 : 0.18,
             ease: easeOutCubicTuple,
           }}
-          className="absolute left-0 top-0"
+          className="absolute top-0 left-0"
           style={{ transformOrigin: "top left" }}
         >
           <ElementSizeMapPanel panel={activePanel} />

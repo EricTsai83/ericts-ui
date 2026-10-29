@@ -15,13 +15,8 @@ import {
 } from "@/lib/registry-install-command";
 import { usePackageManager } from "@/lib/use-package-manager";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CopyButton } from "@/registry/base/ui/copy-button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 
 export function RegistryInstallCommand({
   name,
@@ -43,7 +38,7 @@ export function RegistryInstallCommand({
     <div
       aria-busy={isPackageManagerReady ? undefined : true}
       className={cn(
-        "relative min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50 text-sm",
+        "relative max-w-full min-w-0 overflow-hidden rounded-xl bg-muted/50 text-sm",
         className,
       )}
     >
@@ -58,10 +53,7 @@ export function RegistryInstallCommand({
       >
         <div className="flex items-center gap-2 border-b border-border/50 px-3 py-1">
           <span className="flex size-4 shrink-0 items-center justify-center rounded-[1px] bg-foreground opacity-70">
-            <Terminal
-              className="size-3 text-background"
-              aria-hidden="true"
-            />
+            <Terminal className="size-3 text-background" aria-hidden="true" />
           </span>
           <TabsList
             aria-label="Package manager"
@@ -80,10 +72,7 @@ export function RegistryInstallCommand({
         </div>
         <div className="no-scrollbar overflow-x-auto">
           {packageManagers.map((item) => {
-            const itemCommand = getRegistryInstallCommand(
-              installTarget,
-              item,
-            );
+            const itemCommand = getRegistryInstallCommand(installTarget, item);
 
             return (
               <TabsContent
@@ -108,7 +97,7 @@ export function RegistryInstallCommand({
         value={command}
         variant="ghost"
         className={cn(
-          "absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
+          "absolute top-2 right-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
           !isPackageManagerReady && "invisible",
         )}
         aria-label="Copy installation command"

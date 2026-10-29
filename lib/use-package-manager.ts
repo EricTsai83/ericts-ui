@@ -37,10 +37,7 @@ function getStoredPackageManager(
 
 function subscribeToPackageManager(onStoreChange: () => void) {
   const handleStorage = (event: StorageEvent) => {
-    if (
-      event.key !== null &&
-      event.key !== PACKAGE_MANAGER_STORAGE_KEY
-    ) {
+    if (event.key !== null && event.key !== PACKAGE_MANAGER_STORAGE_KEY) {
       return;
     }
 

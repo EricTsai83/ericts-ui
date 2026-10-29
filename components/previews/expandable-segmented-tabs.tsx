@@ -1,7 +1,7 @@
 "use client";
 
-import { BookOpen, MessageSquareText, Rows3 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { BookOpen, MessageSquareText, Rows3 } from "lucide-react";
 
 import {
   ExpandableSegmentedTabs,

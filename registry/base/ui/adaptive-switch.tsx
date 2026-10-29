@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 import {
   motion,
@@ -8,7 +9,6 @@ import {
   type Transition,
   type Variants,
 } from "motion/react";
-import { useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -170,7 +170,7 @@ export function AdaptiveSwitch({
       data-animation={animationMode}
       data-animated={hasChanged ? "true" : "false"}
       className={cn(
-        "group/adaptive-switch relative inline-flex shrink-0 cursor-pointer select-none items-center overflow-visible rounded-full border border-transparent outline-none",
+        "group/adaptive-switch relative inline-flex shrink-0 cursor-pointer items-center overflow-visible rounded-full border border-transparent outline-none select-none",
         "data-[animated=true]:transition-[background-color,border-color,box-shadow] data-[animated=true]:duration-150 data-[animated=true]:ease-[ease]",
         "after:absolute after:-inset-x-3 after:-inset-y-2",
         "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",

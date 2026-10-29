@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { FilterTags } from "@/registry/base/ui/filter-tags";
 
@@ -25,13 +26,18 @@ export default function Preview() {
   const [value, setValue] = useState<string[]>([]);
 
   return (
-    <div className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
+    <div className="flex w-full max-w-2xl min-w-0 flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4 px-1">
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-medium tracking-tight">今天想聽什麼？</h2>
-          <p className="text-sm text-muted-foreground">選幾個喜歡的標籤，新選的會接在已選標籤後面。</p>
+          <p className="text-sm text-muted-foreground">
+            選幾個喜歡的標籤，新選的會接在已選標籤後面。
+          </p>
         </div>
-        <span role="status" className="shrink-0 text-xs tabular-nums text-muted-foreground">
+        <span
+          role="status"
+          className="shrink-0 text-xs text-muted-foreground tabular-nums"
+        >
           已選 {value.length} 個
         </span>
       </div>
@@ -45,12 +51,24 @@ export default function Preview() {
         arrows={{ backwardLabel: "向左捲動標籤", forwardLabel: "向右捲動標籤" }}
       />
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <p className="text-xs text-muted-foreground">左右滑動瀏覽 · 可多選 · 再點一次取消</p>
+        <p className="text-xs text-muted-foreground">
+          左右滑動瀏覽 · 可多選 · 再點一次取消
+        </p>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="xs" aria-pressed={showScrollbar} onClick={() => setShowScrollbar(!showScrollbar)}>
+          <Button
+            variant="ghost"
+            size="xs"
+            aria-pressed={showScrollbar}
+            onClick={() => setShowScrollbar(!showScrollbar)}
+          >
             {showScrollbar ? "隱藏捲軸" : "顯示捲軸"}
           </Button>
-          <Button variant="ghost" size="xs" aria-pressed={showArrows} onClick={() => setShowArrows(!showArrows)}>
+          <Button
+            variant="ghost"
+            size="xs"
+            aria-pressed={showArrows}
+            onClick={() => setShowArrows(!showArrows)}
+          >
             {showArrows ? "隱藏箭頭" : "顯示箭頭"}
           </Button>
         </div>

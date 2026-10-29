@@ -3,11 +3,7 @@
 import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Countdown,
-  CountUp,
-  type TimerHandle,
-} from "@/registry/base/ui/timer";
+import { Countdown, CountUp, type TimerHandle } from "@/registry/base/ui/timer";
 
 const COUNTDOWN_DURATION = 11 * 60 * 60 + 42 * 60 + 17;
 

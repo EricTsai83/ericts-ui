@@ -1,7 +1,7 @@
 "use client";
 
-import { DeckLift, type DeckLiftItem } from "@/registry/base/blocks/deck-lift";
 import { cn } from "@/lib/utils";
+import { DeckLift, type DeckLiftItem } from "@/registry/base/blocks/deck-lift";
 
 /**
  * Placeholders rather than a finished screen: the demo is here to show the

@@ -2,27 +2,21 @@
 
 import * as React from "react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import {
-  NavLink,
-  type NavLinkMatch,
-} from "@/registry/base/ui/nav-link";
+import { NavLink, type NavLinkMatch } from "@/registry/base/ui/nav-link";
 
 type MobileHeaderMenuProps = {
   items: readonly { href: string; label: string }[];
   className?: string;
 };
 
-export function MobileHeaderMenu({
-  items,
-  className,
-}: MobileHeaderMenuProps) {
+export function MobileHeaderMenu({ items, className }: MobileHeaderMenuProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -56,7 +50,7 @@ export function MobileHeaderMenu({
           </div>
           <span className="sr-only">Toggle Menu</span>
         </div>
-        <span className="flex h-8 items-center text-lg font-medium leading-none">
+        <span className="flex h-8 items-center text-lg leading-none font-medium">
           Menu
         </span>
       </PopoverTrigger>
@@ -121,7 +115,7 @@ function MobileLink({
       match={match}
       onClick={() => onOpenChange(false)}
       className={cn(
-        "flex min-w-0 max-w-full items-center gap-2 wrap-break-word text-2xl font-medium leading-tight text-foreground transition-colors  hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "flex max-w-full min-w-0 items-center gap-2 text-2xl leading-tight font-medium wrap-break-word text-foreground transition-colors hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         className,
       )}
     >

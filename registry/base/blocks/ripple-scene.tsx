@@ -2,9 +2,9 @@
 
 import * as React from "react";
 
-import { RailList, type RailListItem } from "@/components/ui/rail-list";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { RailList, type RailListItem } from "@/components/ui/rail-list";
 
 import "./ripple-scene.css";
 
@@ -28,8 +28,10 @@ export type RippleSceneItem = {
   imagePosition?: React.CSSProperties["objectPosition"];
 };
 
-export interface RippleSceneProps
-  extends Omit<React.ComponentProps<"section">, "onChange"> {
+export interface RippleSceneProps extends Omit<
+  React.ComponentProps<"section">,
+  "onChange"
+> {
   items: readonly RippleSceneItem[];
   /** Controlled selected scene value. */
   value?: string;
@@ -115,7 +117,10 @@ export function RippleScene({
       setMedia((previous) =>
         shouldReduceMotion
           ? { base: selectedValue, incoming: null }
-          : { base: previous.incoming ?? previous.base, incoming: selectedValue },
+          : {
+              base: previous.incoming ?? previous.base,
+              incoming: selectedValue,
+            },
       );
     };
 

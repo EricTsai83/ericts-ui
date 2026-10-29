@@ -2,13 +2,13 @@
 
 import {
   createContext,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
   useCallback,
   useContext,
   useMemo,
   useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
 } from "react";
 
 import type { SwipeNavigationDirection } from "@/registry/base/hooks/use-swipe-navigation";
@@ -28,14 +28,17 @@ type FullscreenSessionValue = {
   >;
   /** The preview a move is heading for, so it can enter from that direction. */
   pendingSwipeEntrance: PendingSwipeEntrance | null;
-  setPendingSwipeEntrance: Dispatch<SetStateAction<PendingSwipeEntrance | null>>;
+  setPendingSwipeEntrance: Dispatch<
+    SetStateAction<PendingSwipeEntrance | null>
+  >;
   /** The swipe hint is offered once per session, then spent. */
   swipeHintSpent: boolean;
   spendSwipeHint: () => void;
 };
 
-const FullscreenSessionContext =
-  createContext<FullscreenSessionValue | null>(null);
+const FullscreenSessionContext = createContext<FullscreenSessionValue | null>(
+  null,
+);
 
 /**
  * Holds the state of one visit to the fullscreen preview.

@@ -30,7 +30,9 @@ const items: readonly DeckLiftItem[] = [
   },
 ];
 
-function renderDeckLift(props: Partial<React.ComponentProps<typeof DeckLift>> = {}) {
+function renderDeckLift(
+  props: Partial<React.ComponentProps<typeof DeckLift>> = {},
+) {
   return render(
     <DeckLift items={items} sheet={<p>Set up direct deposit</p>} {...props}>
       <p>Total balance</p>
@@ -218,7 +220,7 @@ describe("DeckLift", () => {
     const before = (first: Element, second: Element) =>
       Boolean(
         first.compareDocumentPosition(second) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
+        Node.DOCUMENT_POSITION_FOLLOWING,
       );
 
     const close = screen.getByRole("button", { name: "Close" });
@@ -333,29 +335,25 @@ describe("deckLiftSwipeTarget", () => {
   const row = { step: 300, activeIndex: 1, count: 4 };
 
   it("holds the active card when the drag was too short to commit", () => {
-    expect(
-      deckLiftSwipeTarget({ ...row, offsetX: -60, velocityX: 0 }),
-    ).toBe(1);
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -60, velocityX: 0 })).toBe(1);
   });
 
   it("commits a flick that barely moved, on its parting speed alone", () => {
     // 20px of travel is nothing; 800px/s of it is a flick.
     expect(deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX: 0 })).toBe(1);
-    expect(
-      deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX: -800 }),
-    ).toBe(2);
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -20, velocityX: -800 })).toBe(
+      2,
+    );
   });
 
   it("reads a drag to the right as the card before the active one", () => {
-    expect(
-      deckLiftSwipeTarget({ ...row, offsetX: 120, velocityX: 0 }),
-    ).toBe(0);
+    expect(deckLiftSwipeTarget({ ...row, offsetX: 120, velocityX: 0 })).toBe(0);
   });
 
   it("crosses more than one card when the drag covered more than one", () => {
-    expect(
-      deckLiftSwipeTarget({ ...row, offsetX: -700, velocityX: 0 }),
-    ).toBe(3);
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -700, velocityX: 0 })).toBe(
+      3,
+    );
   });
 
   it("is worth one card however hard the flick", () => {
@@ -373,7 +371,9 @@ describe("deckLiftSwipeTarget", () => {
 
   it("still crosses several cards when the travel, not the speed, asked for it", () => {
     // Travel stays uncapped: a drag over three cards was aimed at three cards.
-    expect(deckLiftSwipeTarget({ ...row, offsetX: -900, velocityX: 0 })).toBe(3);
+    expect(deckLiftSwipeTarget({ ...row, offsetX: -900, velocityX: 0 })).toBe(
+      3,
+    );
     expect(
       deckLiftSwipeTarget({ ...row, offsetX: -900, velocityX: 0, count: 8 }),
     ).toBe(4);

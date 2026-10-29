@@ -119,10 +119,12 @@ describe("useElementSizeMap", () => {
 
     render(<SizeMapHarness onRender={vi.fn()} />);
 
-    expect(JSON.parse(screen.getByTestId("sizes").textContent ?? "{}")).toEqual({
-      first: { width: 320, height: 200 },
-      second: { width: 320, height: 200 },
-    });
+    expect(JSON.parse(screen.getByTestId("sizes").textContent ?? "{}")).toEqual(
+      {
+        first: { width: 320, height: 200 },
+        second: { width: 320, height: 200 },
+      },
+    );
   });
 
   it("keeps measuring a ref that holds still across renders", () => {
@@ -167,9 +169,7 @@ describe("useElementSizeMap", () => {
 
     expect(screen.getByTestId("sizes").textContent).toBe(sizesBeforeNoise);
 
-    view.rerender(
-      <SizeMapHarness onRender={onRender} showSecond={false} />,
-    );
+    view.rerender(<SizeMapHarness onRender={onRender} showSecond={false} />);
 
     expect(observer.unobserve).toHaveBeenCalledWith(second);
 

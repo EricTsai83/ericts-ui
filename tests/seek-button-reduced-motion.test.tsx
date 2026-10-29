@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { animate, MotionValue } from "motion/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SeekButton } from "@/registry/base/ui/seek-button";
 

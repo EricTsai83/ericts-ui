@@ -150,9 +150,7 @@ describe("ComponentShowcase manual installation", () => {
         "For CSS-only, select the CSS only variant above, then create all listed files.",
       ),
     ).toBeTruthy();
-    expect(
-      screen.getByText("pnpm add motion lucide-react"),
-    ).toBeTruthy();
+    expect(screen.getByText("pnpm add motion lucide-react")).toBeTruthy();
     expect(screen.getByText("pnpm add lucide-react")).toBeTruthy();
   });
 
@@ -254,7 +252,9 @@ describe("ComponentShowcase component guides", () => {
     }
 
     // The sections the earlier draft padded the page with.
-    expect(screen.queryByText("How the code maps to those problems")).toBeNull();
+    expect(
+      screen.queryByText("How the code maps to those problems"),
+    ).toBeNull();
     expect(screen.queryByText("Performance and boundaries")).toBeNull();
     expect(screen.queryByRole("table")).toBeNull();
   });
@@ -271,7 +271,10 @@ describe("ComponentShowcase component guides", () => {
 
     const sections = [
       ["Link does not know if it is the current location", "Sidebar example"],
-      ["The current page can also belong to a parent section", "Match modes example"],
+      [
+        "The current page can also belong to a parent section",
+        "Match modes example",
+      ],
       ["A slow navigation gives no feedback", "Pending example"],
       ["Design notes", "First paint example"],
     ] as const;

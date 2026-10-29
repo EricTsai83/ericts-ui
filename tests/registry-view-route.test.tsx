@@ -69,7 +69,11 @@ describe("static fullscreen preview routes", () => {
     "renders the explicit %s variant in the server's first response",
     async (variant) => {
       const page = await ViewPage({
-        params: Promise.resolve({ style: "base", name: "example", variant: [variant] }),
+        params: Promise.resolve({
+          style: "base",
+          name: "example",
+          variant: [variant],
+        }),
       });
       expect(renderToStaticMarkup(page)).toContain(
         `data-preview-variant="${variant}"`,
@@ -77,17 +81,17 @@ describe("static fullscreen preview routes", () => {
     },
   );
 
-  it.each([["example", "css-only"], ["fallback", "motion"]])(
-    "preserves the default variant for %s",
-    async (name, variant) => {
-      const page = await ViewPage({
-        params: Promise.resolve({ style: "base", name }),
-      });
-      expect(renderToStaticMarkup(page)).toContain(
-        `data-preview-variant="${variant}"`,
-      );
-    },
-  );
+  it.each([
+    ["example", "css-only"],
+    ["fallback", "motion"],
+  ])("preserves the default variant for %s", async (name, variant) => {
+    const page = await ViewPage({
+      params: Promise.resolve({ style: "base", name }),
+    });
+    expect(renderToStaticMarkup(page)).toContain(
+      `data-preview-variant="${variant}"`,
+    );
+  });
 
   it.each([
     { style: "other", name: "example" },
@@ -145,6 +149,8 @@ describe("shared preview URLs", () => {
       url: "https://example.com/docs/installation.md",
       nextConfig,
     });
-    expect(new URL(getRewrittenUrl(response)!).pathname).toBe("/llm/installation");
+    expect(new URL(getRewrittenUrl(response)!).pathname).toBe(
+      "/llm/installation",
+    );
   });
 });

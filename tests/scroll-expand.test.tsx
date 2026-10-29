@@ -2,12 +2,12 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/blocks/scroll-expand.css", () => ({}));
-
 import {
   ScrollExpand,
   ScrollExpandItem,
 } from "@/registry/base/blocks/scroll-expand";
+
+vi.mock("@/registry/base/blocks/scroll-expand.css", () => ({}));
 
 class ResizeObserverMock implements ResizeObserver {
   readonly observe = vi.fn<(target: Element) => void>();
@@ -65,18 +65,14 @@ function readFocalAlignment(container: HTMLElement) {
   const root = container.querySelector<HTMLElement>(
     "[data-slot='scroll-expand']",
   )!;
-  const frame = container.querySelector<HTMLElement>(
-    ".scroll-expand__frame",
-  )!;
-  const media = container.querySelector<HTMLElement>(
-    ".scroll-expand__media",
-  )!;
+  const frame = container.querySelector<HTMLElement>(".scroll-expand__frame")!;
+  const media = container.querySelector<HTMLElement>(".scroll-expand__media")!;
 
   const stageWidth = root.clientWidth;
   const stageHeight = root.clientHeight;
-  const insets = [
-    ...frame.style.clipPath.matchAll(/(-?[\d.]+)%/g),
-  ].map((match) => Number(match[1]));
+  const insets = [...frame.style.clipPath.matchAll(/(-?[\d.]+)%/g)].map(
+    (match) => Number(match[1]),
+  );
   const [insetTop, insetRight, insetBottom, insetLeft] = insets;
   const transform = media.style.transform.match(
     /translate3d\((-?[\d.]+)px, (-?[\d.]+)px, 0\) scale\(([\d.]+)\)/,
@@ -334,27 +330,15 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const track = container.querySelector<HTMLElement>(
-      ".scroll-expand__track",
-    );
-    const stage = container.querySelector<HTMLElement>(
-      ".scroll-expand__stage",
-    );
-    const frame = container.querySelector<HTMLElement>(
-      ".scroll-expand__frame",
-    );
-    const media = container.querySelector<HTMLElement>(
-      ".scroll-expand__media",
-    );
+    const track = container.querySelector<HTMLElement>(".scroll-expand__track");
+    const stage = container.querySelector<HTMLElement>(".scroll-expand__stage");
+    const frame = container.querySelector<HTMLElement>(".scroll-expand__frame");
+    const media = container.querySelector<HTMLElement>(".scroll-expand__media");
     const overlay = container.querySelector<HTMLElement>(
       ".scroll-expand__overlay",
     );
-    const item = container.querySelector<HTMLElement>(
-      ".scroll-expand__item",
-    );
-    const title = container.querySelector<HTMLElement>(
-      ".scroll-expand__title",
-    );
+    const item = container.querySelector<HTMLElement>(".scroll-expand__item");
+    const title = container.querySelector<HTMLElement>(".scroll-expand__title");
 
     expect(root).toBeTruthy();
     expect(track).toBeTruthy();
@@ -373,9 +357,7 @@ describe("ScrollExpand", () => {
 
     expect(stage?.style.height).toBe("500px");
     expect(track?.style.height).toBe("1275px");
-    expect(frame?.style.clipPath).toBe(
-      "inset(11% 9% 31% 49% round 24px)",
-    );
+    expect(frame?.style.clipPath).toBe("inset(11% 9% 31% 49% round 24px)");
     expect(overlay?.dataset.align).toBe("start");
     expect(overlay?.dataset.position).toBe("bottom");
 
@@ -399,9 +381,7 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const track = container.querySelector<HTMLElement>(
-      ".scroll-expand__track",
-    );
+    const track = container.querySelector<HTMLElement>(".scroll-expand__track");
 
     Object.defineProperty(root, "clientHeight", {
       configurable: true,
@@ -428,12 +408,8 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const frame = container.querySelector<HTMLElement>(
-      ".scroll-expand__frame",
-    );
-    const media = container.querySelector<HTMLElement>(
-      ".scroll-expand__media",
-    );
+    const frame = container.querySelector<HTMLElement>(".scroll-expand__frame");
+    const media = container.querySelector<HTMLElement>(".scroll-expand__media");
     const overlay = container.querySelector<HTMLElement>(
       ".scroll-expand__overlay",
     );
@@ -445,9 +421,7 @@ describe("ScrollExpand", () => {
     fireEvent(window, new Event("resize"));
 
     expect(root?.dataset.direction).toBe("focus");
-    expect(frame?.style.clipPath).toBe(
-      "inset(0% 0% 0% 0% round 0px)",
-    );
+    expect(frame?.style.clipPath).toBe("inset(0% 0% 0% 0% round 0px)");
     expect(media?.style.transform).toBe("scale(1)");
     expect(media?.style.transformOrigin).toBe("left center");
 
@@ -456,9 +430,7 @@ describe("ScrollExpand", () => {
       fireEvent.scroll(root);
     }
 
-    expect(frame?.style.clipPath).toBe(
-      "inset(21% 29% 21% 29% round 24px)",
-    );
+    expect(frame?.style.clipPath).toBe("inset(21% 29% 21% 29% round 24px)");
     expect(media?.style.transform).toBe("scale(1.5)");
     expect(overlay?.getAttribute("aria-hidden")).toBe("false");
     expect(overlay?.hasAttribute("inert")).toBe(false);
@@ -486,12 +458,8 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const track = container.querySelector<HTMLElement>(
-      ".scroll-expand__track",
-    );
-    const frame = container.querySelector<HTMLElement>(
-      ".scroll-expand__frame",
-    );
+    const track = container.querySelector<HTMLElement>(".scroll-expand__track");
+    const frame = container.querySelector<HTMLElement>(".scroll-expand__frame");
 
     Object.defineProperties(root, {
       clientWidth: { configurable: true, value: 900 },
@@ -521,12 +489,8 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const frame = container.querySelector<HTMLElement>(
-      ".scroll-expand__frame",
-    );
-    const media = container.querySelector<HTMLElement>(
-      ".scroll-expand__media",
-    );
+    const frame = container.querySelector<HTMLElement>(".scroll-expand__frame");
+    const media = container.querySelector<HTMLElement>(".scroll-expand__media");
 
     Object.defineProperty(root, "clientHeight", {
       configurable: true,
@@ -557,12 +521,8 @@ describe("ScrollExpand", () => {
     const root = container.querySelector<HTMLElement>(
       "[data-slot='scroll-expand']",
     );
-    const stage = container.querySelector<HTMLElement>(
-      ".scroll-expand__stage",
-    );
-    const frame = container.querySelector<HTMLElement>(
-      ".scroll-expand__frame",
-    );
+    const stage = container.querySelector<HTMLElement>(".scroll-expand__stage");
+    const frame = container.querySelector<HTMLElement>(".scroll-expand__frame");
     const overlay = container.querySelector<HTMLElement>(
       ".scroll-expand__overlay",
     );

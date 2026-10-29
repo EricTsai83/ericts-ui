@@ -40,9 +40,11 @@ export default function Preview() {
             the track grows into. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-full mr-1 hidden h-16 w-20 -translate-y-1/2 text-xs font-medium italic leading-4 text-foreground/65 sm:block"
+          className="pointer-events-none absolute top-1/2 right-full mr-1 hidden h-16 w-20 -translate-y-1/2 text-xs leading-4 font-medium text-foreground/65 italic sm:block"
         >
-          <span className="absolute top-0 -left-2 whitespace-nowrap">Hover</span>
+          <span className="absolute top-0 -left-2 whitespace-nowrap">
+            Hover
+          </span>
           <svg
             viewBox="0 0 80 64"
             className="absolute inset-0 h-16 w-20 overflow-visible text-foreground/60"

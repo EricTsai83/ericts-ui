@@ -37,7 +37,10 @@ export type UseSequencePlayerOptions = {
 type ContainerProps = {
   ref: (node: HTMLElement | null) => void;
   onFocusCapture: () => void;
-  onBlurCapture: (event: { currentTarget: HTMLElement; relatedTarget: EventTarget | null }) => void;
+  onBlurCapture: (event: {
+    currentTarget: HTMLElement;
+    relatedTarget: EventTarget | null;
+  }) => void;
   onPointerLeave: () => void;
 };
 

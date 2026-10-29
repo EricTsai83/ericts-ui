@@ -63,9 +63,13 @@ const PAUSE_SHAPES: readonly [Shape, Shape] = [
 // A morph is only a lerp while both icons keep the same corner count.
 if (
   process.env.NODE_ENV !== "production" &&
-  PLAY_SHAPES.some((shape, index) => shape.length !== PAUSE_SHAPES[index].length)
+  PLAY_SHAPES.some(
+    (shape, index) => shape.length !== PAUSE_SHAPES[index].length,
+  )
 ) {
-  throw new Error("play-button: play and pause shapes must share a corner count.");
+  throw new Error(
+    "play-button: play and pause shapes must share a corner count.",
+  );
 }
 
 function lerp(from: number, to: number, progress: number) {
@@ -87,8 +91,7 @@ function coords([x, y]: Point) {
  */
 function arcControlFraction(interior: number) {
   return (
-    1 -
-    (4 / 3) * Math.tan((Math.PI - interior) / 4) * Math.tan(interior / 2)
+    1 - (4 / 3) * Math.tan((Math.PI - interior) / 4) * Math.tan(interior / 2)
   );
 }
 
@@ -253,7 +256,8 @@ export const PlayButton = React.forwardRef<HTMLButtonElement, PlayButtonProps>(
     },
     ref,
   ) {
-    const [internalPlaying, setInternalPlaying] = React.useState(defaultPlaying);
+    const [internalPlaying, setInternalPlaying] =
+      React.useState(defaultPlaying);
     const [pulseKey, setPulseKey] = React.useState(0);
     const pathRef = React.useRef<SVGPathElement | null>(null);
     const shouldReduceMotion = useReducedMotion();

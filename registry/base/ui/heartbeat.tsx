@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 import * as React from "react";
+import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,8 +10,8 @@ const heartbeatLift = ["0%", "-4.2%", "1.1%", "-3.2%", "0.7%", "0%", "0%"];
 const heartbeatRotate = [0, -1.15, 0.62, -0.85, 0.34, 0, 0];
 const heartbeatTimes = [0, 0.055, 0.13, 0.23, 0.34, 0.5, 1];
 const maxHeartbeatLift = Math.max(...heartbeatScale) - 1;
-const heartbeatProjection = heartbeatScale.map((scale) =>
-  Math.max(scale - 1, 0) / maxHeartbeatLift,
+const heartbeatProjection = heartbeatScale.map(
+  (scale) => Math.max(scale - 1, 0) / maxHeartbeatLift,
 );
 const heartbeatShadowScale = heartbeatScale.map(
   (scale, index) => scale + heartbeatProjection[index] * 0.055,
@@ -99,7 +99,10 @@ export function Heartbeat({
 
       <motion.span
         data-slot="heartbeat-target"
-        className={cn("relative z-10 inline-flex text-current", targetClassName)}
+        className={cn(
+          "relative z-10 inline-flex text-current",
+          targetClassName,
+        )}
         style={{ transformOrigin: "center 62%" }}
         animate={reduceMotion ? undefined : heartbeatAnimation}
         transition={resolvedTransition}

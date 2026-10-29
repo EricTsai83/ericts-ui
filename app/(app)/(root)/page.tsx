@@ -1,14 +1,14 @@
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 import type { SVGProps } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
+import { getRegistryDisplayNavigationGroups } from "@/lib/registry-display";
+import { buttonVariants } from "@/components/ui/button";
 import { HomeHeroMark } from "@/components/home-hero-mark";
 import {
   HomeRegistryIndex,
   type HomeRegistryIndexPart,
 } from "@/components/home-registry-index";
-import { buttonVariants } from "@/components/ui/button";
-import { getRegistryDisplayNavigationGroups } from "@/lib/registry-display";
 
 const builtOn = [
   {
@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <main className="isolate min-h-[calc(100vh-3.5rem)] text-foreground">
       <section className="grid lg:grid-cols-[minmax(360px,40vw)_minmax(0,1fr)] lg:items-start">
-        <div className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between gap-8 overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-b-0 lg:border-r lg:px-10 lg:py-10">
+        <div className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between gap-8 overflow-hidden border-b px-5 py-8 sm:px-8 lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:min-h-0 lg:self-start lg:border-r lg:border-b-0 lg:px-10 lg:py-10">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-linear-to-l from-muted/40 to-transparent"
@@ -91,7 +91,7 @@ export default function Home() {
           </div>
 
           <div className="relative z-10 flex flex-col gap-2.5">
-            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            <p className="font-mono text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
               Built on
             </p>
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">

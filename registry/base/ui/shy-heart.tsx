@@ -13,10 +13,7 @@ type ShyHeartStyle = React.CSSProperties & {
   "--shy-heart-tilt-duration"?: string;
 };
 
-export type ShyHeartProps = Omit<
-  React.ComponentProps<"span">,
-  "children"
-> & {
+export type ShyHeartProps = Omit<React.ComponentProps<"span">, "children"> & {
   /** Enable the heart entrance and hover reaction. Defaults to true. */
   animated?: boolean;
   /** Entrance duration. Numeric values are converted to ms. */
@@ -97,10 +94,7 @@ export function ShyHeart({
                 blushClassName,
               )}
             >
-              <path
-                className="shy-heart-blush-backdrop"
-                d="M50 120H103"
-              />
+              <path className="shy-heart-blush-backdrop" d="M50 120H103" />
               <g className="shy-heart-blush-lines">
                 <path d="M65 108V127" />
                 <path d="M77 108V127" />
@@ -114,10 +108,7 @@ export function ShyHeart({
                 blushClassName,
               )}
             >
-              <path
-                className="shy-heart-blush-backdrop"
-                d="M153 120H206"
-              />
+              <path className="shy-heart-blush-backdrop" d="M153 120H206" />
               <g className="shy-heart-blush-lines">
                 <path d="M191 108V127" />
                 <path d="M179 108V127" />

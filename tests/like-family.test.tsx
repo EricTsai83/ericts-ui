@@ -5,11 +5,11 @@ import type { ReactElement } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/like.css", () => ({}));
-vi.mock("@/registry/base/ui/like-burst.css", () => ({}));
-
 import { Like, type LikeProps } from "@/registry/base/ui/like";
 import { LikeBurst, type LikeBurstProps } from "@/registry/base/ui/like-burst";
+
+vi.mock("@/registry/base/ui/like.css", () => ({}));
+vi.mock("@/registry/base/ui/like-burst.css", () => ({}));
 
 afterEach(cleanup);
 
@@ -62,28 +62,31 @@ describe("like family", () => {
     expectTypeOf<SharedLikeProps>().toExtend<LikeBurstProps>();
   });
 
-  it.each(members)("%s exposes the shared state contract", (_, renderMember) => {
-    const onLikedChange = vi.fn();
-    render(
-      renderMember({
-        likeLabel: "Like post",
-        unlikeLabel: "Unlike post",
-        onLikedChange,
-      }),
-    );
+  it.each(members)(
+    "%s exposes the shared state contract",
+    (_, renderMember) => {
+      const onLikedChange = vi.fn();
+      render(
+        renderMember({
+          likeLabel: "Like post",
+          unlikeLabel: "Unlike post",
+          onLikedChange,
+        }),
+      );
 
-    const control = screen.getByRole("button", { name: "Like post" });
-    expect(control.getAttribute("aria-pressed")).toBe("false");
-    expect(control.getAttribute("data-liked")).toBe("false");
-    expect(control.hasAttribute("data-icon-only")).toBe(true);
+      const control = screen.getByRole("button", { name: "Like post" });
+      expect(control.getAttribute("aria-pressed")).toBe("false");
+      expect(control.getAttribute("data-liked")).toBe("false");
+      expect(control.hasAttribute("data-icon-only")).toBe(true);
 
-    fireEvent.click(control);
+      fireEvent.click(control);
 
-    expect(onLikedChange).toHaveBeenCalledWith(true);
-    expect(screen.getByRole("button", { name: "Unlike post" })).toBe(control);
-    expect(control.getAttribute("aria-pressed")).toBe("true");
-    expect(control.getAttribute("data-liked")).toBe("true");
-  });
+      expect(onLikedChange).toHaveBeenCalledWith(true);
+      expect(screen.getByRole("button", { name: "Unlike post" })).toBe(control);
+      expect(control.getAttribute("aria-pressed")).toBe("true");
+      expect(control.getAttribute("data-liked")).toBe("true");
+    },
+  );
 
   it("colours every member from its own token, never --destructive", () => {
     const registry = JSON.parse(readRepoFile("registry.json")) as {

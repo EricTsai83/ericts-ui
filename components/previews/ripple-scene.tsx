@@ -1,10 +1,10 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
   RippleScene,
   type RippleSceneItem,
 } from "@/registry/base/blocks/ripple-scene";
-import { cn } from "@/lib/utils";
 
 const scenes: readonly RippleSceneItem[] = [
   {

@@ -56,9 +56,8 @@ export function getRegistryKindFromCategory(
   category: string,
 ): RegistryKind | null {
   return (
-    registryKinds.find(
-      (definition) => definition.registryCategory === category,
-    )?.kind ?? null
+    registryKinds.find((definition) => definition.registryCategory === category)
+      ?.kind ?? null
   );
 }
 

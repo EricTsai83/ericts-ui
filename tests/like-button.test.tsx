@@ -2,9 +2,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/like.css", () => ({}));
-
 import { LikeButton } from "@/registry/base/ui/like-button";
+
+vi.mock("@/registry/base/ui/like.css", () => ({}));
 
 afterEach(cleanup);
 

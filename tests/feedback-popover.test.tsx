@@ -2,8 +2,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { act } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FeedbackPopover } from "@/registry/base/ui/feedback-popover";
 
@@ -23,10 +23,7 @@ describe("FeedbackPopover", () => {
     // regression: a static layoutDependency prevented Motion from taking the
     // trigger snapshot that the shared layout transition needs.
     const source = readFileSync(
-      path.join(
-        process.cwd(),
-        "registry/base/ui/feedback-popover.tsx",
-      ),
+      path.join(process.cwd(), "registry/base/ui/feedback-popover.tsx"),
       "utf8",
     );
 
@@ -34,7 +31,9 @@ describe("FeedbackPopover", () => {
   });
 
   it("does not invoke onOpenChange after unmount mid-submit", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     vi.useFakeTimers();
 
     try {
@@ -48,7 +47,7 @@ describe("FeedbackPopover", () => {
           onOpenChange={onOpenChange}
           loadingDuration={0}
           successDuration={0}
-        />
+        />,
       );
 
       fireEvent.click(screen.getByRole("button", { name: "Feedback" }));

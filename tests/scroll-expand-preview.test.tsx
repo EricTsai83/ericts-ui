@@ -2,9 +2,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/blocks/scroll-expand.css", () => ({}));
-
 import Preview from "@/components/previews/scroll-expand";
+
+vi.mock("@/registry/base/blocks/scroll-expand.css", () => ({}));
 
 class ResizeObserverMock implements ResizeObserver {
   readonly observe = vi.fn<(target: Element) => void>();

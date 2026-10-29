@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "motion/react";
 import { useId, useState, type ReactNode } from "react";
+import { motion } from "motion/react";
 
-import { easeOutCubicTuple } from "@/components/previews/hook-demo-shared";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { easeOutCubicTuple } from "@/components/previews/hook-demo-shared";
 
 type ReducedMotionDemoPreference = "no-preference" | "reduce";
 

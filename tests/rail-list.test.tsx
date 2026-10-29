@@ -177,7 +177,11 @@ describe("RailList", () => {
 
   it("keeps an explicit aria-label alongside aria-labelledby", () => {
     render(
-      <RailList items={items} aria-label="Fallback" aria-labelledby="chapters-heading" />,
+      <RailList
+        items={items}
+        aria-label="Fallback"
+        aria-labelledby="chapters-heading"
+      />,
     );
 
     const tablist = screen.getByRole("tablist");

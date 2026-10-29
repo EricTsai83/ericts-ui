@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export type RegistryArrangement = "alphabetical" | "category";
 

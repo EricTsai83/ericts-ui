@@ -41,17 +41,11 @@ function RailLabel({ number, children }: { number: string; children: string }) {
   );
 }
 
-function StageHeader({
-  title,
-  status,
-}: {
-  title: string;
-  status: string;
-}) {
+function StageHeader({ title, status }: { title: string; status: string }) {
   return (
     <div className="flex w-full min-w-0 items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="truncate font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
           Northstar / Spring 2026
         </p>
         <h3 className="truncate text-sm font-medium">{title}</h3>
@@ -69,7 +63,7 @@ function DirectionStage() {
     <div className="grid min-h-[20rem] w-full sm:grid-cols-[minmax(0,0.9fr)_minmax(16rem,1.1fr)]">
       <div className="flex flex-col justify-between gap-6 border-b p-5 sm:border-r sm:border-b-0 sm:p-6">
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
             Creative direction 01
           </p>
           <div className="flex flex-col gap-3">
@@ -101,7 +95,7 @@ function DirectionStage() {
           <div className="absolute top-8 right-8 size-28 rounded-full border border-primary-foreground/20" />
           <div className="absolute right-[5.25rem] bottom-[5.25rem] size-3 rounded-full bg-chart-4" />
           <div className="flex w-full flex-col justify-between">
-            <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.16em] text-primary-foreground/60">
+            <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.16em] text-primary-foreground/60 uppercase">
               <span>Northstar systems</span>
               <span>Edition 04</span>
             </div>
@@ -125,14 +119,14 @@ function RolloutStage() {
     <div className="flex min-h-[20rem] w-full flex-col gap-3 p-4 sm:p-5">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-col gap-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
             Release sequence
           </p>
           <h4 className="text-2xl font-medium tracking-[-0.035em]">
             Three moments, one story.
           </h4>
         </div>
-        <p className="font-mono text-xs tabular-nums text-muted-foreground">
+        <p className="font-mono text-xs text-muted-foreground tabular-nums">
           68% complete
         </p>
       </div>
@@ -147,7 +141,7 @@ function RolloutStage() {
             key={phase.title}
             className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 rounded-md border px-3 py-2 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-center"
           >
-            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+            <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
               {phase.date}
             </span>
             <div className="flex min-w-0 flex-col gap-1">
@@ -181,7 +175,7 @@ function SignalsStage() {
     <div className="grid min-h-[20rem] w-full sm:grid-cols-[minmax(0,0.8fr)_minmax(18rem,1.2fr)]">
       <div className="flex flex-col justify-between gap-6 border-b p-5 sm:border-r sm:border-b-0 sm:p-6">
         <div className="flex flex-col gap-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
             Audience signal
           </p>
           <p className="text-5xl font-medium tracking-[-0.06em] tabular-nums">
@@ -233,7 +227,10 @@ function SignalsStage() {
             ["Editorial", "31%"],
             ["Partners", "23%"],
           ].map(([label, value]) => (
-            <div key={label} className="flex flex-col gap-1 rounded-md bg-muted/60 p-3">
+            <div
+              key={label}
+              className="flex flex-col gap-1 rounded-md bg-muted/60 p-3"
+            >
               <span className="text-[10px] text-muted-foreground">{label}</span>
               <span className="font-mono text-sm tabular-nums">{value}</span>
             </div>

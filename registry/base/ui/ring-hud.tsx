@@ -114,11 +114,19 @@ export function RingHud({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const maskId = useId();
 
-  const level = Number.isFinite(value) ? Math.round(Math.min(100, Math.max(0, value))) : 0;
+  const level = Number.isFinite(value)
+    ? Math.round(Math.min(100, Math.max(0, value)))
+    : 0;
   const caption = typeof label === "function" ? label(level) : label;
-  const hasCaption = caption !== null && caption !== undefined && caption !== false && caption !== "";
+  const hasCaption =
+    caption !== null &&
+    caption !== undefined &&
+    caption !== false &&
+    caption !== "";
   const manualHold = holdDuration === Infinity;
-  const hold = Number.isFinite(holdDuration) ? Math.max(1, holdDuration) : DEFAULT_HOLD_DURATION;
+  const hold = Number.isFinite(holdDuration)
+    ? Math.max(1, holdDuration)
+    : DEFAULT_HOLD_DURATION;
 
   const goTo = (next: RingHudPhase) => {
     phaseRef.current = next;
@@ -127,7 +135,9 @@ export function RingHud({
     // settled, so screen readers announce it. Re-setting identical text on
     // exit is a no-op, so only a changed caption is announced twice.
     if (next === "hold" || next === "exit") {
-      setAnnouncement(labelRef.current?.textContent?.trim() || formatPercent(level));
+      setAnnouncement(
+        labelRef.current?.textContent?.trim() || formatPercent(level),
+      );
     }
     onPhaseChange?.(next);
     if (next === "done") onComplete?.();
@@ -141,7 +151,9 @@ export function RingHud({
       // Leaving any other phase swaps animation names, which restarts them on
       // the same node. Replaying mid-entrance keeps the names, so rewind them.
       if (phaseRef.current === "enter") {
-        for (const animation of rootRef.current?.getAnimations?.({ subtree: true }) ?? []) {
+        for (const animation of rootRef.current?.getAnimations?.({
+          subtree: true,
+        }) ?? []) {
           animation.currentTime = 0;
         }
       }
@@ -176,10 +188,15 @@ export function RingHud({
 
   const handleAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
     onAnimationEnd?.(event);
-    if (event.target !== event.currentTarget || !event.animationName.startsWith("ring-hud-")) return;
+    if (
+      event.target !== event.currentTarget ||
+      !event.animationName.startsWith("ring-hud-")
+    )
+      return;
 
     const current = phaseRef.current;
-    if (current === "enter") goTo(dismissRequestedRef.current ? "exit" : "hold");
+    if (current === "enter")
+      goTo(dismissRequestedRef.current ? "exit" : "hold");
     else if (current === "hold" && !manualHold) goTo("exit");
     else if (current === "exit") goTo("done");
   };
@@ -194,41 +211,71 @@ export function RingHud({
       data-paused={paused ? "" : undefined}
       onAnimationEnd={handleAnimationEnd}
       className={cn("ring-hud", className)}
-      style={{
-        "--ring-hud-value": level,
-        "--ring-hud-hold": `${hold}ms`,
-        ...(size !== undefined && {
-          "--ring-hud-size": typeof size === "number" ? `${size}px` : size,
-        }),
-        ...style,
-      } as CSSProperties}
+      style={
+        {
+          "--ring-hud-value": level,
+          "--ring-hud-hold": `${hold}ms`,
+          ...(size !== undefined && {
+            "--ring-hud-size": typeof size === "number" ? `${size}px` : size,
+          }),
+          ...style,
+        } as CSSProperties
+      }
     >
-      <div aria-hidden="true" data-slot="ring-hud-ring" className={cn("ring-hud-ring", ringClassName)}>
+      <div
+        aria-hidden="true"
+        data-slot="ring-hud-ring"
+        className={cn("ring-hud-ring", ringClassName)}
+      >
         <svg viewBox="0 0 200 200" fill="none">
           <defs>
-            <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+            <mask
+              id={maskId}
+              maskUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width="200"
+              height="200"
+            >
               <circle
                 className="ring-hud-trim"
-                cx="100" cy="100" r="82" pathLength="100"
-                stroke="white" strokeWidth="14" strokeLinecap="round"
+                cx="100"
+                cy="100"
+                r="82"
+                pathLength="100"
+                stroke="white"
+                strokeWidth="14"
+                strokeLinecap="round"
                 strokeDasharray="100 100"
                 transform="rotate(-90 100 100)"
               />
             </mask>
           </defs>
           <g className="ring-hud-ink" strokeWidth="14" strokeLinecap="round">
-            <circle className="ring-hud-track" mask={`url(#${maskId})`} cx="100" cy="100" r="82" />
+            <circle
+              className="ring-hud-track"
+              mask={`url(#${maskId})`}
+              cx="100"
+              cy="100"
+              r="82"
+            />
             <circle
               className="ring-hud-path"
               visibility={level === 0 ? "hidden" : undefined}
-              cx="100" cy="100" r="82" pathLength="100"
+              cx="100"
+              cy="100"
+              r="82"
+              pathLength="100"
               stroke="currentColor"
               transform="rotate(-90 100 100)"
             />
           </g>
         </svg>
         {icon != null && (
-          <span data-slot="ring-hud-icon" className={cn("ring-hud-icon", iconClassName)}>
+          <span
+            data-slot="ring-hud-icon"
+            className={cn("ring-hud-icon", iconClassName)}
+          >
             {icon}
           </span>
         )}
@@ -238,7 +285,10 @@ export function RingHud({
           ref={labelRef}
           aria-hidden="true"
           data-slot="ring-hud-label"
-          className={cn("ring-hud-label text-sm text-foreground tabular-nums", labelClassName)}
+          className={cn(
+            "ring-hud-label text-sm text-foreground tabular-nums",
+            labelClassName,
+          )}
         >
           {caption}
         </span>

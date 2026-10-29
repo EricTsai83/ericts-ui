@@ -8,9 +8,7 @@
       "type": "registry:ui",
       "title": "Ring HUD",
       "description": "A transient heads-up ring: it fills to a level around an icon, holds with a caption, then sweeps away. Hold for a set time or until dismissed, and update the value live for charging, uploads, goals, storage, or connection status.",
-      "categories": [
-        "display"
-      ],
+      "categories": ["display"],
       "meta": {
         "tags": [
           "hud",
@@ -21,11 +19,7 @@
           "upload",
           "notification"
         ],
-        "effects": [
-          "stroke-draw",
-          "stroke-erase",
-          "reduced-motion"
-        ]
+        "effects": ["stroke-draw", "stroke-erase", "reduced-motion"]
       },
       "files": [
         {
@@ -47,8 +41,22 @@
       "description": "A circular download action whose outline becomes the progress ring, then settles into a download-again arrow with a check badge. The done state can persist, reset, or hand off to a custom action, and downloads can be cancelable.",
       "categories": ["action"],
       "meta": {
-        "tags": ["download", "progress", "async-action", "loading", "success", "cancel", "abort-signal", "button"],
-        "effects": ["progress-ring", "svg-animation", "state-transition", "reduced-motion"]
+        "tags": [
+          "download",
+          "progress",
+          "async-action",
+          "loading",
+          "success",
+          "cancel",
+          "abort-signal",
+          "button"
+        ],
+        "effects": [
+          "progress-ring",
+          "svg-animation",
+          "state-transition",
+          "reduced-motion"
+        ]
       },
       "dependencies": ["motion", "lucide-react"],
       "files": [
@@ -225,10 +233,7 @@
           "reduced-motion"
         ]
       },
-      "registryDependencies": [
-        "button",
-        "https://ui.ericts.com/r/like.json"
-      ],
+      "registryDependencies": ["button", "https://ui.ericts.com/r/like.json"],
       "dependencies": ["class-variance-authority"],
       "files": [
         {
@@ -488,13 +493,7 @@
           "button",
           "menu"
         ],
-        "effects": [
-          "scale",
-          "icon-swap",
-          "stagger",
-          "fade",
-          "reduced-motion"
-        ]
+        "effects": ["scale", "icon-swap", "stagger", "fade", "reduced-motion"]
       },
       "registryDependencies": ["button"],
       "dependencies": ["motion"],
@@ -900,7 +899,14 @@
       "description": "An accessible switch with optional state labels, three sizes, and configurable motion.",
       "categories": ["form"],
       "meta": {
-        "tags": ["switch", "toggle", "status", "controlled", "uncontrolled", "adaptive"],
+        "tags": [
+          "switch",
+          "toggle",
+          "status",
+          "controlled",
+          "uncontrolled",
+          "adaptive"
+        ],
         "effects": [
           "thumb-stretch",
           "damped-elastic-settle",
@@ -973,7 +979,15 @@
       "description": "A horizontally scrollable multi-select tag row that groups selected tags first in selection order, with responsive controls and reduced-motion support.",
       "categories": ["form"],
       "meta": {
-        "tags": ["tags", "filters", "chips", "multi-select", "horizontal-scroll", "controlled", "uncontrolled"],
+        "tags": [
+          "tags",
+          "filters",
+          "chips",
+          "multi-select",
+          "horizontal-scroll",
+          "controlled",
+          "uncontrolled"
+        ],
         "effects": ["layout-reorder", "reduced-motion"]
       },
       "dependencies": ["@base-ui/react", "motion", "lucide-react"],
@@ -1071,7 +1085,18 @@
       "description": "A responsive Mermaid rendering surface with streaming and error states, repair hooks, and accessible pan and zoom both inline and in a fullscreen viewer.",
       "categories": ["app-pattern"],
       "meta": {
-        "tags": ["diagram", "flowchart", "markdown", "svg", "pan", "zoom", "fullscreen", "responsive", "streaming", "error-recovery"],
+        "tags": [
+          "diagram",
+          "flowchart",
+          "markdown",
+          "svg",
+          "pan",
+          "zoom",
+          "fullscreen",
+          "responsive",
+          "streaming",
+          "error-recovery"
+        ],
         "effects": ["pan", "zoom", "fullscreen", "reduced-motion"]
       },
       "registryDependencies": [
@@ -1103,7 +1128,12 @@
           "arrow-keys",
           "tabs"
         ],
-        "effects": ["active-expand", "active-pill", "tap-feedback", "reduced-motion"]
+        "effects": [
+          "active-expand",
+          "active-pill",
+          "tap-feedback",
+          "reduced-motion"
+        ]
       },
       "dependencies": ["motion"],
       "files": [
@@ -1402,8 +1432,27 @@
       "description": "An art-directed scroll hero that expands a detail into context or focuses a full-bleed scene into a discovery.",
       "categories": ["marketing"],
       "meta": {
-        "tags": ["scroll", "hero", "image", "video", "storytelling", "art-direction", "focus"],
-        "effects": ["clip-path", "media-zoom", "focus-origin", "scroll-progress", "content-choreography", "frame-offset", "reverse-focus", "circular-focus", "stage-content", "reduced-motion"]
+        "tags": [
+          "scroll",
+          "hero",
+          "image",
+          "video",
+          "storytelling",
+          "art-direction",
+          "focus"
+        ],
+        "effects": [
+          "clip-path",
+          "media-zoom",
+          "focus-origin",
+          "scroll-progress",
+          "content-choreography",
+          "frame-offset",
+          "reverse-focus",
+          "circular-focus",
+          "stage-content",
+          "reduced-motion"
+        ]
       },
       "registryDependencies": [
         "https://ui.ericts.com/r/use-reduced-motion.json",
@@ -1429,8 +1478,23 @@
       "description": "An immersive scene selector whose photo lifts into a travelling corrugated wave, swapping to the next scene at the crest before settling flat.",
       "categories": ["marketing"],
       "meta": {
-        "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
-        "effects": ["ripple-wave", "strip-stagger", "crest-swap", "direction-aware", "content-stagger", "reduced-motion"]
+        "tags": [
+          "category",
+          "gallery",
+          "image",
+          "storytelling",
+          "tabs",
+          "controlled",
+          "directional"
+        ],
+        "effects": [
+          "ripple-wave",
+          "strip-stagger",
+          "crest-swap",
+          "direction-aware",
+          "content-stagger",
+          "reduced-motion"
+        ]
       },
       "registryDependencies": [
         "https://ui.ericts.com/r/rail-list.json",
@@ -1456,12 +1520,24 @@
       "description": "A direction-aware gallery that reveals later scenes from below and earlier scenes from above with a paired vertical image transition.",
       "categories": ["marketing"],
       "meta": {
-        "tags": ["category", "gallery", "image", "storytelling", "tabs", "controlled", "directional"],
-        "effects": ["vertical-reveal", "media-zoom", "content-transition", "direction-aware", "reduced-motion"]
+        "tags": [
+          "category",
+          "gallery",
+          "image",
+          "storytelling",
+          "tabs",
+          "controlled",
+          "directional"
+        ],
+        "effects": [
+          "vertical-reveal",
+          "media-zoom",
+          "content-transition",
+          "direction-aware",
+          "reduced-motion"
+        ]
       },
-      "registryDependencies": [
-        "https://ui.ericts.com/r/sliding-list.json"
-      ],
+      "registryDependencies": ["https://ui.ericts.com/r/sliding-list.json"],
       "dependencies": ["motion"],
       "files": [
         {
@@ -1483,8 +1559,24 @@
       "description": "A screen whose resting card deck lifts to the top, drops the sheet away, and pulls a full page of detail up behind it, then swipes card by card.",
       "categories": ["app-pattern"],
       "meta": {
-        "tags": ["deck", "pile", "cards", "detail", "swipe", "drag", "container-query", "controlled"],
-        "effects": ["deck-lift", "cover-rise", "sheet-drop", "card-swipe", "detail-swap", "reduced-motion"]
+        "tags": [
+          "deck",
+          "pile",
+          "cards",
+          "detail",
+          "swipe",
+          "drag",
+          "container-query",
+          "controlled"
+        ],
+        "effects": [
+          "deck-lift",
+          "cover-rise",
+          "sheet-drop",
+          "card-swipe",
+          "detail-swap",
+          "reduced-motion"
+        ]
       },
       "registryDependencies": [
         "https://ui.ericts.com/r/use-element-size-map.json"
@@ -1556,10 +1648,18 @@
       "description": "A client-safe React hook that spotlights one scripted animation sequence at a time, pausing off-screen, on hidden tabs, while focused, and under reduced motion.",
       "categories": ["motion"],
       "meta": {
-        "tags": ["spotlight", "playback", "intersection-observer", "reduced-motion", "showcase"],
+        "tags": [
+          "spotlight",
+          "playback",
+          "intersection-observer",
+          "reduced-motion",
+          "showcase"
+        ],
         "effects": ["sequenced-playback"]
       },
-      "registryDependencies": ["https://ui.ericts.com/r/use-reduced-motion.json"],
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ],
       "files": [
         {
           "path": "registry/base/hooks/use-sequence-player.ts",
@@ -1593,7 +1693,12 @@
       "description": "A client-safe React hook that measures an element's height with ResizeObserver so a container can animate between content heights.",
       "categories": ["measurement"],
       "meta": {
-        "tags": ["resize-observer", "auto-height", "measure", "height-animation"],
+        "tags": [
+          "resize-observer",
+          "auto-height",
+          "measure",
+          "height-animation"
+        ],
         "effects": ["height-animation"]
       },
       "files": [
@@ -1658,28 +1763,12 @@
       "type": "registry:block",
       "title": "Demo Tabs",
       "description": "A tabbed product demo with a shared playback timeline, progress underline, and customizable scenes. Includes three synchronized terminal-and-result examples.",
-      "categories": [
-        "marketing"
-      ],
+      "categories": ["marketing"],
       "meta": {
-        "tags": [
-          "tabs",
-          "demo",
-          "product",
-          "timeline",
-          "controlled"
-        ],
-        "effects": [
-          "progress",
-          "synchronized-playback",
-          "reduced-motion"
-        ]
+        "tags": ["tabs", "demo", "product", "timeline", "controlled"],
+        "effects": ["progress", "synchronized-playback", "reduced-motion"]
       },
-      "dependencies": [
-        "@base-ui/react",
-        "motion",
-        "lucide-react"
-      ],
+      "dependencies": ["@base-ui/react", "motion", "lucide-react"],
       "registryDependencies": [
         "https://ui.ericts.com/r/use-reduced-motion.json"
       ],

@@ -9,8 +9,8 @@ import {
   type MotionValue,
 } from "motion/react";
 
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export type DemoTabsScene = {
   /** Shared, linear playback position, from 0 to 1. Use useTransform in a child. */
@@ -148,7 +148,9 @@ export function DemoTabs({
     if (!node || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
       ([entry]) =>
-        setInView(Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.2)),
+        setInView(
+          Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.2),
+        ),
       { threshold: 0.2 },
     );
     observer.observe(node);
@@ -223,11 +225,11 @@ export function DemoTabs({
             (event.target as HTMLElement).closest(
               '[data-slot="demo-tabs-panel"]',
             ) &&
-              event.currentTarget.contains(
-                (event.target as HTMLElement).closest(
-                  '[data-slot="demo-tabs-panel"]',
-                ),
+            event.currentTarget.contains(
+              (event.target as HTMLElement).closest(
+                '[data-slot="demo-tabs-panel"]',
               ),
+            ),
           ),
         );
       }}
@@ -258,13 +260,13 @@ export function DemoTabs({
                     if (item.value === activeValue) select(item.value);
                   }}
                   className={cn(
-                    "relative flex min-w-24 flex-1 flex-col items-start gap-1 border-r px-5 py-4 text-left last:border-r-0 @min-[40rem]/demo:min-w-44 data-active:bg-muted/50 focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                    "relative flex min-w-24 flex-1 flex-col items-start gap-1 border-r px-5 py-4 text-left last:border-r-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-active:bg-muted/50 @min-[40rem]/demo:min-w-44",
                     classNames?.tab,
                   )}
                 >
                   <span className="font-mono text-xs">{item.label}</span>
                   {item.description && (
-                    <span className="hidden whitespace-nowrap text-xs text-muted-foreground @min-[40rem]/demo:block">
+                    <span className="hidden text-xs whitespace-nowrap text-muted-foreground @min-[40rem]/demo:block">
                       {item.description}
                     </span>
                   )}
@@ -283,7 +285,7 @@ export function DemoTabs({
                 key={item.value}
                 value={item.value}
                 className={cn(
-                  "outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                   classNames?.panel,
                 )}
               >

@@ -78,8 +78,8 @@
     height: var(--like-particle-size, 0.25em);
     opacity: 0;
     animation: like-particle
-      calc(var(--like-duration) * var(--like-particle-duration-scale))
-      linear calc(24ms + var(--like-particle-delay)) both;
+      calc(var(--like-duration) * var(--like-particle-duration-scale)) linear
+      calc(24ms + var(--like-particle-delay)) both;
   }
 
   /* Only 8 particles are choreographed below (LIKE_PARTICLE_COUNT in

@@ -1,16 +1,16 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Accessibility } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+import { Accessibility, ArrowDown, ArrowUp } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   ScrollExpand,
   ScrollExpandItem,
 } from "@/registry/base/blocks/scroll-expand";
 import { useReducedMotion } from "@/registry/base/hooks/use-reduced-motion";
 import { StatusBadge } from "@/registry/base/ui/status-badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 const previewImage = "/images/scroll-expand-watch-hero.png";
 type ScrollDirection = "down" | "up";
@@ -59,9 +59,7 @@ export default function Preview({
       <div
         className={cn(
           "relative w-full overflow-hidden rounded-lg border bg-black",
-          presentation === "fullscreen"
-            ? "h-full min-h-[420px]"
-            : "h-[420px]",
+          presentation === "fullscreen" ? "h-full min-h-[420px]" : "h-[420px]",
         )}
       >
         <ScrollExpand
@@ -129,7 +127,7 @@ export default function Preview({
             <ScrollExpandItem start={0.62} end={0.84} offsetY={28}>
               <h3
                 className={cn(
-                  "text-balance font-semibold tracking-[-0.03em] text-white",
+                  "font-semibold tracking-[-0.03em] text-balance text-white",
                   "group-data-[size=compact]:text-[clamp(1.05rem,5.2cqw,1.75rem)]",
                   presentation === "fullscreen"
                     ? "text-[clamp(1.5rem,4.25cqw,3.75rem)]"
@@ -140,7 +138,7 @@ export default function Preview({
               </h3>
             </ScrollExpandItem>
             <ScrollExpandItem start={0.68} end={0.9} offsetY={24}>
-              <p className="max-w-sm text-pretty text-[clamp(.8125rem,1.15cqw,1rem)] leading-[1.5] text-white/85 group-data-[size=compact]:max-w-none group-data-[size=compact]:text-[.8125rem]">
+              <p className="max-w-sm text-[clamp(.8125rem,1.15cqw,1rem)] leading-[1.5] text-pretty text-white/85 group-data-[size=compact]:max-w-none group-data-[size=compact]:text-[.8125rem]">
                 From the smallest gear to the final finish, precision is built
                 one considered choice at a time.
               </p>

@@ -38,9 +38,8 @@ describe("Countdown under reduced motion", () => {
       await Promise.resolve();
     });
 
-    const activeLayer = container.querySelector<HTMLElement>(
-      "[data-number='7']",
-    );
+    const activeLayer =
+      container.querySelector<HTMLElement>("[data-number='7']");
 
     expect(screen.getByRole("timer").getAttribute("data-animated")).toBe(
       "false",

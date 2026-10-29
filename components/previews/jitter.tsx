@@ -3,10 +3,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  JitterIcon,
-  type JitterIconAxis,
-} from "@/registry/base/ui/jitter";
+import { JitterIcon, type JitterIconAxis } from "@/registry/base/ui/jitter";
 
 const jitterAxisOptions: {
   label: string;

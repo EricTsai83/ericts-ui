@@ -9,18 +9,18 @@ export default function Preview() {
           does not have — so it is gated on `sm`. Which verb is true is an input
           question, and the component gathers on `:active` wherever
           `(hover: none)` matches, which includes a tablet well above `sm`. */}
-      <span className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium italic leading-4 text-foreground/65 sm:hidden">
+      <span className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 text-xs leading-4 font-medium whitespace-nowrap text-foreground/65 italic sm:hidden">
         Press and hold
       </span>
-      <div className="pointer-events-none absolute left-[calc(50%+5rem)] top-0 hidden h-24 w-28 text-xs font-medium italic leading-4 text-foreground/65 sm:block">
-        <span className="absolute right-1 top-0 translate-x-1/2 whitespace-nowrap">
+      <div className="pointer-events-none absolute top-0 left-[calc(50%+5rem)] hidden h-24 w-28 text-xs leading-4 font-medium text-foreground/65 italic sm:block">
+        <span className="absolute top-0 right-1 translate-x-1/2 whitespace-nowrap">
           <span className="[@media(hover:none)]:hidden">Hover</span>
           <span className="[@media(hover:hover)]:hidden">Press and hold</span>
         </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 112 96"
-          className="absolute left-0 top-0 h-24 w-28 overflow-visible text-foreground/60"
+          className="absolute top-0 left-0 h-24 w-28 overflow-visible text-foreground/60"
           fill="none"
         >
           <path
@@ -52,7 +52,10 @@ export default function Preview() {
         contactShadowClassName="inset-[12%] text-foreground/[0.16] dark:text-muted/55"
         targetClassName="absolute inset-[12%] text-foreground/90"
       >
-        <LogoIcon aria-hidden="true" className="pointer-events-none size-full" />
+        <LogoIcon
+          aria-hidden="true"
+          className="pointer-events-none size-full"
+        />
       </ProjectedShadow>
     </div>
   );

@@ -86,9 +86,9 @@ describe.each([
 
     // The copy itself succeeded, so the callback still reports it.
     expect(onCopy).toHaveBeenCalledWith("hello");
-    expect(
-      setTimeoutSpy.mock.calls.some(([, delay]) => delay === 12345),
-    ).toBe(false);
+    expect(setTimeoutSpy.mock.calls.some(([, delay]) => delay === 12345)).toBe(
+      false,
+    );
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 });

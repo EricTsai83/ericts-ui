@@ -1,7 +1,7 @@
 "use client";
 
-import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import * as React from "react";
+import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 
 import { cn } from "@/lib/utils";
 
@@ -260,13 +260,11 @@ export function RailStage({
           <TabsPrimitive.Tab
             key={item.id}
             value={item.id}
-            data-rail-stage-active={
-              item.id === activeItem.id ? "" : undefined
-            }
+            data-rail-stage-active={item.id === activeItem.id ? "" : undefined}
             className={cn(
-              "relative -mb-px flex h-11 min-w-44 flex-none items-center gap-2 border-b px-4 text-left font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground transition-colors",
+              "relative -mb-px flex h-11 min-w-44 flex-none items-center gap-2 border-b px-4 text-left font-mono text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase transition-colors",
               "hover:bg-muted/30 hover:text-foreground",
-              "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               // The collapsed strip keeps a local underline; wide layouts use
               // the single measured indicator above so it can slide between tabs.
               "data-active:bg-muted/35 data-active:text-foreground",

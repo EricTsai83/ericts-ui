@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { createRef } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { RingHud, type RingHudControls } from "@/registry/base/ui/ring-hud";
@@ -20,7 +26,12 @@ const root = (container: HTMLElement) =>
 
 describe("RingHud", () => {
   it("keeps masks separate when multiple HUDs share a page", () => {
-    const { container } = render(<><RingHud value={54} /><RingHud value={0} /></>);
+    const { container } = render(
+      <>
+        <RingHud value={54} />
+        <RingHud value={0} />
+      </>,
+    );
     const masks = [...container.querySelectorAll("mask")];
     expect(masks).toHaveLength(2);
     expect(masks[0].id).not.toBe(masks[1].id);
@@ -32,7 +43,11 @@ describe("RingHud", () => {
     const onPhaseChange = vi.fn();
     const onComplete = vi.fn();
     const { container } = render(
-      <RingHud value={54} onPhaseChange={onPhaseChange} onComplete={onComplete} />,
+      <RingHud
+        value={54}
+        onPhaseChange={onPhaseChange}
+        onComplete={onComplete}
+      />,
     );
     const hud = root(container);
     expect(hud.dataset.phase).toBe("enter");
@@ -41,14 +56,21 @@ describe("RingHud", () => {
     endAnimation(hud, "ring-hud-hold");
     endAnimation(hud, "ring-hud-exit");
 
-    expect(onPhaseChange.mock.calls.map(([phase]) => phase)).toEqual(["hold", "exit", "done"]);
+    expect(onPhaseChange.mock.calls.map(([phase]) => phase)).toEqual([
+      "hold",
+      "exit",
+      "done",
+    ]);
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(root(container).dataset.phase).toBe("done");
   });
 
   it("ignores child and foreign animations", () => {
     const { container } = render(<RingHud value={54} />);
-    endAnimation(container.querySelector(".ring-hud-path")!, "ring-hud-draw-in");
+    endAnimation(
+      container.querySelector(".ring-hud-path")!,
+      "ring-hud-draw-in",
+    );
     endAnimation(root(container), "pulse");
     expect(root(container).dataset.phase).toBe("enter");
   });
@@ -59,7 +81,9 @@ describe("RingHud", () => {
     );
     const status = screen.getByRole("status");
     expect(status.textContent).toBe("");
-    expect(container.querySelector('[data-slot="ring-hud-label"]')?.textContent).toBe("已充電 54%");
+    expect(
+      container.querySelector('[data-slot="ring-hud-label"]')?.textContent,
+    ).toBe("已充電 54%");
 
     endAnimation(root(container), "ring-hud-enter");
     expect(status.textContent).toBe("已充電 54%");
@@ -88,11 +112,15 @@ describe("RingHud", () => {
   });
 
   it("starts the countdown when holdDuration turns finite", () => {
-    const { container, rerender } = render(<RingHud value={60} holdDuration={Infinity} />);
+    const { container, rerender } = render(
+      <RingHud value={60} holdDuration={Infinity} />,
+    );
     endAnimation(root(container), "ring-hud-enter");
     rerender(<RingHud value={100} holdDuration={800} />);
     expect(root(container).dataset.hold).toBeUndefined();
-    expect(root(container).style.getPropertyValue("--ring-hud-hold")).toBe("800ms");
+    expect(root(container).style.getPropertyValue("--ring-hud-hold")).toBe(
+      "800ms",
+    );
     endAnimation(root(container), "ring-hud-hold");
     expect(root(container).dataset.phase).toBe("exit");
   });
@@ -111,7 +139,12 @@ describe("RingHud", () => {
     const ref = createRef<HTMLDivElement>();
     const onComplete = vi.fn();
     const { container } = render(
-      <RingHud ref={ref} value={40} controlsRef={controls} onComplete={onComplete} />,
+      <RingHud
+        ref={ref}
+        value={40}
+        controlsRef={controls}
+        onComplete={onComplete}
+      />,
     );
 
     act(() => controls.current?.pause());
@@ -138,7 +171,11 @@ describe("RingHud", () => {
     const controls = createRef<RingHudControls>();
     const onPhaseChange = vi.fn();
     const { container } = render(
-      <RingHud value={40} controlsRef={controls} onPhaseChange={onPhaseChange} />,
+      <RingHud
+        value={40}
+        controlsRef={controls}
+        onPhaseChange={onPhaseChange}
+      />,
     );
     const node = root(container);
     act(() => controls.current?.replay());
@@ -165,6 +202,8 @@ describe("RingHud", () => {
 
   it("maps size to the custom property", () => {
     const { container } = render(<RingHud value={10} size={96} />);
-    expect(root(container).style.getPropertyValue("--ring-hud-size")).toBe("96px");
+    expect(root(container).style.getPropertyValue("--ring-hud-size")).toBe(
+      "96px",
+    );
   });
 });

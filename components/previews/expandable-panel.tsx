@@ -30,15 +30,15 @@ export default function Preview() {
     <div className="relative mx-auto h-80 w-full max-w-xl overflow-hidden rounded-lg border bg-background text-foreground">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[44px_44px] opacity-35 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] mask-[radial-gradient(circle_at_center,black,transparent_78%)] bg-size-[44px_44px] opacity-35 dark:opacity-20"
       />
 
-      <div className="absolute left-5 top-5 flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="absolute top-5 left-5 flex items-center gap-2 text-xs text-muted-foreground">
         <span className="size-2 rounded-full bg-primary" aria-hidden />
         Expanding button
       </div>
 
-      <div className="pointer-events-none absolute right-5 top-12 z-10 flex items-end gap-2 text-xs font-medium italic leading-4 text-foreground/65">
+      <div className="pointer-events-none absolute top-12 right-5 z-10 flex items-end gap-2 text-xs leading-4 font-medium text-foreground/65 italic">
         <span className="mb-1 whitespace-nowrap">Open menu</span>
         <svg
           aria-hidden="true"
@@ -65,17 +65,17 @@ export default function Preview() {
 
       <div className="relative flex h-full items-center justify-center px-6 text-center">
         <div className="flex max-w-xs flex-col items-center gap-2">
-          <p className="text-lg font-semibold leading-6">A button that grows</p>
+          <p className="text-lg leading-6 font-semibold">A button that grows</p>
         </div>
       </div>
 
       <ExpandablePanel
-        className="absolute right-3 top-3 z-20"
+        className="absolute top-3 right-3 z-20"
         openLabel="Expand panel"
         closeLabel="Collapse panel"
       >
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
-          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-2 pr-(--expandable-panel-trigger-inset)">
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pr-(--expandable-panel-trigger-inset) pl-2">
             <div className="flex flex-col gap-1.5">
               {expandingButtonPreviewGroups.map((group) => (
                 <section
@@ -84,7 +84,7 @@ export default function Preview() {
                 >
                   <div
                     className={cn(
-                      "px-2 py-1 text-xs font-semibold leading-4",
+                      "px-2 py-1 text-xs leading-4 font-semibold",
                       group.active ? "text-primary" : "text-foreground/70",
                     )}
                   >

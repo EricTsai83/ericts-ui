@@ -2,12 +2,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/blocks/vertical-scene.css", () => ({}));
-
 import {
   VerticalScene,
   type VerticalSceneItem,
 } from "@/registry/base/blocks/vertical-scene";
+
+vi.mock("@/registry/base/blocks/vertical-scene.css", () => ({}));
 
 const items: readonly VerticalSceneItem[] = [
   {
@@ -43,9 +43,9 @@ describe("VerticalScene", () => {
     const slidingList = selector.closest("[data-slot='sliding-list']");
 
     expect(slidingList).toBeTruthy();
-    expect(slidingList?.parentElement?.classList.contains("vertical-scene__body")).toBe(
-      true,
-    );
+    expect(
+      slidingList?.parentElement?.classList.contains("vertical-scene__body"),
+    ).toBe(true);
     expect(slidingList?.nextElementSibling?.getAttribute("role")).toBe(
       "tabpanel",
     );
@@ -100,9 +100,7 @@ describe("VerticalScene", () => {
     });
 
     expect(
-      screen
-        .getByRole("tab", { name: "Desert" })
-        .getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "Desert" }).getAttribute("aria-selected"),
     ).toBe("true");
 
     fireEvent.keyDown(screen.getByRole("tab", { name: "Desert" }), {
@@ -110,9 +108,7 @@ describe("VerticalScene", () => {
     });
 
     expect(
-      screen
-        .getByRole("tab", { name: "Forest" })
-        .getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "Forest" }).getAttribute("aria-selected"),
     ).toBe("true");
   });
 

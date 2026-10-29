@@ -19,9 +19,7 @@ function scale(transform: string, axis: "X" | "Y") {
 }
 
 function translateX(transform: string) {
-  const percent = Number(
-    transform.match(/translateX\((-?[^)]+)%\)/)?.[1],
-  );
+  const percent = Number(transform.match(/translateX\((-?[^)]+)%\)/)?.[1]);
 
   return (percent / 100) * 36;
 }
@@ -188,9 +186,9 @@ describe("slidingPlayPauseIconStyles", () => {
     );
 
     for (let step = 0; step <= 100; step += 1) {
-      expect(JSON.stringify(slidingPlayPauseIconStyles(step / 100))).not.toMatch(
-        /NaN|Infinity/,
-      );
+      expect(
+        JSON.stringify(slidingPlayPauseIconStyles(step / 100)),
+      ).not.toMatch(/NaN|Infinity/);
     }
   });
 });

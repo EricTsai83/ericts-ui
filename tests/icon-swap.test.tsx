@@ -42,9 +42,9 @@ describe("IconSwap", () => {
     expect(container.querySelector('[data-slot="icon-swap-icon"]')).toBe(
       inactiveLayer,
     );
-    expect(
-      container.querySelector('[data-slot="icon-swap-active-icon"]'),
-    ).toBe(activeLayer);
+    expect(container.querySelector('[data-slot="icon-swap-active-icon"]')).toBe(
+      activeLayer,
+    );
     expect(inactiveLayer?.getAttribute("data-state")).toBe("closed");
     expect(activeLayer?.getAttribute("data-state")).toBe("open");
   });
@@ -84,9 +84,7 @@ describe("IconSwap", () => {
       '[data-slot="icon-swap-icon"]',
     );
 
-    expect(root?.style.getPropertyValue("--icon-swap-duration")).toBe(
-      "220ms",
-    );
+    expect(root?.style.getPropertyValue("--icon-swap-duration")).toBe("220ms");
     expect(inactiveLayer?.getAttribute("data-state")).toBe("open");
 
     rerender(

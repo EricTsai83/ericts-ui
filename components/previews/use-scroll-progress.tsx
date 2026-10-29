@@ -45,7 +45,7 @@ export default function Preview() {
         tabIndex={0}
         role="region"
         aria-label="Scroll progress demo"
-        className="no-scrollbar h-72 overflow-y-auto rounded-lg border bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="no-scrollbar h-72 overflow-y-auto rounded-lg border bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <div ref={trackRef} className="relative h-[864px]">
           <div className="sticky top-0 flex h-72 items-center justify-center p-6">
@@ -57,9 +57,7 @@ export default function Preview() {
                 <div
                   ref={meterRef}
                   className="absolute inset-0 origin-bottom scale-y-(--scroll-progress-preview) rounded-full bg-foreground"
-                  style={
-                    { "--scroll-progress-preview": 0 } as CSSProperties
-                  }
+                  style={{ "--scroll-progress-preview": 0 } as CSSProperties}
                 />
               </div>
               <div className="flex min-w-32 flex-col gap-2">
@@ -71,7 +69,7 @@ export default function Preview() {
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={0}
-                  className="font-mono text-4xl font-semibold tabular-nums tracking-tight"
+                  className="font-mono text-4xl font-semibold tracking-tight tabular-nums"
                 >
                   0%
                 </output>

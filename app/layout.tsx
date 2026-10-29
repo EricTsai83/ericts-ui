@@ -3,12 +3,13 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import type { SearchLink } from "fumadocs-ui/contexts/search";
 import { RootProvider } from "fumadocs-ui/provider/next";
+
 import "./globals.css";
 
-import { DocsSearchDialog } from "@/components/docs-search";
 import { primaryNavItems } from "@/lib/navigation";
 import { siteConfig, siteOgImage } from "@/lib/site-config";
 import { source } from "@/lib/source";
+import { DocsSearchDialog } from "@/components/docs-search";
 import { ThemeShortcut } from "@/components/theme-shortcut";
 
 const geistSans = Geist({
@@ -85,10 +86,11 @@ export default function RootLayout({
 }
 
 function getSearchLinks(): SearchLink[] {
-  const docsLinks = source.getPages().map((page) => [
-    page.data.title ?? page.url,
-    page.url,
-  ] satisfies SearchLink);
+  const docsLinks = source
+    .getPages()
+    .map(
+      (page) => [page.data.title ?? page.url, page.url] satisfies SearchLink,
+    );
   const links = [
     ...primaryNavItems.map(
       (item) => [item.label, item.href] satisfies SearchLink,

@@ -129,9 +129,7 @@ describe("PlayButton", () => {
     fireEvent.click(button);
     fireEvent.click(button);
 
-    expect(
-      button.querySelector("[data-slot='play-button-pulse']"),
-    ).toBeNull();
+    expect(button.querySelector("[data-slot='play-button-pulse']")).toBeNull();
   });
 
   it("emits one pulse per toggle once opted in, and none before the first", () => {
@@ -174,9 +172,9 @@ describe("PlayButton", () => {
 
     cleanup();
 
-    const frostedButton = render(
-      <PlayButton surface="frosted" />,
-    ).getByRole("button");
+    const frostedButton = render(<PlayButton surface="frosted" />).getByRole(
+      "button",
+    );
 
     expect(frostedButton.className).toContain("backdrop-blur");
     expect(frostedButton.className).toContain("bg-ericts-media-control/30");

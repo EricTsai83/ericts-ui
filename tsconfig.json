@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,24 +19,12 @@
       }
     ],
     "paths": {
-      "@/components/ui/check-mark": [
-        "./registry/base/ui/check-mark"
-      ],
-      "@/components/ui/sliding-list": [
-        "./registry/base/ui/sliding-list"
-      ],
-      "@/components/ui/rail-list": [
-        "./registry/base/ui/rail-list"
-      ],
-      "@/hooks/*": [
-        "./registry/base/hooks/*"
-      ],
-      "@/*": [
-        "./*"
-      ],
-      "collections/*": [
-        "./.source/*"
-      ]
+      "@/components/ui/check-mark": ["./registry/base/ui/check-mark"],
+      "@/components/ui/sliding-list": ["./registry/base/ui/sliding-list"],
+      "@/components/ui/rail-list": ["./registry/base/ui/rail-list"],
+      "@/hooks/*": ["./registry/base/hooks/*"],
+      "@/*": ["./*"],
+      "collections/*": ["./.source/*"]
     }
   },
   "include": [
@@ -51,7 +35,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

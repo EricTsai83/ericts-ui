@@ -12,9 +12,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import NavLinkPreview from "@/components/previews/nav-link";
 import {
+  isPathActive,
   NavLink,
   NavLinkScript,
-  isPathActive,
 } from "@/registry/base/ui/nav-link";
 
 const navigation = vi.hoisted(() => ({ pathname: "/", suspend: false }));
@@ -65,7 +65,9 @@ describe("isPathActive", () => {
     expect(isPathActive("/components/button", "/components", "prefix")).toBe(
       true,
     );
-    expect(isPathActive("/components-old", "/components", "prefix")).toBe(false);
+    expect(isPathActive("/components-old", "/components", "prefix")).toBe(
+      false,
+    );
   });
 
   it("always matches the root exactly", () => {
@@ -136,9 +138,9 @@ describe("NavLink", () => {
     render(<NavLink href="/components">Components</NavLink>);
 
     expect(
-      screen.getByRole("link", { name: "Components" }).getAttribute(
-        "aria-current",
-      ),
+      screen
+        .getByRole("link", { name: "Components" })
+        .getAttribute("aria-current"),
     ).toBe("page");
   });
 
@@ -248,9 +250,12 @@ describe("NavLink", () => {
     link.setAttribute("data-navlink-href", "/dashboard");
     link.setAttribute("data-navlink-match", "exact");
 
-    runScript({ pathname: "/app/dashboard" }, {
-      querySelectorAll: () => [link],
-    });
+    runScript(
+      { pathname: "/app/dashboard" },
+      {
+        querySelectorAll: () => [link],
+      },
+    );
 
     expect(link.getAttribute("aria-current")).toBe("page");
   });

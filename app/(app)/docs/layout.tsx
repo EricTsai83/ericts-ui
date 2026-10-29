@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 
+import { baseOptions } from "@/lib/layout.shared";
+import { source } from "@/lib/source";
 import {
   CustomDocsSidebar,
   CustomDocsSidebarProvider,
@@ -8,8 +10,6 @@ import {
   useCustomDocsSidebar,
 } from "@/components/docs-sidebar";
 import { MobileDocsNavigation } from "@/components/mobile-docs-navigation";
-import { baseOptions } from "@/lib/layout.shared";
-import { source } from "@/lib/source";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (

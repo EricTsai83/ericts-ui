@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import {
+  getRegistryDisplayItem,
+  getRegistryDisplayItems,
+  getRegistryDisplayNavigation,
+  getRegistryDisplayNavigationGroups,
+  type RegistryDisplayItem,
+} from "@/lib/registry-display";
+import {
   RegistryDemoShell,
   type RegistryDemoNavigation,
   type RegistryDemoNavigationItem,
 } from "@/components/registry-demo-shell";
-import {
-  getRegistryDisplayItem,
-  getRegistryDisplayItems,
-  getRegistryDisplayNavigationGroups,
-  getRegistryDisplayNavigation,
-  type RegistryDisplayItem,
-} from "@/lib/registry-display";
 
 type PageProps = {
   params: Promise<{

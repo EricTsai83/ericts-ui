@@ -133,7 +133,8 @@ const registryDisplayCategories = [
     slug: "marketing",
     kind: "block",
     label: "Marketing Scenes",
-    description: "Immersive scroll heroes and scene galleries for marketing surfaces.",
+    description:
+      "Immersive scroll heroes and scene galleries for marketing surfaces.",
   },
   {
     slug: "accessibility",
@@ -399,11 +400,10 @@ function getRelativeCategoryFirstItem(
 }
 
 function getPopulatedRegistryDisplayCategories(kind: RegistryDisplayKind) {
-  return getRegistryDisplayCategories(kind).filter(
-    (category) =>
-      getRegistryDisplayItemsByCategory(kind, category).some(
-        (item) => item.browsable !== false,
-      ),
+  return getRegistryDisplayCategories(kind).filter((category) =>
+    getRegistryDisplayItemsByCategory(kind, category).some(
+      (item) => item.browsable !== false,
+    ),
   );
 }
 

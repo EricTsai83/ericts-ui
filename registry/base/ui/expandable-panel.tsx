@@ -1,8 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { ChevronsUpDown } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -248,7 +248,7 @@ export function ExpandablePanel({
                     maxHeight: CONTENT_MAX_HEIGHT,
                   }}
                   className={cn(
-                    "flex flex-col [--expandable-panel-trigger-inset:2rem] will-change-[filter,transform,opacity]",
+                    "flex flex-col will-change-[filter,transform,opacity] [--expandable-panel-trigger-inset:2rem]",
                     classNames?.content,
                   )}
                 >
@@ -266,7 +266,7 @@ export function ExpandablePanel({
             aria-label={isOpen ? closeLabel : openLabel}
             onClick={() => setOpen(!isOpen)}
             className={cn(
-              "absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-md text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none pointer-coarse:touch-manipulation pointer-coarse:after:absolute pointer-coarse:after:-inset-2",
+              "absolute top-0 right-0 z-10 flex size-8 items-center justify-center rounded-md text-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset motion-reduce:transition-none pointer-coarse:touch-manipulation pointer-coarse:after:absolute pointer-coarse:after:-inset-2",
               classNames?.trigger,
             )}
           >

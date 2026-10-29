@@ -2,20 +2,20 @@
 
 import {
   Children,
+  useCallback,
+  useId,
+  useRef,
+  useState,
   type ComponentProps,
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
   type Ref,
-  useCallback,
-  useId,
-  useRef,
-  useState,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const DEFAULT_CONTENT_MAX_WIDTH = "min(32rem, calc(100vw - 2rem))";
@@ -225,8 +225,7 @@ export function ExpandableToolbar({
       const focusables = Array.from(
         event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
       ).filter(
-        (element) =>
-          !element.closest("[inert],[hidden],[aria-hidden='true']"),
+        (element) => !element.closest("[inert],[hidden],[aria-hidden='true']"),
       );
 
       if (focusables.length === 0) return;
@@ -240,7 +239,8 @@ export function ExpandableToolbar({
       } else if (event.key === "End") {
         nextIndex = lastIndex;
       } else if (event.key === "ArrowRight") {
-        nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % focusables.length;
+        nextIndex =
+          currentIndex < 0 ? 0 : (currentIndex + 1) % focusables.length;
       } else {
         nextIndex =
           currentIndex < 0
@@ -428,9 +428,7 @@ export function ExpandableToolbar({
               ? { left: -(TOOLBAR_PADDING + TOOLBAR_BORDER_WIDTH) }
               : undefined
           }
-          animate={
-            side === "center" ? { x: -startPanelWidth } : undefined
-          }
+          animate={side === "center" ? { x: -startPanelWidth } : undefined}
           transition={
             shouldReduceMotion ? { duration: 0 } : TOOLBAR_TRANSITION.width
           }
@@ -468,7 +466,7 @@ function DefaultExpandableToolbarTrigger({
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "relative z-10 size-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground active:scale-100 active:translate-y-0 active:not-aria-[haspopup]:translate-y-0 dark:hover:bg-transparent",
+        "relative z-10 size-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground active:translate-y-0 active:scale-100 active:not-aria-[haspopup]:translate-y-0 aria-expanded:bg-transparent aria-expanded:text-foreground dark:hover:bg-transparent",
         className,
       )}
       {...buttonProps}
@@ -552,10 +550,7 @@ function useMeasuredWidth<T extends HTMLElement>() {
   return [ref, width] as const;
 }
 
-function readElementWidth(
-  element: HTMLElement,
-  entry?: ResizeObserverEntry,
-) {
+function readElementWidth(element: HTMLElement, entry?: ResizeObserverEntry) {
   const borderBoxSize = Array.isArray(entry?.borderBoxSize)
     ? entry?.borderBoxSize[0]
     : entry?.borderBoxSize;
@@ -564,5 +559,7 @@ function readElementWidth(
     return Math.ceil(borderBoxSize.inlineSize);
   }
 
-  return Math.ceil(element.getBoundingClientRect().width || element.scrollWidth);
+  return Math.ceil(
+    element.getBoundingClientRect().width || element.scrollWidth,
+  );
 }

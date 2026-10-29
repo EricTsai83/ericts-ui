@@ -213,9 +213,7 @@ export function LikeBurst({
         />
       </span>
 
-      {children ? (
-        <span data-slot="like-burst-content">{children}</span>
-      ) : null}
+      {children ? <span data-slot="like-burst-content">{children}</span> : null}
     </ButtonPrimitive>
   );
 }

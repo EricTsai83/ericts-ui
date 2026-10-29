@@ -10,9 +10,7 @@ import { cn } from "@/lib/utils";
  */
 export const easeOutCubicTuple = [0.215, 0.61, 0.355, 1] as const;
 
-export function DemoSegmentedControl<
-  T extends { id: string; label: string },
->({
+export function DemoSegmentedControl<T extends { id: string; label: string }>({
   label,
   items,
   value,
@@ -38,7 +36,7 @@ export function DemoSegmentedControl<
           onClick={() => onValueChange(item.id)}
           className={cn(
             "h-8 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors",
-            "hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "hover:bg-background hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
             item.id === value && "bg-background text-foreground shadow-sm",
           )}
         >

@@ -8,12 +8,12 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/blocks/ripple-scene.css", () => ({}));
-
 import {
   RippleScene,
   type RippleSceneItem,
 } from "@/registry/base/blocks/ripple-scene";
+
+vi.mock("@/registry/base/blocks/ripple-scene.css", () => ({}));
 
 const items: readonly RippleSceneItem[] = [
   {
@@ -181,9 +181,7 @@ describe("RippleScene", () => {
     const rail = selector.closest('[data-slot="rail-list"]');
 
     expect(selector.getAttribute("aria-orientation")).toBe("horizontal");
-    expect(rail?.previousElementSibling?.getAttribute("role")).toBe(
-      "tabpanel",
-    );
+    expect(rail?.previousElementSibling?.getAttribute("role")).toBe("tabpanel");
   });
 
   it("selects scenes and reports the selected item", () => {
@@ -210,9 +208,7 @@ describe("RippleScene", () => {
     fireEvent.keyDown(forest, { key: "ArrowLeft" });
 
     expect(
-      screen
-        .getByRole("tab", { name: "Desert" })
-        .getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "Desert" }).getAttribute("aria-selected"),
     ).toBe("true");
 
     fireEvent.keyDown(screen.getByRole("tab", { name: "Desert" }), {
@@ -220,9 +216,7 @@ describe("RippleScene", () => {
     });
 
     expect(
-      screen
-        .getByRole("tab", { name: "Forest" })
-        .getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "Forest" }).getAttribute("aria-selected"),
     ).toBe("true");
   });
 

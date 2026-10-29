@@ -9,8 +9,8 @@ import {
   useReducedMotion,
 } from "motion/react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 type FeedbackState = "idle" | "loading" | "success";
 
@@ -323,7 +323,7 @@ export function FeedbackPopover({
               }
               transition={layoutTransition}
               style={{ borderRadius: 12 }}
-              className="absolute left-1/2 top-1/2 z-50 h-48 w-(--feedback-popover-width) -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
+              className="absolute top-1/2 left-1/2 z-50 h-48 w-(--feedback-popover-width) -translate-x-1/2 -translate-y-1/2 overflow-hidden border bg-background text-foreground shadow-sm"
             >
               {/* Persistent live region: the visible loading and success views
                   mount and unmount, which screen readers don't announce. */}
@@ -340,7 +340,7 @@ export function FeedbackPopover({
                 transition={layoutTransition}
                 data-state={formState}
                 data-has-feedback={feedback ? "true" : "false"}
-                className="pointer-events-none absolute left-3 top-3 text-base font-medium leading-6 text-muted-foreground data-[has-feedback=true]:opacity-0! data-[state=success]:opacity-0! sm:text-sm"
+                className="pointer-events-none absolute top-3 left-3 text-base leading-6 font-medium text-muted-foreground data-[has-feedback=true]:opacity-0! data-[state=success]:opacity-0! sm:text-sm"
               >
                 {textareaLabel}
               </motion.span>
@@ -429,17 +429,17 @@ export function FeedbackPopover({
                       readOnly={formState === "loading"}
                       aria-disabled={formState === "loading" || undefined}
                       onChange={(event) => setFeedback(event.target.value)}
-                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pb-3 pt-3 text-base leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 sm:text-sm"
+                      className="min-h-0 flex-1 resize-none bg-transparent px-3 pt-3 pb-3 text-base leading-6 outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 sm:text-sm"
                     />
 
                     <div className="relative flex items-center justify-end border-t border-dashed bg-muted/30 px-3 py-2.5">
                       <span
                         aria-hidden="true"
-                        className="absolute -left-px top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border bg-background"
+                        className="absolute top-1/2 -left-px size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border bg-background"
                       />
                       <span
                         aria-hidden="true"
-                        className="absolute -right-px top-1/2 size-3 -translate-y-1/2 translate-x-1/2 rounded-full border bg-background"
+                        className="absolute top-1/2 -right-px size-3 translate-x-1/2 -translate-y-1/2 rounded-full border bg-background"
                       />
                       <Button
                         type="submit"

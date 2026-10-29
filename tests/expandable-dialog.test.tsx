@@ -25,9 +25,7 @@ const items: ExpandableDialogItem[] = [
 afterEach(cleanup);
 
 function getList(container: HTMLElement) {
-  const list = container.querySelector(
-    '[data-slot="expandable-dialog-list"]',
-  );
+  const list = container.querySelector('[data-slot="expandable-dialog-list"]');
   if (!list) throw new Error("list not found");
   return list;
 }

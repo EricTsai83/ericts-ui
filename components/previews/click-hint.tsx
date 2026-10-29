@@ -8,7 +8,7 @@ export function ClickHint() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 right-full mr-1 h-16 w-20 -translate-y-1/2 text-xs font-medium italic leading-4 text-foreground/65"
+      className="pointer-events-none absolute top-1/2 right-full mr-1 h-16 w-20 -translate-y-1/2 text-xs leading-4 font-medium text-foreground/65 italic"
     >
       <span className="absolute top-0 -left-2 whitespace-nowrap">Click</span>
       <svg

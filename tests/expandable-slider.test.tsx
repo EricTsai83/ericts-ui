@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -47,7 +53,9 @@ function renderSlider(
   const slider = screen.getByRole("slider", { name: "Volume" });
   const root = slider.closest("[data-slot='expandable-slider']") as HTMLElement;
   const query = (slot: string) =>
-    root.querySelector(`[data-slot='expandable-slider-${slot}']`) as HTMLElement;
+    root.querySelector(
+      `[data-slot='expandable-slider-${slot}']`,
+    ) as HTMLElement;
 
   return {
     ...utils,
@@ -87,7 +95,9 @@ describe("ExpandableSlider", () => {
     const { root, panel } = renderSlider({ onExpandedChange });
 
     expect(root.dataset.expanded).toBe("false");
-    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(
+      PANEL_WIDTH,
+    );
     expect(panel.className).toContain("sm:w-0");
 
     fireEvent.pointerOver(root);
@@ -259,7 +269,11 @@ describe("ExpandableSlider", () => {
 
   it("steps and clamps with the keyboard", () => {
     const onValueChange = vi.fn();
-    const { slider } = renderSlider({ defaultValue: 50, step: 5, onValueChange });
+    const { slider } = renderSlider({
+      defaultValue: 50,
+      step: 5,
+      onValueChange,
+    });
 
     fireEvent.keyDown(slider, { key: "ArrowRight" });
     expect(slider.getAttribute("aria-valuenow")).toBe("55");
@@ -337,7 +351,10 @@ describe("ExpandableSlider", () => {
   });
 
   it("measures the rail once per drag rather than on every move", () => {
-    const { slider, rail } = renderSlider({ defaultValue: 0, collapseDelay: 0 });
+    const { slider, rail } = renderSlider({
+      defaultValue: 0,
+      collapseDelay: 0,
+    });
     const clientXFor = stubRailRect(rail);
     const rect = vi.mocked(rail.getBoundingClientRect);
     const computedStyle = vi.spyOn(window, "getComputedStyle");
@@ -414,7 +431,9 @@ describe("ExpandableSlider", () => {
   it("honours a controlled expanded state over hover", () => {
     const { root, panel } = renderSlider({ expanded: true });
 
-    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(
+      PANEL_WIDTH,
+    );
 
     fireEvent.pointerOut(root);
 
@@ -553,7 +572,9 @@ describe("ExpandableSlider", () => {
     // The lead inset sits beside the trigger, so the sides swap.
     expect(slider.style.marginLeft).toBe("12px");
     expect(slider.style.marginRight).toBe("4px");
-    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(PANEL_WIDTH);
+    expect(panel.style.getPropertyValue(PANEL_WIDTH_PROPERTY)).toBe(
+      PANEL_WIDTH,
+    );
   });
 
   describe("composition", () => {
@@ -561,9 +582,9 @@ describe("ExpandableSlider", () => {
       const { rail } = renderSlider({ defaultValue: 50 });
       const travel = TRACK_WIDTH - THUMB_SIZE;
 
-      expect(rail.style.getPropertyValue("--expandable-slider-thumb-size")).toBe(
-        `${THUMB_SIZE}px`,
-      );
+      expect(
+        rail.style.getPropertyValue("--expandable-slider-thumb-size"),
+      ).toBe(`${THUMB_SIZE}px`);
       expect(
         rail.style.getPropertyValue("--expandable-slider-thumb-offset"),
       ).toBe(`${travel / 2}px`);
@@ -637,15 +658,16 @@ describe("ExpandableSlider", () => {
       // The component reads the resolved writing direction, so stub the
       // computed style rather than relying on jsdom inheriting `dir`.
       const realGetComputedStyle = window.getComputedStyle;
-      vi.spyOn(window, "getComputedStyle").mockImplementation(
-        ((element: Element, pseudo?: string | null) => {
-          const style = realGetComputedStyle(element, pseudo ?? undefined);
+      vi.spyOn(window, "getComputedStyle").mockImplementation(((
+        element: Element,
+        pseudo?: string | null,
+      ) => {
+        const style = realGetComputedStyle(element, pseudo ?? undefined);
 
-          return element === rail || element === slider
-            ? ({ ...style, direction: "rtl" } as CSSStyleDeclaration)
-            : style;
-        }) as typeof window.getComputedStyle,
-      );
+        return element === rail || element === slider
+          ? ({ ...style, direction: "rtl" } as CSSStyleDeclaration)
+          : style;
+      }) as typeof window.getComputedStyle);
 
       const clientXFor = stubRailRect(rail);
 

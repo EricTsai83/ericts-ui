@@ -58,11 +58,7 @@ describe("SlidingList", () => {
     const onValueChange = vi.fn();
 
     render(
-      <SlidingList
-        items={items}
-        value={null}
-        onValueChange={onValueChange}
-      />,
+      <SlidingList items={items} value={null} onValueChange={onValueChange} />,
     );
 
     fireEvent.click(screen.getByRole("tab", { name: "Motion" }));
@@ -143,9 +139,9 @@ describe("SlidingList", () => {
     );
 
     expect(
-      screen.getByRole("tablist", { name: "Alignment" }).getAttribute(
-        "data-align",
-      ),
+      screen
+        .getByRole("tablist", { name: "Alignment" })
+        .getAttribute("data-align"),
     ).toBe("left");
 
     rerender(
@@ -153,9 +149,9 @@ describe("SlidingList", () => {
     );
 
     expect(
-      screen.getByRole("tablist", { name: "Alignment" }).getAttribute(
-        "data-align",
-      ),
+      screen
+        .getByRole("tablist", { name: "Alignment" })
+        .getAttribute("data-align"),
     ).toBe("right");
   });
 
@@ -254,7 +250,11 @@ describe("SlidingList", () => {
 
   it("keeps an explicit aria-label alongside aria-labelledby", () => {
     render(
-      <SlidingList items={items} aria-label="Fallback" aria-labelledby="services-heading" />,
+      <SlidingList
+        items={items}
+        aria-label="Fallback"
+        aria-labelledby="services-heading"
+      />,
     );
 
     const tablist = screen.getByRole("tablist");

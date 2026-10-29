@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createRef } from "react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -19,7 +27,8 @@ vi.mock("mermaid", () => ({
 }));
 
 function getContentTransform(container: HTMLElement) {
-  return container.querySelector<HTMLElement>("[data-mermaid-viewport-content]")?.style.transform;
+  return container.querySelector<HTMLElement>("[data-mermaid-viewport-content]")
+    ?.style.transform;
 }
 
 function getTransformScale(container: HTMLElement) {
@@ -106,75 +115,130 @@ describe("MermaidDiagram", () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText("Explicit title")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText("Explicit title")).toBeTruthy(),
+    );
     expect(screen.queryByText("Fence title")).toBeNull();
     expect(screen.getByText("Explicit caption")).toBeTruthy();
 
-    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]');
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-diagram-header"]',
+    );
     expect(header).toBeTruthy();
-    const fullscreenButton = within(header!).getByRole("button", { name: "View diagram fullscreen" });
+    const fullscreenButton = within(header!).getByRole("button", {
+      name: "View diagram fullscreen",
+    });
     expect(fullscreenButton).toBeTruthy();
-    expect(fullscreenButton.closest('[data-slot="tooltip-trigger"]')).toBeNull();
-    expect(screen.queryByRole("button", { name: "Diagram information" })).toBeNull();
-    expect(screen.getByText("Explicit title").className).not.toContain("uppercase");
+    expect(
+      fullscreenButton.closest('[data-slot="tooltip-trigger"]'),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Diagram information" }),
+    ).toBeNull();
+    expect(screen.getByText("Explicit title").className).not.toContain(
+      "uppercase",
+    );
     // Consumer titles render as written — no re-casing ("iOS" stays "iOS").
-    expect(screen.getByText("Explicit title").className).not.toContain("capitalize");
+    expect(screen.getByText("Explicit title").className).not.toContain(
+      "capitalize",
+    );
     expect(screen.getByText("Explicit title").className).toContain("text-xl");
-    expect(screen.getByText("Explicit title").className).not.toContain("text-base");
+    expect(screen.getByText("Explicit title").className).not.toContain(
+      "text-base",
+    );
     expect(screen.getByText("Explicit caption").className).toContain("text-sm");
   });
 
   it("zooms the inline diagram from the header toolbar", async () => {
-    const { container } = render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+    const { container } = render(
+      <MermaidDiagram chart={"flowchart LR\nA --> B"} />,
+    );
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-diagram-header"]',
+    )!;
 
     fireEvent.click(within(header).getByRole("button", { name: "Zoom in" }));
     expect(getTransformScale(container)).toBe(1.25);
 
-    fireEvent.click(within(header).getByRole("button", { name: "Reset diagram view" }));
+    fireEvent.click(
+      within(header).getByRole("button", { name: "Reset diagram view" }),
+    );
     expect(getTransformScale(container)).toBe(1);
   });
 
   it("keeps the inline diagram static when inlineZoom is false", async () => {
-    const { container } = render(<MermaidDiagram chart={"flowchart LR\nA --> B"} inlineZoom={false} />);
+    const { container } = render(
+      <MermaidDiagram chart={"flowchart LR\nA --> B"} inlineZoom={false} />,
+    );
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
     expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
-    expect(container.querySelector<HTMLElement>("[data-mermaid-viewport]")?.dataset.mermaidViewport).toBe("static");
+    expect(
+      container.querySelector<HTMLElement>("[data-mermaid-viewport]")?.dataset
+        .mermaidViewport,
+    ).toBe("static");
   });
 
   it("shows only the header tools that are listed", async () => {
-    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={["reset", "zoom-in"]} />);
+    render(
+      <MermaidDiagram
+        chart={"flowchart LR\nA --> B"}
+        tools={["reset", "zoom-in"]}
+      />,
+    );
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
-    const labels = within(header).getAllByRole("button").map((button) => button.getAttribute("aria-label"));
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-diagram-header"]',
+    )!;
+    const labels = within(header)
+      .getAllByRole("button")
+      .map((button) => button.getAttribute("aria-label"));
     expect(labels).toEqual(["Reset diagram view", "Zoom in"]);
   });
 
   it("keeps every zoom tool in fullscreen when inline shows only the fullscreen button", async () => {
-    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={["fullscreen"]} />);
+    render(
+      <MermaidDiagram chart={"flowchart LR\nA --> B"} tools={["fullscreen"]} />,
+    );
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    const header = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-header"]')!;
-    expect(within(header).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
-      "View diagram fullscreen",
-    ]);
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-diagram-header"]',
+    )!;
+    expect(
+      within(header)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label")),
+    ).toEqual(["View diagram fullscreen"]);
 
-    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
-    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]')!;
-    expect(within(fullscreen).getByRole("button", { name: "Zoom in" })).toBeTruthy();
-    expect(within(fullscreen).getByRole("button", { name: "Zoom out" })).toBeTruthy();
-    expect(within(fullscreen).getByRole("button", { name: "Reset diagram view" })).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "View diagram fullscreen" }),
+      { detail: 1 },
+    );
+    const fullscreen = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-fullscreen"]',
+    )!;
+    expect(
+      within(fullscreen).getByRole("button", { name: "Zoom in" }),
+    ).toBeTruthy();
+    expect(
+      within(fullscreen).getByRole("button", { name: "Zoom out" }),
+    ).toBeTruthy();
+    expect(
+      within(fullscreen).getByRole("button", { name: "Reset diagram view" }),
+    ).toBeTruthy();
   });
 
   it("drops the fullscreen viewer when its tool is left out", async () => {
     render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={[]} />);
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    expect(screen.queryByRole("button", { name: "View diagram fullscreen" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "View diagram fullscreen" }),
+    ).toBeNull();
     expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
   });
 
@@ -191,19 +255,33 @@ describe("MermaidDiagram", () => {
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
     expect(screen.queryByText("Prop caption")).toBeNull();
     expect(screen.queryByText("Fence caption")).toBeNull();
-    expect(document.querySelector('[data-slot="mermaid-diagram-caption"]')).toBeNull();
+    expect(
+      document.querySelector('[data-slot="mermaid-diagram-caption"]'),
+    ).toBeNull();
   });
 
   it("renders titles as written in the header and fullscreen dialog", async () => {
-    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} title="iOS release flow" />);
+    render(
+      <MermaidDiagram
+        chart={"flowchart LR\nA --> B"}
+        title="iOS release flow"
+      />,
+    );
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    const headerTitle = document.querySelector<HTMLElement>('[data-slot="mermaid-diagram-title"]');
+    const headerTitle = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-diagram-title"]',
+    );
     expect(headerTitle?.textContent).toBe("iOS release flow");
     expect(headerTitle?.className).not.toContain("capitalize");
 
-    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
-    const dialogTitle = await screen.findByRole("heading", { name: "iOS release flow" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "View diagram fullscreen" }),
+      { detail: 1 },
+    );
+    const dialogTitle = await screen.findByRole("heading", {
+      name: "iOS release flow",
+    });
     expect(dialogTitle.className).not.toContain("capitalize");
   });
 
@@ -211,10 +289,17 @@ describe("MermaidDiagram", () => {
     render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 1 });
+    fireEvent.click(
+      screen.getByRole("button", { name: "View diagram fullscreen" }),
+      { detail: 1 },
+    );
 
-    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]');
-    const backdrop = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen-backdrop"]');
+    const fullscreen = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-fullscreen"]',
+    );
+    const backdrop = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-fullscreen-backdrop"]',
+    );
     expect(fullscreen?.className).toContain("transition-opacity");
     expect(fullscreen?.className).toContain("duration-200");
     expect(fullscreen?.className).toContain("data-ending-style:duration-150");
@@ -239,9 +324,14 @@ describe("MermaidDiagram", () => {
     render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
 
     await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
-    fireEvent.click(screen.getByRole("button", { name: "View diagram fullscreen" }), { detail: 0 });
+    fireEvent.click(
+      screen.getByRole("button", { name: "View diagram fullscreen" }),
+      { detail: 0 },
+    );
 
-    const fullscreen = document.querySelector<HTMLElement>('[data-slot="mermaid-fullscreen"]');
+    const fullscreen = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-fullscreen"]',
+    );
     expect(fullscreen?.className).toContain("transition-none");
     expect(fullscreen?.className).not.toContain("transition-opacity");
   });
@@ -255,13 +345,19 @@ describe("MermaidDiagram", () => {
       },
       media: "(max-width: 700px)",
       onchange: null,
-      addEventListener: vi.fn((_type: string, listener: () => void) => listeners.add(listener)),
-      removeEventListener: vi.fn((_type: string, listener: () => void) => listeners.delete(listener)),
+      addEventListener: vi.fn((_type: string, listener: () => void) =>
+        listeners.add(listener),
+      ),
+      removeEventListener: vi.fn((_type: string, listener: () => void) =>
+        listeners.delete(listener),
+      ),
       addListener: vi.fn(),
       removeListener: vi.fn(),
       dispatchEvent: vi.fn(() => true),
     } as unknown as MediaQueryList;
-    const reducedMotionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reducedMotionMedia = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
 
     vi.stubGlobal(
       "matchMedia",
@@ -327,12 +423,17 @@ describe("MermaidDiagram", () => {
   });
 
   it("keeps showing the previous diagram while a new chart renders", async () => {
-    const { rerender } = render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+    const { rerender } = render(
+      <MermaidDiagram chart={"flowchart LR\nA --> B"} />,
+    );
     await waitFor(() => expect(screen.getByText("Rendered")).toBeTruthy());
 
     let resolveSecond!: (result: { svg: string }) => void;
     mermaidMocks.render.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveSecond = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveSecond = resolve;
+        }),
     );
 
     rerender(<MermaidDiagram chart={"flowchart LR\nA --> C"} />);
@@ -342,7 +443,9 @@ describe("MermaidDiagram", () => {
     expect(screen.queryByText("Rendering diagram…")).toBeNull();
 
     await act(async () => {
-      resolveSecond({ svg: '<svg viewBox="0 0 100 100"><text>Second</text></svg>' });
+      resolveSecond({
+        svg: '<svg viewBox="0 0 100 100"><text>Second</text></svg>',
+      });
       await Promise.resolve();
     });
 
@@ -352,9 +455,13 @@ describe("MermaidDiagram", () => {
   });
 
   it("shows the error state, reports it, and runs the repair flow", async () => {
-    mermaidMocks.render.mockRejectedValueOnce(new Error("Parse error on line 2"));
+    mermaidMocks.render.mockRejectedValueOnce(
+      new Error("Parse error on line 2"),
+    );
     const onRenderError = vi.fn();
-    const onRepair = vi.fn().mockRejectedValueOnce(new Error("Repair backend offline"));
+    const onRepair = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Repair backend offline"));
 
     render(
       <MermaidDiagram
@@ -364,10 +471,16 @@ describe("MermaidDiagram", () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText("Mermaid diagram could not render.")).toBeTruthy());
+    await waitFor(() =>
+      expect(
+        screen.getByText("Mermaid diagram could not render."),
+      ).toBeTruthy(),
+    );
     expect(screen.getByText("Parse error on line 2")).toBeTruthy();
     expect(onRenderError).toHaveBeenCalledTimes(1);
-    expect(document.querySelector("details code")?.textContent).toBe("flowchart LR\nA --> B");
+    expect(document.querySelector("details code")?.textContent).toBe(
+      "flowchart LR\nA --> B",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Repair diagram" }));
 
@@ -377,7 +490,9 @@ describe("MermaidDiagram", () => {
         error: "Parse error on line 2",
       }),
     );
-    await waitFor(() => expect(screen.getByText("Repair backend offline")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText("Repair backend offline")).toBeTruthy(),
+    );
   });
 });
 
@@ -385,7 +500,12 @@ describe("DiagramViewport", () => {
   it("exposes stable controls and clamps rapid zoom updates", () => {
     const controlsRef = createRef<DiagramViewportControls>();
     const { container } = render(
-      <DiagramViewport controlsRef={controlsRef} minZoom={1} maxZoom={1.5} zoomStep={0.25}>
+      <DiagramViewport
+        controlsRef={controlsRef}
+        minZoom={1}
+        maxZoom={1.5}
+        zoomStep={0.25}
+      >
         diagram
       </DiagramViewport>,
     );
@@ -396,7 +516,9 @@ describe("DiagramViewport", () => {
       controlsRef.current?.zoomIn();
     });
 
-    expect(getContentTransform(container)).toBe("translate(0px, 0px) scale(1.5)");
+    expect(getContentTransform(container)).toBe(
+      "translate(0px, 0px) scale(1.5)",
+    );
 
     act(() => controlsRef.current?.reset());
     expect(getContentTransform(container)).toBe("translate(0px, 0px) scale(1)");
@@ -406,8 +528,14 @@ describe("DiagramViewport", () => {
     const flushFrames = stubAnimationFrames();
 
     const { container } = render(<DiagramViewport>diagram</DiagramViewport>);
-    const viewport = container.querySelector<HTMLElement>("[data-mermaid-viewport]")!;
-    const wheelIn = new WheelEvent("wheel", { deltaY: -300, bubbles: true, cancelable: true });
+    const viewport = container.querySelector<HTMLElement>(
+      "[data-mermaid-viewport]",
+    )!;
+    const wheelIn = new WheelEvent("wheel", {
+      deltaY: -300,
+      bubbles: true,
+      cancelable: true,
+    });
 
     act(() => {
       viewport.dispatchEvent(wheelIn);
@@ -420,7 +548,13 @@ describe("DiagramViewport", () => {
     expect(zoomedScale!).toBeGreaterThan(1);
 
     act(() => {
-      viewport.dispatchEvent(new WheelEvent("wheel", { deltaY: 300, bubbles: true, cancelable: true }));
+      viewport.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY: 300,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
       flushFrames();
     });
     expect(getTransformScale(container)!).toBeLessThan(zoomedScale!);
@@ -429,15 +563,23 @@ describe("DiagramViewport", () => {
   it("leaves plain wheel and touch to the page when embedded", () => {
     const flushFrames = stubAnimationFrames();
 
-    const { container } = render(<DiagramViewport embedded>diagram</DiagramViewport>);
-    const viewport = container.querySelector<HTMLElement>("[data-mermaid-viewport]")!;
+    const { container } = render(
+      <DiagramViewport embedded>diagram</DiagramViewport>,
+    );
+    const viewport = container.querySelector<HTMLElement>(
+      "[data-mermaid-viewport]",
+    )!;
     viewport.setPointerCapture = vi.fn();
     viewport.releasePointerCapture = vi.fn();
     viewport.hasPointerCapture = vi.fn(() => false);
     expect(viewport.dataset.mermaidViewport).toBe("embedded");
     expect(viewport.className).toContain("touch-auto");
 
-    const plainWheel = new WheelEvent("wheel", { deltaY: -300, bubbles: true, cancelable: true });
+    const plainWheel = new WheelEvent("wheel", {
+      deltaY: -300,
+      bubbles: true,
+      cancelable: true,
+    });
     act(() => {
       viewport.dispatchEvent(plainWheel);
       flushFrames();
@@ -445,7 +587,12 @@ describe("DiagramViewport", () => {
     expect(plainWheel.defaultPrevented).toBe(false);
     expect(getTransformScale(container)).toBe(1);
 
-    const pinchWheel = new WheelEvent("wheel", { deltaY: -100, ctrlKey: true, bubbles: true, cancelable: true });
+    const pinchWheel = new WheelEvent("wheel", {
+      deltaY: -100,
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
     act(() => {
       viewport.dispatchEvent(pinchWheel);
       flushFrames();
@@ -454,28 +601,56 @@ describe("DiagramViewport", () => {
     expect(getTransformScale(container)!).toBeGreaterThan(1);
 
     const zoomed = getContentTransform(container);
-    fireEvent.pointerDown(viewport, { pointerId: 1, pointerType: "touch", clientX: 0, clientY: 0, button: 0 });
-    fireEvent.pointerMove(viewport, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    fireEvent.pointerDown(viewport, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 0,
+      clientY: 0,
+      button: 0,
+    });
+    fireEvent.pointerMove(viewport, {
+      pointerId: 1,
+      pointerType: "touch",
+      clientX: 50,
+      clientY: 50,
+    });
     fireEvent.pointerUp(viewport, { pointerId: 1, pointerType: "touch" });
     expect(getContentTransform(container)).toBe(zoomed);
 
-    fireEvent.pointerDown(viewport, { pointerId: 2, pointerType: "mouse", clientX: 0, clientY: 0, button: 0 });
-    fireEvent.pointerMove(viewport, { pointerId: 2, pointerType: "mouse", clientX: 30, clientY: 10 });
+    fireEvent.pointerDown(viewport, {
+      pointerId: 2,
+      pointerType: "mouse",
+      clientX: 0,
+      clientY: 0,
+      button: 0,
+    });
+    fireEvent.pointerMove(viewport, {
+      pointerId: 2,
+      pointerType: "mouse",
+      clientX: 30,
+      clientY: 10,
+    });
     fireEvent.pointerUp(viewport, { pointerId: 2, pointerType: "mouse" });
     expect(getContentTransform(container)).not.toBe(zoomed);
   });
 
   it("supports keyboard panning, zooming, and reset", () => {
     const { container } = render(<DiagramViewport>diagram</DiagramViewport>);
-    const viewport = container.querySelector<HTMLElement>("[data-mermaid-viewport]")!;
+    const viewport = container.querySelector<HTMLElement>(
+      "[data-mermaid-viewport]",
+    )!;
 
     expect(viewport.tabIndex).toBe(0);
 
     fireEvent.keyDown(viewport, { key: "ArrowRight" });
-    expect(getContentTransform(container)).toBe("translate(-40px, 0px) scale(1)");
+    expect(getContentTransform(container)).toBe(
+      "translate(-40px, 0px) scale(1)",
+    );
 
     fireEvent.keyDown(viewport, { key: "ArrowUp", shiftKey: true });
-    expect(getContentTransform(container)).toBe("translate(-40px, 120px) scale(1)");
+    expect(getContentTransform(container)).toBe(
+      "translate(-40px, 120px) scale(1)",
+    );
 
     fireEvent.keyDown(viewport, { key: "+" });
     expect(getTransformScale(container)).toBe(1.25);
@@ -488,13 +663,25 @@ describe("DiagramViewport", () => {
     const flushFrames = stubAnimationFrames();
 
     const { container } = render(<DiagramViewport>diagram</DiagramViewport>);
-    const viewport = container.querySelector<HTMLElement>("[data-mermaid-viewport]")!;
+    const viewport = container.querySelector<HTMLElement>(
+      "[data-mermaid-viewport]",
+    )!;
     viewport.setPointerCapture = vi.fn();
     viewport.releasePointerCapture = vi.fn();
     viewport.hasPointerCapture = vi.fn(() => false);
 
-    fireEvent.pointerDown(viewport, { pointerId: 1, clientX: 0, clientY: 0, button: 0 });
-    fireEvent.pointerDown(viewport, { pointerId: 2, clientX: 0, clientY: 100, button: 0 });
+    fireEvent.pointerDown(viewport, {
+      pointerId: 1,
+      clientX: 0,
+      clientY: 0,
+      button: 0,
+    });
+    fireEvent.pointerDown(viewport, {
+      pointerId: 2,
+      clientX: 0,
+      clientY: 100,
+      button: 0,
+    });
     fireEvent.pointerMove(viewport, { pointerId: 2, clientX: 0, clientY: 200 });
     act(() => flushFrames());
 

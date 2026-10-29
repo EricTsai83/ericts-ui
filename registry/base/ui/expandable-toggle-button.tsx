@@ -8,8 +8,8 @@ import {
   type Transition,
 } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
@@ -49,11 +49,7 @@ const useIsomorphicLayoutEffect =
 
 export type ExpandableToggleButtonProps = Omit<
   ButtonProps,
-  | "aria-label"
-  | "aria-pressed"
-  | "children"
-  | "onClick"
-  | "size"
+  "aria-label" | "aria-pressed" | "children" | "onClick" | "size"
 > & {
   /** Controlled active state. */
   active?: boolean;
@@ -110,15 +106,12 @@ export const ExpandableToggleButton = React.forwardRef<
   const shouldReduceMotion = useReducedMotion();
   const controlled = active !== undefined;
   const isActive = controlled ? active : internalActive;
-  const transition = shouldReduceMotion
-    ? REDUCED_TRANSITION
-    : MORPH_TRANSITION;
+  const transition = shouldReduceMotion ? REDUCED_TRANSITION : MORPH_TRANSITION;
   const resolvedSize = size ?? "lg";
   const collapsedWidth = COLLAPSED_WIDTH[resolvedSize];
   const iconSize = ICON_SIZE[resolvedSize];
   const labelOuterPadding = LABEL_OUTER_PADDING[resolvedSize];
-  const iconReserve =
-    collapsedWidth / 2 + iconSize / 2 + LABEL_ICON_GAP;
+  const iconReserve = collapsedWidth / 2 + iconSize / 2 + LABEL_ICON_GAP;
 
   const setButtonRef = React.useCallback(
     (node: HTMLButtonElement | null) => {
@@ -173,7 +166,8 @@ export const ExpandableToggleButton = React.forwardRef<
       }
 
       onActiveChange?.(nextActive);
-    }, [controlled, disabled, isActive, onActiveChange, onClick],
+    },
+    [controlled, disabled, isActive, onActiveChange, onClick],
   );
 
   const labelSlot = (
@@ -225,7 +219,9 @@ export const ExpandableToggleButton = React.forwardRef<
         style={{ ...style, width: collapsedWidth }}
         className={cn(
           "absolute top-0 gap-0! overflow-hidden p-0! transition-colors will-change-[width] motion-reduce:transition-none",
-          expandFrom === "start" ? "right-0 justify-end" : "left-0 justify-start",
+          expandFrom === "start"
+            ? "right-0 justify-end"
+            : "left-0 justify-start",
           className,
         )}
         {...props}

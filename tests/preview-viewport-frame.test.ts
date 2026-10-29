@@ -12,7 +12,11 @@ const mobile = { deviceWidth: 390, deviceHeight: 844 };
 describe("previewFrameGeometry", () => {
   it("leaves a device that fits at its own size", () => {
     expect(
-      previewFrameGeometry({ ...desktop, canvasWidth: 1472, canvasHeight: 896 }),
+      previewFrameGeometry({
+        ...desktop,
+        canvasWidth: 1472,
+        canvasHeight: 896,
+      }),
     ).toEqual({ scale: 1, height: 800 });
   });
 
@@ -86,11 +90,19 @@ describe("previewDeviceHref", () => {
 
   it("keeps the rest of an existing query", () => {
     expect(
-      previewDeviceHref("/view/base/deck-lift?v=css&w=desktop", "tablet", "mobile"),
+      previewDeviceHref(
+        "/view/base/deck-lift?v=css&w=desktop",
+        "tablet",
+        "mobile",
+      ),
     ).toBe("/view/base/deck-lift?v=css&w=tablet");
 
     expect(
-      previewDeviceHref("/view/base/deck-lift?v=css&w=desktop", "mobile", "mobile"),
+      previewDeviceHref(
+        "/view/base/deck-lift?v=css&w=desktop",
+        "mobile",
+        "mobile",
+      ),
     ).toBe("/view/base/deck-lift?v=css");
   });
 });

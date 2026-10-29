@@ -16,6 +16,7 @@ version declared in `package.json` (pnpm 12).
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm format
 pnpm lint
 pnpm typecheck
 pnpm display:check

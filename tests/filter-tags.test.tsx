@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
 import { createRef } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { FilterTags } from "@/registry/base/ui/filter-tags";
 
 const motionPreference = vi.hoisted(() => ({ reduce: false }));
@@ -20,26 +27,40 @@ const scrollTo = vi.fn();
 const scrollBy = vi.fn();
 const disconnect = vi.fn();
 let resize: () => void;
-const names = () => screen.getAllByRole("button").filter((node) =>
-  node.hasAttribute("aria-pressed"),
-).map((node) => node.textContent);
+const names = () =>
+  screen
+    .getAllByRole("button")
+    .filter((node) => node.hasAttribute("aria-pressed"))
+    .map((node) => node.textContent);
 /** Pointer clicks carry a non-zero `detail`; jsdom defaults to 0, which reads as keyboard activation. */
 const click = (node: Element) => fireEvent.click(node, { detail: 1 });
 const tag = (name: string) => screen.getByRole("button", { name });
-const viewport = () => screen.getByRole("group", { name: "Filters" }).parentElement!;
+const viewport = () =>
+  screen.getByRole("group", { name: "Filters" }).parentElement!;
 
 beforeEach(() => {
   motionPreference.reduce = false;
   vi.spyOn(HTMLElement.prototype, "offsetLeft", "get").mockReturnValue(4);
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(80);
   vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(100);
-  vi.stubGlobal("ResizeObserver", class {
-    constructor(callback: () => void) { resize = callback; }
-    observe() {}
-    disconnect = disconnect;
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      constructor(callback: () => void) {
+        resize = callback;
+      }
+      observe() {}
+      disconnect = disconnect;
+    },
+  );
+  Object.defineProperty(HTMLElement.prototype, "scrollTo", {
+    configurable: true,
+    value: scrollTo,
   });
-  Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value: scrollTo });
-  Object.defineProperty(HTMLElement.prototype, "scrollBy", { configurable: true, value: scrollBy });
+  Object.defineProperty(HTMLElement.prototype, "scrollBy", {
+    configurable: true,
+    value: scrollBy,
+  });
 });
 afterEach(() => {
   cleanup();
@@ -79,16 +100,22 @@ describe("FilterTags", () => {
 
   it("waits for controlled acceptance before reordering or scrolling and allows clearing", () => {
     const onValueChange = vi.fn();
-    const { rerender } = render(<FilterTags items={items} value={[]} onValueChange={onValueChange} />);
+    const { rerender } = render(
+      <FilterTags items={items} value={[]} onValueChange={onValueChange} />,
+    );
     scrollPastSelection();
     click(tag("Jazz"));
     expect(onValueChange).toHaveBeenCalledWith(["c"], items[2]);
     expect(names()[0]).toBe("Romance");
     expect(scrollTo).not.toHaveBeenCalled();
-    rerender(<FilterTags items={items} value={["c"]} onValueChange={onValueChange} />);
+    rerender(
+      <FilterTags items={items} value={["c"]} onValueChange={onValueChange} />,
+    );
     expect(names()[0]).toBe("Jazz");
     expect(scrollTo).toHaveBeenCalled();
-    rerender(<FilterTags items={items} value={[]} onValueChange={onValueChange} />);
+    rerender(
+      <FilterTags items={items} value={[]} onValueChange={onValueChange} />,
+    );
     expect(names()[0]).toBe("Romance");
     expect(tag("Jazz").getAttribute("aria-pressed")).toBe("false");
   });
@@ -172,30 +199,60 @@ describe("FilterTags", () => {
     expect(forward.hasAttribute("disabled")).toBe(true);
 
     fireEvent.click(backward, { detail: 0 });
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: -80, behavior: "instant" });
+    expect(scrollBy).toHaveBeenLastCalledWith({
+      left: -80,
+      behavior: "instant",
+    });
   });
 
   it("toggles scroll controls independently without losing selection", () => {
-    const { container, rerender } = render(<FilterTags items={items} defaultValue={["c"]} />);
-    const viewportNode = container.querySelector('[data-slot="filter-tags-viewport"]');
+    const { container, rerender } = render(
+      <FilterTags items={items} defaultValue={["c"]} />,
+    );
+    const viewportNode = container.querySelector(
+      '[data-slot="filter-tags-viewport"]',
+    );
     expect(viewportNode?.getAttribute("data-scrollbar")).toBe("hidden");
-    expect(container.querySelector('[data-slot="filter-tags-forward-control"]')?.className).toContain("pointer-fine:flex");
+    expect(
+      container.querySelector('[data-slot="filter-tags-forward-control"]')
+        ?.className,
+    ).toContain("pointer-fine:flex");
     rerender(<FilterTags items={items} showScrollbar showArrows={false} />);
     expect(viewportNode?.getAttribute("data-scrollbar")).toBe("visible");
-    expect(screen.queryByRole("button", { name: "Scroll tags left" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Scroll tags right" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Scroll tags left" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Scroll tags right" }),
+    ).toBeNull();
     expect(names()[0]).toBe("Jazz");
     rerender(
       <FilterTags
         items={items}
         showArrows
-        arrows={{ backwardIcon: <span>Back</span>, forwardIcon: <span>Next</span>, variant: "outline", backwardLabel: "Previous" }}
-        classNames={{ arrow: "custom-arrow", list: "custom-list", tag: "custom-tag" }}
+        arrows={{
+          backwardIcon: <span>Back</span>,
+          forwardIcon: <span>Next</span>,
+          variant: "outline",
+          backwardLabel: "Previous",
+        }}
+        classNames={{
+          arrow: "custom-arrow",
+          list: "custom-list",
+          tag: "custom-tag",
+        }}
       />,
     );
-    expect(screen.getByRole("button", { name: "Previous" }).textContent).toBe("Back");
-    expect(screen.getByRole("button", { name: "Scroll tags right" }).className).toContain("custom-arrow");
-    expect(container.querySelector('[data-slot="filter-tags-forward-control"]')?.className).not.toContain("pointer-fine:flex");
+    expect(screen.getByRole("button", { name: "Previous" }).textContent).toBe(
+      "Back",
+    );
+    expect(
+      screen.getByRole("button", { name: "Scroll tags right" }).className,
+    ).toContain("custom-arrow");
+    expect(
+      container.querySelector('[data-slot="filter-tags-forward-control"]')
+        ?.className,
+    ).not.toContain("pointer-fine:flex");
     expect(screen.getByRole("group").className).toContain("custom-list");
     expect(tag("Jazz").className).toContain("custom-tag");
   });
@@ -207,16 +264,34 @@ describe("FilterTags", () => {
         <FilterTags items={items} aria-labelledby="heading" />
       </>,
     );
-    expect(screen.getByRole("group", { name: "Mood" }).hasAttribute("aria-label")).toBe(false);
+    expect(
+      screen.getByRole("group", { name: "Mood" }).hasAttribute("aria-label"),
+    ).toBe(false);
   });
 
   it("sizes arrow alignment from the list when content height changes", () => {
-    const { container } = render(<FilterTags items={items} showScrollbar showArrows />);
+    const { container } = render(
+      <FilterTags items={items} showScrollbar showArrows />,
+    );
     const list = screen.getByRole("group");
-    vi.spyOn(list, "getBoundingClientRect").mockReturnValue({ x: 0, y: 0, width: 400, height: 80, top: 0, left: 0, right: 400, bottom: 80, toJSON: () => ({}) });
+    vi.spyOn(list, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 400,
+      height: 80,
+      top: 0,
+      left: 0,
+      right: 400,
+      bottom: 80,
+      toJSON: () => ({}),
+    });
     act(() => resize());
-    const backward = container.querySelector<HTMLElement>('[data-slot="filter-tags-backward-control"]');
-    const forward = container.querySelector<HTMLElement>('[data-slot="filter-tags-forward-control"]');
+    const backward = container.querySelector<HTMLElement>(
+      '[data-slot="filter-tags-backward-control"]',
+    );
+    const forward = container.querySelector<HTMLElement>(
+      '[data-slot="filter-tags-forward-control"]',
+    );
     expect(backward?.style.height).toBe("80px");
     expect(forward?.style.height).toBe("80px");
   });
@@ -224,12 +299,21 @@ describe("FilterTags", () => {
   it("ignores disabled tags and missing values, handles changed items, and forwards its root ref", () => {
     const ref = createRef<HTMLDivElement>();
     const onValueChange = vi.fn();
-    const { rerender, unmount } = render(<FilterTags ref={ref} items={items} defaultValue={["missing", "c", "c"]} onValueChange={onValueChange} />);
+    const { rerender, unmount } = render(
+      <FilterTags
+        ref={ref}
+        items={items}
+        defaultValue={["missing", "c", "c"]}
+        onValueChange={onValueChange}
+      />,
+    );
     expect(ref.current?.dataset.slot).toBe("filter-tags");
     expect(names()).toEqual(["Jazz", "Romance", "Pop", "Unavailable"]);
     click(tag("Unavailable"));
     expect(onValueChange).not.toHaveBeenCalled();
-    rerender(<FilterTags items={items.slice(0, 2)} onValueChange={onValueChange} />);
+    rerender(
+      <FilterTags items={items.slice(0, 2)} onValueChange={onValueChange} />,
+    );
     expect(names()).toEqual(["Romance", "Pop"]);
     click(tag("Pop"));
     expect(onValueChange).toHaveBeenCalledWith(["b"], items[1]);

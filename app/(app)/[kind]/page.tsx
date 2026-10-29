@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import {
-  RegistryItemsBrowser,
-  type RegistryListItem,
-} from "@/components/registry-items-browser";
 import { getRegistryItemsByCategory } from "@/lib/registry";
 import {
   getRegistryDisplayCategories,
@@ -17,6 +13,10 @@ import {
   registryKindSegments,
   type RegistryKind,
 } from "@/lib/registry-kind";
+import {
+  RegistryItemsBrowser,
+  type RegistryListItem,
+} from "@/components/registry-items-browser";
 
 type PageProps = {
   params: Promise<{

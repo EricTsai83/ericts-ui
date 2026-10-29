@@ -3,11 +3,7 @@ import { createRef } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  Countdown,
-  CountUp,
-  type TimerHandle,
-} from "@/registry/base/ui/timer";
+import { Countdown, CountUp, type TimerHandle } from "@/registry/base/ui/timer";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -32,20 +28,18 @@ describe("Countdown", () => {
       />,
     );
 
-    const timer = screen.getByLabelText(
-      "1 hour, 1 minute, 1 second remaining",
-    );
+    const timer = screen.getByLabelText("1 hour, 1 minute, 1 second remaining");
 
     expect(timer.getAttribute("datetime")).toBe("PT1H1M1S");
     expect(timer.getAttribute("data-state")).toBe("idle");
     expect(timer.getAttribute("data-value")).toBe("3661");
     expect(timer.className).toContain("text-lg");
-    expect(container.querySelectorAll("[data-slot='timer-segment']")).toHaveLength(
-      3,
-    );
-    expect(container.querySelectorAll("[data-slot='timer-digit']")).toHaveLength(
-      6,
-    );
+    expect(
+      container.querySelectorAll("[data-slot='timer-segment']"),
+    ).toHaveLength(3);
+    expect(
+      container.querySelectorAll("[data-slot='timer-digit']"),
+    ).toHaveLength(6);
     expect(
       container.querySelector("[data-slot='timer-digit']")?.className,
     ).toContain("rounded-md");
@@ -76,7 +70,9 @@ describe("Countdown", () => {
     expect(screen.getByRole("timer").getAttribute("data-state")).toBe("idle");
 
     act(() => ref.current?.restart());
-    expect(screen.getByRole("timer").getAttribute("data-state")).toBe("running");
+    expect(screen.getByRole("timer").getAttribute("data-state")).toBe(
+      "running",
+    );
   });
 
   it("forwards ref to the rendered <time> element, not the control handle", () => {
@@ -121,9 +117,7 @@ describe("Countdown", () => {
   });
 
   it("can update digits without creating motion layers", () => {
-    const { container } = render(
-      <Countdown duration={2} animated={false} />,
-    );
+    const { container } = render(<Countdown duration={2} animated={false} />);
 
     expect(screen.getByRole("timer").getAttribute("data-animated")).toBe(
       "false",

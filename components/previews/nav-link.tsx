@@ -11,9 +11,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import {
   isPathActive,
   NavLink,
@@ -153,7 +153,7 @@ export default function Preview() {
                 }}
                 className={({ isActive }) =>
                   cn(
-                    "group relative flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2.5 py-2 text-xs font-medium text-muted-foreground outline-none transition-[color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none sm:flex-none sm:justify-start",
+                    "group relative flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2.5 py-2 text-xs font-medium text-muted-foreground transition-[color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none sm:flex-none sm:justify-start",
                     isActive && "bg-muted text-foreground",
                   )
                 }
@@ -243,10 +243,7 @@ function DemoRouteLinks({
       <h3 className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         Navigate
       </h3>
-      <nav
-        aria-label="Demo route links"
-        className="grid grid-cols-3 gap-2"
-      >
+      <nav aria-label="Demo route links" className="grid grid-cols-3 gap-2">
         {links.map((link) => {
           const Icon = link.icon;
 
@@ -321,7 +318,11 @@ function DemoStateReadout({
         label="aria-current"
         value={activeLink ? (isExact ? "page" : "location") : "—"}
       />
-      <ReadoutCell label="pending" value={isPending ? "true" : "false"} muted={!isPending} />
+      <ReadoutCell
+        label="pending"
+        value={isPending ? "true" : "false"}
+        muted={!isPending}
+      />
     </dl>
   );
 }

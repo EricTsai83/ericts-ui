@@ -29,9 +29,9 @@ describe("MobileHeaderMenu", () => {
     openMenu("/components/button");
 
     expect(
-      screen.getByRole("link", { name: "Components" }).getAttribute(
-        "aria-current",
-      ),
+      screen
+        .getByRole("link", { name: "Components" })
+        .getAttribute("aria-current"),
     ).toBe("location");
     expect(
       screen.getByRole("link", { name: "Docs" }).hasAttribute("aria-current"),

@@ -1,5 +1,6 @@
 import type { SortedResult } from "fumadocs-core/search";
 
+import { registryItems } from "@/lib/registry";
 import {
   getRegistryKindFromCategory,
   getRegistryKindFromSearchId,
@@ -8,7 +9,6 @@ import {
   registryKindRank,
   type RegistryKind,
 } from "@/lib/registry-kind";
-import { registryItems } from "@/lib/registry";
 
 const REGISTRY_RESULT_LIMIT = 8;
 

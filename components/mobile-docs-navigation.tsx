@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import type { Folder, Root } from "fumadocs-core/page-tree";
 import { BookOpen, Check, ChevronDown } from "lucide-react";
-import { usePathname } from "next/navigation";
 
+import { buildDocsGroups } from "@/lib/docs-navigation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -13,8 +15,6 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { buildDocsGroups } from "@/lib/docs-navigation";
-import { cn } from "@/lib/utils";
 import { isPathActive, NavLink } from "@/registry/base/ui/nav-link";
 
 export function MobileDocsNavigation({ tree }: { tree: Root | Folder }) {
@@ -67,7 +67,10 @@ export function MobileDocsNavigation({ tree }: { tree: Root | Folder }) {
               <PopoverTitle>Documentation</PopoverTitle>
             </PopoverHeader>
 
-            <nav aria-label="Documentation pages" className="flex flex-col gap-3">
+            <nav
+              aria-label="Documentation pages"
+              className="flex flex-col gap-3"
+            >
               {groups.map((group) => (
                 <section key={group.title} className="flex flex-col gap-1">
                   <h2 className="px-2 py-1 text-xs font-medium text-muted-foreground">
@@ -81,7 +84,7 @@ export function MobileDocsNavigation({ tree }: { tree: Root | Folder }) {
                       onClick={() => setOpen(false)}
                       className={({ isActive }) =>
                         cn(
-                          "flex min-h-9 items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none",
+                          "flex min-h-9 items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none",
                           isActive && "bg-muted font-medium",
                           item.disabled && "pointer-events-none opacity-35",
                         )

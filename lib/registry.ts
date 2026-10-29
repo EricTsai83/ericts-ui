@@ -1,8 +1,8 @@
-import registry from "@/registry.json";
 import {
   getRegistryKindFromCategory,
   getRegistryKindSegment,
 } from "@/lib/registry-kind";
+import registry from "@/registry.json";
 
 type RegistryFile = {
   path: string;
@@ -58,7 +58,7 @@ function getCategory(item: RegistrySourceItem) {
 
   if (
     files.some(
-      (file) => file.path.includes("/ui/") || file.type === "registry:ui"
+      (file) => file.path.includes("/ui/") || file.type === "registry:ui",
     )
   ) {
     return "ui";
@@ -66,7 +66,7 @@ function getCategory(item: RegistrySourceItem) {
 
   if (
     files.some(
-      (file) => file.path.includes("/hooks/") || file.type === "registry:hook"
+      (file) => file.path.includes("/hooks/") || file.type === "registry:hook",
     )
   ) {
     return "hooks";

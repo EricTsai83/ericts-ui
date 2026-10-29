@@ -46,7 +46,7 @@ export function useElementHeight<T extends HTMLElement>(threshold = 0.5) {
           : currentHeight;
       });
     },
-    [threshold]
+    [threshold],
   );
 
   const measure = useCallback(() => {
@@ -80,14 +80,14 @@ export function useElementHeight<T extends HTMLElement>(threshold = 0.5) {
 
         updateHeight(
           borderBoxSize?.blockSize ??
-            entry.target.getBoundingClientRect().height
+            entry.target.getBoundingClientRect().height,
         );
       });
 
       observer.observe(element);
       observerRef.current = observer;
     },
-    [updateHeight]
+    [updateHeight],
   );
 
   return [ref, height, measure] as const;

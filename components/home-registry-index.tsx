@@ -1,12 +1,12 @@
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-import { RegistryKindIcon } from "@/components/registry-kind-icon";
 import {
   getRegistryKindGroupLabel,
   getRegistryKindSegment,
   type RegistryKind,
 } from "@/lib/registry-kind";
+import { RegistryKindIcon } from "@/components/registry-kind-icon";
 
 export type HomeRegistryIndexItem = {
   name: string;
@@ -75,7 +75,7 @@ export function HomeRegistryIndex({
        * "Built on" eyebrow, so both columns open the same way.
        */}
       <header className="flex flex-col gap-2.5">
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="font-mono text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
           Index
         </p>
         <h2
@@ -107,7 +107,7 @@ function RegistryPart({ part }: { part: HomeRegistryIndexPart }) {
        */}
       <Link
         href={`/${getRegistryKindSegment(part.kind)}`}
-        className="group mb-7 inline-flex min-w-0 items-center gap-3 rounded-sm text-foreground transition-colors duration-150 hover:text-foreground/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-registry-surface"
+        className="group mb-7 inline-flex min-w-0 items-center gap-3 rounded-sm text-foreground transition-colors duration-150 hover:text-foreground/65 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-registry-surface focus-visible:outline-none"
       >
         <RegistryKindIcon
           kind={part.kind}
@@ -177,9 +177,9 @@ function RegistryGroup({
        */}
       <h4
         id={headingId}
-        className="flex items-center gap-2.5 border-b border-border/60 pb-2 text-[13px] font-semibold uppercase tracking-[0.07em]"
+        className="flex items-center gap-2.5 border-b border-border/60 pb-2 text-[13px] font-semibold tracking-[0.07em] uppercase"
       >
-        <span className="font-mono text-[11px] font-normal tabular-nums text-muted-foreground">
+        <span className="font-mono text-[11px] font-normal text-muted-foreground tabular-nums">
           {String(groupIndex + 1).padStart(2, "0")}
         </span>
         <span className="min-w-0 truncate">{group.label}</span>
@@ -194,7 +194,7 @@ function RegistryGroup({
           <li key={item.name} className="min-w-0">
             <Link
               href={item.href}
-              className="group -mx-2 flex min-h-8 items-center gap-3 rounded-md px-2 text-sm leading-5 text-foreground transition-colors duration-150 hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group -mx-2 flex min-h-8 items-center gap-3 rounded-md px-2 text-sm leading-5 text-foreground transition-colors duration-150 hover:bg-background/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <span className="min-w-0 shrink truncate">{item.title}</span>
               {/*

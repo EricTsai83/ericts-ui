@@ -54,9 +54,7 @@ describe("useReducedMotion", () => {
 
     render(<ReducedMotionHarness />);
 
-    expect(matchMedia).toHaveBeenCalledWith(
-      "(prefers-reduced-motion: reduce)",
-    );
+    expect(matchMedia).toHaveBeenCalledWith("(prefers-reduced-motion: reduce)");
     expect(screen.getByTestId("preference").textContent).toBe("true");
     expect(media.addEventListener).toHaveBeenCalledWith(
       "change",
@@ -66,7 +64,10 @@ describe("useReducedMotion", () => {
 
   it("reacts to preference changes and removes its listener on unmount", () => {
     const media = createMediaQueryList(false);
-    vi.stubGlobal("matchMedia", vi.fn(() => media.mediaQuery));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => media.mediaQuery),
+    );
 
     const view = render(<ReducedMotionHarness />);
     const listener = media.addEventListener.mock.calls[0]?.[1];

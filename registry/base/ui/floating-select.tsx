@@ -33,11 +33,10 @@ export type FloatingSelectOption = FloatingSelectOptionBase &
       }
   );
 
-export interface FloatingSelectProps
-  extends Omit<
-    React.ComponentProps<"div">,
-    "defaultValue" | "onChange" | "children"
-  > {
+export interface FloatingSelectProps extends Omit<
+  React.ComponentProps<"div">,
+  "defaultValue" | "onChange" | "children"
+> {
   /** The choices revealed when the button is opened. */
   options: FloatingSelectOption[];
   /** Trigger label shown before the selected value. */
@@ -118,7 +117,9 @@ function getOptionValue(option: FloatingSelectOption) {
 
 function getOpenHoverLockDelay(optionCount: number) {
   const listDuration =
-    OPTION_DELAY + Math.max(optionCount - 1, 0) * OPTION_STAGGER + OPTION_DURATION;
+    OPTION_DELAY +
+    Math.max(optionCount - 1, 0) * OPTION_STAGGER +
+    OPTION_DURATION;
 
   return Math.ceil(
     Math.max(SHELL_LAYOUT_DURATION, PANEL_DURATION, listDuration) * 1000,
@@ -206,7 +207,9 @@ export function FloatingSelect({
     if (pendingTriggerFocusRef.current) {
       pendingTriggerFocusRef.current = false;
       shellElement
-        .querySelector<HTMLButtonElement>('[data-slot="floating-select-trigger"]')
+        .querySelector<HTMLButtonElement>(
+          '[data-slot="floating-select-trigger"]',
+        )
         ?.focus();
     }
   }, [open]);
@@ -294,8 +297,7 @@ export function FloatingSelect({
   const activeSurfaceLayoutId = shouldReduceMotion
     ? undefined
     : "floating-select-active-surface";
-  const optionHoverEnabled =
-    shouldReduceMotion === true || !optionHoverLocked;
+  const optionHoverEnabled = shouldReduceMotion === true || !optionHoverLocked;
 
   const handleSelect = (option: FloatingSelectOption) => {
     const nextValue = getOptionValue(option);
@@ -322,7 +324,9 @@ export function FloatingSelect({
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
 
     const optionElements = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+      event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        '[role="option"]',
+      ),
     );
 
     if (optionElements.length === 0) return;
@@ -336,7 +340,8 @@ export function FloatingSelect({
     let nextIndex = 0;
 
     if (event.key === "ArrowDown") {
-      nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % optionElements.length;
+      nextIndex =
+        currentIndex < 0 ? 0 : (currentIndex + 1) % optionElements.length;
     } else if (event.key === "ArrowUp") {
       nextIndex =
         currentIndex < 0
@@ -439,9 +444,7 @@ export function FloatingSelect({
         data-slot="floating-select"
         data-state={open ? "open" : "closed"}
         initial={
-          reveal && !shouldReduceMotion
-            ? { opacity: 0, y: edgeOffset }
-            : false
+          reveal && !shouldReduceMotion ? { opacity: 0, y: edgeOffset } : false
         }
         animate={{ opacity: 1, y: 0 }}
         transition={shouldReduceMotion ? { duration: 0 } : SHELL_TRANSITION}
@@ -560,9 +563,7 @@ export function FloatingSelect({
                   </span>
                 ) : null}
                 {label ? (
-                  <span className="relative z-10 text-foreground">
-                    {label}
-                  </span>
+                  <span className="relative z-10 text-foreground">{label}</span>
                 ) : null}
                 {showSelectedValue && selectedOption ? (
                   <span className="relative z-10 text-muted-foreground">

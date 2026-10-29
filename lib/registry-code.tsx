@@ -2,11 +2,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { CompactCodeBlock } from "@/lib/compact-code-block";
-
-import type {
-  ComponentCodeFile,
-  ComponentCodeVariant,
-} from "@/components/component-showcase";
 import { collectCssOnlyGraph } from "@/lib/css-only-graph.mjs";
 import {
   getLocalRegistryDependencyName,
@@ -15,6 +10,10 @@ import {
 } from "@/lib/registry";
 import { getRegistryCssVariablesSource } from "@/lib/registry-css-vars";
 import { getRegistryInstallTarget } from "@/lib/registry-install";
+import type {
+  ComponentCodeFile,
+  ComponentCodeVariant,
+} from "@/components/component-showcase";
 
 export type RegistryCodeModel = {
   variants: ComponentCodeVariant[];
@@ -37,7 +36,10 @@ export async function getRegistryCodeModel(
     {
       value: "motion",
       label: getPrimaryVariantLabel(item, primarySource),
-      files: await highlightCodeFiles(primaryFiles, item.type === "registry:hook"),
+      files: await highlightCodeFiles(
+        primaryFiles,
+        item.type === "registry:hook",
+      ),
     },
   ];
   const hookUsageFiles =
@@ -68,7 +70,13 @@ export async function getRegistryCodeModel(
     cssVariables: cssVariablesSource
       ? (
           await highlightCodeFiles(
-            [{ name: "globals.css", language: "css", source: cssVariablesSource }],
+            [
+              {
+                name: "globals.css",
+                language: "css",
+                source: cssVariablesSource,
+              },
+            ],
             true,
           )
         )[0]
@@ -184,13 +192,11 @@ async function getCssOnlyFiles(
   const graph = await collectCssOnlyGraph(item.name, (fileName: string) =>
     readOptionalFile(path.join(cssOnlyPath, fileName)),
   );
-  const files = [...graph].map(
-    ([name, source]): ComponentCodeFile => ({
-      name,
-      language: getCodeLanguage(name),
-      source,
-    }),
-  );
+  const files = [...graph].map(([name, source]): ComponentCodeFile => ({
+    name,
+    language: getCodeLanguage(name),
+    source,
+  }));
 
   if (
     !graph.has(`${item.name}.tsx`) ||
@@ -271,7 +277,10 @@ function getPrimaryVariantLabel(item: RegistryItem, source: string) {
     return "Custom hook";
   }
 
-  if (source.includes("motion/react") || item.dependencies?.includes("motion")) {
+  if (
+    source.includes("motion/react") ||
+    item.dependencies?.includes("motion")
+  ) {
     return "Motion";
   }
 

@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import {
-  AnimatePresence,
   animate,
+  AnimatePresence,
   motion,
   useMotionValue,
   useReducedMotion,
   type PanInfo,
 } from "motion/react";
 
-import { useElementSizeMap } from "@/hooks/use-element-size-map";
 import { cn } from "@/lib/utils";
+import { useElementSizeMap } from "@/hooks/use-element-size-map";
 
 export type DeckLiftItem = {
   id: string;
@@ -685,7 +685,7 @@ export function DeckLift({
           <button
             type="button"
             onClick={close}
-            className="pointer-events-auto inline-flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            className="pointer-events-auto inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
             <svg
               aria-hidden="true"

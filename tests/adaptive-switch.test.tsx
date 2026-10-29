@@ -69,9 +69,7 @@ describe("AdaptiveSwitch", () => {
     render(<AdaptiveSwitch aria-label="Notifications" defaultChecked />);
 
     const control = screen.getByRole("switch", { name: "Notifications" });
-    const thumb = control.querySelector(
-      "[data-slot='adaptive-switch-thumb']",
-    );
+    const thumb = control.querySelector("[data-slot='adaptive-switch-thumb']");
     const thumbVisual = control.querySelector(
       "[data-slot='adaptive-switch-thumb-visual']",
     );
@@ -123,17 +121,11 @@ describe("AdaptiveSwitch", () => {
 
   it("renders a large conventional switch without animation", () => {
     render(
-      <AdaptiveSwitch
-        aria-label="Large switch"
-        size="lg"
-        animation="none"
-      />,
+      <AdaptiveSwitch aria-label="Large switch" size="lg" animation="none" />,
     );
 
     const control = screen.getByRole("switch", { name: "Large switch" });
-    const thumb = control.querySelector(
-      "[data-slot='adaptive-switch-thumb']",
-    );
+    const thumb = control.querySelector("[data-slot='adaptive-switch-thumb']");
     const thumbVisual = control.querySelector(
       "[data-slot='adaptive-switch-thumb-visual']",
     );
@@ -183,9 +175,7 @@ describe("AdaptiveSwitch", () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("switch", { name: "Deployment status" }),
-    );
+    fireEvent.click(screen.getByRole("switch", { name: "Deployment status" }));
 
     expect(onCheckedChange).not.toHaveBeenCalled();
   });

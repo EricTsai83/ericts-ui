@@ -2,13 +2,13 @@
 
 import type { ComponentProps, ReactNode } from "react";
 import { useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import type { ReactSortedResult } from "fumadocs-core/search";
-import { useI18n } from "fumadocs-ui/contexts/i18n";
 import { useDocsSearch } from "fumadocs-core/search/client";
 import { fetchClient } from "fumadocs-core/search/client/fetch";
+import { useI18n } from "fumadocs-ui/contexts/i18n";
 import type { SearchLink, SharedProps } from "fumadocs-ui/contexts/search";
-import { useRouter } from "next/navigation";
 import {
   AlignLeft,
   CornerDownLeft,
@@ -17,7 +17,12 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { RegistryKindIcon } from "@/components/registry-kind-icon";
+import {
+  getDefaultRegistrySearchItems,
+  getRegistrySearchKindFromId,
+} from "@/lib/component-search";
+import { getRegistryKindGroupLabel } from "@/lib/registry-kind";
+import { cn } from "@/lib/utils";
 import {
   Command,
   CommandEmpty,
@@ -34,12 +39,7 @@ import {
   DialogPortal,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  getDefaultRegistrySearchItems,
-  getRegistrySearchKindFromId,
-} from "@/lib/component-search";
-import { getRegistryKindGroupLabel } from "@/lib/registry-kind";
-import { cn } from "@/lib/utils";
+import { RegistryKindIcon } from "@/components/registry-kind-icon";
 
 type SearchItemType =
   | (ReactSortedResult & {
@@ -93,10 +93,10 @@ export function DocsSearchDialog({
   }, [links]);
 
   const items = query.data !== "empty" ? query.data : defaultItems;
-  const groupedItems = useMemo(() => getCommandGroups(items, search), [
-    items,
-    search,
-  ]);
+  const groupedItems = useMemo(
+    () => getCommandGroups(items, search),
+    [items, search],
+  );
 
   const selectItem = useCallback(
     (item: SearchItemType) => {
@@ -119,7 +119,7 @@ export function DocsSearchDialog({
         <DialogOverlay className="bg-black/20 backdrop-blur-[2px] dark:bg-black/45" />
         <DialogPrimitive.Popup
           data-slot="dialog-content"
-          className="fixed left-1/2 top-4 z-50 w-[calc(100%-1rem)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-xl border-none bg-background bg-clip-padding p-2 pt-3 pb-11 text-sm text-foreground opacity-100 shadow-2xl shadow-black/20 ring-4 ring-neutral-200/80 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0 dark:bg-neutral-900 dark:shadow-black/50 dark:ring-neutral-800 md:top-[calc(50%-250px)]"
+          className="fixed top-4 left-1/2 z-50 w-[calc(100%-1rem)] max-w-[640px] -translate-x-1/2 overflow-hidden rounded-xl border-none bg-background bg-clip-padding p-2 pt-3 pb-11 text-sm text-foreground opacity-100 shadow-2xl ring-4 shadow-black/20 ring-neutral-200/80 transition-opacity duration-100 outline-none data-ending-style:opacity-0 data-starting-style:opacity-0 md:top-[calc(50%-250px)] dark:bg-neutral-900 dark:shadow-black/50 dark:ring-neutral-800"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Search documentation</DialogTitle>
@@ -140,7 +140,7 @@ export function DocsSearchDialog({
                 className="pr-8 placeholder:text-muted-foreground"
               />
               {query.isLoading ? (
-                <div className="pointer-events-none absolute right-3 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center">
+                <div className="pointer-events-none absolute top-1/2 right-3 z-10 flex -translate-y-1/2 items-center justify-center">
                   <Loader2
                     className="size-4 animate-spin text-muted-foreground"
                     aria-hidden="true"
@@ -148,7 +148,7 @@ export function DocsSearchDialog({
                 </div>
               ) : null}
             </div>
-            <CommandList className="min-h-80 max-h-[min(460px,calc(100dvh-8rem))] scroll-pb-1.5 scroll-pt-2">
+            <CommandList className="max-h-[min(460px,calc(100dvh-8rem))] min-h-80 scroll-pt-2 scroll-pb-1.5">
               <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
                 {query.isLoading ? "Searching..." : "No results found."}
               </CommandEmpty>
@@ -156,7 +156,7 @@ export function DocsSearchDialog({
                 <CommandGroup
                   key={group.heading}
                   heading={group.heading}
-                  className="p-0! **:[[cmdk-group-heading]]:px-3! **:[[cmdk-group-heading]]:pb-1! **:[[cmdk-group-heading]]:pt-3! first:**:[[cmdk-group-heading]]:pt-2!"
+                  className="p-0! **:[[cmdk-group-heading]]:px-3! **:[[cmdk-group-heading]]:pt-3! **:[[cmdk-group-heading]]:pb-1! first:**:[[cmdk-group-heading]]:pt-2!"
                 >
                   {group.items.map((item) => (
                     <DocsSearchResultItem
@@ -235,8 +235,8 @@ function DocsSearchResultItem({
           className={cn(
             "min-w-0 text-foreground [&_mark]:rounded-sm [&_mark]:bg-transparent [&_mark]:font-medium [&_mark]:text-foreground",
             registryKind
-              ? "truncate text-sm font-medium leading-5"
-              : "line-clamp-2 text-sm font-medium leading-5",
+              ? "truncate text-sm leading-5 font-medium"
+              : "line-clamp-2 text-sm leading-5 font-medium",
           )}
         >
           {renderContent(item.content)}
@@ -305,7 +305,7 @@ function getCommandGroupHeading(item: SearchItemType, hasSearch: boolean) {
 
 function resultItemClassName(variant: "registry" | "result" = "result") {
   return cn(
-    "w-full border-0 bg-transparent px-2.5! text-left font-medium transition-colors data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground hover:bg-accent/60 [&>svg:last-child]:hidden",
+    "w-full border-0 bg-transparent px-2.5! text-left font-medium transition-colors hover:bg-accent/60 data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&>svg:last-child]:hidden",
     variant === "registry"
       ? "h-9 items-center gap-2.5 py-0!"
       : "min-h-9 items-start gap-3 py-2!",

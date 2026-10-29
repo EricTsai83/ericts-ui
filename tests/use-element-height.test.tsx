@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
+import { useLayoutEffect } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { useLayoutEffect } from "react";
 
 import { useElementHeight } from "@/registry/base/hooks/use-element-height";
 
@@ -49,8 +48,7 @@ function HeightHarness({
   version?: number;
   measureVersion?: number;
 }) {
-  const [ref, height, measure] =
-    useElementHeight<HTMLDivElement>(threshold);
+  const [ref, height, measure] = useElementHeight<HTMLDivElement>(threshold);
 
   useLayoutEffect(() => {
     if (measureVersion > 0) measure();
@@ -64,17 +62,12 @@ function HeightHarness({
   );
 }
 
-function resizeEntry(
-  target: Element,
-  blockSize?: number,
-): ResizeObserverEntry {
+function resizeEntry(target: Element, blockSize?: number): ResizeObserverEntry {
   return {
     target,
     contentRect: target.getBoundingClientRect(),
     borderBoxSize:
-      blockSize === undefined
-        ? []
-        : [{ inlineSize: 100, blockSize }],
+      blockSize === undefined ? [] : [{ inlineSize: 100, blockSize }],
     contentBoxSize: [],
     devicePixelContentBoxSize: [],
   };

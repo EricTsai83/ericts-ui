@@ -69,9 +69,9 @@ describe("FloatingShortcutButton", () => {
     fireEvent.click(trigger);
 
     expect(
-      screen.getByRole("button", { name: "Close shortcuts" }).getAttribute(
-        "aria-expanded",
-      ),
+      screen
+        .getByRole("button", { name: "Close shortcuts" })
+        .getAttribute("aria-expanded"),
     ).toBe("true");
     expect(menu.getAttribute("aria-hidden")).toBe("false");
     expect(onOpenChange).toHaveBeenCalledWith(true);
@@ -95,7 +95,10 @@ describe("FloatingShortcutButton", () => {
     const triggerSurface = root.querySelector(
       "[data-slot='floating-shortcut-trigger-surface']",
     ) as HTMLElement;
-    const action = screen.getByRole("menuitem", { name: "Search", hidden: true });
+    const action = screen.getByRole("menuitem", {
+      name: "Search",
+      hidden: true,
+    });
     const actionIcon = action.querySelector(
       "[data-slot='floating-shortcut-action-icon']",
     ) as HTMLElement;
@@ -141,9 +144,7 @@ describe("FloatingShortcutButton", () => {
     expect(trigger.style.width).toBe("56px");
     expect(trigger.style.height).toBe("56px");
     expect(trigger.style.transform).toBe("");
-    expect(triggerSurface.style.transform).toBe(
-      "scale(0.7142857142857143)",
-    );
+    expect(triggerSurface.style.transform).toBe("scale(0.7142857142857143)");
   });
 
   it.each([
@@ -519,9 +520,9 @@ describe("FloatingShortcutButton", () => {
       screen.getByRole("button", { name: "Before" }),
     );
     expect(
-      screen.getByRole("button", { name: "Quick" }).getAttribute(
-        "aria-expanded",
-      ),
+      screen
+        .getByRole("button", { name: "Quick" })
+        .getAttribute("aria-expanded"),
     ).toBe("false");
   });
 });

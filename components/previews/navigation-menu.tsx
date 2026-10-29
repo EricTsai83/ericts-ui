@@ -1,7 +1,7 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
+import { Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -127,7 +127,7 @@ function NavigationMenuPreviewItem({
   return (
     <li>
       <NavigationMenuLink href="#" className="p-3">
-        <div className="text-sm font-medium leading-5">{title}</div>
+        <div className="text-sm leading-5 font-medium">{title}</div>
         <p className="mt-1 text-sm leading-5 text-muted-foreground">
           {children}
         </p>

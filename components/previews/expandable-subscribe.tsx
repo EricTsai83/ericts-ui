@@ -1,7 +1,7 @@
 "use client";
 
-import { ExpandableSubscribe } from "@/registry/base/ui/expandable-subscribe";
 import { ReplayablePreview } from "@/components/previews/replayable-preview";
+import { ExpandableSubscribe } from "@/registry/base/ui/expandable-subscribe";
 
 // Demo only: no email is sent or saved. Abort clears the pending demo timer.
 function simulateSubscribe(_email: string, signal: AbortSignal) {
@@ -20,9 +20,11 @@ function simulateSubscribe(_email: string, signal: AbortSignal) {
 export default function Preview() {
   return (
     <ReplayablePreview>
-      {(key) => <div className="flex w-full items-center justify-center px-6">
-        <ExpandableSubscribe key={key} onSubscribe={simulateSubscribe} />
-      </div>}
+      {(key) => (
+        <div className="flex w-full items-center justify-center px-6">
+          <ExpandableSubscribe key={key} onSubscribe={simulateSubscribe} />
+        </div>
+      )}
     </ReplayablePreview>
   );
 }

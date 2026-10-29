@@ -1,15 +1,10 @@
 "use client";
 
 import * as React from "react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  type Transition,
-} from "motion/react";
+import { animate, motion, useMotionValue, type Transition } from "motion/react";
 
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 // The glyph is drawn in the same 36-unit box `play-button` uses, so a seek
 // button and a play button line up stroke-for-stroke in one transport bar.

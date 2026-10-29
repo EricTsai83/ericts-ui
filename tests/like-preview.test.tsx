@@ -2,9 +2,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/like.css", () => ({}));
-
 import Preview from "@/components/previews/like";
+
+vi.mock("@/registry/base/ui/like.css", () => ({}));
 
 afterEach(cleanup);
 

@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import {
-  AnimatePresence,
   animate,
+  AnimatePresence,
   motion,
   stagger,
   useReducedMotion,
@@ -13,11 +13,10 @@ import { cn } from "@/lib/utils";
 
 export type OTPStatus = "idle" | "error" | "success";
 
-export interface OTPInputProps
-  extends Omit<
-    React.ComponentProps<"div">,
-    "defaultValue" | "onChange"
-  > {
+export interface OTPInputProps extends Omit<
+  React.ComponentProps<"div">,
+  "defaultValue" | "onChange"
+> {
   /** Number of slots. Default 6. */
   length?: number;
   value?: string;

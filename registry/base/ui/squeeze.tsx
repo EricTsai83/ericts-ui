@@ -80,10 +80,7 @@ export function SqueezeCard({
       >
         <g
           data-slot="squeeze-target"
-          className={cn(
-            "squeeze-target squeeze-icon",
-            targetClassName,
-          )}
+          className={cn("squeeze-target squeeze-icon", targetClassName)}
         >
           <rect
             x="26"

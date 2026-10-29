@@ -50,7 +50,7 @@ export function SmoothHeight({
         : entry.borderBoxSize;
 
       updateHeight(
-        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height
+        borderBoxSize?.blockSize ?? entry.target.getBoundingClientRect().height,
       );
     });
 

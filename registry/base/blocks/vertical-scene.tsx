@@ -3,11 +3,11 @@
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { cn } from "@/lib/utils";
 import {
   SlidingList,
   type SlidingListItem,
 } from "@/components/ui/sliding-list";
-import { cn } from "@/lib/utils";
 
 import "./vertical-scene.css";
 
@@ -31,8 +31,10 @@ export type VerticalSceneItem = {
   imagePosition?: React.CSSProperties["objectPosition"];
 };
 
-export interface VerticalSceneProps
-  extends Omit<React.ComponentProps<"section">, "onChange"> {
+export interface VerticalSceneProps extends Omit<
+  React.ComponentProps<"section">,
+  "onChange"
+> {
   items: readonly VerticalSceneItem[];
   /** Controlled selected scene value. */
   value?: string;
@@ -46,7 +48,7 @@ export interface VerticalSceneProps
   stageLabel?: string;
   /** Message displayed when no scenes are provided. */
   emptyLabel?: string;
-};
+}
 
 type SceneDirection = -1 | 0 | 1;
 
@@ -235,11 +237,7 @@ export function VerticalScene({
         role="img"
         aria-label={selectedItem.image.alt}
       >
-        <AnimatePresence
-          initial={false}
-          mode="sync"
-          custom={motionDirection}
-        >
+        <AnimatePresence initial={false} mode="sync" custom={motionDirection}>
           <motion.div
             key={selectedItem.value}
             className="vertical-scene__media-layer"

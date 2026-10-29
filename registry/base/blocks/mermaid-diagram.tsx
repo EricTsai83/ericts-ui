@@ -1,14 +1,5 @@
 "use client";
 
-import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import type { MermaidConfig } from "mermaid";
-import {
-  Maximize2,
-  RotateCcw,
-  X,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -25,7 +16,12 @@ import {
   type Ref,
   type RefObject,
 } from "react";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import { Maximize2, RotateCcw, X, ZoomIn, ZoomOut } from "lucide-react";
+import type { MermaidConfig } from "mermaid";
 
+import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -34,8 +30,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { cn } from "@/lib/utils";
 
 export interface MermaidRepairRequest {
   chart: string;
@@ -52,7 +46,8 @@ export type MermaidDiagramClassNames = {
   error?: string;
 };
 
-export type MermaidDiagramTool = "zoom-in" | "zoom-out" | "reset" | "fullscreen";
+export type MermaidDiagramTool =
+  "zoom-in" | "zoom-out" | "reset" | "fullscreen";
 
 export interface MermaidDiagramProps {
   chart: string;
@@ -96,7 +91,10 @@ export type DiagramViewportControls = {
   zoomOut: () => void;
 };
 
-export interface DiagramViewportProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+export interface DiagramViewportProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> {
   children: ReactNode;
   controlsRef?: Ref<DiagramViewportControls>;
   /**
@@ -145,7 +143,8 @@ type ViewportPoint = {
 };
 
 const DEFAULT_MERMAID_CONFIG: MermaidConfig = {
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  fontFamily:
+    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   maxEdges: 500,
   maxTextSize: 50_000,
   securityLevel: "strict",
@@ -153,8 +152,17 @@ const DEFAULT_MERMAID_CONFIG: MermaidConfig = {
   suppressErrorRendering: true,
 };
 
-const DEFAULT_TOOLS: readonly MermaidDiagramTool[] = ["zoom-in", "zoom-out", "reset", "fullscreen"];
-const FULLSCREEN_TOOLS: readonly MermaidDiagramTool[] = ["zoom-in", "zoom-out", "reset"];
+const DEFAULT_TOOLS: readonly MermaidDiagramTool[] = [
+  "zoom-in",
+  "zoom-out",
+  "reset",
+  "fullscreen",
+];
+const FULLSCREEN_TOOLS: readonly MermaidDiagramTool[] = [
+  "zoom-in",
+  "zoom-out",
+  "reset",
+];
 const DEFAULT_MIN_ZOOM = 0.5;
 const DEFAULT_MAX_ZOOM = 4;
 const DEFAULT_ZOOM_STEP = 0.25;
@@ -197,7 +205,8 @@ function parseMermaidFenceMeta(meta?: string): DiagramMeta {
   if (!meta) return {};
 
   const result: DiagramMeta = {};
-  const attributePattern = /(?:^|\s)(title|caption)=(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+  const attributePattern =
+    /(?:^|\s)(title|caption)=(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
   let match = attributePattern.exec(meta);
 
   while (match) {
@@ -220,12 +229,20 @@ function hashRenderInput(input: string) {
     h1 = Math.imul(h1 ^ code, 2654435761);
     h2 = Math.imul(h2 ^ code, 1597334677);
   }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  h1 =
+    Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
+    Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 =
+    Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
+    Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return `${(h2 >>> 0).toString(36)}${(h1 >>> 0).toString(36)}:${input.length}`;
 }
 
-function getRenderRequestKey(chart: string, config: MermaidConfig, theme: string) {
+function getRenderRequestKey(
+  chart: string,
+  config: MermaidConfig,
+  theme: string,
+) {
   try {
     return hashRenderInput(JSON.stringify([chart, config, theme]));
   } catch {
@@ -248,14 +265,23 @@ async function renderMermaid(
         ...DEFAULT_MERMAID_CONFIG,
         ...config,
         theme: config.theme ?? theme,
-        maxEdges: Math.min(config.maxEdges ?? DEFAULT_MERMAID_CONFIG.maxEdges!, 2_000),
-        maxTextSize: Math.min(config.maxTextSize ?? DEFAULT_MERMAID_CONFIG.maxTextSize!, 100_000),
+        maxEdges: Math.min(
+          config.maxEdges ?? DEFAULT_MERMAID_CONFIG.maxEdges!,
+          2_000,
+        ),
+        maxTextSize: Math.min(
+          config.maxTextSize ?? DEFAULT_MERMAID_CONFIG.maxTextSize!,
+          100_000,
+        ),
         securityLevel: "strict",
         startOnLoad: false,
         suppressErrorRendering: true,
       });
       try {
-        const result = (await mermaid.render(renderId, chart)) as MermaidRenderResult;
+        const result = (await mermaid.render(
+          renderId,
+          chart,
+        )) as MermaidRenderResult;
         return result.svg;
       } catch (error) {
         // Mermaid can leave its temporary render element in the document when
@@ -265,7 +291,10 @@ async function renderMermaid(
         throw error;
       }
     });
-  renderQueue = task.then(() => undefined, () => undefined);
+  renderQueue = task.then(
+    () => undefined,
+    () => undefined,
+  );
 
   return task;
 }
@@ -296,18 +325,37 @@ export function MermaidDiagram({
 }: MermaidDiagramProps) {
   const parsedMeta = useMemo(() => parseMermaidFenceMeta(meta), [meta]);
   const title = titleProp?.trim() || parsedMeta.title;
-  const caption = showCaption ? captionProp?.trim() || parsedMeta.caption : undefined;
+  const caption = showCaption
+    ? captionProp?.trim() || parsedMeta.caption
+    : undefined;
   const useResponsiveChart = useMediaQuery(
     responsiveChart?.query ?? DEFAULT_RESPONSIVE_CHART_QUERY,
     Boolean(responsiveChart),
   );
-  const selectedChart = useResponsiveChart ? responsiveChart?.chart ?? chart : chart;
-  const normalizedChart = useMemo(() => selectedChart.replace(/\n+$/u, ""), [selectedChart]);
-  const renderState = useMermaidRender(normalizedChart, config, isIncomplete, onRenderError);
+  const selectedChart = useResponsiveChart
+    ? (responsiveChart?.chart ?? chart)
+    : chart;
+  const normalizedChart = useMemo(
+    () => selectedChart.replace(/\n+$/u, ""),
+    [selectedChart],
+  );
+  const renderState = useMermaidRender(
+    normalizedChart,
+    config,
+    isIncomplete,
+    onRenderError,
+  );
 
   if (isIncomplete) {
     return (
-      <figure ref={ref} className={cn("my-4 border bg-card p-4 text-sm text-muted-foreground", className, classNames?.root)}>
+      <figure
+        ref={ref}
+        className={cn(
+          "my-4 border bg-card p-4 text-sm text-muted-foreground",
+          className,
+          classNames?.root,
+        )}
+      >
         Mermaid diagram is still streaming…
       </figure>
     );
@@ -315,7 +363,14 @@ export function MermaidDiagram({
 
   if (renderState.status === "empty") {
     return (
-      <figure ref={ref} className={cn("my-4 border bg-card p-4 text-sm text-muted-foreground", className, classNames?.root)}>
+      <figure
+        ref={ref}
+        className={cn(
+          "my-4 border bg-card p-4 text-sm text-muted-foreground",
+          className,
+          classNames?.root,
+        )}
+      >
         No Mermaid source to render.
       </figure>
     );
@@ -383,7 +438,10 @@ export function MermaidDiagram({
         renderLoading()
       ) : (
         <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
-          <span aria-hidden="true" className="mr-2 size-4 animate-spin rounded-full border border-muted-foreground/30 border-b-muted-foreground" />
+          <span
+            aria-hidden="true"
+            className="mr-2 size-4 animate-spin rounded-full border border-muted-foreground/30 border-b-muted-foreground"
+          />
           Rendering diagram…
         </div>
       )}
@@ -402,7 +460,10 @@ function useMediaQuery(query: string, enabled: boolean) {
     [enabled, query],
   );
   const getSnapshot = useCallback(
-    () => enabled && typeof window !== "undefined" && window.matchMedia(query).matches,
+    () =>
+      enabled &&
+      typeof window !== "undefined" &&
+      window.matchMedia(query).matches,
     [enabled, query],
   );
   const getServerSnapshot = useCallback(() => false, []);
@@ -417,8 +478,15 @@ function useMermaidRender(
   onRenderError?: (error: Error) => void,
 ): RenderState {
   const reactId = useId();
-  const idBase = useMemo(() => reactId.replace(/[^a-zA-Z0-9_-]/g, ""), [reactId]);
-  const theme = useSyncExternalStore(subscribeToRootTheme, getResolvedMermaidTheme, getServerMermaidTheme);
+  const idBase = useMemo(
+    () => reactId.replace(/[^a-zA-Z0-9_-]/g, ""),
+    [reactId],
+  );
+  const theme = useSyncExternalStore(
+    subscribeToRootTheme,
+    getResolvedMermaidTheme,
+    getServerMermaidTheme,
+  );
   const [snapshot, setSnapshot] = useState<RenderSnapshot | null>(null);
   const requestKey = getRenderRequestKey(chart, config, theme);
 
@@ -442,9 +510,16 @@ function useMermaidRender(
       },
       (caught: unknown) => {
         if (!active) return;
-        const error = caught instanceof Error ? caught : new Error("Failed to render Mermaid diagram.");
+        const error =
+          caught instanceof Error
+            ? caught
+            : new Error("Failed to render Mermaid diagram.");
         onRenderErrorRef.current?.(error);
-        setSnapshot({ status: "error", message: error.message.trim() || "Failed to render Mermaid diagram.", requestKey });
+        setSnapshot({
+          status: "error",
+          message: error.message.trim() || "Failed to render Mermaid diagram.",
+          requestKey,
+        });
       },
     );
 
@@ -462,7 +537,10 @@ function useMermaidRender(
   }
   // While a new request renders, keep the previous diagram on screen instead of
   // flashing back to the loading state.
-  return { status: "loading", lastSvg: snapshot?.status === "success" ? snapshot.svg : undefined };
+  return {
+    status: "loading",
+    lastSvg: snapshot?.status === "success" ? snapshot.svg : undefined,
+  };
 }
 
 function MermaidFrame({
@@ -491,18 +569,50 @@ function MermaidFrame({
   ref?: Ref<HTMLElement>;
 }) {
   return (
-    <figure ref={ref} className={cn("my-4 overflow-hidden rounded-xl border bg-card text-card-foreground", className)}>
-      <div data-slot="mermaid-diagram-header" className={cn("flex min-h-14 items-center justify-between gap-3 border-b bg-muted/45 px-3 py-2", headerClassName)}>
+    <figure
+      ref={ref}
+      className={cn(
+        "my-4 overflow-hidden rounded-xl border bg-card text-card-foreground",
+        className,
+      )}
+    >
+      <div
+        data-slot="mermaid-diagram-header"
+        className={cn(
+          "flex min-h-14 items-center justify-between gap-3 border-b bg-muted/45 px-3 py-2",
+          headerClassName,
+        )}
+      >
         <div className="min-w-0">
-          <figcaption data-slot="mermaid-diagram-title" className={cn("truncate text-base font-medium text-foreground", titleClassName)}>
+          <figcaption
+            data-slot="mermaid-diagram-title"
+            className={cn(
+              "truncate text-base font-medium text-foreground",
+              titleClassName,
+            )}
+          >
             {title?.trim() || "Mermaid diagram"}
           </figcaption>
           {caption?.trim() ? (
-            <p data-slot="mermaid-diagram-caption" className={cn("truncate text-xs text-muted-foreground", captionClassName)}>{caption}</p>
+            <p
+              data-slot="mermaid-diagram-caption"
+              className={cn(
+                "truncate text-xs text-muted-foreground",
+                captionClassName,
+              )}
+            >
+              {caption}
+            </p>
           ) : null}
         </div>
-        <div className={cn("flex shrink-0 items-center gap-1", actionsClassName)}>
-          {isLoading ? <span className="font-mono text-[10px] uppercase text-muted-foreground">Loading</span> : null}
+        <div
+          className={cn("flex shrink-0 items-center gap-1", actionsClassName)}
+        >
+          {isLoading ? (
+            <span className="font-mono text-[10px] text-muted-foreground uppercase">
+              Loading
+            </span>
+          ) : null}
           {actions}
         </div>
       </div>
@@ -556,7 +666,9 @@ function SvgViewer({
   const inlineControlsRef = useRef<DiagramViewportControls | null>(null);
   const label = title?.trim() ? `${title} diagram` : "Mermaid diagram";
   const fullscreen = tools.includes("fullscreen");
-  const inlineTools = inlineZoom ? [...new Set(tools)].filter((tool) => tool !== "fullscreen") : [];
+  const inlineTools = inlineZoom
+    ? [...new Set(tools)].filter((tool) => tool !== "fullscreen")
+    : [];
   useFullscreenDocumentScrollLock(open);
 
   return (
@@ -573,7 +685,12 @@ function SvgViewer({
         actionsClassName={toolbarClassName}
         actions={
           <>
-            {inlineTools.length > 0 ? <ViewerToolbar controlsRef={inlineControlsRef} tools={inlineTools} /> : null}
+            {inlineTools.length > 0 ? (
+              <ViewerToolbar
+                controlsRef={inlineControlsRef}
+                tools={inlineTools}
+              />
+            ) : null}
             {fullscreen ? (
               <Button
                 aria-label="View diagram fullscreen"
@@ -624,23 +741,37 @@ function SvgViewer({
             className={cn(
               "fixed inset-0 z-50 grid size-full grid-rows-[auto_minmax(0,1fr)] bg-popover text-sm text-popover-foreground opacity-100 outline-none",
               animateFullscreen
-                ? "transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] data-ending-style:duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:duration-100"
+                ? "transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:opacity-0 motion-reduce:duration-100"
                 : "transition-none",
             )}
           >
             <div className="flex min-h-14 items-stretch justify-between border-b bg-card">
               <div className="flex min-w-0 flex-1 flex-col justify-center px-4">
-                <DialogPrimitive.Title className={cn("truncate text-base font-medium", titleClassName)}>
+                <DialogPrimitive.Title
+                  className={cn(
+                    "truncate text-base font-medium",
+                    titleClassName,
+                  )}
+                >
                   {title?.trim() || "Mermaid diagram"}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description
-                  className={cn("truncate text-xs text-muted-foreground", captionClassName, !caption && "sr-only")}
+                  className={cn(
+                    "truncate text-xs text-muted-foreground",
+                    captionClassName,
+                    !caption && "sr-only",
+                  )}
                 >
-                  {caption?.trim() || "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
+                  {caption?.trim() ||
+                    "Interactive fullscreen diagram. Drag to pan and use the toolbar to zoom."}
                 </DialogPrimitive.Description>
               </div>
               <div className="flex shrink-0 items-stretch">
-                <ViewerToolbar controlsRef={controlsRef} tools={FULLSCREEN_TOOLS} className={cn("px-3", toolbarClassName)} />
+                <ViewerToolbar
+                  controlsRef={controlsRef}
+                  tools={FULLSCREEN_TOOLS}
+                  className={cn("px-3", toolbarClassName)}
+                />
                 <Separator
                   orientation="vertical"
                   className="w-px bg-foreground/20"
@@ -697,10 +828,27 @@ function useFullscreenDocumentScrollLock(open: boolean) {
   }, [open]);
 }
 
-function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+function IconButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <Tooltip>
-      <TooltipTrigger render={<Button aria-label={label} onClick={onClick} variant="ghost" size="icon" />}>
+      <TooltipTrigger
+        render={
+          <Button
+            aria-label={label}
+            onClick={onClick}
+            variant="ghost"
+            size="icon"
+          />
+        }
+      >
         {children}
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
@@ -723,11 +871,35 @@ function ViewerToolbar({
       {tools.map((tool) => {
         switch (tool) {
           case "zoom-in":
-            return <IconButton key={tool} label="Zoom in" onClick={() => getControls()?.zoomIn()}><ZoomIn /></IconButton>;
+            return (
+              <IconButton
+                key={tool}
+                label="Zoom in"
+                onClick={() => getControls()?.zoomIn()}
+              >
+                <ZoomIn />
+              </IconButton>
+            );
           case "zoom-out":
-            return <IconButton key={tool} label="Zoom out" onClick={() => getControls()?.zoomOut()}><ZoomOut /></IconButton>;
+            return (
+              <IconButton
+                key={tool}
+                label="Zoom out"
+                onClick={() => getControls()?.zoomOut()}
+              >
+                <ZoomOut />
+              </IconButton>
+            );
           case "reset":
-            return <IconButton key={tool} label="Reset diagram view" onClick={() => getControls()?.reset()}><RotateCcw /></IconButton>;
+            return (
+              <IconButton
+                key={tool}
+                label="Reset diagram view"
+                onClick={() => getControls()?.reset()}
+              >
+                <RotateCcw />
+              </IconButton>
+            );
           default:
             return null;
         }
@@ -761,23 +933,44 @@ export function DiagramViewport({
   ...props
 }: DiagramViewportProps) {
   const reducedMotion = useReducedMotion();
-  const clampScale = useCallback((scale: number) => Math.min(Math.max(maxZoom, minZoom), Math.max(Math.min(minZoom, maxZoom), scale)), [maxZoom, minZoom]);
-  const initialView = useMemo<ViewState>(() => ({ scale: clampScale(initialZoom), x: 0, y: 0 }), [clampScale, initialZoom]);
+  const clampScale = useCallback(
+    (scale: number) =>
+      Math.min(
+        Math.max(maxZoom, minZoom),
+        Math.max(Math.min(minZoom, maxZoom), scale),
+      ),
+    [maxZoom, minZoom],
+  );
+  const initialView = useMemo<ViewState>(
+    () => ({ scale: clampScale(initialZoom), x: 0, y: 0 }),
+    [clampScale, initialZoom],
+  );
   const [view, setView] = useState(initialView);
   const [isGesturing, setIsGesturing] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef(view);
   const pointersRef = useRef(new Map<number, ViewportPoint>());
-  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; x: number; y: number } | null>(null);
-  const pinchRef = useRef<{ distance: number; midpoint: ViewportPoint } | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const pinchRef = useRef<{ distance: number; midpoint: ViewportPoint } | null>(
+    null,
+  );
   const pendingViewRef = useRef<ViewState | null>(null);
   const frameRef = useRef<number | null>(null);
   const wheelIdleTimerRef = useRef<number | null>(null);
 
-  const setViewportNode = useCallback((node: HTMLDivElement | null) => {
-    viewportRef.current = node;
-    setRefValue(ref, node);
-  }, [ref]);
+  const setViewportNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      viewportRef.current = node;
+      setRefValue(ref, node);
+    },
+    [ref],
+  );
 
   const commitView = useCallback((next: ViewState) => {
     if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
@@ -802,35 +995,54 @@ export function DiagramViewport({
   // Zooming toward a point keeps the content under that point stationary. The
   // point is expressed relative to the viewport center, which is also the
   // content's transform origin.
-  const zoomAtPoint = useCallback((nextScale: number, point?: ViewportPoint, immediate = true) => {
-    const current = viewRef.current;
-    const scale = clampScale(nextScale);
-    if (scale === current.scale) return;
-    const next = point
-      ? {
-          scale,
-          x: point.x - (point.x - current.x) * (scale / current.scale),
-          y: point.y - (point.y - current.y) * (scale / current.scale),
-        }
-      : { ...current, scale };
-    if (immediate) commitView(next);
-    else scheduleView(next);
-  }, [clampScale, commitView, scheduleView]);
+  const zoomAtPoint = useCallback(
+    (nextScale: number, point?: ViewportPoint, immediate = true) => {
+      const current = viewRef.current;
+      const scale = clampScale(nextScale);
+      if (scale === current.scale) return;
+      const next = point
+        ? {
+            scale,
+            x: point.x - (point.x - current.x) * (scale / current.scale),
+            y: point.y - (point.y - current.y) * (scale / current.scale),
+          }
+        : { ...current, scale };
+      if (immediate) commitView(next);
+      else scheduleView(next);
+    },
+    [clampScale, commitView, scheduleView],
+  );
 
-  const zoom = useCallback((direction: 1 | -1) => {
-    zoomAtPoint(viewRef.current.scale + zoomStep * direction);
-  }, [zoomAtPoint, zoomStep]);
-  const reset = useCallback(() => commitView(initialView), [commitView, initialView]);
+  const zoom = useCallback(
+    (direction: 1 | -1) => {
+      zoomAtPoint(viewRef.current.scale + zoomStep * direction);
+    },
+    [zoomAtPoint, zoomStep],
+  );
+  const reset = useCallback(
+    () => commitView(initialView),
+    [commitView, initialView],
+  );
 
-  const getViewportPoint = useCallback((clientX: number, clientY: number): ViewportPoint => {
-    const node = viewportRef.current;
-    if (!node) return { x: 0, y: 0 };
-    const rect = node.getBoundingClientRect();
-    return { x: clientX - rect.left - rect.width / 2, y: clientY - rect.top - rect.height / 2 };
-  }, []);
+  const getViewportPoint = useCallback(
+    (clientX: number, clientY: number): ViewportPoint => {
+      const node = viewportRef.current;
+      if (!node) return { x: 0, y: 0 };
+      const rect = node.getBoundingClientRect();
+      return {
+        x: clientX - rect.left - rect.width / 2,
+        y: clientY - rect.top - rect.height / 2,
+      };
+    },
+    [],
+  );
 
   useLayoutEffect(() => {
-    setRefValue(controlsRef, { reset, zoomIn: () => zoom(1), zoomOut: () => zoom(-1) });
+    setRefValue(controlsRef, {
+      reset,
+      zoomIn: () => zoom(1),
+      zoomOut: () => zoom(-1),
+    });
     return () => setRefValue(controlsRef, null);
   }, [controlsRef, reset, zoom]);
 
@@ -846,13 +1058,18 @@ export function DiagramViewport({
       if (embedded && !event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       const deltaY =
-        event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 16
-        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? event.deltaY * 120
-        : event.deltaY;
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? event.deltaY * 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? event.deltaY * 120
+            : event.deltaY;
       // Trackpad pinches arrive as ctrl+wheel and expect a stronger response.
-      const intensity = event.ctrlKey ? PINCH_WHEEL_ZOOM_INTENSITY : WHEEL_ZOOM_INTENSITY;
+      const intensity = event.ctrlKey
+        ? PINCH_WHEEL_ZOOM_INTENSITY
+        : WHEEL_ZOOM_INTENSITY;
       setIsGesturing(true);
-      if (wheelIdleTimerRef.current !== null) window.clearTimeout(wheelIdleTimerRef.current);
+      if (wheelIdleTimerRef.current !== null)
+        window.clearTimeout(wheelIdleTimerRef.current);
       wheelIdleTimerRef.current = window.setTimeout(() => {
         wheelIdleTimerRef.current = null;
         if (pointersRef.current.size === 0) setIsGesturing(false);
@@ -868,10 +1085,14 @@ export function DiagramViewport({
     return () => node.removeEventListener("wheel", handleWheel);
   }, [embedded, getViewportPoint, interactive, wheelZoom, zoomAtPoint]);
 
-  useEffect(() => () => {
-    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-    if (wheelIdleTimerRef.current !== null) window.clearTimeout(wheelIdleTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      if (wheelIdleTimerRef.current !== null)
+        window.clearTimeout(wheelIdleTimerRef.current);
+    },
+    [],
+  );
 
   const startPinch = useCallback(() => {
     const [first, second] = [...pointersRef.current.values()];
@@ -879,7 +1100,10 @@ export function DiagramViewport({
     dragRef.current = null;
     pinchRef.current = {
       distance: Math.hypot(second.x - first.x, second.y - first.y),
-      midpoint: getViewportPoint((first.x + second.x) / 2, (first.y + second.y) / 2),
+      midpoint: getViewportPoint(
+        (first.x + second.x) / 2,
+        (first.y + second.y) / 2,
+      ),
     };
   }, [getViewportPoint]);
 
@@ -889,12 +1113,21 @@ export function DiagramViewport({
     // Touch keeps scrolling the page; fullscreen is where fingers pan and pinch.
     if (embedded && event.pointerType === "touch") return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    pointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
     setIsGesturing(true);
     if (pointersRef.current.size >= 2) {
       startPinch();
     } else {
-      dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, x: viewRef.current.x, y: viewRef.current.y };
+      dragRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        x: viewRef.current.x,
+        y: viewRef.current.y,
+      };
     }
   };
 
@@ -910,7 +1143,10 @@ export function DiagramViewport({
       const [first, second] = [...pointersRef.current.values()];
       const distance = Math.hypot(second.x - first.x, second.y - first.y);
       if (pinch.distance <= 0 || distance <= 0) return;
-      const midpoint = getViewportPoint((first.x + second.x) / 2, (first.y + second.y) / 2);
+      const midpoint = getViewportPoint(
+        (first.x + second.x) / 2,
+        (first.y + second.y) / 2,
+      );
       const current = viewRef.current;
       const scale = clampScale(current.scale * (distance / pinch.distance));
       const ratio = scale / current.scale;
@@ -926,12 +1162,17 @@ export function DiagramViewport({
 
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    scheduleView({ ...viewRef.current, x: drag.x + event.clientX - drag.startX, y: drag.y + event.clientY - drag.startY });
+    scheduleView({
+      ...viewRef.current,
+      x: drag.x + event.clientX - drag.startX,
+      y: drag.y + event.clientY - drag.startY,
+    });
   };
 
   const finishPointer = (event: PointerEvent<HTMLDivElement>) => {
     if (!pointersRef.current.delete(event.pointerId)) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
 
     if (pointersRef.current.size >= 2) {
       startPinch();
@@ -940,7 +1181,13 @@ export function DiagramViewport({
     pinchRef.current = null;
     if (pointersRef.current.size === 1) {
       const [remaining] = [...pointersRef.current.entries()];
-      dragRef.current = { pointerId: remaining[0], startX: remaining[1].x, startY: remaining[1].y, x: viewRef.current.x, y: viewRef.current.y };
+      dragRef.current = {
+        pointerId: remaining[0],
+        startX: remaining[1].x,
+        startY: remaining[1].y,
+        x: viewRef.current.x,
+        y: viewRef.current.y,
+      };
       return;
     }
     dragRef.current = null;
@@ -951,7 +1198,14 @@ export function DiagramViewport({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
-    if (!interactive || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (
+      !interactive ||
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey
+    )
+      return;
     const panStep = event.shiftKey ? KEYBOARD_PAN_STEP_FAST : KEYBOARD_PAN_STEP;
     const current = viewRef.current;
     switch (event.key) {
@@ -988,18 +1242,22 @@ export function DiagramViewport({
     <div
       role={interactive ? "group" : undefined}
       aria-label={
-        !interactive ? undefined
-        : embedded ? "Diagram viewport. Drag or use arrow keys to pan, press plus and minus to zoom, 0 to reset."
-        : "Diagram viewport. Drag or use arrow keys to pan, pinch or press plus and minus to zoom, 0 to reset."
+        !interactive
+          ? undefined
+          : embedded
+            ? "Diagram viewport. Drag or use arrow keys to pan, press plus and minus to zoom, 0 to reset."
+            : "Diagram viewport. Drag or use arrow keys to pan, pinch or press plus and minus to zoom, 0 to reset."
       }
       tabIndex={interactive ? 0 : undefined}
       {...props}
       ref={setViewportNode}
-      data-mermaid-viewport={!interactive ? "static" : embedded ? "embedded" : "interactive"}
+      data-mermaid-viewport={
+        !interactive ? "static" : embedded ? "embedded" : "interactive"
+      }
       className={cn(
         "relative flex overflow-hidden bg-background",
         interactive &&
-          "cursor-grab select-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset focus-visible:outline-none",
+          "cursor-grab select-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:outline-none focus-visible:ring-inset active:cursor-grabbing",
         interactive && !embedded ? "touch-none" : "touch-auto",
         className,
       )}
@@ -1020,9 +1278,11 @@ export function DiagramViewport({
         className="flex min-h-full w-full origin-center items-center justify-center p-4"
         style={{
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
-          transition: isGesturing || reducedMotion ? "none" : "transform 120ms ease-out",
+          transition:
+            isGesturing || reducedMotion ? "none" : "transform 120ms ease-out",
           // A page can hold many inline diagrams; only promote those in motion.
-          willChange: interactive && (!embedded || isGesturing) ? "transform" : undefined,
+          willChange:
+            interactive && (!embedded || isGesturing) ? "transform" : undefined,
         }}
       >
         {children}
@@ -1031,7 +1291,13 @@ export function DiagramViewport({
   );
 }
 
-function SvgMount({ svgHtml, ariaLabel }: { svgHtml: string; ariaLabel: string }) {
+function SvgMount({
+  svgHtml,
+  ariaLabel,
+}: {
+  svgHtml: string;
+  ariaLabel: string;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
@@ -1078,29 +1344,55 @@ function MermaidRenderError({
     try {
       await onRepair({ chart, error });
     } catch (caught) {
-      setRepairError(caught instanceof Error && caught.message.trim() ? caught.message : "Could not repair this diagram.");
+      setRepairError(
+        caught instanceof Error && caught.message.trim()
+          ? caught.message
+          : "Could not repair this diagram.",
+      );
     } finally {
       setIsRepairing(false);
     }
   };
 
   return (
-    <div ref={ref} className={cn("my-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-foreground", className)}>
+    <div
+      ref={ref}
+      className={cn(
+        "my-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-foreground",
+        className,
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-destructive">Mermaid diagram could not render.</p>
+          <p className="font-medium text-destructive">
+            Mermaid diagram could not render.
+          </p>
           <p className="mt-1 wrap-break-word text-muted-foreground">{error}</p>
-          {repairError ? <p className="mt-2 wrap-break-word text-xs text-destructive">{repairError}</p> : null}
+          {repairError ? (
+            <p className="mt-2 text-xs wrap-break-word text-destructive">
+              {repairError}
+            </p>
+          ) : null}
         </div>
         {onRepair ? (
-          <Button disabled={isRepairing} onClick={() => void repair()} size="sm" type="button" variant="outline">
+          <Button
+            disabled={isRepairing}
+            onClick={() => void repair()}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
             {isRepairing ? "Repairing…" : "Repair diagram"}
           </Button>
         ) : null}
       </div>
       <details className="mt-3">
-        <summary className="cursor-pointer text-xs font-medium text-muted-foreground">View Mermaid source</summary>
-        <pre className="mt-2 max-h-64 overflow-auto rounded-lg border bg-muted p-3 text-xs text-muted-foreground"><code>{chart}</code></pre>
+        <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+          View Mermaid source
+        </summary>
+        <pre className="mt-2 max-h-64 overflow-auto rounded-lg border bg-muted p-3 text-xs text-muted-foreground">
+          <code>{chart}</code>
+        </pre>
       </details>
     </div>
   );

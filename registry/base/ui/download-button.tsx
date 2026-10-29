@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ArrowDownToLine, Square } from "lucide-react";
 import {
   animate,
   motion,
@@ -10,8 +11,6 @@ import {
   type AnimationPlaybackControls,
   type Transition,
 } from "motion/react";
-
-import { ArrowDownToLine, Square } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -43,7 +42,10 @@ const LUCIDE_SCALE = ICON_SIZE / 24;
 // Without the badge it moves back to the centre by `UNBADGED_SHIFT`.
 const DONE_ICON_X = 8.5;
 const DONE_ICON_Y = 8;
-const UNBADGED_SHIFT = [CENTER - ICON_SIZE / 2 - DONE_ICON_X, CENTER - ICON_SIZE / 2 - DONE_ICON_Y] as const;
+const UNBADGED_SHIFT = [
+  CENTER - ICON_SIZE / 2 - DONE_ICON_X,
+  CENTER - ICON_SIZE / 2 - DONE_ICON_Y,
+] as const;
 // `RotateCw`'s arc: centre (12, 12), radius 9, drawn clockwise from 3 o'clock
 // round to its arrowhead's corner at (21, 8).
 const lucide = (x: number, y: number) =>
@@ -53,7 +55,8 @@ const ARC_RADIUS = 9 * LUCIDE_SCALE;
 const ARC_ROTATE = 0;
 const [CORNER_X, CORNER_Y] = lucide(21, 8);
 /** Where the arc ends: the point on the circle nearest the arrowhead's corner. */
-const ARC_END = (Math.atan2(CORNER_Y - ARC_CY, CORNER_X - ARC_CX) * 180) / Math.PI + 360;
+const ARC_END =
+  (Math.atan2(CORNER_Y - ARC_CY, CORNER_X - ARC_CX) * 180) / Math.PI + 360;
 const ARC_LENGTH = ARC_END / 360;
 // RotateCw's arc swings slightly outward into its corner; the riding head
 // carries that offset so it lands exactly on the icon's.
@@ -80,10 +83,17 @@ const CHECK_TRANSFORM = `translate(${BADGE_CX - 12 * CHECK_SCALE} ${BADGE_CY - 1
 
 // Module-level so the ring effect is not restarted by every render. A strong
 // ease-out keeps the completion spin fast at first and gentle as it lands.
-const DEFAULT_TRANSITION: Transition = { duration: 0.55, ease: [0.16, 1, 0.3, 1] };
+const DEFAULT_TRANSITION: Transition = {
+  duration: 0.55,
+  ease: [0.16, 1, 0.3, 1],
+};
 const EASE_OUT: Transition["ease"] = [0.215, 0.61, 0.355, 1];
 /** The riding arrowhead grows mid-spin: from 0.15s, done by 0.45s. */
-const ARROWHEAD_GROW = { duration: 0.3, ease: EASE_OUT, delay: 0.15 } satisfies Transition;
+const ARROWHEAD_GROW = {
+  duration: 0.3,
+  ease: EASE_OUT,
+  delay: 0.15,
+} satisfies Transition;
 /** A custom done icon's swap: the ring collapses while the icon blurs in. */
 const COLLAPSE: Transition = { duration: 0.3, ease: EASE_OUT };
 const COLLAPSE_FADE: Transition = { duration: 0.25, ease: EASE_OUT };
@@ -126,9 +136,14 @@ const box = (x: number, y: number, size: number): React.CSSProperties => ({
   width: toPercent(size),
   height: toPercent(size),
 });
-const ICON_STYLE = box(CENTER - ICON_SIZE / 2, CENTER - ICON_SIZE / 2, ICON_SIZE);
+const ICON_STYLE = box(
+  CENTER - ICON_SIZE / 2,
+  CENTER - ICON_SIZE / 2,
+  ICON_SIZE,
+);
 const DONE_ICON_STYLE = box(DONE_ICON_X, DONE_ICON_Y, ICON_SIZE);
-const ICON_SLOT = "pointer-events-none absolute grid place-items-center [&_svg]:size-full";
+const ICON_SLOT =
+  "pointer-events-none absolute grid place-items-center [&_svg]:size-full";
 
 /** Forward rotation from `from` that lands on `to` (mod 360), at least `minimum` degrees. */
 function forwardTo(from: number, to: number, minimum = 0) {
@@ -252,7 +267,9 @@ export function DownloadButton({
     (values: number[]) => arrowheadPath(values),
   );
   // Collapsed, the head would still draw a round-capped dot.
-  const arrowheadOpacity = useTransform(grow, (value) => (value > 0.02 ? 1 : 0));
+  const arrowheadOpacity = useTransform(grow, (value) =>
+    value > 0.02 ? 1 : 0,
+  );
 
   React.useEffect(() => () => requestRef.current?.abort(), []);
 
@@ -274,7 +291,8 @@ export function DownloadButton({
   const progressFrameRef = React.useRef<number | null>(null);
   React.useEffect(
     () => () => {
-      if (progressFrameRef.current !== null) cancelAnimationFrame(progressFrameRef.current);
+      if (progressFrameRef.current !== null)
+        cancelAnimationFrame(progressFrameRef.current);
     },
     [],
   );
@@ -309,28 +327,59 @@ export function DownloadButton({
 
     const morph = collapse ? COLLAPSE : transitionRef.current;
     const current = rotate.get();
-    const controls: AnimationPlaybackControls[] = targets.map(([value, target]) =>
-      animate(value, target, morph),
+    const controls: AnimationPlaybackControls[] = targets.map(
+      ([value, target]) => animate(value, target, morph),
     );
     controls.push(
-      animate(grow, headTarget, headTarget ? ARROWHEAD_GROW : { duration: 0.12, ease: EASE_OUT }),
+      animate(
+        grow,
+        headTarget,
+        headTarget ? ARROWHEAD_GROW : { duration: 0.12, ease: EASE_OUT },
+      ),
     );
     if (indeterminate) {
-      controls.push(animate(rotate, current + 360, { duration: 0.9, ease: "linear", repeat: Infinity }));
+      controls.push(
+        animate(rotate, current + 360, {
+          duration: 0.9,
+          ease: "linear",
+          repeat: Infinity,
+        }),
+      );
     } else if (!collapse) {
       controls.push(
-        animate(rotate, forwardTo(current, rotateTarget, enteringDone ? 180 : 0), transitionRef.current),
+        animate(
+          rotate,
+          forwardTo(current, rotateTarget, enteringDone ? 180 : 0),
+          transitionRef.current,
+        ),
       );
     }
     return () => controls.forEach((control) => control.stop());
-  }, [state, indeterminate, ridingHead, badge, reduceMotion, cx, cy, radius, strokeWidth, length, rotate, grow]);
+  }, [
+    state,
+    indeterminate,
+    ridingHead,
+    badge,
+    reduceMotion,
+    cx,
+    cy,
+    radius,
+    strokeWidth,
+    length,
+    rotate,
+    grow,
+  ]);
 
   // The arc's length is the only part progress moves, so reports animate it
   // alone instead of restarting the whole shape.
   React.useEffect(() => {
     const done = state === "done";
     if (done && !ridingHead) return;
-    const target = done ? ARC_LENGTH : state === "loading" ? (progress ?? SPINNER_LENGTH) : 0;
+    const target = done
+      ? ARC_LENGTH
+      : state === "loading"
+        ? (progress ?? SPINNER_LENGTH)
+        : 0;
     if (reduceMotion) {
       length.set(target);
       return;
@@ -350,7 +399,8 @@ export function DownloadButton({
         signal: controller.signal,
         setProgress: (value) => {
           // A non-finite report carries no information; keep the last one.
-          if (requestRef.current !== controller || !Number.isFinite(value)) return;
+          if (requestRef.current !== controller || !Number.isFinite(value))
+            return;
           pendingProgress = Math.min(1, Math.max(0, value));
           // Streams can report hundreds of times a second; render once a frame.
           progressFrameRef.current ??= requestAnimationFrame(() => {
@@ -400,7 +450,13 @@ export function DownloadButton({
       type={type}
       disabled={disabled}
       aria-label={
-        loading ? (cancelable ? cancelLabel : loadingLabel) : done ? doneLabel : label
+        loading
+          ? cancelable
+            ? cancelLabel
+            : loadingLabel
+          : done
+            ? doneLabel
+            : label
       }
       aria-busy={loading}
       // Not `disabled` while loading, so keyboard focus stays on the button.
@@ -490,10 +546,22 @@ export function DownloadButton({
             stroke="none"
             initial={false}
             animate={{ scale: done ? 1 : 0, opacity: done ? 1 : 0 }}
-            transition={reduceMotion ? { duration: 0 } : done ? BADGE_POP : fade}
+            transition={
+              reduceMotion ? { duration: 0 } : done ? BADGE_POP : fade
+            }
           >
-            <circle cx={BADGE_CX} cy={BADGE_CY} r={BADGE_RADIUS + BADGE_GAP} fill={SURFACE} />
-            <circle cx={BADGE_CX} cy={BADGE_CY} r={BADGE_RADIUS} fill="currentColor" />
+            <circle
+              cx={BADGE_CX}
+              cy={BADGE_CY}
+              r={BADGE_RADIUS + BADGE_GAP}
+              fill={SURFACE}
+            />
+            <circle
+              cx={BADGE_CX}
+              cy={BADGE_CY}
+              r={BADGE_RADIUS}
+              fill="currentColor"
+            />
             <path
               d={CHECK_PATH}
               transform={CHECK_TRANSFORM}
@@ -544,7 +612,10 @@ export function DownloadButton({
           className={ICON_SLOT}
           // Kept on its own layer throughout: an icon at a fractional offset
           // would otherwise snap sideways when its transform is dropped.
-          style={{ ...(badge ? DONE_ICON_STYLE : ICON_STYLE), willChange: "transform" }}
+          style={{
+            ...(badge ? DONE_ICON_STYLE : ICON_STYLE),
+            willChange: "transform",
+          }}
           initial={false}
           animate={
             done

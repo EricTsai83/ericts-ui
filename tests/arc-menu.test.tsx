@@ -34,9 +34,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderMenu(
-  props: Partial<ComponentProps<typeof ArcMenu>> = {},
-) {
+function renderMenu(props: Partial<ComponentProps<typeof ArcMenu>> = {}) {
   return render(
     <ArcMenu triggerLabel="Open shortcuts" {...props}>
       <ArcMenuAction label="Document" icon={<span />} />
@@ -147,9 +145,7 @@ describe("ArcMenu", () => {
     );
 
     await waitFor(() => {
-      expect(surface?.style.transform).toBe(
-        "scale(0.7142857142857143)",
-      );
+      expect(surface?.style.transform).toBe("scale(0.7142857142857143)");
     });
     expect(closeIcon?.style.width).toBe("28px");
   });
@@ -232,11 +228,7 @@ describe("ArcMenu", () => {
 
     render(
       <ArcMenu defaultOpen triggerLabel="Open shortcuts">
-        <ArcMenuAction
-          label="Document"
-          icon={<span />}
-          onClick={onAction}
-        />
+        <ArcMenuAction label="Document" icon={<span />} onClick={onAction} />
       </ArcMenu>,
     );
 
@@ -301,9 +293,9 @@ describe("ArcMenu", () => {
       screen.getByRole("button", { name: "After" }),
     );
     expect(
-      screen.getByRole("button", { name: "Quick" }).getAttribute(
-        "aria-expanded",
-      ),
+      screen
+        .getByRole("button", { name: "Quick" })
+        .getAttribute("aria-expanded"),
     ).toBe("false");
   });
 

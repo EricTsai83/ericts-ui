@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion } from "motion/react";
 import { useTheme } from "fumadocs-ui/provider/base";
+import { motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -27,10 +27,11 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
     null,
   );
   const visualIsDark = visualOverride ?? isDark;
-  const visualOverrideTimer =
-    React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visualOverrideTimer = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const buttonClassName = cn(
-    "group inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+    "group inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
     className,
   );
 
@@ -50,9 +51,12 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
     }
 
     setVisualOverride(nextIsDark);
-    visualOverrideTimer.current = setTimeout(() => {
-      setVisualOverride(null);
-    }, shouldReduceMotion ? 0 : 260);
+    visualOverrideTimer.current = setTimeout(
+      () => {
+        setVisualOverride(null);
+      },
+      shouldReduceMotion ? 0 : 260,
+    );
     setTheme(nextIsDark ? "dark" : "light");
   }, [setTheme, shouldReduceMotion, visualIsDark]);
 
@@ -107,9 +111,7 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           <g>
             <circle cx="12" cy="12" r="8.1" />
           </g>
-          <g
-            strokeWidth="1.85"
-          >
+          <g strokeWidth="1.85">
             <line x1="7" y1="11.5" x2="11.5" y2="7" />
             <line x1="9.1" y1="15.4" x2="15.4" y2="9.1" />
             <line x1="12.5" y1="17" x2="17" y2="12.5" />
@@ -126,12 +128,8 @@ export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
           style={{ transformBox: "fill-box", transformOrigin: "center" }}
           transition={markTransition}
         >
-          <path
-            d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
-          />
-          <g
-            strokeWidth="2.05"
-          >
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          <g strokeWidth="2.05">
             <line x1="7.1" y1="14.5" x2="10.95" y2="10.65" />
             <line x1="9.65" y1="16.35" x2="13.2" y2="12.8" />
             <line x1="13.45" y1="17.15" x2="15.95" y2="14.65" />

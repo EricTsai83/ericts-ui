@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import { createRef } from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  SeekButton,
-  nextSeekRotation,
-} from "@/registry/base/ui/seek-button";
+import { nextSeekRotation, SeekButton } from "@/registry/base/ui/seek-button";
 
 beforeEach(() => {
   vi.stubGlobal("matchMedia", (media: string) => ({
@@ -118,9 +121,7 @@ describe("SeekButton", () => {
   it("keeps the amount upright: it sits outside the element that spins", () => {
     const { button, icon } = renderButton();
 
-    expect(
-      icon.querySelector("[data-slot='seek-button-seconds']"),
-    ).toBeNull();
+    expect(icon.querySelector("[data-slot='seek-button-seconds']")).toBeNull();
     expect(
       button.querySelector("[data-slot='seek-button-seconds']"),
     ).not.toBeNull();
@@ -229,8 +230,7 @@ describe("SeekButton", () => {
     expect(lens.getAttribute("aria-hidden")).toBe("true");
     expect(sheen.getAttribute("aria-hidden")).toBe("true");
     expect(
-      sheen.compareDocumentPosition(icon) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
+      sheen.compareDocumentPosition(icon) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 

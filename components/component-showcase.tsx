@@ -1,23 +1,9 @@
 "use client";
 
-import { Atom, Maximize2, Terminal } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { Atom, Maximize2, Terminal } from "lucide-react";
 
-import { RegistryGuide } from "@/components/registry-guide";
-import { RegistryInstallCommand } from "@/components/registry-install-command";
-import { CodeSnippet, InlineCode } from "@/components/registry-prose";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CopyButton } from "@/registry/base/ui/copy-button";
-import {
-  PreviewCornerSlotProvider,
-  RegistryPreview,
-} from "@/components/registry-preview";
-import {
-  PreviewViewportFrame,
-  type PreviewDeviceId,
-} from "@/components/previews/preview-viewport-frame";
 import {
   DEFAULT_PACKAGE_MANAGER,
   getPackageInstallCommand,
@@ -26,8 +12,22 @@ import {
   packageManagers,
   type PackageManager,
 } from "@/lib/registry-install-command";
-import { cn } from "@/lib/utils";
 import { usePackageManager } from "@/lib/use-package-manager";
+import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PreviewViewportFrame,
+  type PreviewDeviceId,
+} from "@/components/previews/preview-viewport-frame";
+import { RegistryGuide } from "@/components/registry-guide";
+import { RegistryInstallCommand } from "@/components/registry-install-command";
+import {
+  PreviewCornerSlotProvider,
+  RegistryPreview,
+} from "@/components/registry-preview";
+import { CodeSnippet, InlineCode } from "@/components/registry-prose";
+import { CopyButton } from "@/registry/base/ui/copy-button";
 
 export type ComponentCodeLanguage = "css" | "ts" | "tsx";
 
@@ -86,7 +86,7 @@ export function ComponentShowcase({
 
   if (type === "registry:hook") {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-12">
+      <div className="flex max-w-full min-w-0 flex-col gap-12">
         <HookPreview
           name={name}
           codeVariants={codeVariants}
@@ -108,7 +108,7 @@ export function ComponentShowcase({
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-12">
+    <div className="flex max-w-full min-w-0 flex-col gap-12">
       <ComponentPreviewCard
         name={name}
         codeVariants={codeVariants}
@@ -281,8 +281,8 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Why this hook matters",
     description: (
       <>
-        <InlineCode>useReducedMotion</InlineCode> lets
-        a component respect the user&apos;s{" "}
+        <InlineCode>useReducedMotion</InlineCode> lets a component respect the
+        user&apos;s{" "}
         <a
           href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion"
           target="_blank"
@@ -302,11 +302,10 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Animate to real content height",
     description: (
       <>
-        <InlineCode>useElementHeight</InlineCode>{" "}
-        measures one rendered element and gives a container a stable pixel
-        height to animate toward. It is the right fit for accordions,
-        collapsibles, step flows, drawers, and panels where the width is fixed
-        but the content height changes.
+        <InlineCode>useElementHeight</InlineCode> measures one rendered element
+        and gives a container a stable pixel height to animate toward. It is the
+        right fit for accordions, collapsibles, step flows, drawers, and panels
+        where the width is fixed but the content height changes.
       </>
     ),
   },
@@ -314,11 +313,11 @@ const hookPreviewConfigs: Partial<Record<string, HookPreviewConfig>> = {
     title: "Measure multiple layouts before they become active",
     description: (
       <>
-        <InlineCode>useElementSizeMap</InlineCode>{" "}
-        stores width and height by key, so a component can animate an outer
-        shell, highlight, toolbar, or floating panel toward the measured size of
-        the selected item. It is useful when inactive content still needs to
-        define the next layout target.
+        <InlineCode>useElementSizeMap</InlineCode> stores width and height by
+        key, so a component can animate an outer shell, highlight, toolbar, or
+        floating panel toward the measured size of the selected item. It is
+        useful when inactive content still needs to define the next layout
+        target.
       </>
     ),
   },
@@ -351,17 +350,15 @@ function ComponentPreviewCard({
   return (
     <section
       data-slot="component-preview"
-      className="group relative min-w-0 max-w-full"
+      className="group relative max-w-full min-w-0"
     >
       {/* The toolbar mounts out here rather than inside the card: it is centred
           on the card's top border, and the card clips its own corners, which
           would cut the top half of it away. `contents` keeps the mount point
           out of the layout. */}
-      {previewDevice ? (
-        <div ref={setToolbarSlot} className="contents" />
-      ) : null}
+      {previewDevice ? <div ref={setToolbarSlot} className="contents" /> : null}
 
-      <div className="min-w-0 max-w-full overflow-hidden rounded-xl border bg-background">
+      <div className="max-w-full min-w-0 overflow-hidden rounded-xl border bg-background">
         <Tabs defaultValue={variants[0].value} className="min-w-0 gap-0">
           {hasMultipleVariants ? (
             <div className="flex min-h-12 items-center border-b bg-muted/30 px-3 py-3">
@@ -423,7 +420,7 @@ function ComponentPreviewCard({
           </div>
           <div
             data-slot="code"
-            className="relative min-w-0 max-w-full overflow-hidden border-t bg-muted/30"
+            className="relative max-w-full min-w-0 overflow-hidden border-t bg-muted/30"
           >
             {variants.map((variant) => (
               <TabsContent
@@ -489,7 +486,7 @@ function PreviewFullscreenAction({ href }: { href?: string }) {
       aria-label="Open fullscreen demo"
       className={cn(
         buttonVariants({ variant: "outline", size: "icon" }),
-        "absolute right-3 top-3 z-10 bg-background/80 backdrop-blur-sm",
+        "absolute top-3 right-3 z-10 bg-background/80 backdrop-blur-sm",
       )}
     >
       <Maximize2 aria-hidden="true" />
@@ -520,7 +517,7 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
       }}
       className="min-w-0 gap-0"
     >
-      <div className="flex min-h-10 min-w-0 max-w-full items-end border-b bg-muted/60">
+      <div className="flex min-h-10 max-w-full min-w-0 items-end border-b bg-muted/60">
         <TabsList
           aria-label={
             resolvedFiles.length > 1 ? "Code files" : "Current code file"
@@ -538,7 +535,7 @@ function CodeFileTabs({ files }: { files: ComponentCodeFile[] }) {
               <TabsTrigger
                 key={file.name}
                 value={file.name}
-                className="relative h-10 min-w-32 max-w-60 flex-none justify-start rounded-none border-0 bg-muted/40 px-3 py-0 text-xs font-medium shadow-none transition-none hover:bg-background/70 data-active:bg-background data-active:text-foreground data-active:shadow-none has-data-[icon=inline-start]:pl-3 after:hidden"
+                className="relative h-10 max-w-60 min-w-32 flex-none justify-start rounded-none border-0 bg-muted/40 px-3 py-0 text-xs font-medium shadow-none transition-none after:hidden hover:bg-background/70 has-data-[icon=inline-start]:pl-3 data-active:bg-background data-active:text-foreground data-active:shadow-none"
               >
                 {isActive && hasPreviousFile ? (
                   <FileTabSeparator side="left" />
@@ -583,7 +580,7 @@ function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
       <span
         data-icon="inline-start"
         aria-hidden="true"
-        className="w-4 shrink-0 text-center font-mono text-sm font-semibold leading-none text-sky-500"
+        className="w-4 shrink-0 text-center font-mono text-sm leading-none font-semibold text-sky-500"
       >
         #
       </span>
@@ -605,7 +602,7 @@ function FileTypeIcon({ language }: { language: ComponentCodeLanguage }) {
       <span
         data-icon="inline-start"
         aria-hidden="true"
-        className="w-4 shrink-0 text-center font-mono text-sm font-semibold leading-none text-sky-500"
+        className="w-4 shrink-0 text-center font-mono text-sm leading-none font-semibold text-sky-500"
       >
         ts
       </span>
@@ -622,19 +619,19 @@ function CodeFileBlock({ file }: { file: ComponentCodeFile }) {
   return (
     <div
       data-code-visible={isCodeVisible}
-      className="relative min-w-0 max-w-full overflow-hidden bg-background"
+      className="relative max-w-full min-w-0 overflow-hidden bg-background"
     >
       {isCodeVisible ? (
         <CopyButton
           value={code}
           aria-label={`Copy ${file.name} source code`}
           title="Copy code"
-          className="absolute right-3 top-3 z-10 bg-background"
+          className="absolute top-3 right-3 z-10 bg-background"
         />
       ) : null}
       <div
         className={cn(
-          "min-w-0 max-w-full",
+          "max-w-full min-w-0",
           !isCodeVisible && "max-h-32 overflow-hidden",
         )}
       >
@@ -680,7 +677,7 @@ function InstallationPanel({
   cssVariables?: ComponentCodeFile;
 }) {
   return (
-    <section className="min-w-0 flex flex-col gap-5">
+    <section className="flex min-w-0 flex-col gap-5">
       <div className="flex max-w-3xl flex-col gap-2">
         <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
         {hasCssOnlyVariant ? (
@@ -754,12 +751,11 @@ function UseReducedMotionInstallationNotes({
         <p className="text-sm leading-6 text-foreground">
           The local hook does one job: it reads{" "}
           <InlineCode>prefers-reduced-motion</InlineCode> with{" "}
-          <InlineCode>matchMedia</InlineCode>,
-          syncs the current value after mount, and removes its change listener
-          during cleanup. That gives components the same reduced-motion branch
-          point as Motion&apos;s{" "}
-          <InlineCode>useReducedMotion</InlineCode>{" "}
-          hook, without installing Motion or adding its bundle weight.
+          <InlineCode>matchMedia</InlineCode>, syncs the current value after
+          mount, and removes its change listener during cleanup. That gives
+          components the same reduced-motion branch point as Motion&apos;s{" "}
+          <InlineCode>useReducedMotion</InlineCode> hook, without installing
+          Motion or adding its bundle weight.
         </p>
       </div>
       <article className="flex flex-col gap-3 text-sm leading-6 text-foreground">
@@ -768,20 +764,19 @@ function UseReducedMotionInstallationNotes({
         </h4>
         <p>
           If Motion already drives the component&apos;s animations, use
-          Motion&apos;s{" "}
-          <InlineCode>useReducedMotion</InlineCode>{" "}
-          instead. It keeps the decision inside the same API you use for
-          variants, transitions, and animated values, which is usually clearer
-          than mixing in a separate local hook.
+          Motion&apos;s <InlineCode>useReducedMotion</InlineCode> instead. It
+          keeps the decision inside the same API you use for variants,
+          transitions, and animated values, which is usually clearer than mixing
+          in a separate local hook.
         </p>
         {reducedMotionSnippet ? (
           <CodeSnippet snippet={reducedMotionSnippet} />
         ) : null}
         <p>
           For a larger Motion tree, set the preference once with{" "}
-          <InlineCode>MotionConfig</InlineCode>. This
-          is useful when a parent should make every Motion child follow the
-          user&apos;s device preference by default.
+          <InlineCode>MotionConfig</InlineCode>. This is useful when a parent
+          should make every Motion child follow the user&apos;s device
+          preference by default.
         </p>
         {motionConfigSnippet ? (
           <CodeSnippet snippet={motionConfigSnippet} />
@@ -903,7 +898,7 @@ function ManualInstallSteps({
     hasCssOnlyVariant && linkedRegistryDependencies.length > 0;
 
   return (
-    <ol className="relative flex flex-col gap-0 before:absolute before:left-3.5 before:top-8 before:bottom-8 before:w-px before:bg-border">
+    <ol className="relative flex flex-col gap-0 before:absolute before:top-8 before:bottom-8 before:left-3.5 before:w-px before:bg-border">
       <ManualInstallStep
         number={1}
         title="Install shadcn/ui dependencies"
@@ -1094,7 +1089,7 @@ function SourceCopyDescription({
       <ul className="flex flex-col gap-1">
         {primaryTargetPaths.map((filePath) => (
           <li key={filePath}>
-            <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+            <code className="w-fit max-w-full rounded-md bg-muted px-1.5 py-0.5 font-mono break-all text-foreground">
               {filePath}
             </code>
           </li>
@@ -1109,7 +1104,7 @@ function SourceCopyDescription({
           <ul className="flex flex-col gap-1">
             {cssOnlyFileNames.map((fileName) => (
               <li key={fileName}>
-                <code className="w-fit max-w-full break-all rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                <code className="w-fit max-w-full rounded-md bg-muted px-1.5 py-0.5 font-mono break-all text-foreground">
                   {getSiblingTargetPath(targetPath, fileName)}
                 </code>
               </li>
@@ -1163,9 +1158,7 @@ function ManualInstallStep({
       </span>
       <div className="min-w-0">
         <div className="font-medium">{title}</div>
-        <div className="mt-1 leading-6 text-foreground">
-          {description}
-        </div>
+        <div className="mt-1 leading-6 text-foreground">{description}</div>
         {command ? (
           <ManualInstallCommand
             command={command}
@@ -1196,7 +1189,7 @@ function ManualInstallCommand({
   return (
     <div
       aria-busy={isPackageManagerReady ? undefined : true}
-      className="relative mt-3 min-w-0 max-w-full overflow-hidden rounded-xl bg-muted/50"
+      className="relative mt-3 max-w-full min-w-0 overflow-hidden rounded-xl bg-muted/50"
     >
       <Tabs
         value={packageManager}
@@ -1249,7 +1242,7 @@ function ManualInstallCommand({
         value={selectedCommand}
         variant="ghost"
         className={cn(
-          "absolute right-2 top-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
+          "absolute top-2 right-2 z-10 size-7 opacity-70 hover:opacity-100 focus-visible:opacity-100",
           !isPackageManagerReady && "invisible",
         )}
         aria-label="Copy manual installation command"

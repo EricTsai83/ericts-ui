@@ -8,6 +8,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   DemoTabs,
   type DemoTabsItem,
@@ -70,7 +71,12 @@ beforeEach(() => {
       constructor(callback: IntersectionObserverCallback) {
         intersect = (visible, ratio = visible ? 1 : 0) =>
           callback(
-            [{ isIntersecting: visible, intersectionRatio: ratio } as IntersectionObserverEntry],
+            [
+              {
+                isIntersecting: visible,
+                intersectionRatio: ratio,
+              } as IntersectionObserverEntry,
+            ],
             this as unknown as IntersectionObserver,
           );
       }

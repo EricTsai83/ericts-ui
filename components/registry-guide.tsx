@@ -22,7 +22,7 @@ export function RegistryGuide({ name, snippets }: RegistryGuideProps) {
   }
 
   return (
-    <section className="flex min-w-0 max-w-3xl flex-col gap-10">
+    <section className="flex max-w-3xl min-w-0 flex-col gap-10">
       <Guide snippet={(file) => snippets.find((s) => s.name === file)} />
     </section>
   );
@@ -94,10 +94,9 @@ function NavLinkGuide({ snippet }: { snippet: SnippetLookup }) {
           <InlineCode>useLinkStatus()</InlineCode>
         </DocLink>{" "}
         never reports a wait — a spinner on every link only makes fast
-        navigation feel slow. Reach for{" "}
-        <InlineCode>isPending</InlineCode> when prefetching is off or the
-        destination must fetch before the URL can change, and delay the
-        indicator ~150ms so quick transitions stay silent.
+        navigation feel slow. Reach for <InlineCode>isPending</InlineCode> when
+        prefetching is off or the destination must fetch before the URL can
+        change, and delay the indicator ~150ms so quick transitions stay silent.
       </GuideSection>
 
       <article className="flex flex-col gap-3">
@@ -162,10 +161,10 @@ function NavLinkGuide({ snippet }: { snippet: SnippetLookup }) {
             <InlineCode>currentPathname</InlineCode>.
           </li>
           <li>
-            Requires the Next.js App Router;{" "}
-            <InlineCode>isPending</InlineCode> needs Next.js 15.3 or later.
-            Function <InlineCode>className</InlineCode> and children are client
-            values and cannot cross a Server-to-Client boundary. Absolute URLs,
+            Requires the Next.js App Router; <InlineCode>isPending</InlineCode>{" "}
+            needs Next.js 15.3 or later. Function{" "}
+            <InlineCode>className</InlineCode> and children are client values
+            and cannot cross a Server-to-Client boundary. Absolute URLs,
             relative hrefs, and bare <InlineCode>#</InlineCode> or{" "}
             <InlineCode>?</InlineCode> hrefs are never marked active.
           </li>

@@ -48,7 +48,10 @@ describe("block stylesheets", () => {
   );
 
   it.each([
-    ["ripple-scene", [".ripple-scene__tab {", ".ripple-scene__tab-indicator {"]],
+    [
+      "ripple-scene",
+      [".ripple-scene__tab {", ".ripple-scene__tab-indicator {"],
+    ],
     [
       "vertical-scene",
       [

@@ -1,15 +1,15 @@
+import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Blocks,
+  BookOpen,
   Braces,
   Component,
 } from "lucide-react";
-import Link from "next/link";
 
-import { NotFoundMark, RequestedPath } from "@/components/not-found-mark";
 import { buttonVariants } from "@/components/ui/button";
+import { NotFoundMark, RequestedPath } from "@/components/not-found-mark";
 
 const destinations = [
   {
@@ -57,7 +57,7 @@ export default function NotFound() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-[28%] -z-10 size-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted/50 blur-3xl"
+        className="pointer-events-none absolute top-[28%] left-1/2 -z-10 size-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted/50 blur-3xl"
       />
 
       <div className="flex flex-1 items-center justify-center px-5 py-24 sm:px-8">
@@ -96,7 +96,7 @@ export default function NotFound() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center gap-3 bg-background p-4 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                className="group flex items-center gap-3 bg-background p-4 transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground transition-colors group-hover:text-foreground">
                   <item.icon aria-hidden="true" className="size-4" />

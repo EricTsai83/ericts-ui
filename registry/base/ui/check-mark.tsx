@@ -7,8 +7,10 @@ import "./check-mark.css";
 export type CheckMarkVariant = "square" | "circle";
 export type CheckMarkSize = "sm" | "md" | "lg";
 
-export interface CheckMarkProps
-  extends Omit<React.ComponentProps<"span">, "children"> {
+export interface CheckMarkProps extends Omit<
+  React.ComponentProps<"span">,
+  "children"
+> {
   variant?: CheckMarkVariant;
   size?: CheckMarkSize;
   /** Accessible label. Omit for a decorative mark. */
@@ -24,7 +26,8 @@ const sizeClassNames: Record<CheckMarkSize, string> = {
 
 const DEFAULT_STROKE_WIDTH = 2;
 const VECTOR_EFFECT = "non-scaling-stroke";
-const SQUARE_PATH = "M 50,11.5 L 88.5,11.5 L 88.5,88.5 L 11.5,88.5 L 11.5,11.5 Z";
+const SQUARE_PATH =
+  "M 50,11.5 L 88.5,11.5 L 88.5,88.5 L 11.5,88.5 L 11.5,11.5 Z";
 const CIRCLE_PATH =
   "M 88.5,50 C 88.5,71.26 71.26,88.5 50,88.5 C 28.74,88.5 11.5,71.26 11.5,50 C 11.5,28.74 28.74,11.5 50,11.5 C 71.26,11.5 88.5,28.74 88.5,50 Z";
 const CHECK_PATH = "M 32.3,51 L 44,62.9 L 68.75,36.5";

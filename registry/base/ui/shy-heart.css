@@ -8,9 +8,7 @@
     --shy-heart-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --shy-heart-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     --shy-heart-blush-color: var(--ericts-shy-heart-blush);
-    --shy-heart-blush-backdrop-color: var(
-      --ericts-shy-heart-blush-baseline
-    );
+    --shy-heart-blush-backdrop-color: var(--ericts-shy-heart-blush-baseline);
     width: var(--shy-heart-size);
   }
 

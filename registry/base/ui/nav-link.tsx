@@ -1,13 +1,9 @@
 "use client";
 
+import { Suspense, type ComponentProps, type ReactNode } from "react";
 import type { Route } from "next";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Suspense,
-  type ComponentProps,
-  type ReactNode,
-} from "react";
 
 export type NavLinkMatch = "exact" | "prefix";
 
@@ -40,9 +36,7 @@ export type NavLinkProps<T extends string = string> = Omit<
    * routing layers that expose a canonical pathname.
    */
   currentPathname?: string;
-  className?:
-    | string
-    | ((props: NavLinkActiveProps) => string | undefined);
+  className?: string | ((props: NavLinkActiveProps) => string | undefined);
   children?: ReactNode | ((props: NavLinkRenderProps) => ReactNode);
 };
 

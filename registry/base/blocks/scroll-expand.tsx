@@ -2,9 +2,9 @@
 
 import * as React from "react";
 
+import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
-import { cn } from "@/lib/utils";
 
 import "./scroll-expand.css";
 
@@ -65,11 +65,10 @@ const ScrollExpandItemContext = React.createContext<
   ScrollExpandItemRegistry | undefined
 >(undefined);
 
-export interface ScrollExpandProps
-  extends Omit<
-    React.ComponentProps<"div">,
-    "title" | "onProgress"
-  > {
+export interface ScrollExpandProps extends Omit<
+  React.ComponentProps<"div">,
+  "title" | "onProgress"
+> {
   src?: string;
   mediaType?: ScrollExpandMediaType;
   /** Expand a detail into context, or focus full-bleed context into a detail. */
@@ -126,8 +125,7 @@ export interface ScrollExpandProps
   onProgress?: (progress: number) => void;
 }
 
-export interface ScrollExpandItemProps
-  extends React.ComponentProps<"div"> {
+export interface ScrollExpandItemProps extends React.ComponentProps<"div"> {
   /** Scroll progress where this item starts entering. */
   start?: number;
   /** Scroll progress where this item finishes entering. */
@@ -264,60 +262,41 @@ export function ScrollExpand({
   const resolvedContentAlign = overrides?.contentAlign ?? contentAlign;
   const resolvedContentPosition = overrides?.contentPosition ?? contentPosition;
 
-  const motionValues = React.useMemo<MotionValues>(
-    () => {
-      const width = clamp(finiteNumber(resolvedStartWidth, 42), 0, 100);
-      const height = clamp(finiteNumber(resolvedStartHeight, 58), 0, 100);
-      const left = clamp(
-        finiteNumber(startX, 50) - width / 2,
-        0,
-        100 - width,
-      );
-      const top = clamp(
-        finiteNumber(startY, 50) - height / 2,
-        0,
-        100 - height,
-      );
+  const motionValues = React.useMemo<MotionValues>(() => {
+    const width = clamp(finiteNumber(resolvedStartWidth, 42), 0, 100);
+    const height = clamp(finiteNumber(resolvedStartHeight, 58), 0, 100);
+    const left = clamp(finiteNumber(startX, 50) - width / 2, 0, 100 - width);
+    const top = clamp(finiteNumber(startY, 50) - height / 2, 0, 100 - height);
 
-      return {
-        startWidth: width,
-        startHeight: height,
-        startX: finiteNumber(startX, 50),
-        startY: finiteNumber(startY, 50),
-        startInsetTop: top,
-        startInsetRight: 100 - left - width,
-        startInsetBottom: 100 - top - height,
-        startInsetLeft: left,
-        startRadius: Math.max(0, finiteNumber(resolvedStartRadius, 24)),
-        endRadius: Math.max(0, finiteNumber(resolvedEndRadius, 0)),
-        mediaZoom: Math.max(0.01, finiteNumber(resolvedMediaZoom, 1.35)),
-        overlayScrim: clamp(finiteNumber(resolvedOverlayScrim, 0.45), 0, 1),
-      };
-    },
-    [
-      resolvedEndRadius,
-      resolvedMediaZoom,
-      resolvedOverlayScrim,
-      resolvedStartHeight,
-      resolvedStartRadius,
-      resolvedStartWidth,
-      startX,
-      startY,
-    ],
-  );
+    return {
+      startWidth: width,
+      startHeight: height,
+      startX: finiteNumber(startX, 50),
+      startY: finiteNumber(startY, 50),
+      startInsetTop: top,
+      startInsetRight: 100 - left - width,
+      startInsetBottom: 100 - top - height,
+      startInsetLeft: left,
+      startRadius: Math.max(0, finiteNumber(resolvedStartRadius, 24)),
+      endRadius: Math.max(0, finiteNumber(resolvedEndRadius, 0)),
+      mediaZoom: Math.max(0.01, finiteNumber(resolvedMediaZoom, 1.35)),
+      overlayScrim: clamp(finiteNumber(resolvedOverlayScrim, 0.45), 0, 1),
+    };
+  }, [
+    resolvedEndRadius,
+    resolvedMediaZoom,
+    resolvedOverlayScrim,
+    resolvedStartHeight,
+    resolvedStartRadius,
+    resolvedStartWidth,
+    startX,
+    startY,
+  ]);
 
   const applyItemProgress = React.useCallback(
     (node: HTMLDivElement, progress: number) => {
-      const start = clamp(
-        finiteNumber(Number(node.dataset.start), 0.64),
-        0,
-        1,
-      );
-      const end = clamp(
-        finiteNumber(Number(node.dataset.end), 0.94),
-        start,
-        1,
-      );
+      const start = clamp(finiteNumber(Number(node.dataset.start), 0.64), 0, 1);
+      const end = clamp(finiteNumber(Number(node.dataset.end), 0.94), start, 1);
       const offsetY = finiteNumber(Number(node.dataset.offsetY), 24);
       const scaleFrom = Math.max(
         0.01,
@@ -344,87 +323,90 @@ export function ScrollExpand({
     [applyItemProgress],
   );
 
-  const applyProgress = React.useCallback((progress: number) => {
-    const frame = frameRef.current;
-    const media = mediaRef.current;
+  const applyProgress = React.useCallback(
+    (progress: number) => {
+      const frame = frameRef.current;
+      const media = mediaRef.current;
 
-    if (!frame || !media) {
-      return;
-    }
+      if (!frame || !media) {
+        return;
+      }
 
-    progressRef.current = progress;
-    rootRef.current?.style.setProperty(
-      "--scroll-expand-progress",
-      String(progress),
-    );
-    onProgress?.(progress);
+      progressRef.current = progress;
+      rootRef.current?.style.setProperty(
+        "--scroll-expand-progress",
+        String(progress),
+      );
+      onProgress?.(progress);
 
-    const values = motionValues;
-    const geometry = resolveFrameGeometry(
-      values,
-      frameShape,
-      stageSizeRef.current,
-    );
-    const eased = smoothstep(0, 1, progress);
-    // Progress is pinned to 1 while motion is off, so both directions settle on
-    // their own end state: full bleed for `expand`, the detail frame for `focus`.
-    const frameProgress = direction === "focus" ? 1 - eased : eased;
-    const remainingInset = 1 - frameProgress;
-    const insetTop = geometry.insetTop * remainingInset;
-    const insetRight = geometry.insetRight * remainingInset;
-    const insetBottom = geometry.insetBottom * remainingInset;
-    const insetLeft = geometry.insetLeft * remainingInset;
-    const radius =
-      geometry.startRadius +
-      (values.endRadius - geometry.startRadius) * frameProgress;
+      const values = motionValues;
+      const geometry = resolveFrameGeometry(
+        values,
+        frameShape,
+        stageSizeRef.current,
+      );
+      const eased = smoothstep(0, 1, progress);
+      // Progress is pinned to 1 while motion is off, so both directions settle on
+      // their own end state: full bleed for `expand`, the detail frame for `focus`.
+      const frameProgress = direction === "focus" ? 1 - eased : eased;
+      const remainingInset = 1 - frameProgress;
+      const insetTop = geometry.insetTop * remainingInset;
+      const insetRight = geometry.insetRight * remainingInset;
+      const insetBottom = geometry.insetBottom * remainingInset;
+      const insetLeft = geometry.insetLeft * remainingInset;
+      const radius =
+        geometry.startRadius +
+        (values.endRadius - geometry.startRadius) * frameProgress;
 
-    frame.style.clipPath = `inset(${insetTop}${geometry.unit} ${insetRight}${geometry.unit} ${insetBottom}${geometry.unit} ${insetLeft}${geometry.unit} round ${radius}px)`;
+      frame.style.clipPath = `inset(${insetTop}${geometry.unit} ${insetRight}${geometry.unit} ${insetBottom}${geometry.unit} ${insetLeft}${geometry.unit} round ${radius}px)`;
 
-    const zoom = values.mediaZoom + (1 - values.mediaZoom) * frameProgress;
-    const box = mediaBoxRef.current;
+      const zoom = values.mediaZoom + (1 - values.mediaZoom) * frameProgress;
+      const box = mediaBoxRef.current;
 
-    if (box.active) {
-      // The zoom pivots on the subject and the offset that parks the subject on
-      // its target is a constant, so nothing here depends on progress: the media
-      // only ever scales. `handleMeasure` sizes the box so this offset already
-      // covers the stage at the shallowest zoom, which is what removes the pan
-      // a minimal cover box would otherwise force near full bleed.
-      media.style.transform = `translate3d(${roundPixel(box.offsetX)}px, ${roundPixel(box.offsetY)}px, 0) scale(${zoom})`;
-    } else {
-      media.style.transform = `scale(${zoom})`;
-    }
+      if (box.active) {
+        // The zoom pivots on the subject and the offset that parks the subject on
+        // its target is a constant, so nothing here depends on progress: the media
+        // only ever scales. `handleMeasure` sizes the box so this offset already
+        // covers the stage at the shallowest zoom, which is what removes the pan
+        // a minimal cover box would otherwise force near full bleed.
+        media.style.transform = `translate3d(${roundPixel(box.offsetX)}px, ${roundPixel(box.offsetY)}px, 0) scale(${zoom})`;
+      } else {
+        media.style.transform = `scale(${zoom})`;
+      }
 
-    if (scrimRef.current) {
-      const scrimProgress = smoothstep(0.38, 1, progress);
-      scrimRef.current.style.opacity = `${values.overlayScrim * scrimProgress}`;
-    }
+      if (scrimRef.current) {
+        const scrimProgress = smoothstep(0.38, 1, progress);
+        scrimRef.current.style.opacity = `${values.overlayScrim * scrimProgress}`;
+      }
 
-    if (titleRef.current) {
-      const exitProgress = smoothstep(0.32, 0.74, progress);
-      titleRef.current.style.opacity = `${1 - exitProgress}`;
-      titleRef.current.style.transform = `translate3d(0, ${-22 * exitProgress}px, 0) scale(${1 - 0.04 * exitProgress})`;
-    }
+      if (titleRef.current) {
+        const exitProgress = smoothstep(0.32, 0.74, progress);
+        titleRef.current.style.opacity = `${1 - exitProgress}`;
+        titleRef.current.style.transform = `translate3d(0, ${-22 * exitProgress}px, 0) scale(${1 - 0.04 * exitProgress})`;
+      }
 
-    if (hintRef.current) {
-      const exitProgress = smoothstep(0, 0.12, progress);
-      hintRef.current.style.opacity = `${1 - exitProgress}`;
-      hintRef.current.style.transform = `translate3d(0, ${8 * exitProgress}px, 0)`;
-    }
+      if (hintRef.current) {
+        const exitProgress = smoothstep(0, 0.12, progress);
+        hintRef.current.style.opacity = `${1 - exitProgress}`;
+        hintRef.current.style.transform = `translate3d(0, ${8 * exitProgress}px, 0)`;
+      }
 
-    if (overlayRef.current) {
-      const enterProgress = smoothstep(0.56, 0.9, progress);
-      const isHidden = enterProgress < 0.98;
+      if (overlayRef.current) {
+        const enterProgress = smoothstep(0.56, 0.9, progress);
+        const isHidden = enterProgress < 0.98;
 
-      overlayRef.current.style.opacity = `${enterProgress}`;
-      overlayRef.current.style.transform = `translate3d(0, ${18 * (1 - enterProgress)}px, 0)`;
-      overlayRef.current.toggleAttribute("inert", isHidden);
-      overlayRef.current.setAttribute("aria-hidden", String(isHidden));
-    }
+        overlayRef.current.style.opacity = `${enterProgress}`;
+        overlayRef.current.style.transform = `translate3d(0, ${18 * (1 - enterProgress)}px, 0)`;
+        overlayRef.current.toggleAttribute("inert", isHidden);
+        overlayRef.current.setAttribute("aria-hidden", String(isHidden));
+      }
 
-    itemNodesRef.current.forEach((node) => {
-      applyItemProgress(node, progress);
-    });
-  }, [applyItemProgress, direction, frameShape, motionValues, onProgress]);
+      itemNodesRef.current.forEach((node) => {
+        applyItemProgress(node, progress);
+      });
+    },
+    [applyItemProgress, direction, frameShape, motionValues, onProgress],
+  );
 
   const handleMeasure = React.useCallback(
     (viewportHeight: number) => {
@@ -481,7 +463,12 @@ export function ScrollExpand({
           Math.max(
             coverScale,
             edgeScale(restX, focalX, intrinsic.width, zoomFloor),
-            edgeScale(stageWidth - restX, 1 - focalX, intrinsic.width, zoomFloor),
+            edgeScale(
+              stageWidth - restX,
+              1 - focalX,
+              intrinsic.width,
+              zoomFloor,
+            ),
             edgeScale(restY, focalY, intrinsic.height, zoomFloor),
             edgeScale(
               viewportHeight - restY,
@@ -632,7 +619,10 @@ export function ScrollExpand({
   ]);
 
   React.useEffect(() => {
-    if (mediaType !== "video" || !(mediaRef.current instanceof HTMLVideoElement)) {
+    if (
+      mediaType !== "video" ||
+      !(mediaRef.current instanceof HTMLVideoElement)
+    ) {
       return;
     }
 

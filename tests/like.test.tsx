@@ -3,10 +3,10 @@ import { createRef, useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/like.css", () => ({}));
-
 import { Button } from "@/components/ui/button";
 import { Like } from "@/registry/base/ui/like";
+
+vi.mock("@/registry/base/ui/like.css", () => ({}));
 
 afterEach(cleanup);
 
@@ -45,9 +45,9 @@ describe("Like", () => {
     fireEvent.click(control);
 
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(container.querySelectorAll(".like-particle")).toHaveLength(8);
     expect(container.querySelectorAll(".like-particle-heart")).toHaveLength(8);
@@ -55,9 +55,7 @@ describe("Like", () => {
     fireEvent.click(control);
 
     expect(
-      screen.getByRole("button", { name: "Like" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen.getByRole("button", { name: "Like" }).getAttribute("aria-pressed"),
     ).toBe("false");
     expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
@@ -175,9 +173,9 @@ describe("Like", () => {
     rerender(<Like liked />);
 
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });
@@ -221,9 +219,9 @@ describe("Like", () => {
     // Returning to the parent's liked state is programmatic — no replay.
     rerender(<ControlledLike />);
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(container.querySelector('[data-slot="like-scatter"]')).toBeNull();
   });

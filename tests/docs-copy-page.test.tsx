@@ -1,5 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DocsCopyPage } from "@/components/docs-copy-page";
@@ -56,9 +62,7 @@ describe("DocsCopyPage", () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "More page actions" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "More page actions" }));
 
     const markdownLink = await screen.findByRole("menuitem", {
       name: "View as Markdown",
@@ -66,9 +70,7 @@ describe("DocsCopyPage", () => {
 
     expect(markdownLink.getAttribute("href")).toBe("/docs/installation.md");
     expect(
-      screen
-        .getByRole("menuitem", { name: "Open in v0" })
-        .getAttribute("href"),
+      screen.getByRole("menuitem", { name: "Open in v0" }).getAttribute("href"),
     ).toContain("https://v0.dev/chat?q=");
     expect(
       screen.getByRole("menuitem", { name: "Open in ChatGPT" }),

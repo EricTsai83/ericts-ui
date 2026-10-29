@@ -1,10 +1,10 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
   VerticalScene,
   type VerticalSceneItem,
 } from "@/registry/base/blocks/vertical-scene";
-import { cn } from "@/lib/utils";
 
 const scenes: readonly VerticalSceneItem[] = [
   {

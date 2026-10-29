@@ -29,14 +29,8 @@ export type ExpandableSegmentedTabsProps = Omit<
   items: ExpandableSegmentedTabsItem[];
   value?: string;
   defaultValue?: string;
-  onValueChange?: (
-    value: string,
-    item: ExpandableSegmentedTabsItem,
-  ) => void;
-  onValueIntent?: (
-    value: string,
-    item: ExpandableSegmentedTabsItem,
-  ) => void;
+  onValueChange?: (value: string, item: ExpandableSegmentedTabsItem) => void;
+  onValueIntent?: (value: string, item: ExpandableSegmentedTabsItem) => void;
   /**
    * Preserves the last selected value across unmount/remount for this key, so
    * route-driven mode switches can still animate from the previous tab.
@@ -91,10 +85,7 @@ function getSelectableValue(
     : enabledItems[0]?.value;
 }
 
-function getItemByValue(
-  items: ExpandableSegmentedTabsItem[],
-  value: string,
-) {
+function getItemByValue(items: ExpandableSegmentedTabsItem[], value: string) {
   return items.find((item) => item.value === value);
 }
 
@@ -192,10 +183,7 @@ export function ExpandableSegmentedTabs({
   );
 
   const handleKeyDown = React.useCallback(
-    (
-      event: React.KeyboardEvent<HTMLButtonElement>,
-      currentValue: string,
-    ) => {
+    (event: React.KeyboardEvent<HTMLButtonElement>, currentValue: string) => {
       if (enabledItems.length === 0) return;
 
       const currentIndex = Math.max(
@@ -231,9 +219,7 @@ export function ExpandableSegmentedTabs({
 
   const isMountTransition =
     transitionFromValue !== null && !exitIndicatorDone && !shouldReduceMotion;
-  const transition = shouldReduceMotion
-    ? { duration: 0 }
-    : EXPAND_TRANSITION;
+  const transition = shouldReduceMotion ? { duration: 0 } : EXPAND_TRANSITION;
 
   return (
     <div
@@ -298,7 +284,7 @@ export function ExpandableSegmentedTabs({
               onPointerEnter={() => handleIntent(item)}
               onKeyDown={(event) => handleKeyDown(event, item.value)}
               className={cn(
-                "relative flex h-full min-w-0 items-center justify-start overflow-hidden rounded-lg px-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 data-active:text-foreground",
+                "relative flex h-full min-w-0 items-center justify-start overflow-hidden rounded-lg px-2.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 data-active:text-foreground",
                 itemClassName,
                 isActive && activeItemClassName,
               )}
@@ -354,9 +340,7 @@ export function ExpandableSegmentedTabs({
               </span>
               <motion.span
                 animate={
-                  isActive
-                    ? { opacity: 1, x: 0 }
-                    : { opacity: 0, x: -4 }
+                  isActive ? { opacity: 1, x: 0 } : { opacity: 0, x: -4 }
                 }
                 transition={transition}
                 className={cn(

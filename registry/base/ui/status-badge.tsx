@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   AlertTriangle,
   Check,
@@ -16,22 +17,18 @@ import {
   type HTMLMotionProps,
   type Variants,
 } from "motion/react";
-import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
 export type StatusBadgeStatus =
-  | "neutral"
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "loading";
+  "neutral" | "info" | "success" | "warning" | "danger" | "loading";
 
 export type StatusBadgeSize = "sm" | "md";
 
-export interface StatusBadgeProps
-  extends Omit<HTMLMotionProps<"span">, "children"> {
+export interface StatusBadgeProps extends Omit<
+  HTMLMotionProps<"span">,
+  "children"
+> {
   status?: StatusBadgeStatus;
   size?: StatusBadgeSize;
   children?: ReactNode;
@@ -180,11 +177,11 @@ export function StatusBadge({
       aria-live={announce ? "polite" : undefined}
       transition={shouldReduceMotion ? { duration: 0 } : SPRING_LAYOUT}
       className={cn(
-        "relative inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full border font-medium tabular-nums",
+        "relative inline-flex shrink-0 items-center overflow-hidden rounded-full border font-medium whitespace-nowrap tabular-nums",
         "transition-colors duration-150 ease-out",
         statusClassNames[status],
         sizeClassNames[size],
-        className
+        className,
       )}
       {...props}
     >
@@ -213,12 +210,16 @@ export function StatusBadge({
               initial={shouldReduceMotion ? false : "initial"}
               animate={shouldReduceMotion ? { opacity: 1 } : "animate"}
               exit={shouldReduceMotion ? undefined : "exit"}
-              className="inline-flex origin-[50%_65%] transform-3d will-change-transform"
+              className="inline-flex origin-[50%_65%] will-change-transform transform-3d"
             >
               {status === "loading" && !shouldReduceMotion && !icon ? (
                 <motion.span
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 0.9,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                   className="inline-flex"
                 >
                   <Icon className={iconClassNames[size]} />
@@ -244,14 +245,13 @@ export function StatusBadge({
               initial={shouldReduceMotion ? false : "initial"}
               animate={shouldReduceMotion ? { opacity: 1 } : "animate"}
               exit={shouldReduceMotion ? undefined : "exit"}
-              className="inline-block origin-[50%_65%] transform-3d will-change-transform"
+              className="inline-block origin-[50%_65%] will-change-transform transform-3d"
             >
               {children}
             </motion.span>
           </AnimatePresence>
         </span>
       ) : null}
-
     </motion.span>
   );
 }

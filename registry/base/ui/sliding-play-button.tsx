@@ -135,17 +135,13 @@ function shapeToPath(shape: Shape) {
   return `${path} Z`;
 }
 
-const TRIANGLE_PATH = [TRIANGLE_BODY, TRIANGLE_TIP]
-  .map(shapeToPath)
-  .join(" ");
+const TRIANGLE_PATH = [TRIANGLE_BODY, TRIANGLE_TIP].map(shapeToPath).join(" ");
 
 // Scaling the triangle around this offset origin maps its bounding box exactly
 // onto the right pause slot. It therefore visibly remains the same object while
 // it compresses and slides right, instead of being replaced by a new path.
-const TRIANGLE_PAUSE_SCALE_X =
-  BAR_WIDTH / (TRIANGLE_RIGHT - TRIANGLE_LEFT);
-const TRIANGLE_PAUSE_SCALE_Y =
-  BAR_HEIGHT / (TRIANGLE_BOTTOM - TRIANGLE_TOP);
+const TRIANGLE_PAUSE_SCALE_X = BAR_WIDTH / (TRIANGLE_RIGHT - TRIANGLE_LEFT);
+const TRIANGLE_PAUSE_SCALE_Y = BAR_HEIGHT / (TRIANGLE_BOTTOM - TRIANGLE_TOP);
 const TRIANGLE_CENTER = (TRIANGLE_LEFT + TRIANGLE_RIGHT) / 2;
 const RIGHT_SLOT_CENTER = RIGHT_SLOT_X + BAR_WIDTH / 2;
 const TRIANGLE_ORIGIN_X =
@@ -176,7 +172,10 @@ function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
 }
 
-function subProgress(progress: number, [start, end]: readonly [number, number]) {
+function subProgress(
+  progress: number,
+  [start, end]: readonly [number, number],
+) {
   return clamp01((progress - start) / (end - start));
 }
 
@@ -186,9 +185,7 @@ function lerp(from: number, to: number, progress: number) {
 
 function reboundProgress(progress: number) {
   if (progress <= REBOUND_PEAK_AT) {
-    return (
-      REBOUND_PEAK_SCALE * MASTER_EASE(progress / REBOUND_PEAK_AT)
-    );
+    return REBOUND_PEAK_SCALE * MASTER_EASE(progress / REBOUND_PEAK_AT);
   }
 
   return lerp(
@@ -204,11 +201,7 @@ function reboundScale(
   peak = REBOUND_PEAK_SCALE,
 ) {
   if (progress <= REBOUND_PEAK_AT) {
-    return lerp(
-      from,
-      peak,
-      MASTER_EASE(progress / REBOUND_PEAK_AT),
-    );
+    return lerp(from, peak, MASTER_EASE(progress / REBOUND_PEAK_AT));
   }
 
   return lerp(
@@ -288,10 +281,7 @@ function iconValuesToStyles(
       opacity: round(values.rightBar.opacity),
     },
     triangle: {
-      transform: triangleScale(
-        values.triangle.scaleX,
-        values.triangle.scaleY,
-      ),
+      transform: triangleScale(values.triangle.scaleX, values.triangle.scaleY),
       opacity: round(values.triangle.opacity),
     },
   };
@@ -316,11 +306,7 @@ function transitionIconValues(
           elapsed,
           LEFT_BAR_REBOUND_PEAK_SCALE,
         ),
-        opacity: lerp(
-          from.leftBar.opacity,
-          target.leftBar.opacity,
-          visibility,
-        ),
+        opacity: lerp(from.leftBar.opacity, target.leftBar.opacity, visibility),
       },
       rightBar: {
         translateX: lerp(
@@ -403,8 +389,7 @@ function transitionDistance(
         (1 - HIDDEN_BAR_SCALE),
       Math.abs(values.rightBar.translateX - target.rightBar.translateX) /
         SHIFT_DISTANCE,
-      Math.abs(values.triangle.scaleX - target.triangle.scaleX) /
-        triangleRange,
+      Math.abs(values.triangle.scaleX - target.triangle.scaleX) / triangleRange,
     ),
   );
 }

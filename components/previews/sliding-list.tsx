@@ -1,7 +1,7 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Check } from "lucide-react";
 
 import {
   SlidingList,
@@ -47,7 +47,7 @@ export default function Preview() {
       />
       <div className="flex min-w-16 flex-col items-center gap-1 text-center">
         <span className="font-mono text-[0.6875rem] text-muted-foreground">
-          {String(activeIndex + 1).padStart(2, "0")} / {" "}
+          {String(activeIndex + 1).padStart(2, "0")} /{" "}
           {String(disciplines.length).padStart(2, "0")}
         </span>
         <span className="text-sm font-medium">{stages[value]}</span>

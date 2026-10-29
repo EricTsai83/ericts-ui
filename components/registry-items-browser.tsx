@@ -1,14 +1,15 @@
 "use client";
 
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
-import { useMemo, useState, useSyncExternalStore } from "react";
+
+import { cn } from "@/lib/utils";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   RegistryArrangementToggle,
   type RegistryArrangement,
 } from "@/components/registry-arrangement-toggle";
-import { SearchInput } from "@/components/ui/search-input";
-import { cn } from "@/lib/utils";
 
 export type RegistryListItem = {
   name: string;
@@ -136,9 +137,7 @@ function getItemMetadata(
     includeCategory ? (item.groupLabel ?? item.categories?.[0]) : undefined,
     item.meta?.tags?.includes("nextjs-only") ? "Next.js only" : undefined,
     item.meta?.effects?.[0],
-    item.hasCssOnly || item.meta?.cssOnly
-      ? "CSS-only alternative"
-      : undefined,
+    item.hasCssOnly || item.meta?.cssOnly ? "CSS-only alternative" : undefined,
   ]);
 }
 
@@ -276,7 +275,7 @@ export function RegistryItemsBrowser({
           {fullscreenHref ? (
             <Link
               href={fullscreenHref}
-              className="self-start rounded-sm text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-muted-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="self-start rounded-sm text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-muted-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               {fullscreenLabel}
             </Link>
@@ -314,7 +313,7 @@ export function RegistryItemsBrowser({
               <button
                 type="button"
                 onClick={clearSearch}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <X className="size-3.5" aria-hidden="true" />
                 Clear
@@ -334,7 +333,9 @@ export function RegistryItemsBrowser({
           </div>
         </div>
 
-        <div className={cn(enableArrangement && !arrangementReady && "invisible")}>
+        <div
+          className={cn(enableArrangement && !arrangementReady && "invisible")}
+        >
           {items.length > 0 ? (
             filteredItems.length > 0 ? (
               browseMode === "category" ? (
@@ -378,7 +379,11 @@ export function RegistryItemsBrowser({
               ) : (
                 <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredItems.map((item) => (
-                    <RegistryItemLink key={item.name} item={item} showCategory />
+                    <RegistryItemLink
+                      key={item.name}
+                      item={item}
+                      showCategory
+                    />
                   ))}
                 </div>
               )
@@ -393,7 +398,7 @@ export function RegistryItemsBrowser({
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <X className="size-3.5" aria-hidden="true" />
                   Clear search
@@ -423,7 +428,7 @@ function RegistryItemLink({
   return (
     <Link
       href={item.href}
-      className="group flex min-w-0 flex-col gap-1 rounded-sm underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group flex min-w-0 flex-col gap-1 rounded-sm underline-offset-4 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       {/*
        * `text-base`, not `text-lg`. An item is the leaf of the list, so it

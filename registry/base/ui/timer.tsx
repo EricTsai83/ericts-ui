@@ -9,13 +9,13 @@ import {
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { cn } from "@/lib/utils";
 import {
   useCountdown,
   useCountUp,
   type TimerControls,
   type TimerStatus,
 } from "@/hooks/use-timer";
-import { cn } from "@/lib/utils";
 
 const DIGIT_TRANSITION = {
   duration: 0.2,

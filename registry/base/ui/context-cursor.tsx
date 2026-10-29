@@ -189,8 +189,7 @@ export function ContextCursor({
 
   const getAnimation = React.useCallback(
     (
-      targetAnimation: ContextCursorTargetAnimation | null =
-        activeTargetAnimation.current,
+      targetAnimation: ContextCursorTargetAnimation | null = activeTargetAnimation.current,
     ): ResolvedContextCursorAnimation => ({
       edgeFade: targetAnimation?.edgeFade ?? animation?.edgeFade ?? true,
       edgeFadeDistance:
@@ -378,7 +377,11 @@ export function ContextCursor({
 
       const currentWrapperBounds = getWrapperBounds();
       if (point && currentWrapperBounds) {
-        updatePointerPosition(point, currentWrapperBounds, targetBounds ?? null);
+        updatePointerPosition(
+          point,
+          currentWrapperBounds,
+          targetBounds ?? null,
+        );
       }
 
       if (!point || !targetBounds) {
@@ -671,7 +674,7 @@ function ContextCursorIndicator({
       className={cn(
         // Anchored to the pointer coordinate; the badge inside is centered on it
         // so it reads as the cursor itself, and the scale pops from that point.
-        "pointer-events-none absolute left-0 top-0 z-50 origin-center will-change-transform",
+        "pointer-events-none absolute top-0 left-0 z-50 origin-center will-change-transform",
         !cursor && "invisible",
         cursorClassName,
       )}
@@ -679,7 +682,7 @@ function ContextCursorIndicator({
       <span
         data-slot="context-cursor-label"
         className={cn(
-          "inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium leading-5 shadow-sm",
+          "inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs leading-5 font-medium whitespace-nowrap shadow-sm",
           variantClassNames[variant],
         )}
       >
@@ -783,13 +786,12 @@ function snapToDevicePixel(value: number) {
   return Math.round(value * ratio) / ratio;
 }
 
-export type ContextCursorTargetProps =
-  React.ComponentProps<"div"> & {
-    label: React.ReactNode;
-    icon?: React.ReactNode;
-    variant?: ContextCursorVariant;
-    animation?: ContextCursorTargetAnimation;
-  };
+export type ContextCursorTargetProps = React.ComponentProps<"div"> & {
+  label: React.ReactNode;
+  icon?: React.ReactNode;
+  variant?: ContextCursorVariant;
+  animation?: ContextCursorTargetAnimation;
+};
 
 export function ContextCursorTarget({
   children,

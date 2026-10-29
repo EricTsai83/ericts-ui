@@ -48,9 +48,7 @@ type SwipeState = {
   reduceMotion: boolean;
 };
 
-export type UseSwipeNavigationOptions<
-  T extends HTMLElement = HTMLElement,
-> = {
+export type UseSwipeNavigationOptions<T extends HTMLElement = HTMLElement> = {
   onPrevious: () => void;
   onNext: () => void;
   hasPrevious?: boolean;
@@ -138,9 +136,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
   const feedbackEnabled =
     feedback !== false && feedbackOptions?.enabled !== false;
   const resolvedFeedbackDistance = nonNegative(
-    feedbackOptions?.distance ??
-      feedbackDistance ??
-      DEFAULT_FEEDBACK_DISTANCE,
+    feedbackOptions?.distance ?? feedbackDistance ?? DEFAULT_FEEDBACK_DISTANCE,
   );
   const resolvedFeedbackResistance = nonNegative(
     feedbackOptions?.resistance ??
@@ -171,13 +167,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
       onSwipeProgress,
       shouldIgnoreTarget,
     };
-  }, [
-    onIntentChange,
-    onNext,
-    onPrevious,
-    onSwipeProgress,
-    shouldIgnoreTarget,
-  ]);
+  }, [onIntentChange, onNext, onPrevious, onSwipeProgress, shouldIgnoreTarget]);
 
   const clearResetTimeout = useCallback(() => {
     if (resetTimeoutRef.current === null) return;
@@ -215,10 +205,13 @@ export function useSwipeNavigation<T extends HTMLElement>({
     element.style.transform = "translate3d(0, 0, 0)";
 
     clearResetTimeout();
-    resetTimeoutRef.current = window.setTimeout(() => {
-      clearFeedbackStyles();
-      resetTimeoutRef.current = null;
-    }, resetsInstantly ? 0 : resetDuration + 20);
+    resetTimeoutRef.current = window.setTimeout(
+      () => {
+        clearFeedbackStyles();
+        resetTimeoutRef.current = null;
+      },
+      resetsInstantly ? 0 : resetDuration + 20,
+    );
   }, [
     clearFeedbackStyles,
     clearResetTimeout,
@@ -275,10 +268,7 @@ export function useSwipeNavigation<T extends HTMLElement>({
       }
 
       if (
-        callbacksRef.current.shouldIgnoreTarget?.(
-          event.target,
-          swipeElement,
-        ) ||
+        callbacksRef.current.shouldIgnoreTarget?.(event.target, swipeElement) ||
         (ignoreOwnedGestures &&
           ownsHorizontalGesture(event.target, swipeElement))
       ) {
@@ -494,7 +484,10 @@ export function useSwipeNavigation<T extends HTMLElement>({
   return elementRef;
 }
 
-function ownsHorizontalGesture(target: EventTarget | null, boundary: HTMLElement) {
+function ownsHorizontalGesture(
+  target: EventTarget | null,
+  boundary: HTMLElement,
+) {
   if (!(target instanceof Element)) return false;
 
   const ownedGestureTarget = target.closest(OWNED_GESTURE_SELECTOR);

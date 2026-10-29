@@ -40,9 +40,7 @@ describe("useTimer", () => {
   });
 
   it("uses a deadline instead of counting ticks", () => {
-    render(
-      <TimerValue direction="down" initialSeconds={10} endSeconds={0} />,
-    );
+    render(<TimerValue direction="down" initialSeconds={10} endSeconds={0} />);
 
     act(() => {
       vi.setSystemTime(new Date("2026-01-01T00:00:07Z"));
@@ -53,9 +51,7 @@ describe("useTimer", () => {
   });
 
   it("keeps fractional-second precision internally", () => {
-    render(
-      <TimerValue direction="down" initialSeconds={1.5} endSeconds={0} />,
-    );
+    render(<TimerValue direction="down" initialSeconds={1.5} endSeconds={0} />);
 
     expect(screen.getByText("2")).toBeTruthy();
 

@@ -3,21 +3,17 @@ import { createRef } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/shy-heart.css", () => ({}));
-
 import { ShyHeart } from "@/registry/base/ui/shy-heart";
+
+vi.mock("@/registry/base/ui/shy-heart.css", () => ({}));
 
 afterEach(cleanup);
 
 describe("ShyHeart", () => {
   it("renders the brand outline with raised, larger blush marks", () => {
     const { container } = render(<ShyHeart label="Shy heart" />);
-    const body = container.querySelector(
-      "[data-slot='shy-heart-body']",
-    );
-    const left = container.querySelector(
-      "[data-slot='shy-heart-blush-left']",
-    );
+    const body = container.querySelector("[data-slot='shy-heart-body']");
+    const left = container.querySelector("[data-slot='shy-heart-blush-left']");
     const right = container.querySelector(
       "[data-slot='shy-heart-blush-right']",
     );
@@ -26,9 +22,7 @@ describe("ShyHeart", () => {
     expect(left?.querySelectorAll("path")).toHaveLength(4);
     expect(right?.querySelectorAll("path")).toHaveLength(4);
     expect(
-      left
-        ?.querySelector(".shy-heart-blush-backdrop")
-        ?.getAttribute("d"),
+      left?.querySelector(".shy-heart-blush-backdrop")?.getAttribute("d"),
     ).toBe("M50 120H103");
     expect(right?.querySelector(".shy-heart-blush-lines")).toBeTruthy();
     expect(
@@ -63,18 +57,13 @@ describe("ShyHeart", () => {
     const ref = createRef<HTMLSpanElement>();
 
     render(
-      <ShyHeart
-        ref={ref}
-        duration={420}
-        size={96}
-        tiltDuration="360ms"
-      />,
+      <ShyHeart ref={ref} duration={420} size={96} tiltDuration="360ms" />,
     );
 
     expect(ref.current?.dataset.slot).toBe("shy-heart");
-    expect(
-      ref.current?.style.getPropertyValue("--shy-heart-duration"),
-    ).toBe("420ms");
+    expect(ref.current?.style.getPropertyValue("--shy-heart-duration")).toBe(
+      "420ms",
+    );
     expect(ref.current?.style.getPropertyValue("--shy-heart-size")).toBe(
       "96px",
     );

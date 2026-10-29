@@ -15,10 +15,15 @@ const displayPath = path.join(root, "lib/registry-display.ts");
 const previewPath = path.join(root, "components/registry-preview.tsx");
 
 const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
-const publishedRegistry = JSON.parse(fs.readFileSync(publishedRegistryPath, "utf8"));
+const publishedRegistry = JSON.parse(
+  fs.readFileSync(publishedRegistryPath, "utf8"),
+);
 const displaySource = readSourceFile(displayPath);
 const previewSource = readSourceFile(previewPath);
-const displayConfigs = readObjectArray(displaySource, "registryDisplayItemConfigs");
+const displayConfigs = readObjectArray(
+  displaySource,
+  "registryDisplayItemConfigs",
+);
 const displayCategories = readObjectArray(
   displaySource,
   "registryDisplayCategories",
@@ -134,7 +139,9 @@ function validateDisplayItemsExist() {
 
   for (const config of displayConfigs) {
     if (typeof config.name === "string" && !registryNames.has(config.name)) {
-      errors.push(`Display config references unknown registry item: ${config.name}`);
+      errors.push(
+        `Display config references unknown registry item: ${config.name}`,
+      );
     }
   }
 }
@@ -197,7 +204,10 @@ function getCategorySlugsByKind() {
   const categoriesByKind = new Map();
 
   for (const category of displayCategories) {
-    if (typeof category.kind !== "string" || typeof category.slug !== "string") {
+    if (
+      typeof category.kind !== "string" ||
+      typeof category.slug !== "string"
+    ) {
       continue;
     }
 
@@ -321,8 +331,7 @@ function validateCategoriesAreOccupied() {
     displayConfigs
       .filter((config) => config.browsable !== false)
       .map(
-        (config) =>
-          `${displayKindsByName.get(config.name)}:${config.category}`,
+        (config) => `${displayKindsByName.get(config.name)}:${config.category}`,
       ),
   );
 
@@ -349,7 +358,9 @@ function validateBrowsablePreviews() {
     }
 
     if (typeof config.name === "string" && !previewNames.has(config.name)) {
-      errors.push(`Browsable display item is missing RegistryPreview: ${config.name}`);
+      errors.push(
+        `Browsable display item is missing RegistryPreview: ${config.name}`,
+      );
     }
   }
 }
@@ -362,7 +373,9 @@ function validateRegistryFilesExist() {
       }
 
       if (!fs.existsSync(path.join(root, file.path))) {
-        errors.push(`Registry item "${item.name}" declares missing file: ${file.path}`);
+        errors.push(
+          `Registry item "${item.name}" declares missing file: ${file.path}`,
+        );
       }
     }
   }
@@ -514,7 +527,14 @@ function validateLegacyVercelUrls() {
 }
 
 function getSourceFilesToScan() {
-  const pathsToScan = ["README.md", "content", "app", "components", "lib", "registry.json"];
+  const pathsToScan = [
+    "README.md",
+    "content",
+    "app",
+    "components",
+    "lib",
+    "registry.json",
+  ];
   const allowedExtensions = new Set([
     ".css",
     ".js",

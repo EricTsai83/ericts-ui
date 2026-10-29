@@ -63,14 +63,18 @@ function SidebarGroups({
       <h2
         className={cn(
           "font-normal",
-          variant === "desktop" &&
-            "mb-1 text-sm text-muted-foreground",
+          variant === "desktop" && "mb-1 text-sm text-muted-foreground",
           variant === "mobile" && "mb-3 text-sm text-muted-foreground",
         )}
       >
         {group.title}
       </h2>
-      <div className={cn("flex flex-col", variant === "mobile" ? "gap-4" : "gap-1")}>
+      <div
+        className={cn(
+          "flex flex-col",
+          variant === "mobile" ? "gap-4" : "gap-1",
+        )}
+      >
         {group.items.map((item) => (
           <SidebarLink
             key={`${group.title}-${item.url}-${String(item.title)}`}
@@ -107,7 +111,7 @@ function SidebarLink({
             isActive &&
             "bg-accent font-semibold text-accent-foreground",
           variant === "mobile" &&
-            "text-2xl font-semibold leading-none text-foreground hover:text-muted-foreground",
+            "text-2xl leading-none font-semibold text-foreground hover:text-muted-foreground",
           variant === "mobile" && isActive && "text-foreground",
           item.disabled && "pointer-events-none opacity-35",
         )

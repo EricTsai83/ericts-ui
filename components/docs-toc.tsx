@@ -65,7 +65,7 @@ export function DocsTableOfContents({
       aria-labelledby="toc-title"
       {...container}
       className={cn(
-        "sticky top-(--fd-docs-row-1) hidden h-[calc(var(--fd-docs-height)-var(--fd-docs-row-1))] w-(--fd-toc-width) flex-col [grid-area:toc] overflow-hidden pt-12 pe-4 pb-2 xl:layout:[--fd-toc-width:var(--fd-sidebar-width)] xl:flex",
+        "sticky top-(--fd-docs-row-1) hidden h-[calc(var(--fd-docs-height)-var(--fd-docs-row-1))] w-(--fd-toc-width) flex-col overflow-hidden pe-4 pt-12 pb-2 [grid-area:toc] xl:flex xl:layout:[--fd-toc-width:var(--fd-sidebar-width)]",
         container?.className,
       )}
     >
@@ -82,7 +82,7 @@ export function DocsTableOfContents({
             href={item.url}
             data-active={item.url === `#${activeHeading}`}
             data-depth={item.depth}
-            className="text-[0.8rem] leading-5 text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[active=true]:font-medium data-[active=true]:text-foreground data-[depth='3']:pl-4 data-[depth='4']:pl-6"
+            className="text-[0.8rem] leading-5 text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[active=true]:font-medium data-[active=true]:text-foreground data-[depth='3']:pl-4 data-[depth='4']:pl-6"
           >
             {item.title}
           </a>

@@ -21,9 +21,7 @@ afterEach(() => {
 });
 
 function slotsOf(container: HTMLElement) {
-  return Array.from(
-    container.querySelectorAll<HTMLElement>("[data-filled]"),
-  );
+  return Array.from(container.querySelectorAll<HTMLElement>("[data-filled]"));
 }
 
 describe("OTPInput success wave", () => {
@@ -57,9 +55,9 @@ describe("OTPInput success wave", () => {
   it("rides the border flip on the same stagger as the lift", () => {
     const { container } = render(<OTPInput value="248917" status="success" />);
 
-    expect(slotsOf(container).map((slot) => slot.style.transitionDelay)).toEqual(
-      ["0ms", "40ms", "80ms", "120ms", "160ms", "200ms"],
-    );
+    expect(
+      slotsOf(container).map((slot) => slot.style.transitionDelay),
+    ).toEqual(["0ms", "40ms", "80ms", "120ms", "160ms", "200ms"]);
   });
 
   it("leaves the slots undelayed outside success", () => {

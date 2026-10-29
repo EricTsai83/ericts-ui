@@ -141,7 +141,8 @@ export function Like({
       likeIntentRef.current = nextLiked;
 
       onLikedChange?.(nextLiked);
-    }, [controlled, disabled, isLiked, onClick, onLikedChange],
+    },
+    [controlled, disabled, isLiked, onClick, onLikedChange],
   );
 
   // The scatter leaves the DOM once every particle has finished, so long-lived

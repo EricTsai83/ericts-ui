@@ -55,9 +55,7 @@ function getSelectableValue(
 
   if (value == null) return null;
 
-  return enabledItems.some((item) => item.value === value)
-    ? value
-    : null;
+  return enabledItems.some((item) => item.value === value) ? value : null;
 }
 
 export function SlidingList({
@@ -81,13 +79,15 @@ export function SlidingList({
   const shouldReduceMotion = useReducedMotion();
   const isControlled = value !== undefined;
   const itemRefs = React.useRef(new Map<string, HTMLButtonElement>());
-  const [uncontrolledValue, setUncontrolledValue] = React.useState(
-    () => getSelectableValue(items, defaultValue),
+  const [uncontrolledValue, setUncontrolledValue] = React.useState(() =>
+    getSelectableValue(items, defaultValue),
   );
 
   const enabledItems = React.useMemo(() => getEnabledItems(items), [items]);
-  const selectedValue =
-    getSelectableValue(items, isControlled ? value : uncontrolledValue);
+  const selectedValue = getSelectableValue(
+    items,
+    isControlled ? value : uncontrolledValue,
+  );
   const focusableValue = selectedValue ?? enabledItems[0]?.value ?? null;
 
   const setSelectedValue = React.useCallback(
@@ -112,10 +112,7 @@ export function SlidingList({
   }, []);
 
   const handleKeyDown = React.useCallback(
-    (
-      event: React.KeyboardEvent<HTMLButtonElement>,
-      currentValue: string,
-    ) => {
+    (event: React.KeyboardEvent<HTMLButtonElement>, currentValue: string) => {
       if (enabledItems.length === 0) return;
 
       const currentIndex = Math.max(
@@ -200,7 +197,7 @@ export function SlidingList({
                 onPointerEnter={() => onItemPointerEnter?.(item)}
                 onFocus={() => onItemFocus?.(item)}
                 className={cn(
-                  "flex min-h-9 w-full items-center rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground outline-none transition-colors duration-150 ease-out hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground",
+                  "flex min-h-9 w-full items-center rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-out outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground motion-reduce:transition-none",
                   align === "left"
                     ? "justify-start text-left"
                     : "justify-end text-right",

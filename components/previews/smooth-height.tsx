@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Mail, Plus, Sparkles, X } from "lucide-react";
 import { useId, useState, type ComponentType, type ReactNode } from "react";
+import { Check, Mail, Plus, Sparkles, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { SmoothHeight as CssOnlySmoothHeight } from "@/registry/base/css-only/smooth-height";
 import { SmoothHeight as MotionSmoothHeight } from "@/registry/base/ui/smooth-height";
 
@@ -139,7 +139,7 @@ export default function Preview({ variant }: { variant: string }) {
                     onClick={() => setSelectedPlan(plan.id)}
                     aria-pressed={selected}
                     className={cn(
-                      "flex flex-col gap-0.5 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "flex flex-col gap-0.5 rounded-md border px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                       selected
                         ? "border-foreground bg-muted/50"
                         : "bg-background hover:bg-muted/40",

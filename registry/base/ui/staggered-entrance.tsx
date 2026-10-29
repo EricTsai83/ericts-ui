@@ -8,8 +8,7 @@ type CssVariableStyle = React.CSSProperties & Record<`--${string}`, string>;
 type StaggeredEntranceAxis = "x" | "y";
 type StaggeredEntranceKey<TItem> = (item: TItem, index: number) => React.Key;
 type StaggeredEntranceClassName<TItem> =
-  | string
-  | ((item: TItem, index: number) => string | undefined);
+  string | ((item: TItem, index: number) => string | undefined);
 type StaggeredEntranceStyle<TItem> =
   | React.CSSProperties
   | ((item: TItem, index: number) => React.CSSProperties | undefined);
@@ -81,7 +80,7 @@ export function StaggeredEntrance<TItem = React.ReactNode>({
             item: child as TItem,
             content: child,
           })),
-    [children, items, renderItem]
+    [children, items, renderItem],
   );
   const count = entries.length;
   const resolvedDistance = toCssLength(distance);
@@ -159,7 +158,7 @@ function toCssLength(value: number | string) {
 function resolveValue<TItem, TValue>(
   value: TValue | ((item: TItem, index: number) => TValue | undefined),
   item: TItem,
-  index: number
+  index: number,
 ) {
   return typeof value === "function"
     ? (value as (item: TItem, index: number) => TValue | undefined)(item, index)

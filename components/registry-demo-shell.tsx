@@ -1,12 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { flushSync } from "react-dom";
-import { useTheme } from "fumadocs-ui/provider/base";
 import {
-  type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useId,
@@ -14,23 +8,29 @@ import {
   useMemo,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
 } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTheme } from "fumadocs-ui/provider/base";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { flushSync } from "react-dom";
 
+import type { RegistryDisplayItem } from "@/lib/registry-display";
+import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useFullscreenSession } from "@/components/fullscreen-session";
-import styles from "@/components/registry-demo-shell.module.css";
 import { PreviewViewportFrame } from "@/components/previews/preview-viewport-frame";
+import styles from "@/components/registry-demo-shell.module.css";
 import {
   PreviewCornerSlotProvider,
   RegistryPreview,
 } from "@/components/registry-preview";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  type SwipeNavigationDirection,
-  useSwipeNavigation,
-} from "@/registry/base/hooks/use-swipe-navigation";
-import type { RegistryDisplayItem } from "@/lib/registry-display";
-import { cn } from "@/lib/utils";
 import { useScrollAnchor } from "@/registry/base/hooks/use-scroll-anchor";
+import {
+  useSwipeNavigation,
+  type SwipeNavigationDirection,
+} from "@/registry/base/hooks/use-swipe-navigation";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
 
 export type RegistryDemoNavigationItem = Pick<
@@ -369,7 +369,7 @@ export function RegistryDemoShell({
       <h1 className="sr-only">{item.title} fullscreen preview</h1>
 
       <ExpandablePanel
-        className="fixed right-3 top-3 z-30 sm:right-4 sm:top-4"
+        className="fixed top-3 right-3 z-30 sm:top-4 sm:right-4"
         open={panelOpen}
         openLabel="Open navigation map"
         closeLabel="Collapse navigation map"
@@ -380,7 +380,7 @@ export function RegistryDemoShell({
         <div className="flex min-h-0 flex-1 flex-col py-2.5">
           <div
             ref={treeScrollRef}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pl-1.5 pr-(--expandable-panel-trigger-inset)"
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pr-(--expandable-panel-trigger-inset) pl-1.5"
           >
             <div className="flex flex-col gap-1.5">
               {navigationPanelSourceGroups.map((group) => (
@@ -429,7 +429,7 @@ export function RegistryDemoShell({
         <div ref={setPreviewCornerSlot} className="contents" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[56px_56px] opacity-30 mask-[radial-gradient(circle_at_center,black,transparent_78%)] dark:opacity-20"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] mask-[radial-gradient(circle_at_center,black,transparent_78%)] bg-size-[56px_56px] opacity-30 dark:opacity-20"
         />
         <div
           data-swipe-entrance={visibleSwipeEntranceDirection ?? undefined}
@@ -451,7 +451,7 @@ export function RegistryDemoShell({
               exactly where it happened. Above the canvas, below the navigation
               chrome at `z-30`. */}
           <PreviewCornerSlotProvider
-            className="fixed right-3 top-13 z-20 sm:right-14 sm:top-4"
+            className="fixed top-13 right-3 z-20 sm:top-4 sm:right-14"
             toolbarClassName="fixed right-3 top-13 z-20 sm:right-14 sm:top-4"
             container={previewCornerSlot}
           >
@@ -566,7 +566,7 @@ function MobileSwipeHint({
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-150 ease-out supports-backdrop-filter:bg-background/55 motion-reduce:transition-none sm:hidden",
+        "pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground shadow-sm backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-150 ease-out supports-backdrop-filter:bg-background/55 motion-reduce:transition-none sm:hidden",
         leaving ? "opacity-0" : "opacity-100",
       )}
     >
@@ -646,10 +646,10 @@ function PreviewNavigationLink({
   const shortcutLabel = isPrevious ? "←" : "→";
   const Icon = isPrevious ? ArrowLeft : ArrowRight;
   const controlClassName = cn(
-    "relative h-10 w-11 rounded-none border-0 transition-colors duration-[130ms] ease-out active:bg-muted active:text-foreground active:duration-0 motion-reduce:transition-none motion-reduce:active:translate-y-0 data-[active]:bg-muted data-[active]:text-foreground data-[active]:duration-0 sm:h-9",
+    "relative h-10 w-11 rounded-none border-0 transition-colors duration-[130ms] ease-out active:bg-muted active:text-foreground active:duration-0 data-[active]:bg-muted data-[active]:text-foreground data-[active]:duration-0 motion-reduce:transition-none motion-reduce:active:translate-y-0 sm:h-9",
     isPrevious
-      ? "after:pointer-events-none after:absolute after:right-0 after:top-1/2 after:h-5 after:w-px after:-translate-y-1/2 after:rounded-full after:bg-foreground/15"
-      : "before:pointer-events-none before:absolute before:left-0 before:top-1/2 before:h-5 before:w-px before:-translate-y-1/2 before:rounded-full before:bg-foreground/15",
+      ? "after:pointer-events-none after:absolute after:top-1/2 after:right-0 after:h-5 after:w-px after:-translate-y-1/2 after:rounded-full after:bg-foreground/15"
+      : "before:pointer-events-none before:absolute before:top-1/2 before:left-0 before:h-5 before:w-px before:-translate-y-1/2 before:rounded-full before:bg-foreground/15",
   );
   const iconClassName = cn(
     "transition-transform ease-out motion-reduce:transition-none",
@@ -727,7 +727,7 @@ function NavigationMapGroup({
     <section className="flex min-w-0 flex-col gap-0.5">
       <div
         className={cn(
-          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs font-semibold leading-4",
+          "flex min-w-0 items-center gap-2 px-2 py-1 text-xs leading-4 font-semibold",
           isCurrentGroup ? "text-primary" : "text-foreground/70",
         )}
       >
@@ -756,7 +756,7 @@ function NavigationMapGroup({
                 onSelect(groupItem);
               }}
               className={cn(
-                "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "flex h-6 min-w-0 items-center rounded-md px-2.5 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                 selected
                   ? "bg-muted/55 font-medium text-foreground"
                   : "text-muted-foreground hover:text-foreground",
@@ -819,12 +819,12 @@ function PreviewActionButton({
       title={title}
       aria-label={ariaLabel}
       onClick={onClick}
-      className="flex min-w-0 items-center justify-center gap-1.5 bg-popover/80 px-1.5 py-2 text-muted-foreground transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
+      className="flex min-w-0 items-center justify-center gap-1.5 bg-popover/80 px-1.5 py-2 text-muted-foreground transition-colors hover:bg-muted/35 hover:text-foreground focus-visible:relative focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset motion-reduce:transition-none"
     >
       <kbd className="shrink-0 rounded-[3px] bg-muted px-1 font-mono text-[0.6rem] leading-none text-muted-foreground shadow-[inset_0_-1px_0_var(--border)]">
         {shortcut}
       </kbd>
-      <span className="whitespace-nowrap leading-none">{label}</span>
+      <span className="leading-none whitespace-nowrap">{label}</span>
     </button>
   );
 }

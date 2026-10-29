@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useTransform, type MotionValue } from "motion/react";
 import {
   ArrowUpRightIcon,
   CheckIcon,
@@ -8,6 +7,8 @@ import {
   GlobeIcon,
   ShieldCheckIcon,
 } from "lucide-react";
+import { motion, useTransform, type MotionValue } from "motion/react";
+
 import { DemoTabs, type DemoTabsItem, type DemoTabsScene } from "./demo-tabs";
 
 const scripts = {

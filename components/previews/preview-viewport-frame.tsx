@@ -1,23 +1,23 @@
 "use client";
 
-import { Maximize2, Monitor, Smartphone, Tablet } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
+import Link from "next/link";
+import { Maximize2, Monitor, Smartphone, Tablet } from "lucide-react";
 import { createPortal } from "react-dom";
 
-import {
-  PreviewToolbarProvider,
-  previewToolbarButtonClassName,
-  usePreviewCornerSlot,
-} from "@/components/previews/replayable-preview";
+import { cn } from "@/lib/utils";
+import { useElementSizeMap } from "@/hooks/use-element-size-map";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useElementSizeMap } from "@/hooks/use-element-size-map";
-import { cn } from "@/lib/utils";
+import {
+  previewToolbarButtonClassName,
+  PreviewToolbarProvider,
+  usePreviewCornerSlot,
+} from "@/components/previews/replayable-preview";
 
 /**
  * The device viewports the toolbar offers, widest first — the order it reads
@@ -195,7 +195,8 @@ export function PreviewViewportFrame({
   });
   const pressed = settled.device !== device;
   const remeasured =
-    settled.canvasWidth !== canvasWidth || settled.canvasHeight !== canvasHeight;
+    settled.canvasWidth !== canvasWidth ||
+    settled.canvasHeight !== canvasHeight;
 
   if (pressed || remeasured) {
     setSettled({
@@ -241,7 +242,8 @@ export function PreviewViewportFrame({
 
     event.preventDefault();
 
-    const next = devices[(activeIndex + step + devices.length) % devices.length];
+    const next =
+      devices[(activeIndex + step + devices.length) % devices.length];
 
     select(next.id);
     buttons.current.get(next.id)?.focus();
@@ -316,7 +318,11 @@ export function PreviewViewportFrame({
               <TooltipTrigger
                 render={
                   <Link
-                    href={previewDeviceHref(fullscreenHref, device, defaultDevice)}
+                    href={previewDeviceHref(
+                      fullscreenHref,
+                      device,
+                      defaultDevice,
+                    )}
                     aria-label="Open fullscreen demo"
                   />
                 }
@@ -392,7 +398,7 @@ export function PreviewViewportFrame({
                 transform: `scale(${scale})`,
               }}
               className={cn(
-                "absolute left-0 top-0 origin-top-left",
+                "absolute top-0 left-0 origin-top-left",
                 motion.inner,
               )}
             >

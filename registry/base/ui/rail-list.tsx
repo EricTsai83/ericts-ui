@@ -102,10 +102,7 @@ export function RailList({
   }, []);
 
   const handleKeyDown = React.useCallback(
-    (
-      event: React.KeyboardEvent<HTMLButtonElement>,
-      currentValue: string,
-    ) => {
+    (event: React.KeyboardEvent<HTMLButtonElement>, currentValue: string) => {
       if (enabledItems.length === 0) return;
 
       const currentIndex = Math.max(
@@ -153,7 +150,7 @@ export function RailList({
         aria-orientation="horizontal"
         data-slot="rail-list-list"
         className={cn(
-          "flex w-full min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "flex w-full min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden",
           listClassName,
         )}
       >
@@ -188,7 +185,7 @@ export function RailList({
                 onPointerEnter={() => onItemPointerEnter?.(item)}
                 onFocus={() => onItemFocus?.(item)}
                 className={cn(
-                  "group relative flex min-h-11 w-full items-center justify-center px-3 py-2 text-center text-sm font-medium text-muted-foreground outline-none transition-colors duration-150 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-current motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground",
+                  "group relative flex min-h-11 w-full items-center justify-center px-3 py-2 text-center text-sm font-medium text-muted-foreground transition-colors duration-150 ease-out outline-none hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-current disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground motion-reduce:transition-none",
                   itemClassName,
                 )}
               >

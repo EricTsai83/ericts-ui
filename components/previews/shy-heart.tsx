@@ -7,10 +7,7 @@ export default function Preview() {
   return (
     <ReplayablePreview>
       {(replayKey) => (
-        <div
-          key={replayKey}
-          className="flex flex-col items-center gap-4"
-        >
+        <div key={replayKey} className="flex flex-col items-center gap-4">
           <ShyHeart label="Shy heart" size={88} />
           <p className="text-xs text-muted-foreground">
             Hover to make it blush

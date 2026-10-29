@@ -9,9 +9,9 @@ import {
   type HTMLMotionProps,
 } from "motion/react";
 
-import { Button } from "@/components/ui/button";
-import { useElementHeight } from "@/hooks/use-element-height";
 import { cn } from "@/lib/utils";
+import { useElementHeight } from "@/hooks/use-element-height";
+import { Button } from "@/components/ui/button";
 
 type MotionTransition = NonNullable<HTMLMotionProps<"div">["transition"]>;
 type StepDirection = -1 | 1;
@@ -71,8 +71,7 @@ export function MultiStep({
   ...props
 }: MultiStepProps) {
   const [uncontrolledStep, setUncontrolledStep] = React.useState(defaultStep);
-  const [innerRef, height, measureHeight] =
-    useElementHeight<HTMLDivElement>();
+  const [innerRef, height, measureHeight] = useElementHeight<HTMLDivElement>();
   const shouldReduceMotion = useReducedMotion();
 
   const selectedStep = clampStep(step ?? uncontrolledStep, steps.length);
@@ -103,8 +102,7 @@ export function MultiStep({
   const setStep = React.useCallback(
     (nextStep: number) => {
       const resolvedStep = clampStep(nextStep, steps.length);
-      const nextDirection: StepDirection =
-        resolvedStep < selectedStep ? -1 : 1;
+      const nextDirection: StepDirection = resolvedStep < selectedStep ? -1 : 1;
 
       setTransitionState({
         step: resolvedStep,
@@ -209,7 +207,10 @@ export function MultiStep({
                     width, so the Continue ↔ Done swap on the last step
                     doesn't snap the button size. */}
                 <span className="grid justify-items-center">
-                  <span aria-hidden="true" className="invisible col-start-1 row-start-1">
+                  <span
+                    aria-hidden="true"
+                    className="invisible col-start-1 row-start-1"
+                  >
                     {isLastStep ? continueLabel : completeLabel}
                   </span>
                   <span className="col-start-1 row-start-1">

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useEffect, useState } from "react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -49,7 +55,11 @@ function Harness() {
   );
 }
 
-function InlineHarness({ sequences }: { sequences: readonly SequenceScript[] }) {
+function InlineHarness({
+  sequences,
+}: {
+  sequences: readonly SequenceScript[];
+}) {
   const { containerProps, activeIndex, stepsFired } = useSequencePlayer({
     sequences,
     leadInMs: LEAD_IN_MS,
@@ -170,9 +180,7 @@ describe("useSequencePlayer", () => {
     expect(screen.getByTestId("playing").textContent).toBe("true");
 
     advance(100);
-    expect(screen.getByTestId("runs").textContent).not.toBe(
-      runsAfterFirstBeat,
-    );
+    expect(screen.getByTestId("runs").textContent).not.toBe(runsAfterFirstBeat);
   });
 
   it("keeps replaying the taken sequence instead of advancing", () => {
@@ -227,7 +235,12 @@ describe("useSequencePlayer", () => {
 
   it("picks up content changes to the active sequence", () => {
     const { rerender } = render(
-      <InlineHarness sequences={[{ steps: 3, stepMs: 100 }, { steps: 1, stepMs: 100 }]} />,
+      <InlineHarness
+        sequences={[
+          { steps: 3, stepMs: 100 },
+          { steps: 1, stepMs: 100 },
+        ]}
+      />,
     );
 
     advance(LEAD_IN_MS);
@@ -235,7 +248,12 @@ describe("useSequencePlayer", () => {
 
     // A longer dwell for the resting beat restarts it with the new value.
     rerender(
-      <InlineHarness sequences={[{ steps: 3, stepMs: 400 }, { steps: 1, stepMs: 100 }]} />,
+      <InlineHarness
+        sequences={[
+          { steps: 3, stepMs: 400 },
+          { steps: 1, stepMs: 100 },
+        ]}
+      />,
     );
     advance(399);
     expect(screen.getByTestId("steps").textContent).toBe("1");
@@ -244,7 +262,12 @@ describe("useSequencePlayer", () => {
 
     // Fewer steps hand off to the next sequence once the current beat rests.
     rerender(
-      <InlineHarness sequences={[{ steps: 2, stepMs: 400 }, { steps: 1, stepMs: 100 }]} />,
+      <InlineHarness
+        sequences={[
+          { steps: 2, stepMs: 400 },
+          { steps: 1, stepMs: 100 },
+        ]}
+      />,
     );
     advance(400);
     expect(screen.getByTestId("active").textContent).toBe("1");

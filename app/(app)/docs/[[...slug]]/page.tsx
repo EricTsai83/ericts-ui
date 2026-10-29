@@ -3,23 +3,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findNeighbour } from "fumadocs-core/page-tree";
 import {
+  TOCPopover,
+  TOCProvider,
+} from "fumadocs-ui/layouts/docs/page/slots/toc";
+import {
   DocsBody,
   DocsDescription,
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-import {
-  TOCProvider,
-  TOCPopover,
-} from "fumadocs-ui/layouts/docs/page/slots/toc";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
+import { getSiteUrl } from "@/lib/site-url";
+import { source } from "@/lib/source";
+import { Button } from "@/components/ui/button";
 import { DocsCopyPage } from "@/components/docs-copy-page";
 import { DocsTableOfContents } from "@/components/docs-toc";
 import { getMDXComponents } from "@/components/mdx";
-import { Button } from "@/components/ui/button";
-import { getSiteUrl } from "@/lib/site-url";
-import { source } from "@/lib/source";
 
 type PageProps = {
   params: Promise<{
@@ -65,7 +65,7 @@ export default async function Page({ params }: PageProps) {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      className="min-w-0 max-w-[calc(var(--spacing)*160)] px-4 py-6 md:px-0 md:pt-6 lg:py-8 xl:px-0 xl:pt-8"
+      className="max-w-[calc(var(--spacing)*160)] min-w-0 px-4 py-6 md:px-0 md:pt-6 lg:py-8 xl:px-0 xl:pt-8"
       tableOfContent={{ enabled: hasTableOfContents }}
       slots={{
         toc: {

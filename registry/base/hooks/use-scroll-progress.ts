@@ -59,10 +59,7 @@ export function useScrollProgress<
   disabledProgress = 1,
   onProgress,
   onMeasure,
-}: UseScrollProgressOptions<
-  TContainer,
-  TTrack
->): UseScrollProgressResult {
+}: UseScrollProgressOptions<TContainer, TTrack>): UseScrollProgressResult {
   const onProgressRef = useRef(onProgress);
   const onMeasureRef = useRef(onMeasure);
   const viewportHeightRef = useRef(1);
@@ -156,10 +153,7 @@ export function useScrollProgress<
    * so height-only changes are ignored while the pointer is coarse.
    */
   const measureOnViewportChange = useCallback(() => {
-    if (
-      readViewportWidth() === viewportWidthRef.current &&
-      isCoarsePointer()
-    ) {
+    if (readViewportWidth() === viewportWidthRef.current && isCoarsePointer()) {
       return;
     }
 

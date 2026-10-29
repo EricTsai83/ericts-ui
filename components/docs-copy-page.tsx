@@ -149,7 +149,7 @@ export function DocsCopyPage({ markdownPath, url }: DocsCopyPageProps) {
       </span>
       <Separator
         orientation="vertical"
-        className="absolute right-8 top-1 h-6 bg-foreground/5 md:right-7 md:h-5"
+        className="absolute top-1 right-8 h-6 bg-foreground/5 md:right-7 md:h-5"
       />
       <DropdownMenu>
         <DropdownMenuTrigger

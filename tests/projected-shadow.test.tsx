@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-
-vi.mock("@/registry/base/ui/projected-shadow.css", () => ({}));
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ProjectedShadow } from "@/registry/base/ui/projected-shadow";
+
+vi.mock("@/registry/base/ui/projected-shadow.css", () => ({}));
 
 afterEach(cleanup);
 
@@ -40,12 +40,12 @@ describe("ProjectedShadow", () => {
       "ease-out",
     );
     expect(root?.style.getPropertyValue("--projected-shadow-blur")).toBe("4px");
-    expect(
-      root?.style.getPropertyValue("--projected-shadow-projected-x"),
-    ).toBe("-20%");
-    expect(
-      root?.style.getPropertyValue("--projected-shadow-projected-y"),
-    ).toBe("-18px");
+    expect(root?.style.getPropertyValue("--projected-shadow-projected-x")).toBe(
+      "-20%",
+    );
+    expect(root?.style.getPropertyValue("--projected-shadow-projected-y")).toBe(
+      "-18px",
+    );
   });
 
   it("can render only the target layer", () => {

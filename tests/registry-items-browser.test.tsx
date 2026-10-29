@@ -104,9 +104,7 @@ describe("RegistryItemsBrowser arrangement", () => {
   it("hides arrangement controls when the list does not opt in", () => {
     renderBrowser(false);
 
-    expect(
-      screen.queryByRole("group", { name: "Arrange items" }),
-    ).toBeNull();
+    expect(screen.queryByRole("group", { name: "Arrange items" })).toBeNull();
   });
 
   it("defaults to the alphabetical view", () => {
@@ -163,9 +161,7 @@ describe("RegistryItemsBrowser arrangement", () => {
       screen.getByRole("button", { name: "Arrange by category" }),
     );
 
-    expect(window.localStorage.getItem(arrangementStorageKey)).toBe(
-      "category",
-    );
+    expect(window.localStorage.getItem(arrangementStorageKey)).toBe("category");
   });
 
   it("preserves category view while filtering", () => {

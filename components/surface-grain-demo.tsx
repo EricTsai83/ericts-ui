@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { XIcon, ZoomInIcon } from "lucide-react";
 
-import styles from "@/components/surface-grain-demo.module.css";
 import { cn } from "@/lib/utils";
+import styles from "@/components/surface-grain-demo.module.css";
 import { ExpandableToggleButton } from "@/registry/base/ui/expandable-toggle-button";
 
 const surfaces = [
@@ -63,9 +63,7 @@ function TreatmentPreview({
       <div className={styles.variantHeader}>
         <span>{treatment.label}</span>
         <span>
-          {isGrain && isMagnifying
-            ? "Noise enlarged · 4×"
-            : treatment.detail}
+          {isGrain && isMagnifying ? "Noise enlarged · 4×" : treatment.detail}
         </span>
       </div>
       <div className={styles.content}>
@@ -100,9 +98,7 @@ function SurfaceRows({ isMagnifying }: { isMagnifying: boolean }) {
     >
       <header className={styles.header}>
         <span>{surface.mode} mode</span>
-        <span className={styles.status}>
-          Noise opacity {surface.opacity}
-        </span>
+        <span className={styles.status}>Noise opacity {surface.opacity}</span>
       </header>
       <div className={styles.variants}>
         {treatments.map((treatment) => (
@@ -186,10 +182,8 @@ export function SurfaceGrainDemo() {
         const grainBounds = sourceGrain.getBoundingClientRect();
         const grainLeft = grainBounds.left - previewBounds.left;
         const grainTop = grainBounds.top - previewBounds.top;
-        const scaledLeft =
-          LENS_SIZE / 2 + (grainLeft - nextX) * MAGNIFICATION;
-        const scaledTop =
-          LENS_SIZE / 2 + (grainTop - nextY) * MAGNIFICATION;
+        const scaledLeft = LENS_SIZE / 2 + (grainLeft - nextX) * MAGNIFICATION;
+        const scaledTop = LENS_SIZE / 2 + (grainTop - nextY) * MAGNIFICATION;
         const scaledRight = scaledLeft + grainBounds.width * MAGNIFICATION;
         const scaledBottom = scaledTop + grainBounds.height * MAGNIFICATION;
         const visibleLeft = Math.max(0, scaledLeft);
@@ -370,14 +364,8 @@ export function SurfaceGrainDemo() {
           data-visible="false"
           aria-hidden="true"
         >
-          <div
-            className={styles.magnifierNoise}
-            data-magnifier-noise="Light"
-          />
-          <div
-            className={styles.magnifierNoise}
-            data-magnifier-noise="Dark"
-          />
+          <div className={styles.magnifierNoise} data-magnifier-noise="Light" />
+          <div className={styles.magnifierNoise} data-magnifier-noise="Dark" />
           <div className={styles.magnifierCanvas} data-magnifier-canvas>
             <SurfaceRows isMagnifying={isMagnifying} />
           </div>

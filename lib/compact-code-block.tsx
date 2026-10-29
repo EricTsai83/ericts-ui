@@ -1,8 +1,8 @@
-import { toHtml } from "hast-util-to-html";
 import {
   ServerCodeBlock,
   type ServerCodeBlockProps,
 } from "fumadocs-ui/components/codeblock.rsc";
+import { toHtml } from "hast-util-to-html";
 
 /**
  * Keep Fumadocs' interactive wrapper, but send syntax tokens as escaped HTML
@@ -29,7 +29,9 @@ export async function CompactCodeBlock(options: ServerCodeBlockProps) {
         const attributes = { ...props };
         delete attributes.children;
 
-        return <code {...attributes} dangerouslySetInnerHTML={{ __html: html }} />;
+        return (
+          <code {...attributes} dangerouslySetInnerHTML={{ __html: html }} />
+        );
       },
     },
   });

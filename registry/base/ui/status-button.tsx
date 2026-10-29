@@ -3,8 +3,8 @@
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
 type ButtonClickEvent = Parameters<NonNullable<ButtonProps["onClick"]>>[0];
@@ -39,7 +39,7 @@ function Spinner({ className }: { className?: string }) {
       aria-hidden="true"
       className={cn(
         "size-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70 motion-reduce:animate-none",
-        className
+        className,
       )}
     />
   );
@@ -118,7 +118,7 @@ export function StatusButton({
       onClick,
       onError,
       successDuration,
-    ]
+    ],
   );
 
   const copy: Record<ButtonState, React.ReactNode> = {

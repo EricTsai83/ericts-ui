@@ -358,7 +358,7 @@ export function ExpandableSliderTrigger({
       disabled={isDisabled}
       data-slot="expandable-slider-trigger"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full text-foreground outline-none transition-colors",
+        "inline-flex shrink-0 items-center justify-center rounded-full text-foreground transition-colors outline-none",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--expandable-slider-icon-size)",
         isDisabled ? "cursor-not-allowed" : "hover:bg-muted",
         className,
@@ -648,7 +648,7 @@ export function ExpandableSliderThumb({
     <div
       data-slot="expandable-slider-thumb"
       className={cn(
-        "absolute top-1/2 start-(--expandable-slider-thumb-offset) size-(--expandable-slider-thumb-size) -translate-y-1/2 scale-100 rounded-full bg-primary shadow-sm",
+        "absolute start-(--expandable-slider-thumb-offset) top-1/2 size-(--expandable-slider-thumb-size) -translate-y-1/2 scale-100 rounded-full bg-primary shadow-sm",
         "transition-transform duration-200 ease-[cubic-bezier(0,0,0.2,1)] motion-reduce:transition-none",
         "sm:group-data-[expanded=false]/expandable-slider:scale-0",
         className,

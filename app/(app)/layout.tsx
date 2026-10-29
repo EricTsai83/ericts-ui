@@ -1,10 +1,10 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import Link from "next/link";
 
+import { primaryNavItems } from "@/lib/navigation";
 import { HeaderActions } from "@/components/header-actions";
 import { LogoIcon } from "@/components/icons";
 import { MobileHeaderMenu } from "@/components/mobile-header-menu";
-import { primaryNavItems } from "@/lib/navigation";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <MobileHeaderMenu items={primaryNavItems} />
           <Link
             href="/"
-            className="hidden h-full items-center gap-2 text-sm font-semibold leading-none text-foreground transition-colors hover:text-accent-foreground lg:mr-5 lg:flex lg:min-w-28"
+            className="hidden h-full items-center gap-2 text-sm leading-none font-semibold text-foreground transition-colors hover:text-accent-foreground lg:mr-5 lg:flex lg:min-w-28"
           >
             <LogoIcon className="block size-5 shrink-0" aria-hidden="true" />
             <span className="text-base">ericts/ui</span>
@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
-                className="rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 {item.label}
               </Link>

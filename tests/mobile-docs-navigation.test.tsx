@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { ComponentProps } from "react";
-import type { Root } from "fumadocs-core/page-tree";
 import { cleanup, render, screen } from "@testing-library/react";
+import type { Root } from "fumadocs-core/page-tree";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MobileDocsNavigation } from "@/components/mobile-docs-navigation";

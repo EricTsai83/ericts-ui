@@ -10,10 +10,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-export type TextMorphProps = Omit<
-  React.ComponentProps<"span">,
-  "children"
-> & {
+export type TextMorphProps = Omit<React.ComponentProps<"span">, "children"> & {
   children: string | string[];
   /** Overrides the default morph transition. Ignored when motion is reduced. */
   transition?: Transition;

@@ -3,10 +3,10 @@ import { createRef, useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/registry/base/ui/like-burst.css", () => ({}));
-
 import { Button } from "@/components/ui/button";
 import { LikeBurst } from "@/registry/base/ui/like-burst";
+
+vi.mock("@/registry/base/ui/like-burst.css", () => ({}));
 
 afterEach(cleanup);
 
@@ -64,9 +64,9 @@ describe("LikeBurst", () => {
     fireEvent.click(control);
 
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(control.hasAttribute("data-bursting")).toBe(true);
     expect(container.querySelectorAll(".like-burst-ring")).toHaveLength(1);
@@ -75,9 +75,7 @@ describe("LikeBurst", () => {
     fireEvent.click(control);
 
     expect(
-      screen.getByRole("button", { name: "Like" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen.getByRole("button", { name: "Like" }).getAttribute("aria-pressed"),
     ).toBe("false");
     expect(control.hasAttribute("data-bursting")).toBe(false);
     expect(container.querySelector(EFFECTS)).toBeNull();
@@ -205,9 +203,9 @@ describe("LikeBurst", () => {
     rerender(<LikeBurst liked />);
 
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(container.querySelector(EFFECTS)).toBeNull();
   });
@@ -251,9 +249,9 @@ describe("LikeBurst", () => {
     // Returning to the parent's liked state is programmatic — no replay.
     rerender(<ControlledLikeBurst />);
     expect(
-      screen.getByRole("button", { name: "Unlike" }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", { name: "Unlike" })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
     expect(container.querySelector(EFFECTS)).toBeNull();
   });

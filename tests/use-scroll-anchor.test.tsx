@@ -408,17 +408,13 @@ describe("useScrollAnchor", () => {
     );
     layout.current.targetTop = 500;
 
-    view.rerender(
-      <ScrollAnchorHarness activeKey="second" layout={layout} />,
-    );
+    view.rerender(<ScrollAnchorHarness activeKey="second" layout={layout} />);
     act(() => animationFrame.runFrame(0));
 
     expect(animationFrame.callbacks.size).toBe(1);
 
     layout.current.targetTop = 700;
-    view.rerender(
-      <ScrollAnchorHarness activeKey="third" layout={layout} />,
-    );
+    view.rerender(<ScrollAnchorHarness activeKey="third" layout={layout} />);
 
     expect(animationFrame.cancelAnimationFrame).toHaveBeenCalledTimes(1);
     expect(animationFrame.callbacks.size).toBe(1);
