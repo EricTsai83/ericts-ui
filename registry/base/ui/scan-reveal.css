@@ -1,0 +1,108 @@
+.scan-reveal {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+/* The source is clipped away exactly as the result is revealed, so the two
+   layers never overlap, and it stops painting once the sweep ends. */
+.scan-reveal-before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: scan-reveal-unwipe var(--scan-reveal-duration, 1400ms) linear both;
+}
+.scan-reveal-content {
+  position: relative;
+  animation: scan-reveal-wipe var(--scan-reveal-duration, 1400ms) linear both;
+}
+.scan-reveal-beam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-left: 1px solid currentColor;
+  filter: drop-shadow(0 0 6px currentColor);
+  animation: scan-reveal-sweep var(--scan-reveal-duration, 1400ms) linear both;
+}
+.scan-reveal[data-direction="vertical"] > .scan-reveal-content {
+  animation-name: scan-reveal-wipe-vertical;
+}
+.scan-reveal[data-direction="vertical"] > .scan-reveal-before {
+  animation-name: scan-reveal-unwipe-vertical;
+}
+.scan-reveal[data-direction="vertical"] > .scan-reveal-beam {
+  border-left: 0;
+  border-top: 1px solid currentColor;
+  animation-name: scan-reveal-sweep-vertical;
+}
+@keyframes scan-reveal-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* `visibility` stays visible for any progress below 1, then hides at the end. */
+@keyframes scan-reveal-unwipe {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 100%);
+    visibility: hidden;
+  }
+}
+@keyframes scan-reveal-sweep {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  5%,
+  95% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+@keyframes scan-reveal-wipe-vertical {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes scan-reveal-unwipe-vertical {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+    visibility: hidden;
+  }
+}
+@keyframes scan-reveal-sweep-vertical {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  5%,
+  95% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-reveal[data-direction] > .scan-reveal-content {
+    animation: none;
+  }
+  .scan-reveal-beam,
+  .scan-reveal-before {
+    display: none;
+  }
+}

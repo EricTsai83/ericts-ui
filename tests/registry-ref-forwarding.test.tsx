@@ -4,6 +4,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ArcMenu } from "@/registry/base/ui/arc-menu";
+import { ChangeHighlight } from "@/registry/base/ui/change-highlight";
 import { ContextCursor } from "@/registry/base/ui/context-cursor";
 import { DownloadButton } from "@/registry/base/ui/download-button";
 import { ExpandablePanel } from "@/registry/base/ui/expandable-panel";
@@ -13,9 +14,12 @@ import { HighlightTabs } from "@/registry/base/ui/highlight-tabs";
 import { IconSwap } from "@/registry/base/ui/icon-swap";
 import { RailList } from "@/registry/base/ui/rail-list";
 import { RingHud } from "@/registry/base/ui/ring-hud";
+import { ScanReveal } from "@/registry/base/ui/scan-reveal";
 import { StatusButton } from "@/registry/base/ui/status-button";
+import { TextDecode } from "@/registry/base/ui/text-decode";
 
 vi.mock("@/registry/base/ui/ring-hud.css", () => ({}));
+vi.mock("@/registry/base/ui/scan-reveal.css", () => ({}));
 
 // jsdom ships no matchMedia; ContextCursor probes for a fine pointer on mount.
 beforeEach(() => {
@@ -102,6 +106,9 @@ describe("registry root ref forwarding", () => {
     const iconSwapRef = createRef<HTMLSpanElement>();
     const downloadRef = createRef<HTMLButtonElement>();
     const ringHudRef = createRef<HTMLDivElement>();
+    const scanRevealRef = createRef<HTMLDivElement>();
+    const textDecodeRef = createRef<HTMLSpanElement>();
+    const changeHighlightRef = createRef<HTMLSpanElement>();
 
     render(
       <>
@@ -116,6 +123,13 @@ describe("registry root ref forwarding", () => {
         />
         <DownloadButton ref={downloadRef} onDownload={() => {}} />
         <RingHud ref={ringHudRef} value={50} />
+        <ScanReveal ref={scanRevealRef} before={<span />}>
+          <span />
+        </ScanReveal>
+        <TextDecode ref={textDecodeRef}>text</TextDecode>
+        <ChangeHighlight ref={changeHighlightRef} value={1}>
+          1
+        </ChangeHighlight>
       </>,
     );
 
@@ -125,5 +139,8 @@ describe("registry root ref forwarding", () => {
     expect(iconSwapRef.current?.dataset.slot).toBe("icon-swap");
     expect(downloadRef.current?.dataset.slot).toBe("download-button");
     expect(ringHudRef.current?.dataset.slot).toBe("ring-hud");
+    expect(scanRevealRef.current?.dataset.slot).toBe("scan-reveal");
+    expect(textDecodeRef.current?.dataset.slot).toBe("text-decode");
+    expect(changeHighlightRef.current?.dataset.slot).toBe("change-highlight");
   });
 });

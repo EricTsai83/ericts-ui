@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "text-decode",
+  "title": "Text Decode",
+  "description": "Random characters settle into readable text, one character at a time. Change the text to decode a new message.",
+  "registryDependencies": [
+    "https://ui.ericts.com/r/use-reduced-motion.json"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/text-decode.tsx",
+      "content": "\"use client\";\n\nimport { useEffect, useRef, type ComponentProps } from \"react\";\n\nimport { cn } from \"@/lib/utils\";\nimport { useReducedMotion } from \"@/hooks/use-reduced-motion\";\n\nexport type TextDecodeProps = Omit<ComponentProps<\"span\">, \"children\"> & {\n  children: string;\n  /** Total time in milliseconds, including the last character settling. */\n  duration?: number;\n  /** Increment to decode the same text again. Text changes also replay. */\n  replayKey?: string | number;\n  characters?: string;\n};\n\n/** Scramble, then lock each grapheme from left to right. No per-frame React renders. */\nexport function TextDecode({\n  children,\n  duration = 900,\n  replayKey = 0,\n  characters = \"01ABCDEF<>/{}\",\n  className,\n  ...props\n}: TextDecodeProps) {\n  const visualRef = useRef<HTMLSpanElement>(null);\n  const reducedMotion = useReducedMotion();\n\n  useEffect(() => {\n    const visual = visualRef.current;\n    if (!visual) return;\n    visual.textContent = children;\n    if (\n      reducedMotion ||\n      duration <= 0 ||\n      !Number.isFinite(duration) ||\n      !children\n    )\n      return;\n\n    const segmenter = new Intl.Segmenter(undefined, {\n      granularity: \"grapheme\",\n    });\n    const letters = Array.from(\n      segmenter.segment(children),\n      ({ segment }) => segment,\n    );\n    const alphabet = Array.from(\n      segmenter.segment(characters),\n      ({ segment }) => segment,\n    );\n    if (!alphabet.length) return;\n    const started = performance.now();\n    let frame = 0;\n    let lastTick = -1;\n    const draw = (now: number) => {\n      const progress = Math.min((now - started) / duration, 1);\n      if (progress >= 1) {\n        visual.textContent = children;\n        return;\n      }\n      // Limit text mutations to 25fps while using a single cancellable clock.\n      const tick = Math.floor((now - started) / 40);\n      if (tick !== lastTick) {\n        lastTick = tick;\n        const locked = Math.floor(progress * letters.length);\n        visual.textContent = letters\n          .map((letter, index) =>\n            index < locked || !letter.trim()\n              ? letter\n              : alphabet[Math.floor(Math.random() * alphabet.length)],\n          )\n          .join(\"\");\n      }\n      frame = requestAnimationFrame(draw);\n    };\n    draw(started);\n    return () => {\n      cancelAnimationFrame(frame);\n      visual.textContent = children;\n    };\n  }, [children, duration, replayKey, characters, reducedMotion]);\n\n  return (\n    <span\n      {...props}\n      data-slot=\"text-decode\"\n      className={cn(\"relative inline-grid\", className)}\n    >\n      <span className=\"sr-only\">{children}</span>\n      <span\n        aria-hidden=\"true\"\n        className=\"invisible col-start-1 row-start-1 whitespace-pre-wrap\"\n      >\n        {children}\n      </span>\n      <span\n        ref={visualRef}\n        aria-hidden=\"true\"\n        className=\"col-start-1 row-start-1 whitespace-pre-wrap\"\n      >\n        {children}\n      </span>\n    </span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "@ui/text-decode.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "text",
+      "typography",
+      "scramble"
+    ],
+    "effects": [
+      "decode",
+      "character-reveal"
+    ]
+  },
+  "categories": [
+    "motion-primitive"
+  ],
+  "type": "registry:ui"
+}

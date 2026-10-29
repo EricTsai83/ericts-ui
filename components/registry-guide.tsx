@@ -175,10 +175,102 @@ function NavLinkGuide({ snippet }: { snippet: SnippetLookup }) {
   );
 }
 
+function MotionPatternGuide({
+  snippet,
+  rule,
+  customization,
+}: {
+  snippet: SnippetLookup;
+  rule: string;
+  customization: ReactNode;
+}) {
+  return (
+    <>
+      <GuideSection
+        title="The pattern"
+        caption="The preview is just one example. The component carries the motion; you bring the content."
+      >
+        {rule}
+      </GuideSection>
+      <GuideSection title="Make it yours" snippet={snippet("example.tsx")}>
+        {customization}
+      </GuideSection>
+    </>
+  );
+}
+
+function ScanRevealGuide({ snippet }: { snippet: SnippetLookup }) {
+  return (
+    <MotionPatternGuide
+      snippet={snippet}
+      rule="A scan turns source material into a visible result, one region at a time. Use it to reveal object labels over a product photo, or recognized fields over their original invoice. The moving edge explains where the transformation has happened."
+      customization={
+        <>
+          Put the source in <InlineCode>before</InlineCode> and the processed
+          result in children. Choose{" "}
+          <InlineCode>direction=&quot;horizontal&quot;</InlineCode> to inspect
+          an image across its width, or{" "}
+          <InlineCode>direction=&quot;vertical&quot;</InlineCode> to read down a
+          document. Keep both layers the same size so they line up; the source
+          is clipped away as the result appears, so neither layer needs an
+          opaque background. Start the reveal once results are ready:{" "}
+          <InlineCode>duration</InlineCode> is the visual sweep time in
+          milliseconds, not backend progress. Change the React key to replay.
+          The source layer is decorative and inert; put controls only in
+          children. Reduced motion shows the result immediately.
+        </>
+      }
+    />
+  );
+}
+
+function TextDecodeGuide({ snippet }: { snippet: SnippetLookup }) {
+  return (
+    <MotionPatternGuide
+      snippet={snippet}
+      rule="A line of noise settles into a message, one character at a time. The text stays in place while the characters change."
+      customization={
+        <>
+          Replace the text, adjust the total <InlineCode>duration</InlineCode>,
+          or supply your own <InlineCode>characters</InlineCode> for the noise.
+          Use a monospace font for a steady rhythm. Text changes replay
+          automatically; increment <InlineCode>replayKey</InlineCode> to repeat
+          the same message. Chinese and emoji stay intact. Screen readers
+          receive the final message, and reduced motion skips the scramble.
+        </>
+      }
+    />
+  );
+}
+
+function ChangeHighlightGuide({ snippet }: { snippet: SnippetLookup }) {
+  return (
+    <MotionPatternGuide
+      snippet={snippet}
+      rule="When a value changes, a soft background briefly lights up behind it, then fades away. The content never moves."
+      customization={
+        <>
+          Pass the value to watch as <InlineCode>value</InlineCode> and render
+          any content inside. The initial render stays quiet.{" "}
+          <InlineCode>holdDuration</InlineCode> controls the pause and{" "}
+          <InlineCode>duration</InlineCode> controls the fade, both in
+          milliseconds; new timing applies from the next highlight. Style the
+          overlay with <InlineCode>highlightClassName</InlineCode>. Rapid
+          updates resume from the current brightness. Add a live region only
+          when updates need announcing; reduced motion skips the highlight.
+        </>
+      }
+    />
+  );
+}
+
 const registryGuides: Partial<
   Record<string, ComponentType<{ snippet: SnippetLookup }>>
 > = {
   "nav-link": NavLinkGuide,
+  "scan-reveal": ScanRevealGuide,
+  "text-decode": TextDecodeGuide,
+  "change-highlight": ChangeHighlightGuide,
 };
 
 function GuideSection({

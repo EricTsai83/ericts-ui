@@ -1784,6 +1784,71 @@
           "target": "@components/blocks/demo-tabs-example.tsx"
         }
       ]
+    },
+    {
+      "name": "scan-reveal",
+      "type": "registry:ui",
+      "title": "Scan Reveal",
+      "description": "A horizontal or vertical scan reveals processed results over the source, from product image tags to recognized invoice fields.",
+      "categories": ["motion-primitive"],
+      "meta": {
+        "tags": ["reveal", "scan", "before-after"],
+        "effects": ["clip-path", "scan-line"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/scan-reveal.tsx",
+          "type": "registry:ui",
+          "target": "@ui/scan-reveal.tsx"
+        },
+        {
+          "path": "registry/base/ui/scan-reveal.css",
+          "type": "registry:file",
+          "target": "@ui/scan-reveal.css"
+        }
+      ]
+    },
+    {
+      "name": "text-decode",
+      "type": "registry:ui",
+      "title": "Text Decode",
+      "description": "Random characters settle into readable text, one character at a time. Change the text to decode a new message.",
+      "categories": ["motion-primitive"],
+      "meta": {
+        "tags": ["text", "typography", "scramble"],
+        "effects": ["decode", "character-reveal"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/text-decode.tsx",
+          "type": "registry:ui",
+          "target": "@ui/text-decode.tsx"
+        }
+      ],
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ]
+    },
+    {
+      "name": "change-highlight",
+      "type": "registry:ui",
+      "title": "Change Highlight",
+      "description": "A soft highlight briefly marks content when its value changes, then fades away without moving the layout.",
+      "categories": ["motion-primitive"],
+      "meta": {
+        "tags": ["feedback", "value-change", "highlight"],
+        "effects": ["highlight", "fade"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/change-highlight.tsx",
+          "type": "registry:ui",
+          "target": "@ui/change-highlight.tsx"
+        }
+      ],
+      "registryDependencies": [
+        "https://ui.ericts.com/r/use-reduced-motion.json"
+      ]
     }
   ]
 }

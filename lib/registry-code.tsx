@@ -515,6 +515,86 @@ export function MorphingPanel({
 };
 
 const registryGuideSnippets: Record<string, ComponentCodeFile[]> = {
+  "scan-reveal": [
+    {
+      name: "example.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useState } from "react";
+import { ScanReveal } from "@/components/ui/scan-reveal";
+
+export function Example() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <ScanReveal
+        key={run}
+        direction="vertical" // "horizontal" scans left to right
+        duration={1400}
+        before={<div className="bg-muted p-6">Receipt text</div>}
+        className="overflow-hidden rounded-xl border"
+      >
+        <div className="bg-background p-6">Extracted fields</div>
+      </ScanReveal>
+      <button type="button" onClick={() => setRun((value) => value + 1)}>
+        Scan again
+      </button>
+    </div>
+  );
+}`,
+    },
+  ],
+  "text-decode": [
+    {
+      name: "example.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useState } from "react";
+import { TextDecode } from "@/components/ui/text-decode";
+
+export function Example() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <TextDecode replayKey={run} duration={1100} className="font-mono text-2xl">
+        Hello, human.
+      </TextDecode>
+      <button type="button" onClick={() => setRun((value) => value + 1)}>
+        Decode again
+      </button>
+    </div>
+  );
+}`,
+    },
+  ],
+  "change-highlight": [
+    {
+      name: "example.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useState } from "react";
+import { ChangeHighlight } from "@/components/ui/change-highlight";
+
+export function Example() {
+  const [price, setPrice] = useState(24);
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <div aria-live="polite" aria-atomic="true">
+        <ChangeHighlight value={price} duration={600} holdDuration={180}>
+          <span className="text-3xl tabular-nums">\${price.toFixed(2)}</span>
+        </ChangeHighlight>
+      </div>
+      <button type="button" onClick={() => setPrice((value) => value + 3)}>
+        Update estimate
+      </button>
+    </div>
+  );
+}`,
+    },
+  ],
   "nav-link": [
     {
       name: "sidebar-nav.tsx",

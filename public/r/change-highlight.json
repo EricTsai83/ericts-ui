@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "change-highlight",
+  "title": "Change Highlight",
+  "description": "A soft highlight briefly marks content when its value changes, then fades away without moving the layout.",
+  "registryDependencies": [
+    "https://ui.ericts.com/r/use-reduced-motion.json"
+  ],
+  "files": [
+    {
+      "path": "registry/base/ui/change-highlight.tsx",
+      "content": "\"use client\";\n\nimport { useEffect, useRef, type ComponentProps } from \"react\";\n\nimport { cn } from \"@/lib/utils\";\nimport { useReducedMotion } from \"@/hooks/use-reduced-motion\";\n\nexport type ChangeHighlightProps = ComponentProps<\"span\"> & {\n  /** Changing this value triggers a highlight; the initial render does not. */\n  value: string | number;\n  /** Fade-out time in milliseconds. Applies from the next highlight. */\n  duration?: number;\n  /** Time the highlight stays bright after the latest change, in milliseconds. Applies from the next highlight. */\n  holdDuration?: number;\n  highlightClassName?: string;\n};\n\nconst ATTACK = 120;\nconst EASE_OUT = [0.23, 1, 0.32, 1] as const;\n\ntype Highlight = {\n  animation: Animation;\n  from: number;\n  hold: number;\n  fade: number;\n};\n\n/** Highlight changed content without moving it or announcing decorative frames. */\nexport function ChangeHighlight({\n  value,\n  children,\n  duration = 600,\n  holdDuration = 180,\n  highlightClassName,\n  className,\n  ...props\n}: ChangeHighlightProps) {\n  const overlayRef = useRef<HTMLSpanElement>(null);\n  const previousValue = useRef(value);\n  const highlight = useRef<Highlight | null>(null);\n  // Timing is read when a highlight starts, so changing it never interrupts\n  // one that is already running.\n  const timing = useRef({ duration, holdDuration });\n  const reducedMotion = useReducedMotion();\n\n  useEffect(() => {\n    timing.current = { duration, holdDuration };\n  }, [duration, holdDuration]);\n\n  useEffect(() => {\n    const changed = !Object.is(previousValue.current, value);\n    previousValue.current = value;\n    if (reducedMotion) {\n      highlight.current?.animation.cancel();\n      highlight.current = null;\n      return;\n    }\n    const overlay = overlayRef.current;\n    if (!changed || !overlay) return;\n    // Resume from the visible brightness, computed from the running animation's\n    // clock rather than read back from the DOM (which would force a style recalc).\n    const from = highlight.current ? getOpacity(highlight.current) : 0;\n    highlight.current?.animation.cancel();\n    const fade = toMilliseconds(timing.current.duration, 600);\n    const hold = toMilliseconds(timing.current.holdDuration, 180);\n    const total = ATTACK + hold + fade;\n    const easing = `cubic-bezier(${EASE_OUT.join(\", \")})`;\n    const animation = overlay.animate(\n      [\n        { opacity: from, offset: 0, easing },\n        { opacity: 1, offset: ATTACK / total, easing: \"linear\" },\n        { opacity: 1, offset: (ATTACK + hold) / total, easing },\n        { opacity: 0, offset: 1 },\n      ],\n      { duration: total, easing: \"linear\" },\n    );\n    highlight.current = { animation, from, hold, fade };\n  }, [value, reducedMotion]);\n\n  useEffect(\n    () => () => {\n      highlight.current?.animation.cancel();\n      highlight.current = null;\n    },\n    [],\n  );\n\n  return (\n    <span\n      {...props}\n      data-slot=\"change-highlight\"\n      className={cn(\"relative isolate inline-block rounded-md\", className)}\n    >\n      <span\n        ref={overlayRef}\n        aria-hidden=\"true\"\n        className={cn(\n          \"pointer-events-none absolute -inset-x-2 -inset-y-1 -z-10 rounded-[inherit] bg-foreground/10 opacity-0\",\n          highlightClassName,\n        )}\n      />\n      {children}\n    </span>\n  );\n}\n\nfunction toMilliseconds(value: number, fallback: number) {\n  return Number.isFinite(value) ? Math.max(0, value) : fallback;\n}\n\n/** Evaluates the same keyframes `animate` was given, at the animation's current time. */\nfunction getOpacity({ animation, from, hold, fade }: Highlight) {\n  const time = Number(animation.currentTime ?? Infinity);\n  if (animation.playState === \"finished\" || !Number.isFinite(time)) return 0;\n  if (time < ATTACK) return from + (1 - from) * easeOut(time / ATTACK);\n  if (time < ATTACK + hold) return 1;\n  if (fade > 0 && time < ATTACK + hold + fade)\n    return 1 - easeOut((time - ATTACK - hold) / fade);\n  return 0;\n}\n\n/** CSS `cubic-bezier(EASE_OUT)`: solve x(t) = progress for t, then return y(t). */\nfunction easeOut(progress: number) {\n  const [x1, y1, x2, y2] = EASE_OUT;\n  const curve = (t: number, p1: number, p2: number) =>\n    3 * (1 - t) * (1 - t) * t * p1 + 3 * (1 - t) * t * t * p2 + t * t * t;\n  let low = 0;\n  let high = 1;\n  let t = progress;\n  for (let step = 0; step < 24; step++) {\n    const x = curve(t, x1, x2);\n    if (Math.abs(x - progress) < 1e-5) break;\n    if (x < progress) low = t;\n    else high = t;\n    t = (low + high) / 2;\n  }\n  return curve(t, y1, y2);\n}\n",
+      "type": "registry:ui",
+      "target": "@ui/change-highlight.tsx"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "feedback",
+      "value-change",
+      "highlight"
+    ],
+    "effects": [
+      "highlight",
+      "fade"
+    ]
+  },
+  "categories": [
+    "motion-primitive"
+  ],
+  "type": "registry:ui"
+}

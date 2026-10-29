@@ -1,0 +1,35 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "scan-reveal",
+  "title": "Scan Reveal",
+  "description": "A horizontal or vertical scan reveals processed results over the source, from product image tags to recognized invoice fields.",
+  "files": [
+    {
+      "path": "registry/base/ui/scan-reveal.tsx",
+      "content": "import type { ComponentProps, CSSProperties, ReactNode } from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nimport \"./scan-reveal.css\";\n\nexport type ScanRevealProps = ComponentProps<\"div\"> & {\n  /** Decorative starting layer. Keep controls in children, not here. */\n  before: ReactNode;\n  /** Sweep duration in milliseconds. Remount with a new key to replay. */\n  duration?: number;\n  /** Direction of travel: left to right, or top to bottom. */\n  direction?: \"horizontal\" | \"vertical\";\n  beforeClassName?: string;\n  beamClassName?: string;\n};\n\n/** A moving edge reveals children over a decorative starting layer. */\nexport function ScanReveal({\n  before,\n  children,\n  duration = 1400,\n  direction = \"horizontal\",\n  beforeClassName,\n  beamClassName,\n  className,\n  style,\n  ...props\n}: ScanRevealProps) {\n  return (\n    <div\n      {...props}\n      data-slot=\"scan-reveal\"\n      data-direction={direction}\n      className={cn(\"scan-reveal\", className)}\n      style={\n        {\n          \"--scan-reveal-duration\": `${Number.isFinite(duration) ? Math.max(0, duration) : 1400}ms`,\n          ...style,\n        } as CSSProperties\n      }\n    >\n      <div\n        inert\n        aria-hidden=\"true\"\n        className={cn(\"scan-reveal-before\", beforeClassName)}\n      >\n        {before}\n      </div>\n      <div className=\"scan-reveal-content\">{children}</div>\n      <div\n        aria-hidden=\"true\"\n        className={cn(\"scan-reveal-beam\", beamClassName)}\n      />\n    </div>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "@ui/scan-reveal.tsx"
+    },
+    {
+      "path": "registry/base/ui/scan-reveal.css",
+      "content": ".scan-reveal {\n  position: relative;\n  isolation: isolate;\n  overflow: hidden;\n}\n/* The source is clipped away exactly as the result is revealed, so the two\n   layers never overlap, and it stops painting once the sweep ends. */\n.scan-reveal-before {\n  position: absolute;\n  inset: 0;\n  pointer-events: none;\n  animation: scan-reveal-unwipe var(--scan-reveal-duration, 1400ms) linear both;\n}\n.scan-reveal-content {\n  position: relative;\n  animation: scan-reveal-wipe var(--scan-reveal-duration, 1400ms) linear both;\n}\n.scan-reveal-beam {\n  position: absolute;\n  inset: 0;\n  pointer-events: none;\n  border-left: 1px solid currentColor;\n  filter: drop-shadow(0 0 6px currentColor);\n  animation: scan-reveal-sweep var(--scan-reveal-duration, 1400ms) linear both;\n}\n.scan-reveal[data-direction=\"vertical\"] > .scan-reveal-content {\n  animation-name: scan-reveal-wipe-vertical;\n}\n.scan-reveal[data-direction=\"vertical\"] > .scan-reveal-before {\n  animation-name: scan-reveal-unwipe-vertical;\n}\n.scan-reveal[data-direction=\"vertical\"] > .scan-reveal-beam {\n  border-left: 0;\n  border-top: 1px solid currentColor;\n  animation-name: scan-reveal-sweep-vertical;\n}\n@keyframes scan-reveal-wipe {\n  from {\n    clip-path: inset(0 100% 0 0);\n  }\n  to {\n    clip-path: inset(0 0 0 0);\n  }\n}\n/* `visibility` stays visible for any progress below 1, then hides at the end. */\n@keyframes scan-reveal-unwipe {\n  from {\n    clip-path: inset(0 0 0 0);\n  }\n  to {\n    clip-path: inset(0 0 0 100%);\n    visibility: hidden;\n  }\n}\n@keyframes scan-reveal-sweep {\n  0% {\n    transform: translateX(0);\n    opacity: 0;\n  }\n  5%,\n  95% {\n    opacity: 0.6;\n  }\n  100% {\n    transform: translateX(100%);\n    opacity: 0;\n  }\n}\n@keyframes scan-reveal-wipe-vertical {\n  from {\n    clip-path: inset(0 0 100% 0);\n  }\n  to {\n    clip-path: inset(0 0 0 0);\n  }\n}\n@keyframes scan-reveal-unwipe-vertical {\n  from {\n    clip-path: inset(0 0 0 0);\n  }\n  to {\n    clip-path: inset(100% 0 0 0);\n    visibility: hidden;\n  }\n}\n@keyframes scan-reveal-sweep-vertical {\n  0% {\n    transform: translateY(0);\n    opacity: 0;\n  }\n  5%,\n  95% {\n    opacity: 0.6;\n  }\n  100% {\n    transform: translateY(100%);\n    opacity: 0;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .scan-reveal[data-direction] > .scan-reveal-content {\n    animation: none;\n  }\n  .scan-reveal-beam,\n  .scan-reveal-before {\n    display: none;\n  }\n}\n",
+      "type": "registry:file",
+      "target": "@ui/scan-reveal.css"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "reveal",
+      "scan",
+      "before-after"
+    ],
+    "effects": [
+      "clip-path",
+      "scan-line"
+    ]
+  },
+  "categories": [
+    "motion-primitive"
+  ],
+  "type": "registry:ui"
+}
