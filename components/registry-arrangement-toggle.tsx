@@ -33,14 +33,14 @@ export function RegistryArrangementToggle({
       <ToggleGroupItem
         value="alphabetical"
         aria-label="Arrange alphabetically"
-        className="w-[4.5rem]"
+        className="w-[5.5rem]"
       >
         Name
       </ToggleGroupItem>
       <ToggleGroupItem
         value="category"
         aria-label="Arrange by category"
-        className="w-[4.5rem]"
+        className="w-[5.5rem]"
       >
         Category
       </ToggleGroupItem>

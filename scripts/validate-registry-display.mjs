@@ -45,7 +45,6 @@ const displayKindsByName = new Map(
     getExpectedKind(registryItemsByName.get(config.name)?.type),
   ]),
 );
-const listPagePath = "app/(app)/[kind]/page.tsx";
 const errors = [];
 
 validateDuplicateDisplayNames();
@@ -56,7 +55,6 @@ validateRegistryCoverage("registry:block", "block");
 validateDisplayItemsExist();
 validateConfigsDeclareNoKind();
 validateKindCategories();
-validateListPagesFollowCategoryOrder();
 validatePrimaryCategoryAlignment();
 validateCategoriesAreOccupied();
 validateTitlesMatchNames();
@@ -157,30 +155,6 @@ function validateConfigsDeclareNoKind() {
         `Display config ${config.name} declares kind "${config.kind}" — kind comes from the registry item's type, so drop the field.`,
       );
     }
-  }
-}
-
-/**
- * The category list is ordered concrete → abstract, and that order is the site's
- * one group order. The list page must hand it to the browser rather than let the
- * browser invent one: the browser used to sort groups by label, so the same
- * taxonomy read Actions → Form → Tabs & Navigation on the homepage and
- * Actions → Layout & Flow → Display on `/components`.
- */
-function validateListPagesFollowCategoryOrder() {
-  const absolutePath = path.join(root, listPagePath);
-
-  if (!fs.existsSync(absolutePath)) {
-    errors.push(`Missing registry list page: ${listPagePath}`);
-    return;
-  }
-
-  const expected = "categoryOrder={getRegistryDisplayCategories(kind)}";
-
-  if (!fs.readFileSync(absolutePath, "utf8").includes(expected)) {
-    errors.push(
-      `${listPagePath} must pass ${expected} so its group order matches the declared category order.`,
-    );
   }
 }
 

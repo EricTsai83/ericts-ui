@@ -26,6 +26,20 @@ pnpm test
 Vitest 5 supplies jsdom's browser storage APIs on modern Node.js. Tests run with
 plain `pnpm test`; no `NODE_OPTIONS` override or storage file is required.
 
+## Static browsing order
+
+Name and Category orders are compiled once per registry kind on the server
+(`lib/registry-browse.server.ts`), and the homepage, list page, and fullscreen
+pages all read that one model. `pnpm display:check` compiles every kind, so a
+duplicated or uncategorized item fails before `next build` prerenders anything;
+`pnpm browse:check` runs that step on its own.
+
+The list page receives both orders as arrays of item names plus its category
+groups. Each fullscreen page receives only the current item's neighbors in each
+order. The browser picks an order and filters search results without sorting
+the registry again. The order lives in the URL fragment (`#order=category`), so
+both orders share the same static route and prefetch cache key.
+
 ## License
 
 Licensed under the [MIT License](./LICENSE).

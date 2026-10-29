@@ -11,15 +11,16 @@
   "scripts": {
     "dev": "next dev",
     "skills:update": "pnpm dlx skills@latest update --project --yes",
-    "build": "pnpm registry:build && next build",
+    "build": "pnpm registry:build && pnpm display:check && next build",
     "start": "next start",
-    "display:check": "node scripts/validate-registry-display.mjs",
+    "display:check": "node scripts/validate-registry-display.mjs && pnpm browse:check",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "fumadocs-mdx source.config.ts .source && tsc --noEmit",
     "registry:build": "shadcn build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "browse:check": "tsx --conditions=react-server scripts/validate-registry-browse.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

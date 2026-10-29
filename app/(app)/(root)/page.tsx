@@ -2,7 +2,9 @@ import type { SVGProps } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { getRegistryDisplayNavigationGroups } from "@/lib/registry-display";
+import { getRegistryBrowseHref } from "@/lib/registry-browse-order";
+import { getStaticRegistryBrowseModel } from "@/lib/registry-browse.server";
+import { getRegistryDisplayItem } from "@/lib/registry-display";
 import { buttonVariants } from "@/components/ui/button";
 import { HomeHeroMark } from "@/components/home-hero-mark";
 import {
@@ -39,7 +41,7 @@ export default function Home() {
   const allIndexParts = (["component", "hook", "block"] as const).map(
     (kind): HomeRegistryIndexPart => ({
       kind,
-      groups: getRegistryDisplayNavigationGroups(kind).map((group) => ({
+      groups: getStaticRegistryBrowseModel(kind).groups.map((group) => ({
         label: group.label,
         description: group.description,
         items: group.items.map(toIndexItem),
@@ -118,8 +120,15 @@ export default function Home() {
   );
 }
 
-function toIndexItem(item: { name: string; title: string; href: string }) {
-  return { name: item.name, title: item.title, href: item.href };
+function toIndexItem(item: { name: string; title: string }) {
+  // Browse items stay compact for the fullscreen payload; the index reads the
+  // detail-page href from the display config instead.
+  const href = getRegistryDisplayItem(item.name)!.href;
+  return {
+    name: item.name,
+    title: item.title,
+    href: getRegistryBrowseHref(href, "category"),
+  };
 }
 
 function ShadcnUiIcon(props: SVGProps<SVGSVGElement>) {

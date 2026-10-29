@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { buildRegistryBrowseModel } from "@/lib/registry-browse-build";
 import { RegistryItemsBrowser } from "@/components/registry-items-browser";
+
+vi.mock("server-only", () => ({}));
 
 const items = [
   {
@@ -62,6 +65,23 @@ afterEach(() => {
   window.localStorage.clear();
 });
 
+function getBrowsePlan(order: string[]) {
+  return buildRegistryBrowseModel(
+    order.map((category) => {
+      const groupItems = items.filter(
+        (item) => item.groupCategory === category,
+      );
+      return {
+        category,
+        label: groupItems[0]?.groupLabel ?? category,
+        description: groupItems[0]?.groupDescription,
+        items: groupItems,
+      };
+    }),
+    items.map((item) => item.name),
+  ).listPlan;
+}
+
 function BrowserFixture({
   enableArrangement = true,
   order = categoryOrder,
@@ -71,8 +91,12 @@ function BrowserFixture({
 }) {
   return (
     <RegistryItemsBrowser
-      items={items}
-      categoryOrder={order}
+      items={items.map((item) => ({
+        ...item,
+        viewHref: `/view/base/${item.name}`,
+      }))}
+      fullscreenHref="/view/base/zulu-action"
+      browsePlan={getBrowsePlan(order)}
       title="Components"
       description="Browse components."
       searchInputId="components-search"
@@ -94,6 +118,29 @@ function renderBrowser(enableArrangement = true) {
 }
 
 describe("RegistryItemsBrowser arrangement", () => {
+  it("starts fullscreen at the first visible item in the chosen order", () => {
+    renderBrowser();
+    expect(
+      screen
+        .getByRole("link", { name: "Browse components fullscreen" })
+        .getAttribute("href"),
+    ).toBe("/view/base/alpha-motion#order=alphabetical");
+    expect(
+      screen.getByRole("link", { name: /Alpha Motion/ }).getAttribute("href"),
+    ).toBe("/components/alpha-motion#order=alphabetical");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Arrange by category" }),
+    );
+    expect(
+      screen
+        .getByRole("link", { name: "Browse components fullscreen" })
+        .getAttribute("href"),
+    ).toBe("/view/base/delta-drawer#order=category");
+    expect(
+      screen.getByRole("link", { name: /Alpha Motion/ }).getAttribute("href"),
+    ).toBe("/components/alpha-motion#order=category");
+  });
+
   it("keeps server-rendered arrangement content hidden until storage is read", () => {
     const html = renderToString(<BrowserFixture />);
 
@@ -201,16 +248,6 @@ describe("RegistryItemsBrowser group order", () => {
       "Overlays",
       "Actions",
       "Motion Primitives",
-    ]);
-  });
-
-  it("sorts a category with no declared rank after the declared ones", () => {
-    render(<BrowserFixture order={["motion-primitive"]} />);
-
-    expect(showCategoryGroups()).toEqual([
-      "Motion Primitives",
-      "Actions",
-      "Overlays",
     ]);
   });
 });

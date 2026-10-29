@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { getStaticRegistryBrowseModel } from "@/lib/registry-browse.server";
 import {
   getRegistryDisplayItem,
   getRegistryDisplayItems,
-  getRegistryDisplayNavigation,
-  getRegistryDisplayNavigationGroups,
   type RegistryDisplayItem,
 } from "@/lib/registry-display";
-import {
-  RegistryDemoShell,
-  type RegistryDemoNavigation,
-  type RegistryDemoNavigationItem,
-} from "@/components/registry-demo-shell";
+import { RegistryDemoShell } from "@/components/registry-demo-shell";
 
 type PageProps = {
   params: Promise<{
@@ -65,7 +60,8 @@ export default async function ViewPage({ params }: PageProps) {
     notFound();
   }
 
-  const navigation = getRegistryDisplayNavigation(displayItem.name);
+  const browseModel = getStaticRegistryBrowseModel(displayItem.kind);
+  const navigationByOrder = browseModel.navigation.get(displayItem.name);
   const requestedVariant = variantSegments[0];
 
   if (
@@ -76,17 +72,15 @@ export default async function ViewPage({ params }: PageProps) {
   }
   const variant = getResolvedVariant(displayItem, requestedVariant);
 
-  if (!navigation) {
+  if (!navigationByOrder) {
     notFound();
   }
 
   return (
     <RegistryDemoShell
       item={displayItem}
-      navigation={toDemoNavigation(navigation)}
-      navigationGroups={toDemoNavigationGroups(
-        getRegistryDisplayNavigationGroups(displayItem.kind),
-      )}
+      navigationByOrder={navigationByOrder}
+      navigationGroups={browseModel.groups}
       variant={variant}
     />
   );
@@ -109,42 +103,4 @@ function getResolvedVariant(
 
 function isFullscreenPreviewVariant(value: string) {
   return fullscreenPreviewVariants.some((variant) => variant === value);
-}
-
-function toDemoNavigation(
-  navigation: NonNullable<ReturnType<typeof getRegistryDisplayNavigation>>,
-): RegistryDemoNavigation {
-  return {
-    previous: toDemoNavigationItem(navigation.previous),
-    next: toDemoNavigationItem(navigation.next),
-    previousCategory: toDemoNavigationItem(navigation.previousCategory),
-    nextCategory: toDemoNavigationItem(navigation.nextCategory),
-  };
-}
-
-function toDemoNavigationItem(
-  item: RegistryDisplayItem | undefined,
-): RegistryDemoNavigationItem | undefined {
-  return item ? toRequiredDemoNavigationItem(item) : undefined;
-}
-
-function toRequiredDemoNavigationItem(
-  item: RegistryDisplayItem,
-): RegistryDemoNavigationItem {
-  return {
-    name: item.name,
-    title: item.title,
-    category: item.category,
-    viewHref: item.viewHref,
-  };
-}
-
-function toDemoNavigationGroups(
-  groups: ReturnType<typeof getRegistryDisplayNavigationGroups>,
-) {
-  return groups.map((group) => ({
-    category: group.category,
-    label: group.label,
-    items: group.items.map(toRequiredDemoNavigationItem),
-  }));
 }

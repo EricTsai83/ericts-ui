@@ -52,13 +52,6 @@ export type RegistryDisplayCategory = {
   description: string;
 };
 
-export type RegistryDisplayNavigationGroup = {
-  category: string;
-  label: string;
-  description: string;
-  items: RegistryDisplayItem[];
-};
-
 /**
  * The registry's one taxonomy. `registry.json` items carry the same slug as
  * their first `categories` entry, so the published payload and this site's
@@ -158,10 +151,9 @@ const registryDisplayCategories = [
 ] as const satisfies readonly RegistryDisplayCategory[];
 
 /**
- * Declaration order is the order items render in the homepage index and the
- * order the demo browser's previous/next arrows walk them in. The `/components`
- * list re-sorts them by title, since its cards are a lookup table rather than a
- * curated tour — but its *group* order still comes from the category list above.
+ * Items declare category membership and preview presentation here. Browsing
+ * sorts display names; category browsing follows the taxonomy above and sorts
+ * names inside each group, shared by the list, homepage, and fullscreen tour.
  */
 const registryDisplayItemConfigs = [
   { name: "copy-button", category: "action" },
@@ -273,43 +265,6 @@ export function getRegistryDisplayItemsByCategory(
   );
 }
 
-export function getRegistryDisplayNavigationGroups(
-  kind: RegistryDisplayKind,
-): RegistryDisplayNavigationGroup[] {
-  return getRegistryDisplayCategoryDetails(kind)
-    .map((category) => ({
-      category: category.slug,
-      label: category.label,
-      description: category.description,
-      items: getRegistryDisplayItemsByCategory(kind, category.slug).filter(
-        (item) => item.browsable !== false,
-      ),
-    }))
-    .filter((group) => group.items.length > 0);
-}
-
-export function getRegistryDisplayNavigation(name: string) {
-  const item = getRegistryDisplayItem(name);
-
-  if (!item) {
-    return undefined;
-  }
-
-  const navigationItems = getRegistryDisplayItems(item.kind).filter(
-    (displayItem) => displayItem.browsable !== false,
-  );
-  const previousCategory = getRelativeCategoryFirstItem(item, -1);
-  const nextCategory = getRelativeCategoryFirstItem(item, 1);
-
-  return {
-    item,
-    previous: getRelativeItem(navigationItems, name, -1),
-    next: getRelativeItem(navigationItems, name, 1),
-    previousCategory,
-    nextCategory,
-  };
-}
-
 export function getRegistryDisplayViewHref(name: string, style = "base") {
   const item = getRegistryDisplayItem(name);
 
@@ -345,72 +300,4 @@ function createDisplayItem(
     tags: item.meta?.tags ?? [],
     effects: item.meta?.effects ?? [],
   };
-}
-
-function getRelativeItem(
-  items: RegistryDisplayItem[],
-  name: string,
-  offset: number,
-) {
-  if (items.length <= 1) {
-    return undefined;
-  }
-
-  const currentIndex = items.findIndex((item) => item.name === name);
-  const nextIndex = wrapIndex(currentIndex + offset, items.length);
-
-  return items[nextIndex];
-}
-
-function getFirstItemInCategory(
-  kind: RegistryDisplayKind,
-  category: string | undefined,
-) {
-  if (!category) {
-    return undefined;
-  }
-
-  return getRegistryDisplayItemsByCategory(kind, category).find(
-    (item) => item.browsable !== false,
-  );
-}
-
-function getRelativeCategoryFirstItem(
-  item: RegistryDisplayItem,
-  offset: number,
-) {
-  const categories = getPopulatedRegistryDisplayCategories(item.kind);
-  const categoryIndex = categories.indexOf(item.category);
-
-  if (categories.length <= 1 || categoryIndex === -1) {
-    return undefined;
-  }
-
-  for (let step = 1; step <= categories.length; step += 1) {
-    const category =
-      categories[wrapIndex(categoryIndex + step * offset, categories.length)];
-    const categoryItem = getFirstItemInCategory(item.kind, category);
-
-    if (categoryItem) {
-      return categoryItem;
-    }
-  }
-
-  return undefined;
-}
-
-function getPopulatedRegistryDisplayCategories(kind: RegistryDisplayKind) {
-  return getRegistryDisplayCategories(kind).filter((category) =>
-    getRegistryDisplayItemsByCategory(kind, category).some(
-      (item) => item.browsable !== false,
-    ),
-  );
-}
-
-function wrapIndex(index: number, length: number) {
-  if (length === 0) {
-    return 0;
-  }
-
-  return ((index % length) + length) % length;
 }

@@ -16,7 +16,13 @@ import { useTheme } from "fumadocs-ui/provider/base";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { flushSync } from "react-dom";
 
+import type { RegistryBrowseNavigationPlans } from "@/lib/registry-browse-model";
+import {
+  getRegistryBrowseHref,
+  getRegistryPrefetchHref,
+} from "@/lib/registry-browse-order";
 import type { RegistryDisplayItem } from "@/lib/registry-display";
+import { useRegistryBrowseState } from "@/lib/use-registry-browse-order";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useFullscreenSession } from "@/components/fullscreen-session";
@@ -62,16 +68,49 @@ const SWIPE_HINT_DURATION = 4500;
 const SWIPE_HINT_FADE_OUT = 150;
 
 export function RegistryDemoShell({
-  item,
-  navigation,
-  navigationGroups,
+  item: sourceItem,
+  navigationByOrder,
+  navigationGroups: sourceGroups,
   variant,
 }: {
   item: RegistryDisplayItem;
-  navigation: RegistryDemoNavigation;
+  navigationByOrder: RegistryBrowseNavigationPlans<RegistryDemoNavigationItem>;
   navigationGroups: RegistryDemoNavigationGroup[];
   variant: string;
 }) {
+  const {
+    ready: browseReady,
+    order,
+    explicitOrder: browseOrder,
+  } = useRegistryBrowseState();
+  const { item, navigation, navigationGroups } = useMemo(() => {
+    // The server already compiled both sets of neighbors. Only select one.
+    const selected = navigationByOrder[order];
+    const withOrder = (entry: RegistryDemoNavigationItem) => ({
+      ...entry,
+      viewHref: getRegistryBrowseHref(entry.viewHref, browseOrder),
+    });
+    const withOptionalOrder = (entry?: RegistryDemoNavigationItem) =>
+      entry && withOrder(entry);
+
+    return {
+      item: {
+        ...sourceItem,
+        href: getRegistryBrowseHref(sourceItem.href, browseOrder),
+        viewHref: getRegistryBrowseHref(sourceItem.viewHref, browseOrder),
+      },
+      navigation: {
+        previous: withOptionalOrder(selected.previous),
+        next: withOptionalOrder(selected.next),
+        previousCategory: withOptionalOrder(selected.previousCategory),
+        nextCategory: withOptionalOrder(selected.nextCategory),
+      },
+      navigationGroups: sourceGroups.map((group) => ({
+        ...group,
+        items: group.items.map(withOrder),
+      })),
+    };
+  }, [browseOrder, order, sourceItem, navigationByOrder, sourceGroups]);
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const {
@@ -260,10 +299,11 @@ export function RegistryDemoShell({
   });
 
   useEffect(() => {
+    if (!browseReady) return;
     for (const href of prefetchHrefs) {
       prefetchRoute(router, href);
     }
-  }, [prefetchHrefs, router]);
+  }, [browseReady, prefetchHrefs, router]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -976,7 +1016,7 @@ function replaceNavigationItem(
 
 function prefetchRoute(router: ReturnType<typeof useRouter>, href: string) {
   try {
-    router.prefetch(href);
+    router.prefetch(getRegistryPrefetchHref(href));
   } catch {
     // Prefetch is opportunistic; navigation still works without it.
   }

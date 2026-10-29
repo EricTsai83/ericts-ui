@@ -23,9 +23,32 @@ vi.mock("next/dynamic", () => ({
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  window.history.replaceState(null, "", "/");
 });
 
 describe("ComponentShowcase manual installation", () => {
+  it("carries the list arrangement from the detail URL into fullscreen", () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/components/example-item#order=category",
+    );
+    render(
+      <ComponentShowcase
+        name="example-item"
+        codeVariants={[]}
+        targetPath="components/ui/example-item.tsx"
+        fullscreenHref="/view/base/example-item"
+      />,
+    );
+    const links = screen.getAllByRole("link", { name: "Open fullscreen demo" });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links)
+      expect(link.getAttribute("href")).toBe(
+        "/view/base/example-item#order=category",
+      );
+  });
+
   it("keeps the package manager picker attached to manual command blocks", () => {
     render(
       <ComponentShowcase

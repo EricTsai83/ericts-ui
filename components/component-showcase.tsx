@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Atom, Maximize2, Terminal } from "lucide-react";
 
+import { getRegistryBrowseHref } from "@/lib/registry-browse-order";
 import {
   DEFAULT_PACKAGE_MANAGER,
   getPackageInstallCommand,
@@ -13,6 +14,7 @@ import {
   type PackageManager,
 } from "@/lib/registry-install-command";
 import { usePackageManager } from "@/lib/use-package-manager";
+import { useRegistryBrowseOrder } from "@/lib/use-registry-browse-order";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,10 +73,14 @@ export function ComponentShowcase({
   registryDependencies = [],
   guideSnippets = [],
   motionApiSnippets = [],
-  fullscreenHref,
+  fullscreenHref: sourceFullscreenHref,
   previewDevice,
   cssVariables,
 }: ComponentShowcaseProps) {
+  const browseOrder = useRegistryBrowseOrder();
+  const fullscreenHref = sourceFullscreenHref
+    ? getRegistryBrowseHref(sourceFullscreenHref, browseOrder)
+    : undefined;
   const cssOnlyFileNames =
     codeVariants
       .find((variant) => variant.value === "css-only")

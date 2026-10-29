@@ -8,6 +8,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { RegistryDisplayItem } from "@/lib/registry-display";
@@ -24,6 +25,7 @@ const router = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+  usePathname: () => window.location.pathname,
 }));
 
 vi.mock("@/components/registry-demo-shell.module.css", () => ({
@@ -73,9 +75,57 @@ afterEach(() => {
   router.replace.mockClear();
   window.localStorage.clear();
   window.sessionStorage.clear();
+  window.history.replaceState(null, "", "/");
 });
 
 describe("RegistryDemoShell preview navigation", () => {
+  it("waits for hydration's selected order before prefetching neighbors", () => {
+    window.history.replaceState(null, "", "/view/base/current#order=category");
+    const plans = { alphabetical: { next: previous }, category: { next } };
+    const element = createDemoElement(item, navigation, plans);
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(element);
+    document.body.appendChild(container);
+    expect(router.prefetch).not.toHaveBeenCalled();
+    render(element, { container, hydrate: true });
+    expect(router.prefetch).toHaveBeenCalledWith(next.viewHref);
+    expect(router.prefetch).not.toHaveBeenCalledWith(previous.viewHref);
+    expect(
+      screen
+        .getByRole("link", { name: "Next preview: Next Preview" })
+        .getAttribute("href"),
+    ).toBe("/view/base/next#order=category");
+  });
+
+  it("uses the URL order for keyboard navigation and keeps it on destination links", () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/view/base/current#order=alphabetical",
+    );
+    render(
+      createDemoElement(item, navigation, {
+        alphabetical: navigation,
+        category: { next: previous, previous: next },
+      }),
+    );
+    const nextLink = screen.getByRole("link", {
+      name: "Next preview: Next Preview",
+    });
+    expect(nextLink.getAttribute("href")).toBe(
+      "/view/base/next#order=alphabetical",
+    );
+    expect(router.prefetch).toHaveBeenCalledWith("/view/base/next");
+    expect(
+      router.prefetch.mock.calls.every(([href]) => !href.includes("order=")),
+    ).toBe(true);
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(router.replace).toHaveBeenLastCalledWith(
+      "/view/base/next#order=alphabetical",
+      { scroll: false },
+    );
+  });
+
   it("keeps both item and category shortcuts prefetched for slow connections", () => {
     render(
       createDemoElement(item, {
@@ -563,13 +613,19 @@ function stubCoarseMobileViewport() {
 function createDemoElement(
   currentItem: RegistryDisplayItem,
   currentNavigation: RegistryDemoNavigation,
+  plans?: Record<"alphabetical" | "category", RegistryDemoNavigation>,
 ) {
   return (
     <FullscreenSessionProvider>
       <RegistryDemoShell
         key={currentItem.name}
         item={currentItem}
-        navigation={currentNavigation}
+        navigationByOrder={
+          plans ?? {
+            alphabetical: currentNavigation,
+            category: currentNavigation,
+          }
+        }
         navigationGroups={[
           {
             category: "animation",

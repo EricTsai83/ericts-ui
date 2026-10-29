@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getRegistryItemsByCategory } from "@/lib/registry";
+import { getStaticRegistryBrowseModel } from "@/lib/registry-browse.server";
 import {
-  getRegistryDisplayCategories,
   getRegistryDisplayCategoryDetails,
   getRegistryDisplayItems,
 } from "@/lib/registry-display";
@@ -74,6 +74,7 @@ const registryKindPages = {
 
 // `/[kind]` sits at the root, so without this any unknown top-level path would
 // render an empty list instead of the 404 it is.
+export const dynamic = "error";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -117,37 +118,33 @@ export default async function RegistryKindPage({ params }: PageProps) {
   );
   const items: RegistryListItem[] = getRegistryItemsByCategory(
     getRegistryKindRegistryCategory(kind),
-  )
-    .sort((a, b) => (a.title ?? a.name).localeCompare(b.title ?? b.name))
-    .map((item) => {
-      const displayItem = displayItemsByName.get(item.name);
+  ).map((item) => {
+    const displayItem = displayItemsByName.get(item.name);
 
-      return {
-        name: item.name,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        categories: item.categories,
-        groupCategory: displayItem?.category,
-        groupLabel: displayItem
-          ? displayCategoriesBySlug.get(displayItem.category)?.label
-          : undefined,
-        groupDescription: displayItem
-          ? displayCategoriesBySlug.get(displayItem.category)?.description
-          : undefined,
-        meta: item.meta,
-        hasCssOnly: item.hasCssOnly,
-        searchTerms: item.searchTerms,
-        href: item.href,
-      };
-    });
-  // Every kind's `/view` previews are built and navigable — the browser walks
-  // one kind at a time — so the entry link is the first browsable item of the
-  // kind, whatever the kind is. Only components used to link here, which was
-  // just the shape of the three route files this page replaced.
-  const fullscreenHref = displayItems.find(
-    (item) => item.browsable !== false,
-  )?.viewHref;
+    return {
+      name: item.name,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      categories: item.categories,
+      groupCategory: displayItem?.category,
+      groupLabel: displayItem
+        ? displayCategoriesBySlug.get(displayItem.category)?.label
+        : undefined,
+      groupDescription: displayItem
+        ? displayCategoriesBySlug.get(displayItem.category)?.description
+        : undefined,
+      meta: item.meta,
+      hasCssOnly: item.hasCssOnly,
+      searchTerms: item.searchTerms,
+      href: item.href,
+      viewHref:
+        displayItem?.browsable !== false ? displayItem?.viewHref : undefined,
+    };
+  });
+  const browseModel = getStaticRegistryBrowseModel(kind);
+  // The browser updates this fallback to the first item in its selected mode.
+  const fullscreenHref = browseModel.sequences.alphabetical[0]?.viewHref;
 
   return (
     <main className={page.containerClassName}>
@@ -165,7 +162,7 @@ export default async function RegistryKindPage({ params }: PageProps) {
         noItemsLabel={page.noItemsLabel}
         enableArrangement
         arrangementStorageKey={`ericts-ui:${segment}:arrangement`}
-        categoryOrder={getRegistryDisplayCategories(kind)}
+        browsePlan={browseModel.listPlan}
         fullscreenHref={fullscreenHref}
         fullscreenLabel="Browse Full Screen"
       />

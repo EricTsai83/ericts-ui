@@ -8,6 +8,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import ViewPage, {
+  dynamic,
+  dynamicParams,
   generateStaticParams,
 } from "@/app/(view)/view/[style]/[name]/[[...variant]]/page";
 import nextConfig from "@/next.config";
@@ -20,6 +22,18 @@ vi.mock("next/navigation", () => ({
   notFound: () => {
     throw new Error("NOT_FOUND");
   },
+}));
+
+vi.mock("@/lib/registry-browse.server", () => ({
+  getStaticRegistryBrowseModel: () => ({
+    navigation: new Map(
+      ["example", "fallback"].map((name) => [
+        name,
+        { alphabetical: {}, category: {} },
+      ]),
+    ),
+    groups: [],
+  }),
 }));
 
 vi.mock("@/components/registry-demo-shell", () => ({
@@ -48,12 +62,26 @@ vi.mock("@/lib/registry-display", () => {
     getRegistryDisplayItems: () => items,
     getRegistryDisplayItem: (name: string) =>
       items.find((item) => item.name === name),
-    getRegistryDisplayNavigation: () => ({}),
-    getRegistryDisplayNavigationGroups: () => [],
   };
 });
 
 describe("static fullscreen preview routes", () => {
+  it("sends only this item's two neighbor plans, rather than a site-wide navigation table", async () => {
+    const page = await ViewPage({
+      params: Promise.resolve({ style: "base", name: "example" }),
+    });
+    expect(page.props.navigationByOrder).toEqual({
+      alphabetical: {},
+      category: {},
+    });
+    expect(page.props.navigation).toBeUndefined();
+  });
+
+  it("keeps prerendering guards enabled for every browsing order", () => {
+    expect(dynamic).toBe("error");
+    expect(dynamicParams).toBe(false);
+  });
+
   it("prerenders the default and supported variants, excluding hidden items", () => {
     const params = generateStaticParams();
     expect(params).toHaveLength(8);

@@ -4,6 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 
+import type { RegistryListBrowsePlan } from "@/lib/registry-browse-model";
+import { getRegistryBrowseHref } from "@/lib/registry-browse-order";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -28,6 +30,7 @@ export type RegistryListItem = {
   hasCssOnly?: boolean;
   searchTerms?: string[];
   href: string;
+  viewHref?: string;
 };
 
 type RegistryItemsBrowserProps = {
@@ -44,14 +47,7 @@ type RegistryItemsBrowserProps = {
   noItemsLabel: string;
   enableArrangement?: boolean;
   arrangementStorageKey?: string;
-  /**
-   * Category slugs in the order their groups should render. This browser used
-   * to order groups by label instead, which quietly gave the same taxonomy two
-   * orders — the homepage rendered Actions → Form → Tabs & Navigation, this
-   * list rendered Actions → Layout & Flow → Display. Ordering lives with the
-   * category declarations; this component only follows it.
-   */
-  categoryOrder?: readonly string[];
+  browsePlan: RegistryListBrowsePlan;
   fullscreenHref?: string;
   fullscreenLabel?: string;
 };
@@ -63,66 +59,19 @@ type RegistryItemGroup = {
   items: RegistryListItem[];
 };
 
-const noCategoryOrder: readonly string[] = [];
+function getMatchingItems(
+  names: readonly string[],
+  itemsByName: ReadonlyMap<string, RegistryListItem>,
+  matchingNames: ReadonlySet<string>,
+) {
+  return names.flatMap((name) => {
+    const item = itemsByName.get(name);
+    return item && matchingNames.has(name) ? [item] : [];
+  });
+}
 
 function getDisplayName(item: RegistryListItem) {
   return item.title ?? item.name;
-}
-
-function compareItems(a: RegistryListItem, b: RegistryListItem) {
-  return getDisplayName(a).localeCompare(getDisplayName(b));
-}
-
-function formatCategoryLabel(category: string) {
-  return category
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
-    .join(" ");
-}
-
-function groupItemsByPrimaryCategory(
-  items: RegistryListItem[],
-  categoryOrder: readonly string[],
-): RegistryItemGroup[] {
-  const groups = new Map<
-    string,
-    { label: string; description?: string; items: RegistryListItem[] }
-  >();
-  const categoryRank = new Map(
-    categoryOrder.map((category, index) => [category, index]),
-  );
-
-  for (const item of items) {
-    const category =
-      item.groupCategory?.trim() || item.categories?.[0]?.trim() || "other";
-    const group = groups.get(category) ?? {
-      label: item.groupLabel?.trim() || formatCategoryLabel(category),
-      description: item.groupDescription?.trim() || undefined,
-      items: [],
-    };
-
-    group.items.push(item);
-    groups.set(category, group);
-  }
-
-  return Array.from(groups, ([category, group]) => ({
-    category,
-    label: group.label,
-    description: group.description,
-    items: group.items.sort(compareItems),
-  })).sort((a, b) => {
-    // A category with no declared rank sorts last rather than first, so an item
-    // that predates its category declaration cannot displace the curated order.
-    const rankA = categoryRank.get(a.category) ?? Number.POSITIVE_INFINITY;
-    const rankB = categoryRank.get(b.category) ?? Number.POSITIVE_INFINITY;
-
-    if (rankA !== rankB) {
-      return rankA - rankB;
-    }
-
-    return a.label.localeCompare(b.label);
-  });
 }
 
 function getItemMetadata(
@@ -216,7 +165,7 @@ export function RegistryItemsBrowser({
   noItemsLabel,
   enableArrangement = false,
   arrangementStorageKey,
-  categoryOrder = noCategoryOrder,
+  browsePlan,
   fullscreenHref,
   fullscreenLabel = `Browse ${itemLabelPlural} fullscreen`,
 }: RegistryItemsBrowserProps) {
@@ -245,10 +194,41 @@ export function RegistryItemsBrowser({
     });
   }, [items, normalizedQuery]);
 
-  const groupedItems = useMemo(
-    () => groupItemsByPrimaryCategory(filteredItems, categoryOrder),
-    [filteredItems, categoryOrder],
+  const itemsByName = useMemo(
+    () => new Map(items.map((item) => [item.name, item])),
+    [items],
   );
+  const matchingNames = useMemo(
+    () => new Set(filteredItems.map((item) => item.name)),
+    [filteredItems],
+  );
+  // The server compiled both orders; the browser only selects one and drops
+  // items the search excluded, so filtering never reorders the list.
+  const groupedItems: RegistryItemGroup[] = useMemo(
+    () =>
+      browsePlan.groups
+        .map(({ names, ...group }) => ({
+          ...group,
+          items: getMatchingItems(names, itemsByName, matchingNames),
+        }))
+        .filter((group) => group.items.length > 0),
+    [browsePlan, itemsByName, matchingNames],
+  );
+  const orderedItems = useMemo(
+    () =>
+      getMatchingItems(
+        browsePlan.sequences[browseMode],
+        itemsByName,
+        matchingNames,
+      ),
+    [browsePlan, browseMode, itemsByName, matchingNames],
+  );
+  const itemOrder = enableArrangement ? browseMode : null;
+  const entryHref =
+    orderedItems.find((item) => item.viewHref)?.viewHref ?? fullscreenHref;
+  const browseFullscreenHref = entryHref
+    ? getRegistryBrowseHref(entryHref, itemOrder)
+    : undefined;
 
   const clearSearch = () => setQuery("");
 
@@ -272,9 +252,9 @@ export function RegistryItemsBrowser({
           <p className="text-base leading-7 text-muted-foreground sm:text-lg">
             {description}
           </p>
-          {fullscreenHref ? (
+          {browseFullscreenHref ? (
             <Link
-              href={fullscreenHref}
+              href={browseFullscreenHref}
               className="self-start rounded-sm text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-muted-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               {fullscreenLabel}
@@ -369,6 +349,7 @@ export function RegistryItemsBrowser({
                           <RegistryItemLink
                             key={item.name}
                             item={item}
+                            order={itemOrder}
                             showCategory={false}
                           />
                         ))}
@@ -378,10 +359,11 @@ export function RegistryItemsBrowser({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredItems.map((item) => (
+                  {orderedItems.map((item) => (
                     <RegistryItemLink
                       key={item.name}
                       item={item}
+                      order={itemOrder}
                       showCategory
                     />
                   ))}
@@ -419,15 +401,17 @@ export function RegistryItemsBrowser({
 function RegistryItemLink({
   item,
   showCategory,
+  order = null,
 }: {
   item: RegistryListItem;
+  order?: RegistryArrangement | null;
   showCategory: boolean;
 }) {
   const metadata = getItemMetadata(item, { includeCategory: showCategory });
 
   return (
     <Link
-      href={item.href}
+      href={getRegistryBrowseHref(item.href, order)}
       className="group flex min-w-0 flex-col gap-1 rounded-sm underline-offset-4 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       {/*
