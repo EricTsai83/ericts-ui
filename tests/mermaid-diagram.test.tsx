@@ -232,6 +232,24 @@ describe("MermaidDiagram", () => {
     ).toBeTruthy();
   });
 
+  it("opens fullscreen focused on the diagram, so a toolbar tooltip does not swallow Escape", async () => {
+    render(<MermaidDiagram chart={"flowchart LR\nA --> B"} />);
+
+    await waitFor(() => expect(screen.getByRole("img")).toBeTruthy());
+    fireEvent.click(
+      screen.getByRole("button", { name: "View diagram fullscreen" }),
+      { detail: 1 },
+    );
+    const fullscreen = document.querySelector<HTMLElement>(
+      '[data-slot="mermaid-fullscreen"]',
+    )!;
+    const viewport = fullscreen.querySelector<HTMLElement>(
+      "[data-mermaid-viewport]",
+    );
+
+    await waitFor(() => expect(document.activeElement).toBe(viewport));
+  });
+
   it("drops the fullscreen viewer when its tool is left out", async () => {
     render(<MermaidDiagram chart={"flowchart LR\nA --> B"} tools={[]} />);
 

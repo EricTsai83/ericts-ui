@@ -664,6 +664,10 @@ function SvgViewer({
   const [animateFullscreen, setAnimateFullscreen] = useState(true);
   const controlsRef = useRef<DiagramViewportControls | null>(null);
   const inlineControlsRef = useRef<DiagramViewportControls | null>(null);
+  // Fullscreen opens on the diagram itself: it is the content, it takes the
+  // pan/zoom keys, and focusing a toolbar button would pop its tooltip open,
+  // so the first Escape would close the tooltip instead of fullscreen.
+  const fullscreenViewportRef = useRef<HTMLDivElement | null>(null);
   const label = title?.trim() ? `${title} diagram` : "Mermaid diagram";
   const fullscreen = tools.includes("fullscreen");
   const inlineTools = inlineZoom
@@ -738,6 +742,7 @@ function SvgViewer({
           />
           <DialogPrimitive.Popup
             data-slot="mermaid-fullscreen"
+            initialFocus={fullscreenViewportRef}
             className={cn(
               "fixed inset-0 z-50 grid size-full grid-rows-[auto_minmax(0,1fr)] bg-popover text-sm text-popover-foreground opacity-100 outline-none",
               animateFullscreen
@@ -791,6 +796,7 @@ function SvgViewer({
               </div>
             </div>
             <DiagramViewport
+              ref={fullscreenViewportRef}
               controlsRef={controlsRef}
               interactive
               wheelZoom={wheelZoom}
