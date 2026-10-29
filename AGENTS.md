@@ -14,7 +14,7 @@ ericts/ui is a shadcn-compatible component registry for polished, motion-focused
 ## Task Completion Requirements
 
 - Run `pnpm format`, then `pnpm lint`, `pnpm typecheck`, `pnpm display:check`, and `pnpm test` before considering code changes complete. CI runs `pnpm format:check`.
-- Run `pnpm registry:build` when changing files under `registry/`, `registry.json`, install snippets, or registry metadata.
+- Run `pnpm registry:build` when changing files under `registry/`, `registry.json`, install snippets, or registry metadata. It formats `registry/` and `registry.json` with Prettier first, so `public/r` always embeds formatted source.
 - Run `pnpm display:check` whenever registry metadata or display config changes.
 - Formatting is Prettier (`prettier.config.mjs`), set up like shadcn/ui: sorted imports and sorted Tailwind classes, keeping this repo's semicolons. Tests run via `pnpm test` (vitest).
 - Node.js: one supported major, the newest Vercel deploys (currently 24). `.node-version`, `engines`, CI, and `@types/node` move together.

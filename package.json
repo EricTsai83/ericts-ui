@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "fumadocs-mdx source.config.ts .source && tsc --noEmit",
-    "registry:build": "shadcn build",
+    "registry:build": "prettier --write registry registry.json --log-level warn && shadcn build",
     "test": "vitest run",
     "browse:check": "tsx --conditions=react-server scripts/validate-registry-browse.ts"
   },
