@@ -1,0 +1,5 @@
+# Formatting-only commits. `git blame` skips them when configured with
+# `git config blame.ignoreRevsFile .git-blame-ignore-revs`; GitHub does automatically.
+
+# style: adopt Prettier with shadcn/ui's setup and format the codebase
+95ce9712893c7e28a49da1db5d5d6c20b237716b
