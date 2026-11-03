@@ -8,7 +8,6 @@ ericts/ui is a shadcn-compatible component registry for polished, motion-focused
 
 - Use `pnpm`; the project declares `packageManager` as pnpm.
 - Do not use `bun`, `npm`, or `yarn` commands unless the user explicitly asks.
-- Do not run dev servers unless explicitly asked. Assume the app may already be running.
 - Do not run production builds unless explicitly asked, except `pnpm registry:build` when validating registry output.
 
 ## Task Completion Requirements
@@ -64,7 +63,7 @@ If a tradeoff is required, choose correctness and robustness over short-term con
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
