@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>StrokeTrace 動畫方式比較</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--foreground);
+        font-family: var(--font-sans);
+      }
+      #stroke-modes {
+        display: grid;
+        gap: 20px;
+        padding: 8px 0;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-right: 90px;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+      button[aria-pressed="true"] {
+        background: var(--primary);
+        color: var(--primary-foreground);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 3px;
+      }
+      .status {
+        color: var(--muted-foreground);
+      }
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .panel {
+        padding: 16px;
+        background: var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h2,
+      h3 {
+        font-size: inherit;
+        font-weight: 500;
+      }
+      .description {
+        color: var(--muted-foreground);
+        margin-top: 8px;
+      }
+      .preview {
+        height: 116px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .shape {
+        width: 100%;
+        height: 104px;
+        overflow: visible;
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .track {
+        stroke: var(--border);
+      }
+      .ink {
+        stroke: var(--chart-1);
+        stroke-dasharray: 1 1;
+        stroke-dashoffset: 0;
+      }
+      .recommend {
+        color: var(--muted-foreground);
+      }
+      .draw-back .ink {
+        stroke-dashoffset: 1;
+        transition: stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .on .draw-back .ink {
+        stroke-dashoffset: 0;
+      }
+      .draw-forward .ink {
+        opacity: 0;
+        animation-duration: 1600ms;
+        animation-fill-mode: both;
+        animation-timing-function: ease-in-out;
+      }
+      .on .draw-forward .ink {
+        animation-name: draw-in;
+      }
+      .off .draw-forward .ink {
+        animation-name: clear-forward;
+      }
+      .modes {
+        display: grid;
+        gap: 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: minmax(140px, 1fr) minmax(100px, 180px) minmax(
+            140px,
+            1.2fr
+          );
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-top: 1px solid var(--border);
+      }
+      .row .preview {
+        height: 84px;
+      }
+      .row .shape {
+        height: 76px;
+      }
+      .row .ink {
+        opacity: 0;
+        animation-duration: 2200ms;
+        animation-fill-mode: both;
+        animation-timing-function: ease-in-out;
+      }
+      .on .trace .ink,
+      .on .loop .ink {
+        animation-name: trace;
+      }
+      .on .loop .ink {
+        animation-iteration-count: infinite;
+      }
+      .on .orbit .ink {
+        stroke-dasharray: 0.25 0.75;
+        opacity: 1;
+        animation-name: orbit;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      .hint {
+        color: var(--muted-foreground);
+      }
+      .reduced {
+        display: none;
+      }
+      @keyframes draw-in {
+        from {
+          stroke-dasharray: 0 1;
+          opacity: 0;
+        }
+        15% {
+          opacity: 1;
+        }
+        to {
+          stroke-dasharray: 1 1;
+          opacity: 1;
+        }
+      }
+      @keyframes clear-forward {
+        from {
+          stroke-dashoffset: 0;
+          opacity: 1;
+        }
+        85% {
+          opacity: 1;
+        }
+        to {
+          stroke-dashoffset: -1;
+          opacity: 0;
+        }
+      }
+      @keyframes trace {
+        0% {
+          stroke-dasharray: 0 1;
+          stroke-dashoffset: 0;
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        45%,
+        55% {
+          stroke-dasharray: 1 1;
+          stroke-dashoffset: 0;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          stroke-dasharray: 1 1;
+          stroke-dashoffset: -1;
+          opacity: 0;
+        }
+      }
+      @keyframes orbit {
+        from {
+          stroke-dashoffset: 0;
+        }
+        to {
+          stroke-dashoffset: -1;
+        }
+      }
+      @media (max-width: 520px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+        .row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .row .hint {
+          grid-column: 1/-1;
+        }
+        .controls {
+          padding-right: 0;
+        }
+        .preview {
+          height: 96px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .reduced {
+          display: block;
+          color: var(--muted-foreground);
+        }
+        #stroke-modes .ink {
+          stroke-dasharray: none !important;
+          stroke-dashoffset: 0 !important;
+          animation: none !important;
+          transition: opacity 150ms !important;
+          opacity: 0;
+        }
+        #stroke-modes.on .ink {
+          opacity: 1;
+        }
+        .normal-hint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="stroke-modes" class="idle">
+      <div class="controls">
+        <button id="toggle" type="button" aria-pressed="false">
+          開啟 active</button
+        ><button id="replay" type="button">重新比較</button
+        ><span id="status" class="status" role="status">active = false</span>
+      </div>
+      <p class="normal-hint">
+        開啟後，在描邊完成前關閉；接著快速開關，觀察上面兩種方式。
+      </p>
+      <p class="reduced">目前啟用減少動態效果，示範改以淡入淡出呈現。</p>
+      <div class="compare">
+        <section class="panel draw-back">
+          <h2>draw · 反向收回</h2>
+          <p class="description">建議方式：切換時接續當前進度。</p>
+          <div class="preview" data-shape="反向收回"></div>
+          <p class="recommend">適合 focus、hover、toggle。</p>
+        </section>
+        <section class="panel draw-forward">
+          <h2>draw · 向前退出</h2>
+          <p class="description">舊版方式：切換時從固定端點重播。</p>
+          <div class="preview" data-shape="向前退出"></div>
+          <p class="recommend">中途關閉時，可能先補滿再退出。</p>
+        </section>
+      </div>
+      <div class="modes">
+        <section class="row trace">
+          <div>
+            <h3>trace · 播放一次</h3>
+            <p class="description">畫入 → 向前退出</p>
+          </div>
+          <div class="preview" data-shape="單次描繪"></div>
+          <p class="hint">適合一次性提示。播完即消失，active 仍可為 true。</p>
+        </section>
+        <section class="row loop">
+          <div>
+            <h3>loop · 重複描繪</h3>
+            <p class="description">反覆畫入、退出</p>
+          </div>
+          <div class="preview" data-shape="循環描繪"></div>
+          <p class="hint">適合持續處理中的狀態。關閉即停止。</p>
+        </section>
+        <section class="row orbit">
+          <div>
+            <h3>orbit · 線段繞行</h3>
+            <p class="description">固定短線段沿輪廓前進</p>
+          </div>
+          <div class="preview" data-shape="線段繞行"></div>
+          <p class="hint">適合等待指示。維持短線段，不畫滿整圈。</p>
+        </section>
+      </div>
+    </main>
+    <script>
+      const root = document.getElementById("stroke-modes");
+      for (const slot of root.querySelectorAll("[data-shape]")) {
+        slot.innerHTML =
+          '<svg class="shape" viewBox="0 0 220 90" role="img" aria-label="' +
+          slot.dataset.shape +
+          '"><rect class="track" x="16" y="15" width="188" height="60" rx="12"/><rect class="ink" pathLength="1" x="16" y="15" width="188" height="60" rx="12"/></svg>';
+      }
+      const toggle = document.getElementById("toggle"),
+        status = document.getElementById("status");
+      let active = false;
+      function setActive(next) {
+        active = next;
+        root.className = next ? "on" : "off";
+        toggle.setAttribute("aria-pressed", String(next));
+        toggle.textContent = next ? "關閉 active" : "開啟 active";
+        status.textContent = "active = " + next;
+      }
+      toggle.addEventListener("click", () => setActive(!active));
+      document.getElementById("replay").addEventListener("click", () => {
+        for (const shape of root.querySelectorAll(".ink")) {
+          shape.style.transition = "none";
+          shape.style.animation = "none";
+        }
+        root.className = "idle";
+        void root.getBoundingClientRect();
+        for (const shape of root.querySelectorAll(".ink")) {
+          shape.style.removeProperty("transition");
+          shape.style.removeProperty("animation");
+        }
+        void root.getBoundingClientRect();
+        setActive(true);
+      });
+    </script>
+  </body>
+</html>

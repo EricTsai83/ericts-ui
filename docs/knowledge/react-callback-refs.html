@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>React callback ref 與 cleanup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --clay: #d97757;
+        --slate: #141413;
+        --ivory: #faf9f5;
+        --oat: #e3dacc;
+        --gray-100: #f0eee6;
+        --gray-700: #3d3d3a;
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --content-width: 68ch;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--foreground, var(--slate));
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: 16px;
+        font-weight: 430;
+        line-height: 1.75;
+      }
+      main {
+        max-width: var(--content-width);
+        margin: 0 auto;
+        padding: 48px 0;
+      }
+      article {
+        background: transparent;
+        border: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 1.8rem;
+        line-height: 1.25;
+        text-wrap: balance;
+      }
+      h2 {
+        font-size: 1.22rem;
+        line-height: 1.4;
+        margin-top: 36px;
+      }
+      p,
+      ul,
+      pre,
+      .callout {
+        max-width: var(--content-width);
+      }
+      p {
+        margin: 16px 0;
+      }
+      a {
+        color: var(--clay);
+        text-underline-offset: 3px;
+      }
+      p code,
+      li code,
+      aside code {
+        background: var(--secondary, var(--gray-100));
+        border: 1px solid var(--border, var(--oat));
+        border-radius: 4px;
+        padding: 1px 4px;
+        overflow-wrap: anywhere;
+        font-size: 0.9em;
+      }
+      pre {
+        position: relative;
+        width: 100%;
+        margin: 16px 0 24px;
+        border: 1px solid #26241f;
+        border-radius: 8px;
+        background: #11110f;
+        color: #d8d4ca;
+        overflow: hidden;
+      }
+      pre code {
+        display: block;
+        padding: 18px 56px 18px 18px;
+        overflow-x: auto;
+        white-space: pre;
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.62;
+        scrollbar-width: none;
+      }
+      pre code::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+      pre .label {
+        display: none;
+      }
+      pre code .k,
+      pre code .o {
+        color: #ff946e;
+      }
+      pre code .s {
+        color: #8fb86a;
+      }
+      pre code .n,
+      pre code .p {
+        color: #d8d4ca;
+      }
+      pre code .c {
+        color: #858177;
+        font-style: italic;
+      }
+      pre code .f,
+      pre code .t {
+        color: #cfc6a2;
+      }
+      .copy-code {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid #faf9f524;
+        border-radius: 4px;
+        background: #faf9f50f;
+        color: #d8d4ca;
+        cursor: pointer;
+      }
+      .copy-code:focus-visible {
+        outline: 2px solid var(--clay);
+        outline-offset: 2px;
+      }
+      .copy-code.copied {
+        color: #b8d99a;
+      }
+      .copy-code svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .code-scrollbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #faf9f519;
+        touch-action: none;
+      }
+      .code-scrollbar.hidden {
+        display: none;
+      }
+      .code-scrollbar-thumb {
+        height: 100%;
+        border-radius: 4px;
+        background: #ff946ed1;
+        cursor: grab;
+        touch-action: none;
+      }
+      .callout {
+        padding: 16px;
+        background: var(--secondary, var(--gray-100));
+        border: 1px solid var(--border, var(--oat));
+        border-left: 3px solid var(--clay);
+        border-radius: 4px;
+      }
+      .sources {
+        margin-top: 40px;
+        border-top: 1px solid var(--border, var(--oat));
+        font-size: 0.9rem;
+      }
+      ul {
+        padding-left: 24px;
+      }
+      @media (max-width: 640px) {
+        body {
+          font-size: 15px;
+        }
+        h1 {
+          font-size: 1.65rem;
+        }
+        main {
+          padding: 24px 0;
+        }
+        pre code {
+          font-size: 0.8125rem;
+          line-height: 1.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <article>
+        <h1>React callback ref：把同一個 DOM 交給內部與外部</h1>
+        <p class="deck">
+          從 ref 為什麼能接收函式，到 React 19 的 cleanup：理解誰建立
+          DOM、誰保存它，以及誰負責釋放資源。
+        </p>
+        <h2>先看真正要解決的問題</h2>
+        <p>
+          假設你做了一個 SVG 邊框元件。元件要取得自己的
+          SVG，找到父元素、量測尺寸，才能畫出合適的邊框。使用元件的人也可能需要取得同一個
+          SVG，例如在按鈕事件中讀取它的範圍。這裡只有一個 DOM
+          元素，但有兩個使用者：元件內部，以及呼叫元件的外部程式。
+        </p>
+        <p>
+          React 元件是產生介面描述的函式；DOM 則是 React
+          提交更新時實際建立的瀏覽器物件。不能在 render 過程中假設 DOM
+          已經存在。ref 提供一個取得這個實際物件的管道。
+        </p>
+        <h2>ref 是一個接收 DOM 的位置</h2>
+        <p>
+          <code>useRef</code> 回傳帶有
+          <code>current</code> 屬性的物件。它會在重新 render
+          之間保持身分穩定。下列程式直接把物件交給原生 SVG，React 會在連接時設定
+          <code>current</code>，移除時清空。修改
+          <code>current</code> 本身不會要求 React 重新 render。
+        </p>
+        <pre
+          class="language-typescript"
+        ><span class="label">TypeScript</span><code><span class="k">const</span> myRef <span class="o">=</span> useRef<span class="o">&lt;</span><span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">&gt;</span><span class="o">(</span><span class="n">null</span><span class="o">)</span><span class="o">;</span>
+
+<span class="c">// 這裡的 svg 是原生元素，React 自己負責填入 myRef.current。</span>
+<span class="o">&lt;</span>svg ref<span class="o">=</span><span class="o">{</span>myRef<span class="o">}</span> /<span class="o">&gt;</span></code></pre>
+        <p>
+          但寫成 <code>&lt;SvgFrame ref={myRef} /&gt;</code> 時，<code
+            >SvgFrame</code
+          >
+          是自訂函式元件。在 React 19，它能從 props 接收
+          <code>ref</code>，但仍必須明確把它接到真正的
+          DOM。只接收參數，不會自動讓外部拿到 SVG。
+        </p>
+        <h2>為什麼 ref 可以放一個函式？</h2>
+        <p>
+          這是 React 的 API 契約：原生元素的 <code>ref</code> 可以是 ref
+          物件，也可以是接收 DOM 的 callback。當 SVG 被連接時，React 呼叫
+          callback，將實際的 SVG 當作參數。這個函式不是 HTML
+          屬性，也不會以文字寫進 SVG；是 React 在提交階段處理的工作。
+        </p>
+        <pre
+          class="language-typescript"
+        ><span class="label">TypeScript</span><code><span class="k">function</span> <span class="f">receiveSvg</span><span class="o">(</span>element<span class="o">:</span> <span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">)</span> <span class="o">{</span>
+  console<span class="o">.</span><span class="p">log</span><span class="o">(</span>element<span class="o">)</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="o">&lt;</span>svg ref<span class="o">=</span><span class="o">{</span>receiveSvg<span class="o">}</span> /<span class="o">&gt;</span><span class="o">;</span> <span class="c">// 交出函式，之後由 React 呼叫</span>
+<span class="c">// 不要寫 ref={receiveSvg()}，那是在 render 時立刻執行函式。</span></code></pre>
+        <p>
+          函式的名字並不重要，叫 <code>receiveSvg</code>、<code>setRefs</code>
+          都可以。重要的是它被放在 <code>ref</code> 這個位置，因此由 React 依
+          DOM 的生命週期呼叫。它不等於 click handler，也不能假定只執行一次。
+        </p>
+        <h2>setNode 與 assignRef 各自負責什麼？</h2>
+        <p>
+          <code>setNode</code> 是 <code>useState</code> 回傳的
+          setter，用來更新元件內部保存的 DOM。它會排程重新
+          render，而不是立刻改變目前函式中的
+          <code>node</code> 變數。在邊框元件裡，依賴 <code>[node]</code> 的
+          effect 因此能在節點就緒或改變時建立量測 observer。
+        </p>
+        <p>
+          <code>assignRef</code> 是作者自己寫的工具，不是 React API。它把同一個
+          DOM 轉交給外部傳入的 ref：物件形式就設定
+          <code>current</code>，函式形式就呼叫它。它本身不要求重新
+          render；但被它呼叫的外部 callback 可以有自己的行為。
+        </p>
+        <pre
+          class="language-typescript"
+        ><span class="label">TypeScript</span><code><span class="c">// element 是 React 提供的同一個 SVG 物件。</span>
+<span class="f">setNode</span><span class="o">(</span>element<span class="o">)</span><span class="o">;</span>              <span class="c">// 內部保存，讓依賴 node 的邏輯跟著更新</span>
+<span class="k">const</span> cleanup <span class="o">=</span> <span class="f">assignRef</span><span class="o">(</span>ref<span class="o">,</span> element<span class="o">)</span><span class="o">;</span> <span class="c">// 外部也取得同一個物件</span></code></pre>
+        <p>
+          外部的變數叫 <code>myRef</code>，傳入後內部參數叫
+          <code>ref</code>，兩個名字指的是同一個 ref
+          物件。這是普通的參數傳遞，不是另外建立一個
+          ref。保存到內外兩邊也不會複製 SVG。
+        </p>
+        <h2>完整範例：從傳入到取得 DOM</h2>
+        <p>
+          下面是可獨立閱讀的 React 19 範例，省略動畫與父元素量測。<code
+            >data-ready</code
+          >
+          用來示範內部 state 如何反映節點就緒；外部則透過按鈕讀取同一個
+          SVG。這裡刻意保留內部 state，供理解合併流程；若真實元件只需要外部
+          ref，直接傳給 SVG 即可。
+        </p>
+        <pre
+          class="language-typescript"
+        ><span class="label">TypeScript</span><code><span class="s">"use client"</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="o">{</span> useCallback<span class="o">,</span> useRef<span class="o">,</span> useState<span class="o">,</span> <span class="k">type</span> <span class="t">Ref</span> <span class="o">}</span> <span class="k">from</span> <span class="s">"react"</span><span class="o">;</span>
+
+<span class="k">function</span> assignRef<span class="o">&lt;</span><span class="t">T</span><span class="o">&gt;</span><span class="o">(</span>ref<span class="o">:</span> <span class="t">Ref</span><span class="o">&lt;</span><span class="t">T</span><span class="o">&gt;</span> <span class="o">|</span> <span class="n">undefined</span><span class="o">,</span> value<span class="o">:</span> <span class="t">T</span> <span class="o">|</span> <span class="n">null</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span>typeof ref <span class="o">=</span><span class="o">=</span><span class="o">=</span> <span class="s">"function"</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">const</span> cleanup <span class="o">=</span> <span class="f">ref</span><span class="o">(</span>value<span class="o">)</span><span class="o">;</span>
+    <span class="k">return</span> <span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span>typeof cleanup <span class="o">=</span><span class="o">=</span><span class="o">=</span> <span class="s">"function"</span><span class="o">)</span> <span class="o">{</span>
+        <span class="f">cleanup</span><span class="o">(</span><span class="o">)</span><span class="o">;</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="f">ref</span><span class="o">(</span><span class="n">null</span><span class="o">)</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="k">if</span> <span class="o">(</span>ref<span class="o">)</span> <span class="o">{</span>
+    ref<span class="o">.</span><span class="p">current</span> <span class="o">=</span> value<span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="k">return</span> <span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span>ref<span class="o">)</span> <span class="o">{</span>
+      ref<span class="o">.</span><span class="p">current</span> <span class="o">=</span> <span class="n">null</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="k">function</span> <span class="f">SvgFrame</span><span class="o">(</span><span class="o">{</span> ref <span class="o">}</span><span class="o">:</span> <span class="o">{</span> ref<span class="o">?</span><span class="o">:</span> <span class="t">Ref</span><span class="o">&lt;</span><span class="t">SVGSVGElement</span><span class="o">&gt;</span> <span class="o">}</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">const</span> <span class="o">[</span>node<span class="o">,</span> setNode<span class="o">]</span> <span class="o">=</span> useState<span class="o">&lt;</span><span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">&gt;</span><span class="o">(</span><span class="n">null</span><span class="o">)</span><span class="o">;</span>
+
+  <span class="k">const</span> setRefs <span class="o">=</span> <span class="f">useCallback</span><span class="o">(</span><span class="o">(</span>element<span class="o">:</span> <span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="f">setNode</span><span class="o">(</span>element<span class="o">)</span><span class="o">;</span>
+    <span class="k">const</span> cleanup <span class="o">=</span> <span class="f">assignRef</span><span class="o">(</span>ref<span class="o">,</span> element<span class="o">)</span><span class="o">;</span>
+    <span class="k">return</span> <span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+      <span class="f">setNode</span><span class="o">(</span><span class="n">null</span><span class="o">)</span><span class="o">;</span>
+      <span class="f">cleanup</span><span class="o">(</span><span class="o">)</span><span class="o">;</span>
+    <span class="o">}</span><span class="o">;</span>
+  <span class="o">}</span><span class="o">,</span> <span class="o">[</span>ref<span class="o">]</span><span class="o">)</span><span class="o">;</span>
+
+  <span class="k">return</span> <span class="o">(</span>
+    <span class="o">&lt;</span>svg ref<span class="o">=</span><span class="o">{</span>setRefs<span class="o">}</span> width<span class="o">=</span><span class="o">{</span><span class="n">120</span><span class="o">}</span> height<span class="o">=</span><span class="o">{</span><span class="n">40</span><span class="o">}</span>
+      aria<span class="o">-</span>label<span class="o">=</span><span class="s">"外框"</span> role<span class="o">=</span><span class="s">"img"</span> data<span class="o">-</span>ready<span class="o">=</span><span class="o">{</span>node <span class="o">!</span><span class="o">=</span><span class="o">=</span> <span class="n">null</span><span class="o">}</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span>rect x<span class="o">=</span><span class="o">{</span><span class="n">1</span><span class="o">}</span> y<span class="o">=</span><span class="o">{</span><span class="n">1</span><span class="o">}</span> width<span class="o">=</span><span class="o">{</span><span class="n">118</span><span class="o">}</span> height<span class="o">=</span><span class="o">{</span><span class="n">38</span><span class="o">}</span>
+        fill<span class="o">=</span><span class="s">"none"</span> stroke<span class="o">=</span><span class="s">"currentColor"</span> /<span class="o">&gt;</span>
+    <span class="o">&lt;</span>/svg<span class="o">&gt;</span>
+  <span class="o">)</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="k">function</span> <span class="f">Example</span><span class="o">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">const</span> myRef <span class="o">=</span> useRef<span class="o">&lt;</span><span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">&gt;</span><span class="o">(</span><span class="n">null</span><span class="o">)</span><span class="o">;</span>
+  <span class="k">return</span> <span class="o">(</span>
+    <span class="o">&lt;</span>div<span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="t">SvgFrame</span> ref<span class="o">=</span><span class="o">{</span>myRef<span class="o">}</span> /<span class="o">&gt;</span>
+      <span class="o">&lt;</span>button <span class="k">type</span><span class="o">=</span><span class="s">"button"</span> onClick<span class="o">=</span><span class="o">{</span><span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+        console<span class="o">.</span><span class="p">log</span><span class="o">(</span>myRef<span class="o">.</span><span class="p">current</span><span class="o">?</span><span class="o">.</span><span class="p">getBoundingClientRect</span><span class="o">(</span><span class="o">)</span><span class="o">)</span><span class="o">;</span>
+      <span class="o">}</span><span class="o">}</span><span class="o">&gt;</span>讀取 <span class="t">SVG</span> 尺寸<span class="o">&lt;</span>/button<span class="o">&gt;</span>
+    <span class="o">&lt;</span>/div<span class="o">&gt;</span>
+  <span class="o">)</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre>
+        <p>
+          讀取順序是：<code>Example</code> 建立 <code>myRef</code> → 把它傳給
+          <code>SvgFrame</code> 的 <code>ref</code> 參數 → SVG 建立後 React 呼叫
+          <code>setRefs(svg)</code> → <code>setNode</code> 保存給內部 →
+          <code>assignRef</code> 將 SVG 填入外部的
+          <code>myRef.current</code
+          >。等使用者點擊按鈕，事件處理器就能取得已連接的 SVG。
+        </p>
+        <h2>cleanup 為什麼必須傳回去？</h2>
+        <p>
+          React 19 的 callback ref 可以回傳清理函式。假設外部 callback 在拿到
+          SVG 時建立一個 observer，它就可以回傳 <code>disconnect</code>
+          的操作。React 會在解除該 ref 時執行 cleanup；這也可能發生在 ref
+          換成另一個函式時，不只元件卸載時。
+        </p>
+        <pre
+          class="language-typescript"
+        ><span class="label">TypeScript</span><code><span class="k">const</span> observeSvg <span class="o">=</span> <span class="f">useCallback</span><span class="o">(</span><span class="o">(</span>element<span class="o">:</span> <span class="t">SVGSVGElement</span> <span class="o">|</span> <span class="n">null</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="o">!</span>element<span class="o">)</span> <span class="k">return</span><span class="o">;</span>
+  <span class="k">const</span> observer <span class="o">=</span> <span class="k">new</span> <span class="f">ResizeObserver</span><span class="o">(</span><span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> <span class="o">{</span>
+    console<span class="o">.</span><span class="p">log</span><span class="o">(</span>element<span class="o">.</span><span class="p">getBoundingClientRect</span><span class="o">(</span><span class="o">)</span><span class="o">)</span><span class="o">;</span>
+  <span class="o">}</span><span class="o">)</span><span class="o">;</span>
+  observer<span class="o">.</span><span class="p">observe</span><span class="o">(</span>element<span class="o">)</span><span class="o">;</span>
+  <span class="k">return</span> <span class="o">(</span><span class="o">)</span> <span class="o">=</span><span class="o">&gt;</span> observer<span class="o">.</span><span class="p">disconnect</span><span class="o">(</span><span class="o">)</span><span class="o">;</span>
+<span class="o">}</span><span class="o">,</span> <span class="o">[</span><span class="o">]</span><span class="o">)</span><span class="o">;</span>
+
+<span class="o">&lt;</span><span class="t">SvgFrame</span> ref<span class="o">=</span><span class="o">{</span>observeSvg<span class="o">}</span> /<span class="o">&gt;</span><span class="o">;</span></code></pre>
+        <p>
+          如果 wrapper 只呼叫 <code>ref(element)</code>，卻丟掉回傳值，React
+          只看見 wrapper，無法知道內部 callback 建立了什麼資源。範例中的
+          <code>assignRef</code> 把清理行為包成函式回傳；<code>setRefs</code>
+          再把包含內部重設與外部清理的函式交給 React。
+        </p>
+        <p>
+          這個合併流程分成三種情況：外部 callback 有回傳
+          cleanup，就執行它，不另外傳入 <code>null</code>；callback 沒回傳
+          cleanup，就在解除時呼叫 <code>ref(null)</code>；外部是物件 ref，就把
+          <code>current</code> 清成 <code>null</code>。沒有外部 ref
+          時，仍可正常執行內部邏輯。
+        </p>
+        <aside class="callout">
+          元件內部 effect 建立的 ResizeObserver，與外部 callback ref
+          建立的資源，是兩套生命週期。effect 的
+          <code>return () =&gt; observer.disconnect()</code> 只清理自己的
+          observer，不會自動處理外部 callback 的回傳值。
+        </aside>
+        <h2>useCallback 與 StrictMode：避免重連，也容許重連</h2>
+        <p>
+          每次 render 都直接建立新的 ref 函式，React 會視為 ref 改變，解除舊
+          callback 再連接新的。這不一定是錯，但若 callback 更新 state 或建立
+          observer，就可能導致反覆重連。用
+          <code>useCallback(..., [ref])</code> 可以在外部 ref
+          沒變時保持函式身分穩定。外部 ref 真正換掉時，則必須清理舊 ref，再把
+          DOM 交給新 ref，不能為了穩定而省略依賴。
+        </p>
+        <p>
+          開發模式的 StrictMode 會額外檢查 callback ref 的 setup 與
+          cleanup。正確的實作應能承受「建立 → 清理 →
+          再建立」，最後只保留一份有效資源，卸載後歸零。不要靠「只執行第一次」的旗標跳過這個檢查。
+        </p>
+        <h2>什麼情況值得這樣設計？</h2>
+        <p>
+          當元件內部確實需要 DOM，而外部也需要取得相同 DOM，使用 callback ref
+          合併是合適的做法。若節點的變動還需要驅動 effect，內部以 state
+          保存它也有理由：單純修改 <code>useRef.current</code> 不會觸發 effect。
+        </p>
+        <p>
+          若只有外部需要 DOM，直接使用
+          <code>&lt;svg ref={ref} /&gt;</code> 更簡單。若內部只在事件中讀取
+          DOM，不需要因節點變更重新 render，可以考慮內部 ref，避免額外 state
+          更新。不要為每個 DOM 都加入合併工具，也不要在 render
+          中執行量測或依賴尚未提交的 ref。
+        </p>
+        <p>
+          在 ericts/ui 的 StrokeTraceBorder 中，內部需要找到 SVG
+          的父元素來量測邊框，外部則能接收 SVG DOM。合併 callback
+          因而符合需求。此次修正保留這個結構，補齊外部 cleanup 的轉交，並測試
+          ref 替換、卸載、物件 ref 清空，以及 StrictMode 的資源平衡。
+        </p>
+        <section class="sources">
+          <h2>延伸閱讀</h2>
+          <ul>
+            <li>
+              <a
+                href="https://react.dev/reference/react-dom/components/common#ref-callback"
+                >React：callback ref 的參數、cleanup 與生命週期</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://react.dev/reference/react/StrictMode#fixing-bugs-found-by-re-running-ref-callbacks-in-development"
+                >React：StrictMode 對 callback ref 的額外檢查</a
+              >
+            </li>
+          </ul>
+        </section>
+      </article>
+    </main>
+    <script>
+      const icon =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg>';
+      const check =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+      for (const pre of document.querySelectorAll("pre")) {
+        const code = pre.querySelector("code"),
+          button = document.createElement("button");
+        button.className = "copy-code";
+        button.type = "button";
+        button.setAttribute("aria-label", "複製程式碼");
+        button.innerHTML = icon;
+        pre.append(button);
+        button.addEventListener("click", async () => {
+          const text = code.textContent;
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              const area = document.createElement("textarea");
+              area.value = text;
+              area.style.position = "fixed";
+              area.style.opacity = "0";
+              document.body.append(area);
+              try {
+                area.select();
+                if (!document.execCommand("copy"))
+                  throw new Error("copy failed");
+              } finally {
+                area.remove();
+                button.focus();
+              }
+            }
+            button.innerHTML = check;
+            button.classList.add("copied");
+            button.setAttribute("aria-label", "已複製");
+            setTimeout(() => {
+              button.innerHTML = icon;
+              button.classList.remove("copied");
+              button.setAttribute("aria-label", "複製程式碼");
+            }, 1400);
+          } catch {
+            button.setAttribute("aria-label", "複製失敗，請選取程式碼複製");
+          }
+        });
+        const bar = document.createElement("div"),
+          thumb = document.createElement("div");
+        bar.className = "code-scrollbar";
+        thumb.className = "code-scrollbar-thumb";
+        bar.append(thumb);
+        pre.append(bar);
+        const sync = () => {
+          const width = code.clientWidth,
+            total = code.scrollWidth;
+          bar.classList.toggle("hidden", total <= width);
+          thumb.style.width = (width / total) * 100 + "%";
+          thumb.style.transform =
+            "translateX(" + (code.scrollLeft / total) * bar.clientWidth + "px)";
+        };
+        code.addEventListener("scroll", sync, { passive: true });
+        new ResizeObserver(sync).observe(code);
+        bar.addEventListener("pointerdown", (event) => {
+          const start = event.clientX,
+            scroll = code.scrollLeft;
+          bar.setPointerCapture(event.pointerId);
+          const move = (e) => {
+            code.scrollLeft =
+              scroll +
+              ((e.clientX - start) * code.scrollWidth) / bar.clientWidth;
+          };
+          const done = () => {
+            bar.removeEventListener("pointermove", move);
+            bar.removeEventListener("pointerup", done);
+            bar.removeEventListener("pointercancel", done);
+          };
+          bar.addEventListener("pointermove", move);
+          bar.addEventListener("pointerup", done);
+          bar.addEventListener("pointercancel", done);
+        });
+        sync();
+      }
+    </script>
+  </body>
+</html>
