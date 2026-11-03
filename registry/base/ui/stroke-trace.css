@@ -1,0 +1,128 @@
+/* Defaults are layered for customization. Normal unlayered styles and
+   utilities in a later layer can override them. */
+@layer components {
+  .stroke-trace {
+    --stroke-trace-glow: 12px;
+    --stroke-trace-segment: 0.25 0.75;
+    --stroke-trace-track-opacity: 0.15;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .stroke-trace-border {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  /* Shapes carry pathLength="1", so one dash pattern fits every length. */
+  .stroke-trace [pathLength] {
+    stroke-dasharray: 1 1;
+    opacity: 0;
+    animation-duration: var(--stroke-trace-duration, 1000ms);
+    animation-timing-function: ease-in-out;
+    animation-delay: calc(
+      var(--stroke-trace-index, 0) * var(--stroke-trace-stagger, 0ms)
+    );
+    animation-fill-mode: both;
+  }
+
+  .stroke-trace-track {
+    opacity: var(--stroke-trace-track-opacity);
+  }
+
+  /* Draw is controlled by WAAPI so both exit directions can retarget smoothly. */
+  .stroke-trace[data-mode="draw"] [pathLength] {
+    stroke-dasharray: 0 2;
+  }
+
+  .stroke-trace[data-mode="trace"][data-state="on"] [pathLength] {
+    animation-name: stroke-trace-trace;
+  }
+
+  .stroke-trace[data-mode="loop"][data-state="on"] [pathLength] {
+    animation-name: stroke-trace-trace;
+    animation-iteration-count: infinite;
+  }
+
+  .stroke-trace[data-mode="orbit"][data-state="on"] [pathLength] {
+    stroke-dasharray: var(--stroke-trace-segment);
+    opacity: 1;
+    animation-name: stroke-trace-orbit;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* A near-white core with the colour moved into the glow, like a lit tube. */
+  .stroke-trace[data-variant="neon"] {
+    stroke: color-mix(in oklab, currentColor 15%, white);
+  }
+
+  .stroke-trace[data-variant="neon"] [pathLength] {
+    filter: drop-shadow(0 0 calc(var(--stroke-trace-glow) / 4) currentColor)
+      drop-shadow(0 0 var(--stroke-trace-glow) currentColor);
+  }
+
+  @keyframes stroke-trace-trace {
+    0% {
+      /* Keep the next dash beyond the endpoint while drawing, as in draw mode. */
+      stroke-dasharray: 0 2;
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    /* A short hold between drawing in and leaving. */
+    45%,
+    55% {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 0;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: -1;
+      opacity: 0;
+    }
+  }
+
+  @keyframes stroke-trace-orbit {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -1;
+    }
+  }
+
+  @keyframes stroke-trace-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+/* Motion guards override ordinary customization, including inline timing.
+   Important declarations also beat keyframes, so every mode keeps only its
+   opacity change: draw fades, trace and loop pulse in place. */
+@media (prefers-reduced-motion: reduce) {
+  .stroke-trace [pathLength] {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .stroke-trace[data-mode="orbit"][data-state="on"] [pathLength] {
+    animation-name: stroke-trace-pulse !important;
+    animation-timing-function: ease-in-out !important;
+  }
+}

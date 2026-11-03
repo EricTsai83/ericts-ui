@@ -264,6 +264,203 @@ function ChangeHighlightGuide({ snippet }: { snippet: SnippetLookup }) {
   );
 }
 
+function StrokeTraceGuide({ snippet }: { snippet: SnippetLookup }) {
+  return (
+    <>
+      <article className="flex flex-col gap-3">
+        <h3 className="text-lg font-semibold tracking-tight">Try the demos</h3>
+        <dl className="grid gap-4 text-sm">
+          <GuideDefinition
+            term="Four modes"
+            description="Switch modes to compare plain and neon strokes. Toggle the track or replay the animation."
+          />
+          <GuideDefinition
+            term="Interactive borders"
+            description="Draw, then clear mid-stroke to compare reverse and forward exits. Adjust the timing; focusing either field also draws both borders."
+          />
+          <GuideDefinition
+            term="SVG artwork"
+            description="Replay the signature or toggle the neon sign to explore individual stroke timing and stagger."
+          />
+        </dl>
+      </article>
+      <MotionPatternGuide
+        snippet={snippet}
+        rule="A line draws itself along a stroke. Use it where the path itself means something: a loader's shape, the border of the field that has focus, the connector to the next step."
+        customization={
+          <>
+            Wrap SVG shapes in <InlineCode>StrokeTrace</InlineCode>, or place{" "}
+            <InlineCode>StrokeTraceBorder</InlineCode> inside a positioned
+            parent. Drive <InlineCode>active</InlineCode> from your UI state;
+            change the React key to replay. Colour follows{" "}
+            <InlineCode>currentColor</InlineCode>. Only strokes are traced;
+            filled artwork and text need stroke paths. Shape{" "}
+            <InlineCode>pathLength</InlineCode> is normalized to 1; shapes
+            inside custom components must set{" "}
+            <InlineCode>{"pathLength={1}"}</InlineCode> themselves. Borders
+            follow parent size, with uniform border widths and an explicit
+            circular corner radius; asymmetric borders, elliptical corners, and
+            automatic CSS radius tracking are not supported. Reduced motion
+            keeps fades and removes travel.
+          </>
+        }
+      />
+      <StrokeTraceApiReference />
+    </>
+  );
+}
+
+function StrokeTraceApiReference() {
+  const groups = [
+    {
+      title: "Shared props",
+      rows: [
+        [
+          "mode",
+          '"draw" | "trace" | "loop" | "orbit"',
+          '"draw"',
+          "Draw holds the line; trace draws and clears once; loop repeats; orbit circles a short segment.",
+        ],
+        [
+          "active",
+          "boolean",
+          "true",
+          "Enables the effect. Draw exits when false; the other modes stop.",
+        ],
+        [
+          "duration",
+          "number",
+          "1000; orbit: 1200",
+          "Milliseconds for a full draw or one trace, loop, or orbit cycle. Negative values become 0; non-finite values use the default.",
+        ],
+        [
+          "exitDirection",
+          '"reverse" | "forward"',
+          '"reverse"',
+          "Draw only. Retract along the path, or move the tail forward to clear it. Both resume from the current segment when interrupted.",
+        ],
+        [
+          "exitDuration",
+          "number",
+          "duration × 0.6",
+          "Draw only. Milliseconds for a full exit; partial exits finish proportionally sooner. Uses each shape’s duration when not supplied.",
+        ],
+        [
+          "variant",
+          '"line" | "neon"',
+          '"line"',
+          "Plain stroke or a near-white core with a currentColor glow. Neon is intended for dark surfaces.",
+        ],
+        [
+          "ref",
+          "Ref<SVGSVGElement>",
+          "—",
+          "The SVG DOM node. Supports object refs and callback refs, including React 19 cleanup.",
+        ],
+        [
+          "aria-hidden",
+          'boolean | "true" | "false"',
+          "true",
+          'Decorative by default. For meaningful artwork, set false and provide role="img" and an accessible name.',
+        ],
+      ],
+    },
+    {
+      title: "StrokeTrace",
+      rows: [
+        [
+          "children",
+          "ReactNode",
+          "—",
+          "SVG paths, circles, rectangles, ellipses, lines, polylines, or polygons. Groups and fragments are traversed.",
+        ],
+        [
+          "stagger",
+          "number",
+          "0",
+          "Milliseconds between shape starts, in document order. Negative or non-finite values become 0.",
+        ],
+        [
+          "track",
+          "boolean",
+          "false",
+          "Adds a faint, static outline below each animated shape.",
+        ],
+      ],
+    },
+    {
+      title: "StrokeTraceBorder",
+      rows: [
+        [
+          "radius",
+          "number",
+          "0",
+          "Uniform corner radius in px. Updates with the prop and is clamped to half the smaller box dimension. Negative or non-finite values become 0.",
+        ],
+      ],
+    },
+  ] as const;
+
+  return (
+    <article className="flex min-w-0 flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-semibold tracking-tight">API Reference</h3>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Both components accept native SVG props, including{" "}
+          <InlineCode>className</InlineCode> and <InlineCode>style</InlineCode>.{" "}
+          <InlineCode>StrokeTraceBorder</InlineCode> generates its own rectangle
+          and does not accept <InlineCode>children</InlineCode>,{" "}
+          <InlineCode>stagger</InlineCode>, or <InlineCode>track</InlineCode>.
+          All times are in milliseconds; all props are optional.
+        </p>
+      </div>
+      {groups.map((group) => (
+        <section key={group.title} className="flex min-w-0 flex-col gap-3">
+          <h4 className="text-sm font-medium">{group.title}</h4>
+          <div className="max-w-full overflow-x-auto rounded-lg border">
+            <table className="w-full min-w-[38rem] border-collapse text-left text-sm">
+              <caption className="sr-only">
+                {group.title}: prop types, defaults, and behavior
+              </caption>
+              <thead className="bg-muted/50">
+                <tr>
+                  {["Prop", "Type", "Default", "Description"].map((heading) => (
+                    <th
+                      key={heading}
+                      scope="col"
+                      className="border-b px-3 py-2 font-medium"
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {group.rows.map(([name, type, defaultValue, description]) => (
+                  <tr key={name} className="border-b last:border-0">
+                    <th scope="row" className="px-3 py-3 align-top font-normal">
+                      <InlineCode>{name}</InlineCode>
+                    </th>
+                    <td className="px-3 py-3 align-top">
+                      <InlineCode>{type}</InlineCode>
+                    </td>
+                    <td className="px-3 py-3 align-top">
+                      <InlineCode>{defaultValue}</InlineCode>
+                    </td>
+                    <td className="min-w-64 px-3 py-3 align-top leading-6 text-muted-foreground">
+                      {description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+    </article>
+  );
+}
+
 const registryGuides: Partial<
   Record<string, ComponentType<{ snippet: SnippetLookup }>>
 > = {
@@ -271,6 +468,7 @@ const registryGuides: Partial<
   "scan-reveal": ScanRevealGuide,
   "text-decode": TextDecodeGuide,
   "change-highlight": ChangeHighlightGuide,
+  "stroke-trace": StrokeTraceGuide,
 };
 
 function GuideSection({

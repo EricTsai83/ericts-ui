@@ -569,6 +569,45 @@ export function Example() {
 }`,
     },
   ],
+  "stroke-trace": [
+    {
+      name: "example.tsx",
+      language: "tsx",
+      source: `"use client";
+
+import { useState } from "react";
+import { StrokeTrace, StrokeTraceBorder } from "@/components/ui/stroke-trace";
+
+export function Example() {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="flex flex-col items-start gap-6">
+      {/* Any SVG shape: path, circle, rect, line, polyline, polygon. */}
+      <StrokeTrace mode="loop" track viewBox="0 0 24 24" className="size-8">
+        <circle cx="12" cy="12" r="9" />
+      </StrokeTrace>
+
+      {/* Traces the parent's border; the parent must be positioned. */}
+      <div className="relative rounded-[8px]">
+        <input
+          className="h-9 rounded-[8px] border px-3"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+        <StrokeTraceBorder
+          active={focused}
+          radius={8}
+          duration={600}
+          exitDuration={250}
+          exitDirection="reverse"
+          className="text-sky-500"
+        />
+      </div>
+    </div>
+  );
+}`,
+    },
+  ],
   "change-highlight": [
     {
       name: "example.tsx",

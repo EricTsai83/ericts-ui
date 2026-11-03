@@ -203,6 +203,7 @@ const registryDisplayItemConfigs = [
   { name: "scan-reveal", category: "motion-primitive", viewport: "wide" },
   { name: "text-decode", category: "motion-primitive" },
   { name: "change-highlight", category: "motion-primitive" },
+  { name: "stroke-trace", category: "motion-primitive", viewport: "wide" },
   { name: "context-cursor", category: "motion-primitive", viewport: "wide" },
   { name: "rail-stage", category: "app-pattern", viewport: "wide" },
   { name: "mermaid-diagram", category: "app-pattern", viewport: "wide" },

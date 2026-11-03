@@ -1830,6 +1830,29 @@
       ]
     },
     {
+      "name": "stroke-trace",
+      "type": "registry:ui",
+      "title": "Stroke Trace",
+      "description": "Draws along SVG strokes or an element's border, then holds, traces, loops, or orbits. Interruptible reverse or forward exits, with plain line or neon glow.",
+      "categories": ["motion-primitive"],
+      "meta": {
+        "tags": ["svg", "stroke", "loader", "focus", "neon"],
+        "effects": ["line-draw", "glow"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/stroke-trace.tsx",
+          "type": "registry:ui",
+          "target": "@ui/stroke-trace.tsx"
+        },
+        {
+          "path": "registry/base/ui/stroke-trace.css",
+          "type": "registry:file",
+          "target": "@ui/stroke-trace.css"
+        }
+      ]
+    },
+    {
       "name": "change-highlight",
       "type": "registry:ui",
       "title": "Change Highlight",

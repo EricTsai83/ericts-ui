@@ -21,6 +21,7 @@ const previews: Record<string, PreviewComponent> = {
   "change-highlight": dynamic(
     () => import("@/components/previews/change-highlight"),
   ),
+  "stroke-trace": dynamic(() => import("@/components/previews/stroke-trace")),
   "ring-hud": dynamic(() => import("@/components/previews/ring-hud")),
   "download-button": dynamic(
     () => import("@/components/previews/download-button"),
