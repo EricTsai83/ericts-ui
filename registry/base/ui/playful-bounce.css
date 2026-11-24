@@ -1,0 +1,76 @@
+/*
+ * 海老ダンス choreography at its reference 1.5s: the wrapper sways for 1.3s
+ * after 0.1s, while the inner hops twice for 0.7s each, 0.8s apart.
+ * --playful-bounce-duration scales every time proportionally.
+ */
+.playful-bounce-sway,
+.playful-bounce-target {
+  display: inline-flex;
+  transform-origin: bottom center;
+}
+
+/* The reference rests on the sway keyframes' 10deg lean. */
+.playful-bounce-sway {
+  rotate: 10deg;
+}
+
+.playful-bounce-sway[data-playing="true"] {
+  animation: playful-bounce-sway calc(var(--playful-bounce-duration) * 13 / 15)
+    ease-in-out calc(var(--playful-bounce-duration) / 15) both;
+}
+
+.playful-bounce-sway[data-playing="true"] > .playful-bounce-target {
+  animation:
+    playful-bounce-jump calc(var(--playful-bounce-duration) * 7 / 15)
+      ease-in-out 0s both,
+    playful-bounce-jump calc(var(--playful-bounce-duration) * 7 / 15)
+      ease-in-out calc(var(--playful-bounce-duration) * 8 / 15) forwards;
+}
+
+@keyframes playful-bounce-jump {
+  0%,
+  20% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -30%;
+  }
+  80%,
+  100% {
+    translate: 0 0;
+  }
+
+  0% {
+    scale: 1 1;
+  }
+  20% {
+    scale: 1.08 0.9;
+  }
+  50% {
+    scale: 1 1.1;
+  }
+  80% {
+    scale: 1.08 0.9;
+  }
+  100% {
+    scale: 1 1;
+  }
+}
+
+@keyframes playful-bounce-sway {
+  from,
+  to {
+    rotate: 10deg;
+  }
+  45%,
+  55% {
+    rotate: -10deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playful-bounce-sway[data-playing="true"],
+  .playful-bounce-sway[data-playing="true"] > .playful-bounce-target {
+    animation: none;
+  }
+}

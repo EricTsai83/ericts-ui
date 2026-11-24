@@ -1738,7 +1738,7 @@
       "name": "use-scroll-anchor",
       "type": "registry:hook",
       "title": "useScrollAnchor",
-      "description": "A client-safe React hook that parks a selected item at a fixed anchor point in a scroll container, with a configurable easing and duration — the click-to-scroll behavior for navigation panels, command palettes, and step lists.",
+      "description": "A client-safe React hook that parks a selected item at a fixed anchor point in a scroll container, with a configurable easing and duration \u2014 the click-to-scroll behavior for navigation panels, command palettes, and step lists.",
       "categories": ["motion"],
       "meta": {
         "tags": [
@@ -1871,6 +1871,29 @@
       ],
       "registryDependencies": [
         "https://ui.ericts.com/r/use-reduced-motion.json"
+      ]
+    },
+    {
+      "name": "playful-bounce",
+      "type": "registry:ui",
+      "title": "Playful Bounce",
+      "description": "A replayable two-hop celebration with squash, stretch, and a gentle sway. Trigger on hover, click, or through controlsRef; repeated triggers finish the current dance. Respects reduced motion.",
+      "categories": ["motion-primitive"],
+      "meta": {
+        "tags": ["emoji", "icon", "celebration", "bounce"],
+        "effects": ["squash-and-stretch", "rotate", "reduced-motion"]
+      },
+      "files": [
+        {
+          "path": "registry/base/ui/playful-bounce.tsx",
+          "type": "registry:ui",
+          "target": "@ui/playful-bounce.tsx"
+        },
+        {
+          "path": "registry/base/ui/playful-bounce.css",
+          "type": "registry:file",
+          "target": "@ui/playful-bounce.css"
+        }
       ]
     }
   ]

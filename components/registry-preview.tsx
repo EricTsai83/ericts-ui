@@ -40,6 +40,9 @@ const previews: Record<string, PreviewComponent> = {
   "shy-heart": dynamic(() => import("@/components/previews/shy-heart")),
   jitter: dynamic(() => import("@/components/previews/jitter")),
   squeeze: dynamic(() => import("@/components/previews/squeeze")),
+  "playful-bounce": dynamic(
+    () => import("@/components/previews/playful-bounce"),
+  ),
   heartbeat: dynamic(() => import("@/components/previews/heartbeat")),
   "projected-shadow": dynamic(
     () => import("@/components/previews/projected-shadow"),

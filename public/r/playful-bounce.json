@@ -1,0 +1,37 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "playful-bounce",
+  "title": "Playful Bounce",
+  "description": "A replayable two-hop celebration with squash, stretch, and a gentle sway. Trigger on hover, click, or through controlsRef; repeated triggers finish the current dance. Respects reduced motion.",
+  "files": [
+    {
+      "path": "registry/base/ui/playful-bounce.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\n\nimport { cn } from \"@/lib/utils\";\n\nimport \"./playful-bounce.css\";\n\nexport type PlayfulBounceControls = { play: () => void };\nexport type PlayfulBounceProps = React.ComponentProps<\"span\"> & {\n  /** Hover is limited to fine pointers. Use a real button child for click. */\n  trigger?: \"hover\" | \"click\" | \"manual\";\n  /** Play once after mounting. */\n  autoPlay?: boolean;\n  /** Total duration in milliseconds. */\n  duration?: number;\n  /** Imperative playback; ref remains the root DOM node. */\n  controlsRef?: React.Ref<PlayfulBounceControls>;\n  targetClassName?: string;\n};\n\nexport function PlayfulBounce({\n  children,\n  className,\n  targetClassName,\n  trigger = \"hover\",\n  autoPlay = false,\n  duration = 1500,\n  controlsRef,\n  onClick,\n  onPointerEnter,\n  ...props\n}: PlayfulBounceProps) {\n  const targetRef = React.useRef<HTMLSpanElement>(null);\n  const play = React.useCallback(() => {\n    const target = targetRef.current;\n    if (\n      !target ||\n      window.matchMedia(\"(prefers-reduced-motion: reduce)\").matches\n    )\n      return;\n    // Keep the current choreography intact when triggers arrive mid-flight.\n    target.dataset.playing = \"true\";\n  }, []);\n\n  React.useImperativeHandle(controlsRef, () => ({ play }), [play]);\n\n  React.useEffect(() => {\n    const preference = window.matchMedia(\"(prefers-reduced-motion: reduce)\");\n    const target = targetRef.current;\n    const stop = () => {\n      if (target) delete target.dataset.playing;\n    };\n    const onPreferenceChange = () => {\n      if (preference.matches) stop();\n    };\n    preference.addEventListener(\"change\", onPreferenceChange);\n    if (autoPlay) play();\n    return () => {\n      preference.removeEventListener(\"change\", onPreferenceChange);\n      stop();\n    };\n  }, [autoPlay, play]);\n\n  const durationStyle = {\n    \"--playful-bounce-duration\": `${Number.isFinite(duration) ? Math.max(1, duration) : 1500}ms`,\n  } as React.CSSProperties;\n\n  return (\n    <span\n      {...props}\n      data-slot=\"playful-bounce\"\n      className={cn(\"inline-flex\", className)}\n      onClick={(event) => {\n        onClick?.(event);\n        if (!event.defaultPrevented && trigger === \"click\") play();\n      }}\n      onPointerEnter={(event) => {\n        onPointerEnter?.(event);\n        if (\n          !event.defaultPrevented &&\n          trigger === \"hover\" &&\n          window.matchMedia(\"(hover: hover) and (pointer: fine)\").matches\n        )\n          play();\n      }}\n    >\n      <span\n        ref={targetRef}\n        data-slot=\"playful-bounce-sway\"\n        className=\"playful-bounce-sway\"\n        style={durationStyle}\n        onAnimationEnd={(event) => {\n          // The sway and the first hop end before the second hop lands.\n          const sway = event.currentTarget;\n          const running = sway\n            .getAnimations?.({ subtree: true })\n            .some((animation) => animation.playState !== \"finished\");\n          if (!running) delete sway.dataset.playing;\n        }}\n      >\n        <span\n          data-slot=\"playful-bounce-target\"\n          className={cn(\"playful-bounce-target\", targetClassName)}\n        >\n          {children}\n        </span>\n      </span>\n    </span>\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "@ui/playful-bounce.tsx"
+    },
+    {
+      "path": "registry/base/ui/playful-bounce.css",
+      "content": "/*\n * 海老ダンス choreography at its reference 1.5s: the wrapper sways for 1.3s\n * after 0.1s, while the inner hops twice for 0.7s each, 0.8s apart.\n * --playful-bounce-duration scales every time proportionally.\n */\n.playful-bounce-sway,\n.playful-bounce-target {\n  display: inline-flex;\n  transform-origin: bottom center;\n}\n\n/* The reference rests on the sway keyframes' 10deg lean. */\n.playful-bounce-sway {\n  rotate: 10deg;\n}\n\n.playful-bounce-sway[data-playing=\"true\"] {\n  animation: playful-bounce-sway calc(var(--playful-bounce-duration) * 13 / 15)\n    ease-in-out calc(var(--playful-bounce-duration) / 15) both;\n}\n\n.playful-bounce-sway[data-playing=\"true\"] > .playful-bounce-target {\n  animation:\n    playful-bounce-jump calc(var(--playful-bounce-duration) * 7 / 15)\n      ease-in-out 0s both,\n    playful-bounce-jump calc(var(--playful-bounce-duration) * 7 / 15)\n      ease-in-out calc(var(--playful-bounce-duration) * 8 / 15) forwards;\n}\n\n@keyframes playful-bounce-jump {\n  0%,\n  20% {\n    translate: 0 0;\n  }\n  50% {\n    translate: 0 -30%;\n  }\n  80%,\n  100% {\n    translate: 0 0;\n  }\n\n  0% {\n    scale: 1 1;\n  }\n  20% {\n    scale: 1.08 0.9;\n  }\n  50% {\n    scale: 1 1.1;\n  }\n  80% {\n    scale: 1.08 0.9;\n  }\n  100% {\n    scale: 1 1;\n  }\n}\n\n@keyframes playful-bounce-sway {\n  from,\n  to {\n    rotate: 10deg;\n  }\n  45%,\n  55% {\n    rotate: -10deg;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .playful-bounce-sway[data-playing=\"true\"],\n  .playful-bounce-sway[data-playing=\"true\"] > .playful-bounce-target {\n    animation: none;\n  }\n}\n",
+      "type": "registry:file",
+      "target": "@ui/playful-bounce.css"
+    }
+  ],
+  "meta": {
+    "tags": [
+      "emoji",
+      "icon",
+      "celebration",
+      "bounce"
+    ],
+    "effects": [
+      "squash-and-stretch",
+      "rotate",
+      "reduced-motion"
+    ]
+  },
+  "categories": [
+    "motion-primitive"
+  ],
+  "type": "registry:ui"
+}

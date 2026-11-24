@@ -1,0 +1,70 @@
+---
+title: Playful Bounce
+description: A small two-hop celebration for icons, emoji, and mascots.
+---
+
+Use this occasional celebration after a milestone or on playful decorative content. It compresses before takeoff, stretches in the air, and settles after two hops. Avoid applying it to text users are reading or frequently used controls.
+
+## Install
+
+```sh
+pnpm dlx shadcn@latest add https://ui.ericts.com/r/playful-bounce.json
+```
+
+## Hover
+
+```tsx
+import { PlayfulBounce } from "@/components/ui/playful-bounce";
+
+<PlayfulBounce>
+  <span role="img" aria-label="Shrimp" className="text-5xl">🦐</span>
+</PlayfulBounce>
+```
+
+Hover only triggers on devices with a fine pointer and hover support.
+
+## Click or tap
+
+Use a semantic button so keyboard and touch users can activate it too. The wrapper does not add button semantics or a tab stop.
+
+```tsx
+<PlayfulBounce trigger="click">
+  <button type="button" aria-label="Celebrate">🎉</button>
+</PlayfulBounce>
+```
+
+## After an action
+
+```tsx
+"use client";
+
+import { useRef } from "react";
+import { PlayfulBounce, type PlayfulBounceControls } from "@/components/ui/playful-bounce";
+
+export function Celebration() {
+  const controls = useRef<PlayfulBounceControls>(null);
+  return (
+    <>
+      <PlayfulBounce trigger="manual" controlsRef={controls}>
+        <span role="img" aria-label="Star">⭐</span>
+      </PlayfulBounce>
+      <button type="button" onClick={() => controls.current?.play()}>Celebrate</button>
+    </>
+  );
+}
+```
+
+## Props
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `trigger` | `"hover"` | `"hover"`, `"click"`, or `"manual"`. |
+| `autoPlay` | `false` | Play once on mount, or when changed to true. |
+| `duration` | `1500` | Total choreography duration in milliseconds. |
+| `controlsRef` | — | Exposes `play()`. |
+| `ref` | — | The outer span DOM node. |
+| `targetClassName` | — | Classes on the inner animated wrapper. |
+
+Standard span props are forwarded to the root. Preventing the default in the supplied click or pointer-enter handler cancels that trigger. Repeated triggers during playback are ignored; playback can start again once the animation finishes. Children stay mounted throughout playback. Like the reference choreography, the content rests on a 10° lean, which the sway starts and ends on.
+
+Reduced motion disables the decorative movement, including when the preference changes during playback. Keep meaningful success feedback in text or status UI alongside this effect.

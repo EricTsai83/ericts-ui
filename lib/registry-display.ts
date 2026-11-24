@@ -197,6 +197,7 @@ const registryDisplayItemConfigs = [
   { name: "icon-swap", category: "motion-primitive" },
   { name: "jitter", category: "motion-primitive" },
   { name: "squeeze", category: "motion-primitive" },
+  { name: "playful-bounce", category: "motion-primitive" },
   { name: "heartbeat", category: "motion-primitive" },
   { name: "projected-shadow", category: "motion-primitive" },
   { name: "staggered-entrance", category: "motion-primitive" },
